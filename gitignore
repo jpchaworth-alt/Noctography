@@ -1,0 +1,15 @@
+# Build output — regenerate with the bundler, don't commit
+Noctography.html
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Working files
+uploads/
+screenshots/
+*.log
+node_modules/
