@@ -1,0 +1,52 @@
+# Noctography
+
+> Free browser tools for nightscape and landscape astrophotography, by Paul Haworth.
+> Works worldwide, in either hemisphere, for any location the user chooses.
+> Answers one question: is tonight worth going out for, and if so, when.
+> https://www.noctography.net
+
+Everything runs in the visitor's browser. No account, no tracking, no server-side
+computation. Location stays on the device.
+
+## Tools
+
+- **Tonight** (https://www.noctography.net/app/): the best window of the coming night at the
+  user's location, plus cloud through the dark hours, air temperature and dew point, wind,
+  sunset and sunrise, moon phase and times, the astronomical darkness window, real-world
+  Bortle, meteor rate, aurora (NOAA Kp), Milky Way core altitude, and visible ISS or recent
+  Starlink train passes. Warns about mist and fog risk.
+- **Looking ahead**: the next ten nights compared side by side on cloud, moon, real-world
+  Bortle, meteors, aurora and sun and moon times, with the best night identified.
+- **Meteor outlook**: sixty nights of shower activity, an hour-by-hour rate chart for a chosen
+  night, and a per-shower breakdown.
+- **Panorama calculator**: rotation between frames by focal length, sensor size, orientation
+  and overlap, with shot counts for 180 and 360 degree sweeps.
+- **Night vision mode**: the whole interface in red on black to preserve dark adaptation.
+
+## Definitions specific to this project
+
+- **Real-world Bortle**: the Bortle class a site actually performs at on a given night. The
+  light pollution atlas value, plus moonlight, plus humidity haze, plus town glow scattered
+  back down by thin cloud, evaluated at the zenith through the dark hours and converted back
+  to a Bortle class. A Bortle 3 site under a gibbous moon performs like a Bortle 5 one.
+- **Meteor rate**: meteors per hour an observer could realistically expect to see, not the
+  quoted ZHR. Computed as ZHR(t) x sin(radiant altitude) x r^(limiting magnitude - 6.5) x
+  clear sky fraction x 0.75, evaluated every 15 minutes.
+- **Mist and fog risk**: fires when air is near its dew point, wind is under about 10 km/h,
+  and the sky is largely clear — the three conditions for radiation fog.
+
+## Data sources
+
+- Open-Meteo forecast and ERA5 archive: cloud, humidity, temperature, dew point, wind, visibility
+- NOAA Space Weather Prediction Center: planetary K index
+- David Lorenz 2025 World Atlas of Artificial Night Sky Brightness: light pollution
+- International Meteor Organization: shower dates, ZHR, population index
+- CelesTrak: orbital elements, propagated with SGP4 in the browser
+- Krisciunas & Schaefer (1991) moonlight sky brightness model; Kasten & Young (1989) airmass
+
+## Author
+
+Paul Haworth, landscape astrophotographer and filmmaker, Cambridgeshire Fens.
+- https://www.paulhaworthnightscapes.com
+- https://www.youtube.com/@nightscapejournals
+- Support: https://buymeacoffee.com/jpchaworthy
