@@ -1,0 +1,55 @@
+:root{
+  /* families */
+  --font-core:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-condensed:"Barlow Condensed","Barlow",system-ui,sans-serif;
+  --font-display:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  /* weights */
+  --weight-light:300;
+  --weight-regular:400;
+  --weight-medium:500;
+  --weight-semibold:600;
+  --weight-bold:700;
+
+  /* size scale (px, 1.25-ish) */
+  --size-3xs:12px;
+  --size-2xs:14px;
+  --size-xs:16px;
+  --size-s:18px;
+  --size-m:21px;
+  --size-l:26px;
+  --size-xl:32px;
+  --size-2xl:40px;
+  --size-3xl:52px;
+  --size-4xl:66px;
+  --size-5xl:84px;
+
+  /* line heights */
+  --leading-tight:1.05;
+  --leading-snug:1.2;
+  --leading-normal:1.5;
+  --leading-relaxed:1.65;
+
+  /* tracking */
+  --tracking-tight:-0.02em;
+  --tracking-normal:0;
+  --tracking-wide:0.06em;
+  --tracking-eyebrow:0.22em;   /* the palette-card label treatment */
+
+  /* semantic roles */
+  --text-poster:var(--size-5xl);
+  --text-display:var(--size-4xl);
+  --text-h1:var(--size-3xl);
+  --text-h2:var(--size-2xl);
+  --text-h3:var(--size-xl);
+  --text-h4:var(--size-l);
+  --text-lead:var(--size-m);
+  --text-body:var(--size-s);
+  --text-body-sm:var(--size-xs);
+  --text-caption:var(--size-2xs);
+  --text-eyebrow:var(--size-3xs);
+
+  /* night-field floor: never set card body copy below this */
+  --text-field-min:20px;
+}

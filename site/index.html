@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noctography — tools for the nightscape photographer</title>
+<meta name="description" content="Free browser tools for astrophotography: tonight's conditions, a 60-night meteor outlook and a panorama rotation calculator. Cloud, moon, real-world Bortle, aurora, ISS and Starlink passes for your location. By Paul Haworth Nightscapes.">
+<link rel="canonical" href="https://www.noctography.net/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="author" content="Paul Haworth">
+<meta name="theme-color" content="#160F47">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Noctography">
+<meta property="og:title" content="Noctography — tools for the nightscape photographer">
+<meta property="og:description" content="Tonight's conditions, the meteor outlook and a panorama calculator. Free, in your browser, no account.">
+<meta property="og:url" content="https://www.noctography.net/">
+<meta property="og:image" content="https://www.noctography.net/noctography-link-preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Noctography — tools for the nightscape photographer">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Noctography — tools for the nightscape photographer">
+<meta name="twitter:description" content="Tonight's conditions, the meteor outlook and a panorama calculator. Free, in your browser, no account.">
+<meta name="twitter:image" content="https://www.noctography.net/noctography-link-preview.png">
+
+<link rel="icon" type="image/png" sizes="512x512" href="favicon.png">
+<link rel="apple-touch-icon" href="assets/noctography-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://www.noctography.net/#app",
+      "name": "Noctography",
+      "url": "https://www.noctography.net/app/",
+      "description": "Free browser tools for nightscape and landscape astrophotography: tonight's observing conditions, a sixty-night meteor shower outlook, and a panorama rotation calculator.",
+      "applicationCategory": "Photography",
+      "operatingSystem": "Any (web browser)",
+      "browserRequirements": "Requires JavaScript",
+      "inLanguage": "en-GB",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+      "featureList": [
+        "Tonight's best window for astrophotography at your location",
+        "Cloud cover, humidity, dew point and wind through the dark hours",
+        "Moon phase, moonrise and moonset",
+        "Astronomical darkness window and Milky Way core altitude",
+        "Real-world Bortle: sky darkness with moonlight, haze and cloud-lit glow counted",
+        "Sixty-night meteor shower outlook with hourly rates",
+        "Aurora forecast from the NOAA planetary K index",
+        "Visible ISS and recent Starlink train passes",
+        "Mist and fog risk warning",
+        "Panorama rotation calculator by focal length, sensor and overlap",
+        "Red night-vision mode for use in the dark"
+      ],
+      "screenshot": "https://www.noctography.net/noctography-link-preview.png",
+      "author": { "@id": "https://www.noctography.net/#paul" },
+      "publisher": { "@id": "https://www.noctography.net/#paul" }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://www.noctography.net/#paul",
+      "name": "Paul Haworth",
+      "jobTitle": "Landscape astrophotographer and filmmaker",
+      "description": "Award-winning landscape astrophotographer and filmmaker based in the Cambridgeshire Fens, speaking to camera clubs, astronomy societies and dark sky sites.",
+      "url": "https://www.paulhaworthnightscapes.com",
+      "sameAs": [
+        "https://www.paulhaworthnightscapes.com",
+        "https://www.youtube.com/@nightscapejournals"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.noctography.net/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the best time to photograph the Milky Way?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You need three things at once: full astronomical darkness, with the Sun more than 18 degrees below the horizon; no moon in the sky, or a thin crescent low down; and the galactic core actually above the horizon. When that happens depends entirely on where you are. From the northern mid-latitudes the core season runs from roughly February to October and the core stays fairly low; from the southern hemisphere it climbs far higher and the season shifts. Noctography works out all three for your own location and shows the hours when they overlap."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What does the Bortle scale mean?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The Bortle scale runs from 1 to 9 and describes how much artificial light pollutes the night sky at a site. Bortle 1 is a genuinely pristine sky, Bortle 4 is a rural transition zone typical of open countryside within reach of towns, and Bortle 8 or 9 is an inner city. The published class describes a site on a perfect, moonless night, which is not usually the night you are standing in."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is real-world Bortle?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Real-world Bortle is Noctography's measure of what a site actually performs like on a given night, rather than at its theoretical best. It starts from the light pollution atlas value for your location, then adds the brightening from moonlight, haze from humidity, and town glow scattered back down by thin cloud, and converts the result back into a Bortle class. A Bortle 3 site under a gibbous moon genuinely performs like a Bortle 5 one, and that is the number worth planning against."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How many meteors will I actually see during a meteor shower?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Far fewer than the quoted ZHR. The zenithal hourly rate assumes a perfect observer under a perfect sky with the radiant directly overhead. The real figure falls with the radiant's height above the horizon, with any moonlight or light pollution, and with cloud. Noctography evaluates the standard relation every 15 minutes through the night for each active shower, so a shower quoted at 100 per hour might realistically be 25 per hour from a rural site at mid latitudes — and less again if the radiant never climbs high from where you are."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How far should I rotate the camera between panorama frames?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It depends on your focal length, sensor size, whether the camera is portrait or landscape, and how much overlap you want. As a rule of thumb, 30 percent overlap is the minimum for reliable stitching and 40 to 50 percent is safer for night skies, where there is little detail for the stitcher to lock onto. A 24mm lens on full frame in portrait orientation with 40 percent overlap needs roughly 44 degrees between frames. Noctography's panorama calculator gives the exact figure for your combination."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why do clear nights sometimes end up misty?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Radiation fog forms on exactly the nights that look most promising. A clear sky lets the ground radiate its heat away, the air cools to its dew point, and with almost no wind to mix it there is nothing to stop mist forming at ground level. Noctography warns when those three conditions line up: air close to the dew point, wind under about 10 km/h, and little cloud. Damp low ground, river valleys and coastal plains are the classic places for it."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Noctography free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. It is free, needs no account, and runs entirely in your browser. There is a Buy Me a Coffee link if it saves you a cold hour working something out."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #160F47; }
+  body {
+    color: #F5F5F5;
+    font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 18px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  a { color: #FAA338; text-decoration: none; }
+  a:hover { color: #FFC172; text-decoration: underline; text-underline-offset: 3px; }
+  .wrap { width: 100%; max-width: 780px; margin: 0 auto; padding: 0 20px; }
+  h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; letter-spacing: -.01em; text-wrap: pretty; }
+  h1 { font-size: 54px; line-height: 1.02; margin: 0 0 14px; }
+  h2 { font-size: 34px; line-height: 1.1; margin: 56px 0 14px; }
+  h3 { font-size: 22px; line-height: 1.2; margin: 0 0 6px; font-family: 'Barlow', sans-serif; font-weight: 600; }
+  p { margin: 0 0 16px; max-width: 62ch; text-wrap: pretty; }
+  .eyebrow { font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4; }
+  .cta {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 56px; padding: 0 30px; border-radius: 999px;
+    background: #FAA338; color: #160F47; font-size: 15px; font-weight: 600;
+    letter-spacing: .16em; text-transform: uppercase;
+  }
+  .cta:hover { background: #FFC172; color: #160F47; text-decoration: none; }
+  .cta.ghost { background: transparent; color: #FAA338; border: 1px solid #FAA338; }
+  .cta.ghost:hover { background: rgba(250,163,56,.14); color: #FFC172; }
+  .card { padding: 22px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 12px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  header.site { display: flex; align-items: center; gap: 12px; padding: 20px 0; border-bottom: 1px solid rgba(245,245,245,.14); }
+  footer.site { margin-top: 72px; padding: 28px 0 40px; border-top: 1px solid rgba(245,245,245,.14); color: #A9A8C4; font-size: 16px; }
+  @media (max-width: 600px) { h1 { font-size: 40px; } h2 { font-size: 28px; } body { font-size: 17px; } }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap" style="display: flex; align-items: center; gap: 12px;">
+    <img src="assets/noctography-icon-128.png" alt="Noctography" width="44" height="44" style="border-radius: 10px; display: block;">
+    <span style="display: grid; gap: 3px; margin-right: auto;">
+      <span style="font-size: 15px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase;">Noctography</span>
+      <span class="mono" style="font-size: 11px; color: #A9A8C4;">Paul Haworth Nightscapes</span>
+    </span>
+    <a class="cta" href="app/index.html" style="min-height: 44px; padding: 0 20px; font-size: 13px;">Get the app</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section style="padding: 56px 0 8px;">
+    <p class="eyebrow" style="margin-bottom: 18px;">Free · no account · works offline once loaded</p>
+    <h1>Tools for the nightscape photographer.</h1>
+    <p style="font-size: 21px; color: #DEDDEA; max-width: 46ch;">Is tonight worth the drive? Noctography answers that in one screen — cloud, moon, real darkness, meteors, aurora — for anywhere in the world.</p>
+    <p style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px;">
+      <a class="cta" href="app/index.html">Open Noctography</a>
+      <a class="cta ghost" href="#what">What it does</a>
+    </p>
+    <p class="mono" style="font-size: 14px; color: #8583A8; margin-top: 18px;">Add it to your home screen and it behaves like an app.</p>
+  </section>
+
+  <section id="what">
+    <h2>What it does</h2>
+    <p>Three tools so far, with more coming. Everything is worked out on your own device from public forecast and orbital data — there is no server deciding things for you, and nothing to sign up to.</p>
+
+    <div class="grid" style="margin-top: 28px;">
+      <article class="card">
+        <h3>Tonight</h3>
+        <p style="margin: 0; font-size: 16px; color: #A9A8C4;">A greeting that tells you straight away whether it is worth going out, then the best window of the night and twelve tiles explaining why: cloud through the dark hours, air temperature and dew point, wind, sunset and sunrise, moon phase and times, the astronomical darkness window, real-world Bortle, meteor rate, aurora, Milky Way core altitude, and any bright ISS or Starlink passes.</p>
+      </article>
+      <article class="card">
+        <h3>Looking ahead</h3>
+        <p style="margin: 0; font-size: 16px; color: #A9A8C4;">Ten nights side by side, so you can see at a glance that Wednesday is a much better bet than tonight. Cloud, moon, real-world Bortle, meteors, aurora, sun and moon times, with the best night picked out and the reason spelled out in plain English.</p>
+      </article>
+      <article class="card">
+        <h3>Meteor outlook</h3>
+        <p style="margin: 0; font-size: 16px; color: #A9A8C4;">Sixty nights of shower activity against moon, cloud and sky darkness. An hour-by-hour chart of the coming night, a breakdown for every active shower, and honest rates — what you can actually expect to see, not the quoted ZHR.</p>
+      </article>
+      <article class="card">
+        <h3>Panorama calculator</h3>
+        <p style="margin: 0; font-size: 16px; color: #A9A8C4;">How far to rotate between frames for your lens, sensor and overlap, with the number of shots for a 180 or 360 degree sweep. Built for working it out in the field, in the dark, with cold hands.</p>
+      </article>
+    </div>
+
+    <p style="margin-top: 24px;"><strong style="font-weight: 600;">Night vision throughout.</strong> One tap turns the whole app red on black so it does not wreck your dark adaptation. It remembers the setting between visits.</p>
+  </section>
+
+  <section>
+    <h2>Why I built it</h2>
+    <p>I am Paul Haworth, a landscape astrophotographer and filmmaker based in the Cambridgeshire Fens, in the east of England. I spend a lot of nights standing in fields waiting for the sky to do something worth photographing.</p>
+    <p>The problem was never a shortage of information. It was that the information lived in six different places — one site for cloud, another for the moon, a light pollution map, a meteor calendar, a satellite tracker — and none of them answered the only question that matters at five o'clock on a Tuesday afternoon: <em>is tonight worth it?</em></p>
+    <p>So I built the thing I wanted. It pulls the forecast, works out the astronomy on your phone, and gives you a straight answer. Then, if you are going out, it tells you when the sky will be darkest, where the Milky Way core will sit, whether to pack dew straps, and whether the mist is going to ruin it anyway.</p>
+    <p>It works anywhere. Give it a location and it reads the light pollution atlas, the forecast and the sky for that spot, in either hemisphere — the only thing that is particularly British about it is me.</p>
+    <p>It is free because it was always for me and my friends first. If it saves you a cold hour working something out on the back of your hand, you can <a href="https://buymeacoffee.com/jpchaworthy" rel="noopener">buy me a coffee</a>.</p>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <p>Nothing here is guesswork dressed up as data. Sun, moon and meteor radiant positions are computed in your browser. Cloud, humidity, temperature, dew point, wind and visibility come from <a href="https://open-meteo.com" rel="noopener">Open-Meteo</a>. Sky darkness comes from <a href="https://djlorenz.github.io/astronomy/" rel="noopener">David Lorenz's 2025 light pollution atlas</a>, baked into the app. Aurora comes from the <a href="https://www.swpc.noaa.gov/products/planetary-k-index" rel="noopener">NOAA Space Weather Prediction Center</a>. Shower parameters are hand-encoded from the <a href="https://www.imo.net" rel="noopener">International Meteor Organization</a> working list. Satellite passes are propagated with SGP4 against <a href="https://celestrak.org" rel="noopener">CelesTrak</a> orbital elements, on your device.</p>
+    <p>Every source is listed and credited inside the app, under Data sources.</p>
+  </section>
+
+  <section>
+    <h2>Common questions</h2>
+
+    <h3 style="margin-top: 28px;">What is the best time to photograph the Milky Way?</h3>
+    <p>You need three things at once: full astronomical darkness, no moon, and the galactic core above the horizon. When that happens depends on where you are — north of the equator the core season runs roughly February to October and the core stays fairly low in the south; from the southern hemisphere it climbs far higher, and the season shifts. Noctography works all three out for your own location and shows where they overlap.</p>
+
+    <h3>What is real-world Bortle?</h3>
+    <p>The published Bortle class for a site describes a perfect, moonless night — which is rarely the night you are standing in. Real-world Bortle starts from the atlas value for your location, then adds moonlight, haze from humidity, and town glow scattered back down by thin cloud, and converts the result back to a Bortle class. A Bortle 3 site under a gibbous moon genuinely performs like a Bortle 5 one.</p>
+
+    <h3>How many meteors will I actually see?</h3>
+    <p>Far fewer than the quoted ZHR, which assumes a perfect observer under a perfect sky with the radiant overhead. The real number falls with radiant height, moonlight, light pollution and cloud. A shower quoted at 100 an hour might realistically be 25 from a rural site at mid latitudes, and less again where the radiant never climbs high — Noctography will tell you which you are getting.</p>
+
+    <h3>How far should I rotate between panorama frames?</h3>
+    <p>It depends on focal length, sensor, orientation and overlap. Thirty percent overlap is the minimum for reliable stitching; forty to fifty is safer for night skies, where there is little detail for the stitcher to grip. A 24mm lens on full frame, portrait, at forty percent overlap needs about 44 degrees between frames.</p>
+
+    <h3>Why do clear nights sometimes end up misty?</h3>
+    <p>Radiation fog forms on exactly the nights that look most promising: a clear sky lets the ground radiate its heat away, the air cools to its dew point, and with no wind to mix it, mist forms at ground level. Noctography warns when those three line up.</p>
+
+    <h3>Is it free?</h3>
+    <p>Yes, and there is no account. It runs in your browser and keeps your location on your own device.</p>
+  </section>
+
+  <section style="margin-top: 64px; padding: 32px; background: #241B54; border: 1px solid rgba(250,163,56,.4); border-radius: 14px; text-align: center;">
+    <h2 style="margin: 0 0 10px;">Have a look at tonight</h2>
+    <p style="margin: 0 auto 22px; color: #DEDDEA;">It takes about five seconds to tell you whether to bother.</p>
+    <a class="cta" href="app/index.html">Open Noctography</a>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>Follow my cinematic nightscape adventures at <a href="https://www.youtube.com/@nightscapejournals" rel="noopener">youtube.com/@nightscapejournals</a>, or see prints, talks and free downloads at <a href="https://www.paulhaworthnightscapes.com" rel="noopener">paulhaworthnightscapes.com</a>.</p>
+    <p style="margin-top: 22px;"><a class="cta ghost" href="https://buymeacoffee.com/jpchaworthy" rel="noopener" style="min-height: 48px; padding: 0 24px; font-size: 13px;">Say thanks</a></p>
+    <p style="display: flex; align-items: center; gap: 10px; margin-top: 20px;">
+      <img src="assets/logo-roundel.png" alt="" width="40" height="40" style="border-radius: 50%; display: block;">
+      <span class="eyebrow">Paul Haworth Nightscapes</span>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

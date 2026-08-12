@@ -1,0 +1,21 @@
+:root{
+  --space-0:0px;
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:24px;
+  --space-6:32px;
+  --space-7:44px;
+  --space-8:64px;
+  --space-9:88px;
+  --space-10:120px;
+
+  --gutter-card:var(--space-5);
+  --gutter-section:var(--space-9);
+  --gutter-field:var(--space-6);      /* generous padding on night cards */
+  --measure-prose:66ch;
+  --measure-card:46ch;
+  --hit-min:44px;                     /* minimum touch target, gloved hands */
+  --page-max:1200px;
+}

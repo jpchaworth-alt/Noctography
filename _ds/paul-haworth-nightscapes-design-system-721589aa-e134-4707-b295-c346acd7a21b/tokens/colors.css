@@ -1,0 +1,97 @@
+:root{
+  /* ── Base ramp: night violet (from "The Night Palette") ── */
+  --void-1000:#050418;              /* deeper than brand violet: true OLED night */
+  --violet-900:#160F47;             /* Russian Violet — brand core */
+  --violet-800:#241B54;             /* interpolated step */
+  --violet-700:#363162;             /* Space Cadet */
+  --violet-600:#4D4C7D;             /* Ultra Violet */
+  --violet-500:#6E6D99;
+  --violet-300:#A9A8C4;
+  --violet-100:#DEDDEA;
+  --smoke:#F5F5F5;                  /* White Smoke */
+  --white:#FFFFFF;
+
+  /* ── Accent: torchlight amber ── */
+  --amber-600:#E08A1E;
+  --amber-500:#FAA338;              /* Orange Peel — brand accent */
+  --amber-400:#FFBF6B;
+  --amber-100:#FFE7C4;
+
+  /* ── Sky accents, used sparingly ── */
+  --aurora-500:#7FC79B;             /* aurora green */
+  --citron-200:#E8E7B4;             /* pale sky band (poster) */
+  --nebula-300:#E2A8C4;             /* hydrogen-alpha pink */
+
+  /* ── Night-vision red: dark-adapted reading only ── */
+  --nightvision-500:#FF3B18;
+  --nightvision-700:#B31E08;
+
+  /* ── Semantic: surfaces ── */
+  --surface-canvas:var(--violet-900);
+  --surface-night:var(--void-1000);
+  --surface-card:var(--violet-800);
+  --surface-raised:var(--violet-700);
+  --surface-inset:rgba(5,4,24,.45);
+  --surface-light:var(--smoke);
+  --surface-light-raised:var(--white);
+  --scrim:rgba(5,4,24,.72);
+
+  /* ── Semantic: text ── */
+  --text-primary:var(--white);
+  --text-secondary:var(--violet-100);
+  --text-muted:var(--violet-300);
+  --text-accent:var(--amber-500);
+  --text-on-light:var(--violet-900);
+  --text-on-light-muted:var(--violet-600);
+  --text-on-accent:var(--violet-900);
+
+  /* ── Semantic: lines + interaction ── */
+  --border-hairline:rgba(245,245,245,.14);
+  --border-subtle:rgba(245,245,245,.24);
+  --border-strong:var(--violet-600);
+  --border-accent:var(--amber-500);
+  --border-on-light:rgba(22,15,71,.16);
+  --focus-ring:var(--amber-400);
+  --state-hover-lift:rgba(245,245,245,.06);
+  --state-press-sink:rgba(5,4,24,.28);
+  --state-disabled-opacity:.42; /* @kind other */
+
+  /* ── Semantic: status ── */
+  --status-clear:var(--aurora-500);       /* clear skies / go */
+  --status-marginal:var(--amber-500);     /* cloud risk / caution */
+  --status-clouded:var(--violet-500);     /* clouded out / inactive */
+}
+
+/* Night-vision scope: dark-adapted field reading. Apply to any subtree. */
+[data-theme="nightvision"]{
+  --surface-canvas:#000000;
+  --surface-night:#000000;
+  --surface-card:#0B0301;
+  --surface-raised:#160604;
+  --surface-inset:#000000;
+  --text-primary:var(--nightvision-500);
+  --text-secondary:var(--nightvision-500);
+  --text-muted:var(--nightvision-700);
+  --text-accent:var(--nightvision-500);
+  --text-on-accent:#000000;
+  --border-hairline:rgba(255,59,24,.28);
+  --border-subtle:rgba(255,59,24,.4);
+  --border-strong:var(--nightvision-700);
+  --border-accent:var(--nightvision-500);
+  --focus-ring:var(--nightvision-500);
+  --amber-500:var(--nightvision-500);
+}
+
+/* Daylight scope: print sheets, light web sections. */
+[data-theme="daylight"]{
+  --surface-canvas:var(--smoke);
+  --surface-card:var(--white);
+  --surface-raised:var(--white);
+  --surface-inset:rgba(22,15,71,.05);
+  --text-primary:var(--violet-900);
+  --text-secondary:var(--violet-700);
+  --text-muted:var(--violet-600);
+  --border-hairline:rgba(22,15,71,.12);
+  --border-subtle:rgba(22,15,71,.2);
+  --border-strong:var(--violet-300);
+}

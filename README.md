@@ -18,15 +18,39 @@ remembered between visits.
 
 ## Running it
 
-Open `Noctography.dc.html` in a browser. Nothing to install.
-
-For a single file you can email, drop on a phone home screen, or embed, use the bundled build:
+`site/` is the deployable app — plain static files, no build step. Serve that folder, or point
+GitHub Pages at it, and you are done.
 
 ```
-Noctography.html      # everything inlined — engine, calculator, light pollution atlas, brand mark
+site/index.html                 static landing page — this is what search engines read
+site/app/index.html             the app
+site/app/manifest.webmanifest   installs as "Noctography" on a phone home screen
+site/support.js                 runtime
+site/noctography-engine.js      the model
+site/noctography-sat.js         SGP4 propagator and pass finder
+site/pano-calculator.js         panorama calculator, fetched on first open of that tab
+site/assets/                    icons and brand mark
+site/favicon.png                tab icon
+site/noctography-link-preview.png   1200x630 share card
+site/robots.txt, sitemap.xml, llms.txt
 ```
+
+**The landing page is deliberately plain HTML, not the app.** The app renders in JavaScript, and
+most AI crawlers — GPTBot, ClaudeBot, PerplexityBot — do not run JavaScript, so to them a
+JS-rendered page is blank. `index.html` carries the real prose, headings, and JSON-LD
+(`WebApplication`, `Person`, `FAQPage`) in the source. `llms.txt` is the same thing again as
+plain text, including the definitions specific to this project. Edit those by hand — they are not
+generated from the DC.
 
 Live cloud, aurora and place search need a connection; everything else is computed in the browser.
+
+**Use the multi-file build in production.** `Noctography.html` is a single self-contained file for
+offline use and emailing — it inlines everything into one 3.7 MB document, which low-memory Android
+phones can fail to render at all ("Aw, snap"). The `site/` build loads the same app as separate
+cacheable files, and does not touch `pano-calculator.js` at all until someone opens that tab —
+verified: no request for it during page load, 357 KB fetched on first click. Nothing large is on
+the critical path: the header mark is a 128px, 29 KB file, and the 1024px icon is fetched by the OS
+only when someone installs the app.
 
 ## What is in here
 
@@ -34,9 +58,14 @@ Live cloud, aurora and place search need a connection; everything else is comput
 | --- | --- |
 | `Noctography.dc.html` | The app: layout, screens, tiles, navigation |
 | `noctography-engine.js` | The model — astronomy, shower data, sky brightness, weather, light pollution atlas |
+| `noctography-sat.js` | SGP4 orbit propagator and pass finder for the ISS and recent Starlink launches |
 | `pano-calculator.js` | The panorama rotation calculator, wrapped as `<pano-calculator>` |
-| `assets/logo-roundel.png` | Brand mark |
-| `Noctography.html` | Bundled single-file build (generated, gitignored) |
+| `assets/noctography-icon.png` | App icon, 1024px — home screen and manifest only, never the page |
+| `assets/noctography-icon-128.png` | The 44px header mark, sized for it |
+| `assets/logo-roundel.png` | Paul Haworth Nightscapes mark, used in the footer |
+| `site/` | Deployable static build — this is what gets published |
+| `Noctography-offline.dc.html` | Source variant for the single-file build — imports the calculator eagerly so it can be inlined |
+| `Noctography.html` | Single-file offline build (generated). Heavy; not for production |
 
 ## The model
 
@@ -64,9 +93,16 @@ working list, with no outburst or dust-trail predictions. Sky darkness comes fro
 2025 light pollution atlas (VIIRS), baked in as two encoded PNGs and used as a continuous
 measurement — Bortle class is shown for familiarity only.
 
+**Real-world Bortle** applies the same limiting-magnitude model to the whole sky rather than to a
+radiant: atlas brightness, plus moonlight, plus humidity haze, plus town glow scattered back down
+by thin cloud, evaluated at the zenith every 15 minutes and reported as the median across the dark
+hours. It is what the site actually performs like tonight, not what it reads on a perfect night.
+
 `uploads/meteor-outlook-model.md` holds the full reference for the calculation logic.
 
 ## Data
+
+Every source is also listed in the app itself, under "Data sources and credits" in the footer.
 
 | Data | Source | Notes |
 | --- | --- | --- |
@@ -75,6 +111,7 @@ measurement — Bortle class is shown for familiarity only.
 | Aurora | NOAA SWPC planetary K index | 3-hourly forecast |
 | Place search | Open-Meteo geocoding | |
 | Light pollution | Lorenz 2025 atlas | Baked in, static |
+| Satellite orbits | CelesTrak TLEs | ISS and last-30-days launches; SGP4 propagated in the browser |
 | Sun, moon, radiants | Computed in browser | No library dependency |
 
 ## Known limits

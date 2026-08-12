@@ -1,16 +1,269 @@
-/* Noctography engine — meteor rates, sky brightness, weather.
-   Astronomy, shower data and rate model carried over from Meteor Watch. */
-"use strict";
-(function(){
-if (window.NoctoEngine) return;   // one engine per page: keep the loaded atlas and forecast
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meteor Watch — shower forecast for nightscape planning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080a12;
+    --panel:#0f1220;
+    --panel2:#141828;
+    --line:#242a3d;
+    --text:#e8e5dc;
+    --muted:#818aa3;
+    --meteor:#f5a800;
+    --moon:#9fb6d8;
+    --cloud:#5c6478;
+    --bad:#c25b4a;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:14px;line-height:1.5;
+    padding:20px 14px 60px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
 
-/* the extracted engine calls back into the old page's renderers; the app re-renders itself */
-function renderChips(){}
-function renderRibbon(){}
-function renderNight(){}
-function refresh(){}
-function writeHash(){}
-function $(){ return null; }
+  /* ---- header ---- */
+  header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+  h1{font-family:'Bebas Neue',Impact,sans-serif;font-size:clamp(2.4rem,7vw,3.6rem);
+     letter-spacing:.05em;line-height:.95;color:var(--text)}
+  h1 span{color:var(--meteor)}
+  .tag{font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+
+  /* ---- controls ---- */
+  .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:14px}
+  .field{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:9px 11px}
+  .field label{display:block;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  input,select,button{font-family:inherit;font-size:.85rem;color:var(--text);background:transparent;border:0;width:100%;outline:none}
+  input::placeholder{color:#4b5266}
+  select{cursor:pointer}
+  select option{background:#141828;color:var(--text)}
+  input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.7)}
+  .row{display:flex;gap:8px}
+  .btn{background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:9px 12px;cursor:pointer;
+       font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;width:auto;transition:.15s}
+  .btn:hover{border-color:var(--meteor);color:var(--meteor)}
+  .btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--meteor);outline-offset:2px}
+  .btn.primary{background:var(--meteor);color:#0b0b0b;border-color:var(--meteor);font-weight:600}
+  .btn.primary:hover{color:#0b0b0b;opacity:.88}
+
+  .results{margin-top:8px;border:1px solid var(--line);border-radius:3px;background:var(--panel2);display:none}
+  .results div{padding:8px 11px;cursor:pointer;font-size:.8rem;border-bottom:1px solid var(--line)}
+  .results div:last-child{border-bottom:0}
+  .results div:hover{background:#1c2136;color:var(--meteor)}
+
+  /* ---- status chips ---- */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+  .chip{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+        border:1px solid var(--line);border-radius:99px;padding:4px 10px;background:var(--panel)}
+  .chip b{color:var(--text);font-weight:500}
+  .chip-btn{width:auto;display:inline;background:none;border:0;color:var(--meteor);cursor:pointer;
+            font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;text-decoration:underline;padding:0 0 0 4px}
+  .chip.warn{border-color:#4a3a1a;color:#c99a3a}
+
+  /* ---- section furniture ---- */
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:26px 0 10px;flex-wrap:wrap}
+  h2{font-family:'Bebas Neue',Impact,sans-serif;font-size:1.5rem;letter-spacing:.07em;font-weight:400}
+  .hint{font-size:.68rem;color:var(--muted)}
+
+  /* ---- ribbon (signature) ---- */
+  .ribbon-box{border:1px solid var(--line);background:var(--panel);border-radius:3px;padding:14px 0 6px}
+  .ribbon-frame{display:flex;align-items:flex-start}
+  .ribbon-gutter{flex:0 0 58px;position:relative}
+  .gut{position:relative;width:58px}
+  .gut-arrow{position:absolute;left:47px;width:1px;background:linear-gradient(180deg,rgba(245,168,0,.55),rgba(159,182,216,.35))}
+  .gut-h{position:absolute;right:8px;font-size:.55rem;letter-spacing:.06em;color:#5c6478;text-align:right}
+  .gut-cap{position:absolute;right:8px;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--meteor)}
+  .gut-top::after{content:' \2193'}
+  .gut-bot::before{content:'\2193 '}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .seg button{width:auto;padding:5px 11px;font-size:.6rem;letter-spacing:.14em;background:var(--panel);
+              color:var(--muted);cursor:pointer;border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--meteor);color:#0b0b0b;font-weight:600}
+  .ribbon-scroll{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;padding:0 14px 8px}
+  .ribbon-scroll::-webkit-scrollbar{height:8px}
+  .ribbon-scroll::-webkit-scrollbar-track{background:#0b0e18}
+  .ribbon-scroll::-webkit-scrollbar-thumb{background:#2b3247;border-radius:4px}
+  .ribbon-read{min-height:18px;padding:0 16px 6px;font-size:.68rem;color:var(--meteor);letter-spacing:.04em}
+  .ribbon-key{display:flex;gap:16px;flex-wrap:wrap;padding:6px 16px 4px;font-size:.6rem;letter-spacing:.1em;
+              text-transform:uppercase;color:var(--muted)}
+  .swatch{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px;border-radius:1px}
+
+  /* ---- night detail ---- */
+  .night{border:1px solid var(--line);background:var(--panel);border-radius:3px;overflow:hidden}
+  .night-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-bottom:1px solid var(--line)}
+  .stat{padding:14px 16px;border-right:1px solid var(--line)}
+  .stat:last-child{border-right:0}
+  .stat .k{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .stat .v{font-family:'Bebas Neue',Impact,sans-serif;font-size:2rem;line-height:1.1;letter-spacing:.03em;margin-top:2px}
+  .stat .v.meteor{color:var(--meteor)}
+  .stat .s{font-size:.7rem;color:var(--muted)}
+  .chart-box{padding:14px 10px 4px}
+  .chart-key{display:flex;gap:10px 20px;flex-wrap:wrap;padding:2px 16px 16px;font-size:.62rem;
+             letter-spacing:.06em;color:var(--muted)}
+  .chart-key span{display:inline-flex;align-items:center;gap:7px}
+  .chart-key svg{flex:0 0 24px}
+
+  /* ---- shower cards ---- */
+  .shower{border-top:1px solid var(--line)}
+  .shower-head{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;flex-wrap:wrap}
+  .shower-head:hover{background:#131728}
+  .code{font-family:'Bebas Neue',Impact,sans-serif;font-size:1.15rem;letter-spacing:.1em;color:var(--meteor);min-width:44px}
+  .sname{flex:1;min-width:130px;font-size:.86rem}
+  .srate{font-family:'Bebas Neue',Impact,sans-serif;font-size:1.45rem;letter-spacing:.03em}
+  .sunit{font-size:.6rem;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-left:4px}
+  .meter{width:82px;height:6px;background:#1c2135;border-radius:99px;overflow:hidden;flex-shrink:0}
+  .meter i{display:block;height:100%;background:var(--meteor)}
+  .shower-body{display:none;padding:2px 16px 18px;border-top:1px solid #1a1f30;background:#0c0f1b}
+  .shower.open .shower-body{display:block}
+  .bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:10px 22px;margin:14px 0 16px}
+  .bar .bk{display:flex;justify-content:space-between;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .bar .bt{height:5px;background:#1c2135;border-radius:99px;margin-top:4px;overflow:hidden}
+  .bar .bt i{display:block;height:100%}
+  .facts{font-size:.8rem;color:#bfc3d0;line-height:1.65;max-width:66ch}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0 12px;font-size:.7rem;color:var(--muted)}
+  .meta b{color:var(--text);font-weight:500}
+  .verdict{font-size:.8rem;color:var(--text);background:#141828;border-left:2px solid var(--meteor);padding:9px 12px;margin-bottom:14px}
+
+  /* ---- camera panel ---- */
+  .cam{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--line);
+       font-size:.78rem;color:var(--muted)}
+  .cam select{width:auto;min-width:120px;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:6px 8px}
+  .cam b{color:var(--meteor);font-weight:500}
+
+  footer{margin-top:34px;border-top:1px solid var(--line);padding-top:16px;font-size:.7rem;color:var(--muted);line-height:1.7}
+  footer a{color:var(--muted)}
+  footer h3{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text);margin-bottom:6px;font-weight:500}
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+  .loading{padding:30px 16px;color:var(--muted);font-size:.78rem}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Meteor <span>Watch</span></h1>
+  <div class="tag">Shower visibility forecast · radiant · moon · sky darkness · cloud</div>
+</header>
+
+<div class="controls">
+  <div class="field">
+    <label for="q">Location</label>
+    <div class="row">
+      <input id="q" placeholder="Search a place…" autocomplete="off">
+      <button class="btn" id="geo" title="Use my current location">Here</button>
+    </div>
+    <div class="results" id="results"></div>
+  </div>
+  <div class="field">
+    <label for="lat">Latitude / longitude</label>
+    <div class="row">
+      <input id="lat" inputmode="decimal">
+      <input id="lon" inputmode="decimal">
+    </div>
+  </div>
+  <div class="field">
+    <label for="bortle">Sky darkness</label>
+    <select id="bortle"></select>
+  </div>
+  <div class="field">
+    <label for="start">Nights from</label>
+    <input type="date" id="start">
+  </div>
+  <div class="field">
+    <label for="assumed">Beyond the forecast, assume</label>
+    <select id="assumed">
+      <option value="typical">Typical cloud for the date</option>
+      <option value="0">Clear sky</option>
+      <option value="25">25% cloud</option>
+      <option value="50">50% cloud</option>
+      <option value="75">75% cloud</option>
+    </select>
+  </div>
+</div>
+
+<div class="chips" id="chips"></div>
+
+<div class="sec-head">
+  <h2 id="ribbonTitle">The next 60 nights</h2>
+  <div class="row" style="align-items:center;gap:14px;width:auto">
+    <span class="hint">Each column is one night, read top to bottom</span>
+    <span class="seg" id="rangeSeg">
+      <button data-n="15">15</button><button data-n="30">30</button><button data-n="60" class="on">60</button>
+    </span>
+  </div>
+</div>
+<div class="ribbon-box">
+  <div class="ribbon-read" id="ribbonRead"></div>
+  <div class="ribbon-frame">
+    <div class="ribbon-gutter" id="ribbonGutter"></div>
+    <div class="ribbon-scroll" id="ribbonScroll"><div id="ribbon" class="loading">Calculating…</div></div>
+  </div>
+  <div class="ribbon-key">
+    <span><i class="swatch" style="background:var(--meteor)"></i>Meteor rate</span>
+    <span><i class="swatch" style="background:var(--moon)"></i>Moon above horizon</span>
+    <span><i class="swatch" style="background:var(--cloud)"></i>Cloud</span>
+    <span><i class="swatch" style="background:#1e2743"></i>Twilight and daylight</span>
+  </div>
+</div>
+
+<div class="sec-head">
+  <h2 id="nightTitle">Night detail</h2>
+  <div class="hint" id="nightSub"></div>
+</div>
+<div class="night" id="night"><div class="loading">Select a night.</div></div>
+
+<footer>
+  <div class="cols">
+    <div>
+      <h3>What the numbers mean</h3>
+      The headline figure is meteors per hour you could expect to <em>see</em>, not the shower's quoted ZHR.
+      It is the standard relation HR = ZHR × sin(radiant altitude) × r<sup>(lm−6.5)</sup> × clear sky fraction,
+      where r is the shower's population index and lm the naked-eye limiting magnitude at the time.
+      Moonlight is converted to a loss of limiting magnitude with the Krisciunas &amp; Schaefer (1991) sky brightness model.
+      Everything is then scaled by 0.75, because ZHR assumes a perfect observer watching the whole sky at once
+      and real people, however experienced, catch rather less.
+      Thin cloud is treated twice over: it blocks part of the sky, and it scatters ground light and moonlight
+      back down, so the same 60% high cloud costs nothing at a Bortle 1 site and around a magnitude at Bortle 5.
+      Humidity above roughly 65% adds haze, worth up to another 0.6 magnitudes.
+    </div>
+    <div>
+      <h3>Data sources</h3>
+      Shower parameters (peak solar longitude, ZHR, population index, radiant and drift) are encoded from the
+      International Meteor Organization's annual calendar and working list.
+      Cloud, humidity, temperature and dew point from Open-Meteo (ECMWF / ICON / UKMO blend), fetched live where available.
+      Sun and moon positions are computed in the browser.
+      Sky darkness comes from David Lorenz's 2025 light pollution atlas, modelled from NASA and NOAA VIIRS
+      night lights, baked into this page: the British Isles at the atlas's own 1.5 arcminute grid,
+      the rest of the world averaged over 0.2 degree cells. You can always override it.
+    </div>
+    <div>
+      <h3>Known limits of this prototype</h3>
+      Activity profiles are approximations and do not include predicted outbursts or dust-trail encounters.
+      Outside the British Isles the light pollution grid averages over roughly 20 km, so a dark site
+      close to a city will read brighter than it is. Set the class by hand if you know the site.
+      Beyond 16 days the cloud figure is what this location typically does on that calendar date,
+      averaged over the last three years, which is useful for choosing a week but tells you nothing
+      about the night itself. No allowance for hills, trees or local horizon.
+      Check the current IMO calendar before travelling a long way for a marginal night.
+    </div>
+  </div>
+</footer>
+
+</div>
+<script>
+"use strict";
+/* ============================ astronomy ============================ */
 const D2R=Math.PI/180,R2D=180/Math.PI;
 const sin=a=>Math.sin(a*D2R),cos=a=>Math.cos(a*D2R),tan=a=>Math.tan(a*D2R);
 const norm=a=>((a%360)+360)%360;
@@ -30,71 +283,16 @@ function sunPos(jd){
   const lam2000=norm(lam-1.396971*T-0.0003086*T*T); // IMO quotes solar longitude for equinox J2000
   return {lam,lam2000,ra,dec};
 }
-/* Moon position from the standard periodic series (Meeus, Astronomical Algorithms ch. 47).
-   The four-term latitude approximation this started with is fine for knowing where the moon is
-   in the sky, but an eclipse turns on a tenth of a degree of ecliptic latitude, which that model
-   cannot see — it would call a comfortably total lunar eclipse a partial one. Coefficients are
-   millionths of a degree for longitude and latitude, and metres for the distance. */
-const MOON_LON = [
-  [0,0,1,0,6288774,-20905355],[2,0,-1,0,1274027,-3699111],[2,0,0,0,658314,-2955968],
-  [0,0,2,0,213618,-569925],[0,1,0,0,-185116,48888],[0,0,0,2,-114332,-3149],
-  [2,0,-2,0,58793,246158],[2,-1,-1,0,57066,-152138],[2,0,1,0,53322,-170733],
-  [2,-1,0,0,45758,-204586],[0,1,-1,0,-40923,-129620],[1,0,0,0,-34720,108743],
-  [0,1,1,0,-30383,104755],[2,0,0,-2,15327,10321],[0,0,1,2,-12528,0],
-  [0,0,1,-2,10980,79661],[4,0,-1,0,10675,-34782],[0,0,3,0,10034,-23210],
-  [4,0,-2,0,8548,-21636],[2,1,-1,0,-7888,24208],[2,1,0,0,-6766,30824],
-  [1,0,-1,0,-5163,-8379],[1,1,0,0,4987,-16675],[2,-1,1,0,4036,-12831],
-  [2,0,2,0,3994,-10445],[4,0,0,0,3861,-11650],[2,0,-3,0,3665,14403],
-  [0,1,-2,0,-2689,-7003],[2,0,-1,2,-2602,0],[2,-1,-2,0,2390,10056],
-  [1,0,1,0,-2348,6322],[2,-2,0,0,2236,-9884],[0,1,2,0,-2120,5751],
-  [0,2,0,0,-2069,0],[2,-2,-1,0,2048,-4950],[2,0,1,-2,-1773,4130],
-  [2,0,0,2,-1595,0],[4,-1,-1,0,1215,-3958],[0,0,2,2,-1110,0],
-  [3,0,-1,0,-892,3258],[2,1,1,0,-810,2616],[4,-1,-2,0,759,-1897],
-  [0,2,-1,0,-713,-2117],[2,2,-1,0,-700,2354],[2,1,-2,0,691,0],
-  [2,-1,0,-2,596,0],[4,0,1,0,549,-1423],[0,0,4,0,537,-1117],
-  [4,-1,0,0,520,-1571],[1,0,-2,0,-487,-1739],[2,1,0,-2,-399,0],
-  [0,0,2,-2,-381,-4421],[1,1,1,0,351,0],[3,0,-2,0,-340,0],
-  [4,0,-3,0,330,0],[2,-1,2,0,327,0],[0,2,1,0,-323,1165],
-  [1,1,-1,0,299,0],[2,0,3,0,294,0],[2,0,-1,-2,0,8752]
-];
-const MOON_LAT = [
-  [0,0,0,1,5128122],[0,0,1,1,280602],[0,0,1,-1,277693],[2,0,0,-1,173237],
-  [2,0,-1,1,55413],[2,0,-1,-1,46271],[2,0,0,1,32573],[0,0,2,1,17198],
-  [2,0,1,-1,9266],[0,0,2,-1,8822],[2,-1,0,-1,8216],[2,0,-2,-1,4324],
-  [2,0,1,1,4200],[2,1,0,-1,-3359],[2,-1,-1,1,2463],[2,-1,0,1,2211],
-  [2,-1,-1,-1,2065],[0,-1,-1,1,-1870],[4,0,-1,-1,1828],[0,1,0,1,-1794],
-  [0,0,0,3,-1749],[0,-1,1,1,-1565],[1,0,0,1,-1491],[0,1,1,1,-1475],
-  [0,1,1,-1,-1410],[0,1,0,-1,-1344],[1,0,0,-1,-1335],[0,0,3,1,1107],
-  [4,0,0,-1,1021],[4,0,-1,1,833],[0,0,1,-3,777],[4,0,-2,1,671],
-  [2,0,0,-3,607],[2,0,2,-1,596],[2,-1,1,-1,491],[2,0,-2,1,-451],
-  [0,0,3,-1,439],[2,0,2,1,422],[2,0,-3,-1,421],[2,1,-1,1,-366],
-  [2,1,0,1,-351],[4,0,0,1,331],[2,-1,1,1,315],[2,-2,0,-1,302],
-  [0,0,1,3,-283],[2,1,1,-1,-229],[1,1,0,-1,223],[1,1,0,1,223],
-  [0,1,-1,-1,-220],[2,1,-1,-1,-220],[1,0,1,1,-185],[2,-1,-2,-1,181],
-  [0,1,2,1,-177],[4,0,-2,-1,176],[4,-1,-1,-1,166],[1,0,1,-1,-164],
-  [4,0,1,-1,132],[1,0,-1,-1,-119],[4,-1,0,-1,115],[2,-2,0,1,107]
-];
 function moonPos(jd){
-  const T=centuries(jd), T2=T*T, T3=T2*T, T4=T3*T;
-  const Lp=norm(218.3164477+481267.88123421*T-0.0015786*T2+T3/538841-T4/65194000);
-  const D =norm(297.8501921+445267.1114034*T-0.0018819*T2+T3/545868-T4/113065000);
-  const M =norm(357.5291092+35999.0502909*T-0.0001536*T2+T3/24490000);
-  const Mp=norm(134.9633964+477198.8675055*T+0.0087414*T2+T3/69699-T4/14712000);
-  const F =norm(93.2720950+483202.0175233*T-0.0036539*T2-T3/3526000+T4/863310000);
-  // the sun's varying eccentricity, which slowly changes the size of every term involving M
-  const E=1-0.002516*T-0.0000074*T2;
-  let sl=0,sr=0,sb=0;
-  for(let i=0;i<MOON_LON.length;i++){
-    const t=MOON_LON[i], a=t[0]*D+t[1]*M+t[2]*Mp+t[3]*F;
-    const e=t[1]===0?1:(t[1]===1||t[1]===-1?E:E*E);
-    sl+=t[4]*e*sin(a); sr+=t[5]*e*cos(a);
-  }
-  for(let i=0;i<MOON_LAT.length;i++){
-    const t=MOON_LAT[i], a=t[0]*D+t[1]*M+t[2]*Mp+t[3]*F;
-    const e=t[1]===0?1:(t[1]===1||t[1]===-1?E:E*E);
-    sb+=t[4]*e*sin(a);
-  }
-  const lam=norm(Lp+sl/1e6), bet=sb/1e6, distKm=385000.56+sr/1000;
+  const T=centuries(jd);
+  const lam=norm(218.32+481267.883*T
+    +6.29*sin(134.9+477198.85*T)-1.27*sin(259.2-413335.38*T)+0.66*sin(235.7+890534.23*T)
+    +0.21*sin(269.9+954397.70*T)-0.19*sin(357.5+35999.05*T)-0.11*sin(186.6+966404.05*T));
+  const bet=5.13*sin(93.3+483202.03*T)+0.28*sin(228.2+960400.87*T)
+    -0.28*sin(318.3+6003.18*T)-0.17*sin(217.6-407332.20*T);
+  const par=0.9508+0.0518*cos(134.9+477198.85*T)+0.0095*cos(259.2-413335.38*T)
+    +0.0078*cos(235.7+890534.23*T)+0.0028*cos(269.9+954397.70*T);
+  const distKm=6378.14/sin(par);
   const eps=23.439-0.0000004*(jd-2451545.0);
   const ra=norm(Math.atan2(sin(lam)*cos(eps)-tan(bet)*sin(eps),cos(lam))*R2D);
   const dec=Math.asin(sin(bet)*cos(eps)+cos(bet)*sin(eps)*sin(lam))*R2D;
@@ -144,22 +342,22 @@ const mag2nl=V=>34.08*Math.exp(20.7233-0.92104*V);
 const SHOWERS=[
  {code:'QUA',name:'Quadrantids',lam:283.15,zhr:106,r:2.1,ra:230,dec:49.5,dRa:0.4,dDec:-0.2,v:41,bB:1.0,bA:1.0,span:6,wide:{zhr:4,b:0.30},
   active:'28 Dec – 12 Jan',parent:'Asteroid 2003 EH1 (probably a dormant comet)',
-  facts:'The sharpest peak of any major shower: full rates last only a few hours, so being clouded out at the wrong moment costs you the whole event. Meteors are medium speed and often bluish, with few persistent trains but a fair number of bright ones. The radiant sits in northern Boötes, in the old constellation Quadrans Muralis that was dropped from the official list in 1922, and is circumpolar from northern mid-latitudes, climbing highest before dawn.'},
+  facts:'The sharpest peak of any major shower: full rates last only a few hours, so being clouded out at the wrong moment costs you the whole event. Meteors are medium speed and often bluish, with few persistent trains but a fair number of bright ones. The radiant sits in northern Boötes, in the old constellation Quadrans Muralis that was dropped from the official list in 1922, and is circumpolar from the UK, climbing highest before dawn.'},
  {code:'LYR',name:'Lyrids',lam:32.32,zhr:18,r:2.1,ra:271,dec:34,dRa:1.1,dDec:0.0,v:49,bB:1.0,bA:1.0,span:8,
   active:'14 – 30 April',parent:'Comet C/1861 G1 Thatcher (415-year orbit)',
-  facts:'The oldest shower with a continuous record, noted by Chinese observers in 687 BC. Normally modest, but capable of short outbursts, most recently around 90 an hour in 1982. Meteors are fast, frequently bright, and around a quarter leave persistent trains. The radiant near Vega is high all night from northern latitudes, which makes even a moderate ZHR worthwhile.'},
+  facts:'The oldest shower with a continuous record, noted by Chinese observers in 687 BC. Normally modest, but capable of short outbursts, most recently around 90 an hour in 1982. Meteors are fast, frequently bright, and around a quarter leave persistent trains. The radiant near Vega is high all night from the UK, which makes even a moderate ZHR worthwhile.'},
  {code:'ETA',name:'Eta Aquariids',lam:45.5,zhr:50,r:2.4,ra:338,dec:-1,dRa:0.9,dDec:0.4,v:66,bB:0.10,bA:0.10,span:20,
   active:'19 April – 28 May',parent:'Comet 1P/Halley',
-  facts:'Debris shed by Halley on its inbound leg. Very fast at 66 km/s, with a high proportion of long trails and persistent trains. The catch for northern observers is geometry: the radiant rises only shortly before dawn from northern latitudes, so you see a small fraction of the quoted rate in a short window. Superb from the tropics and the southern hemisphere.'},
+  facts:'Debris shed by Halley on its inbound leg. Very fast at 66 km/s, with a high proportion of long trails and persistent trains. The catch for northern observers is geometry: the radiant rises only shortly before dawn from UK latitudes, so you see a small fraction of the quoted rate in a short window. Superb from the tropics and the southern hemisphere.'},
  {code:'SDA',name:'Southern Delta Aquariids',lam:125.0,zhr:25,r:2.5,ra:340,dec:-16,dRa:0.8,dDec:0.2,v:41,bB:0.09,bA:0.15,span:22,
   active:'12 July – 23 August',parent:'Likely the 96P/Machholz complex',
-  facts:'A broad plateau of activity rather than a peak, so any clear night in late July is roughly as good as the next. Meteors are medium speed and mostly faint, which makes dark skies matter more than usual. From northern latitudes the radiant stays low in the south, capping the rate you can actually achieve.'},
+  facts:'A broad plateau of activity rather than a peak, so any clear night in late July is roughly as good as the next. Meteors are medium speed and mostly faint, which makes dark skies matter more than usual. From the UK the radiant stays low in the south, capping the rate you can actually achieve.'},
  {code:'CAP',name:'Alpha Capricornids',lam:127.0,zhr:5,r:2.5,ra:307,dec:-10,dRa:0.9,dDec:0.3,v:23,bB:0.06,bA:0.06,span:24,
   active:'3 July – 15 August',parent:'Comet 169P/NEAT',
   facts:'Low rates but a disproportionate share of slow, brilliant, long-lasting fireballs, which is why it is worth leaving a camera running through late July even though the predicted count is only a few an hour. The stream is young and unusually broad; models suggest it will strengthen over the next few centuries.'},
  {code:'PER',name:'Perseids',lam:140.0,zhr:80,r:2.2,ra:48,dec:58,dRa:1.35,dDec:0.25,v:59,bB:0.35,bA:0.25,span:20,wide:{zhr:23,b:0.05},
   active:'17 July – 24 August',parent:'Comet 109P/Swift-Tuttle (133-year orbit, 26 km nucleus)',
-  facts:'The reliable summer shower, recorded for close to two thousand years and once called the tears of St Lawrence. Fast, bright meteors with plenty of persistent trains. The wide activity profile matters for planning: the week either side of maximum still delivers useful rates, so a clear night three days off peak beats a cloudy peak. The radiant is very high from northern latitudes and climbs all night, which pushes the best window into the small hours.'},
+  facts:'The reliable summer shower, recorded for close to two thousand years and once called the tears of St Lawrence. Fast, bright meteors with plenty of persistent trains. The wide activity profile matters for planning: the week either side of maximum still delivers useful rates, so a clear night three days off peak beats a cloudy peak. The radiant is very high from UK latitudes and climbs all night, which pushes the best window into the small hours.'},
  {code:'KCG',name:'Kappa Cygnids',lam:140.5,zhr:3,r:3.0,ra:286,dec:59,dRa:0.6,dDec:0.2,v:25,bB:0.10,bA:0.10,span:12,
   active:'3 – 25 August',parent:'Uncertain, possibly asteroid 2008 ED69',
   facts:'A minor stream that shares the Perseid dates and is easily mistaken for it, except that the meteors are noticeably slow and the radiant sits in Cygnus, near the zenith. Activity varies from year to year, with enhanced returns roughly every seven years, and it produces occasional bright fireballs.'},
@@ -180,7 +378,7 @@ const SHOWERS=[
   facts:'Halley\u2019s other shower, this time from the outbound leg. Very fast, with frequent persistent trains, and a broad flat maximum spread over several nights instead of one sharp peak, which is forgiving for anyone chasing a gap in the cloud. The radiant lies near Betelgeuse and is well placed from midnight onwards.'},
  {code:'NTA',name:'Northern Taurids',lam:230.0,zhr:5,r:2.3,ra:58,dec:22,dRa:0.8,dDec:0.2,v:29,bB:0.026,bA:0.026,span:35,
   active:'20 October – 10 December',parent:'Comet 2P/Encke',
-  facts:'The northern branch of the same complex, peaking a month after its southern twin and with the radiant higher from northern latitudes. Same character: low counts, slow meteors, an outsized proportion of fireballs.'},
+  facts:'The northern branch of the same complex, peaking a month after its southern twin and with the radiant higher from UK latitudes. Same character: low counts, slow meteors, an outsized proportion of fireballs.'},
  {code:'LEO',name:'Leonids',lam:235.27,zhr:12,r:2.5,ra:152,dec:22,dRa:0.7,dDec:-0.4,v:71,bB:0.55,bA:0.55,span:12,wide:{zhr:3,b:0.10},
   active:'6 – 30 November',parent:'Comet 55P/Tempel-Tuttle (33-year orbit)',
   facts:'The fastest meteors you will routinely see, entering at 71 km/s and often leaving trains that hang for seconds. Famous for the storms of 1833, 1866, 1966 and 1999 to 2002, when rates reached thousands an hour; between comet returns it is a modest shower. The radiant rises around midnight.'},
@@ -192,10 +390,10 @@ const SHOWERS=[
   facts:'A weak stream that shares the sky with the Geminids and is frequently confused with them. Medium speed, low rates, but the radiant is well placed and the meteors are distinctly slower than Geminids.'},
  {code:'GEM',name:'Geminids',lam:262.2,zhr:135,r:2.6,ra:112,dec:33,dRa:1.02,dDec:-0.15,v:35,bB:0.59,bA:0.81,span:9,wide:{zhr:18,b:0.14},
   active:'4 – 20 December',parent:'Asteroid 3200 Phaethon, a rock comet',
-  facts:'The strongest and most dependable annual shower, and unusual in coming from an asteroid rather than a comet. Only recognised in the 1860s and it has strengthened ever since as the stream drifts into Earth\u2019s path. Meteors are medium speed, plentiful, often bright with a yellow cast, and leave few trains. The radiant is up from early evening and near the zenith by 02:00 from northern latitudes, so you can shoot a full night. The counterweight is December weather and cold.'},
+  facts:'The strongest and most dependable annual shower, and unusual in coming from an asteroid rather than a comet. Only recognised in the 1860s and it has strengthened ever since as the stream drifts into Earth\u2019s path. Meteors are medium speed, plentiful, often bright with a yellow cast, and leave few trains. The radiant is up from early evening and near the zenith by 02:00 from the UK, so you can shoot a full night. The counterweight is December weather and cold.'},
  {code:'URS',name:'Ursids',lam:270.7,zhr:10,r:3.0,ra:217,dec:76,dRa:0.0,dDec:-0.2,v:33,bB:1.0,bA:1.0,span:5,
   active:'17 – 26 December',parent:'Comet 8P/Tuttle',
-  facts:'Overlooked because it falls in the week before Christmas, immediately after the Geminids. The radiant near Kochab is circumpolar from northern latitudes, so it is available all night, and short bursts have been recorded in 1945, 1986 and 2000.'},
+  facts:'Overlooked because it falls in the week before Christmas, immediately after the Geminids. The radiant near Kochab is circumpolar from the UK, so it is available all night, and short bursts have been recorded in 1945, 1986 and 2000.'},
 ];
 const ANT={code:'ANT',name:'Antihelion source',r:3.0,v:30,
   active:'Most of the year',parent:'Mixed short-period comet debris',
@@ -219,7 +417,7 @@ const BORTLE=[null,
 /* ============================ light pollution atlas ============================ */
 /* Two grids baked from David Lorenz's 2025 light pollution atlas, itself modelled from
    NASA/NOAA VIIRS night lights. Pixel values are (22.0 - sky brightness) x 20, so byte 0
-   is a pristine 22.0 mag/arcsec2. A higher-resolution grid covers north-west Europe at the atlas's own 1.5 arcmin;
+   is a pristine 22.0 mag/arcsec2. The British Isles grid is at the atlas's own 1.5 arcmin;
    the world grid averages artificial brightness over 0.2 degree cells. */
 const ATLAS={
   uk:{lat0:48.5,lat1:61.5,lon0:-11.5,lon1:3.0,w:580,h:520,label:'1.5 arcmin grid',data:null,
@@ -424,7 +622,7 @@ async function loadWeather(){
   state.weatherStatus='pending'; renderChips();
   const url='https://api.open-meteo.com/v1/forecast?latitude='+state.lat.toFixed(4)+
     '&longitude='+state.lon.toFixed(4)+
-    '&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,temperature_2m,dew_point_2m,wind_speed_10m,wind_gusts_10m,visibility'+
+    '&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,temperature_2m,dew_point_2m'+
     '&forecast_days=16&timezone=auto';
   try{
     const res=await fetch(url);
@@ -439,10 +637,7 @@ async function loadWeather(){
         total:j.hourly.cloud_cover[i],low:j.hourly.cloud_cover_low[i],
         mid:j.hourly.cloud_cover_mid[i],high:j.hourly.cloud_cover_high[i],
         rh:j.hourly.relative_humidity_2m[i],
-        temp:j.hourly.temperature_2m[i],dew:j.hourly.dew_point_2m[i],
-        wind:j.hourly.wind_speed_10m?j.hourly.wind_speed_10m[i]:null,
-        gust:j.hourly.wind_gusts_10m?j.hourly.wind_gusts_10m[i]:null,
-        vis:j.hourly.visibility?j.hourly.visibility[i]:null};
+        temp:j.hourly.temperature_2m[i],dew:j.hourly.dew_point_2m[i]};
     });
     state.weather=map; state.weatherStatus='live';
   }catch(e){
@@ -500,16 +695,9 @@ function cloudAt(dateUTC){
   if(!a) return null;
   const b=state.weather[new Date(h0+3600000).toISOString().slice(0,13)];
   if(!b) return a;
-  const raw=(ms-h0)/3600000;
-  // smoothstep between hourly samples: linear interpolation meets at a corner, and every corner
-  // becomes a visible kink once the rate raises it to a power
-  const f=raw*raw*(3-2*raw), mix=(x,y)=>(x==null||y==null)?x:x+(y-x)*f;
-  const low=mix(a.low,b.low), mid=mix(a.mid,b.mid), high=mix(a.high,b.high);
-  // each layer interpolates on its own, which can leave total below a layer it contains
-  let total=mix(a.total,b.total);
-  [low,mid,high].forEach(v=>{ if(v!=null && (total==null || v>total)) total=v; });
-  return {total,low,mid,high,rh:mix(a.rh,b.rh),temp:mix(a.temp,b.temp),dew:mix(a.dew,b.dew),
-          wind:mix(a.wind,b.wind),gust:mix(a.gust,b.gust),vis:mix(a.vis,b.vis)};
+  const f=(ms-h0)/3600000, mix=(x,y)=>(x==null||y==null)?x:x+(y-x)*f;   // hourly steps look like real dips
+  return {total:mix(a.total,b.total),low:mix(a.low,b.low),mid:mix(a.mid,b.mid),high:mix(a.high,b.high),
+          rh:mix(a.rh,b.rh),temp:mix(a.temp,b.temp),dew:mix(a.dew,b.dew)};
 }
 
 /* ============================ night computation ============================ */
@@ -529,7 +717,7 @@ function computeNight(y,m,d){
     }
     const fallback=(state.assumedCloud==='typical')?0:state.assumedCloud;
     const s=sampleSky(jd,state.lat,state.lon,state.sky,cl||{total:fallback,assumed:true});
-    const slot={t:dt,sunAlt:s.sunAlt,moonAlt:s.moonAlt,illum:s.illum,cloud:cl,rate:0,best:null,sources:[],env:s};
+    const slot={t:dt,sunAlt:s.sunAlt,moonAlt:s.moonAlt,illum:s.illum,cloud:cl,rate:0,best:null,sources:[]};
     if(s.sunAlt<-6){
       const cands=SHOWERS.concat([ANT,SPO]);
       for(const sh of cands){
@@ -593,26 +781,133 @@ function computeAll(){
   if(!state.selected||state.selected>=state.range) state.selected=0;
 }
 
+/* ============================ rendering ============================ */
+const $=id=>document.getElementById(id);
 
-/* Catmull-Rom through the sample points, emitted as cubic beziers. The samples are exact;
-   only the line between them is smoothed, so peak values still read true off the curve. */
-function smoothPath(pts){
-  if(!pts.length) return '';
-  if(pts.length<3) return 'M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L');
-  let d='M'+pts[0][0].toFixed(1)+','+pts[0][1].toFixed(1);
-  for(let i=0;i<pts.length-1;i++){
-    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||pts[i+1];
-    const c1x=p1[0]+(p2[0]-p0[0])/6, c1y=p1[1]+(p2[1]-p0[1])/6;
-    const c2x=p2[0]-(p3[0]-p1[0])/6, c2y=p2[1]-(p3[1]-p1[1])/6;
-    d+=' C'+c1x.toFixed(1)+','+c1y.toFixed(1)+' '+c2x.toFixed(1)+','+c2y.toFixed(1)+
-       ' '+p2[0].toFixed(1)+','+p2[1].toFixed(1);
-  }
-  return d;
+function tzLabel(){
+  const h=state.tzOffset/60;
+  if(Math.abs(h)<0.01) return 'UTC';
+  return 'UTC'+(h>0?'+':'-')+(Math.abs(h)%1?Math.abs(h).toFixed(1):Math.abs(h).toFixed(0));
 }
+function renderChips(){
+  const sk=state.sky, n=state.nights[state.selected];
+  const wchip=state.weatherStatus==='live'
+    ? '<span class="chip">Cloud <b>live forecast, Open-Meteo</b></span>'
+    : state.weatherStatus==='pending'
+      ? '<span class="chip">Cloud <b>loading\u2026</b></span>'
+      : '<span class="chip warn">Cloud <b>forecast unavailable</b> <button class="chip-btn" id="wxRetry">retry</button></span>';
+  const cchip=state.climStatus==='ready'
+    ? '<span class="chip">Beyond 16 days <b>typical cloud, '+(state.climYears||3)+' years \u00d7 7-day window</b></span>'
+    : state.climStatus==='loading'
+      ? '<span class="chip">Beyond 16 days <b>fetching history\u2026</b></span>' : '';
+  const skychip='<span class="chip">Sky <b>Bortle '+sk.bortle+', '+sk.sqm.toFixed(2)+' mag/arcsec\u00b2</b>'+
+    ' \u00b7 limit '+sk.nelm.toFixed(1)+' \u00b7 '+(sk.auto?'atlas, '+sk.label:'set by hand')+'</span>';
+  let moon='';
+  if(n){
+    const mid=n.slots[Math.floor(n.slots.length/2)];
+    moon='<span class="chip">Moon <b>'+Math.round(mid.illum*100)+'% lit</b></span>';
+  }
+  $('chips').innerHTML=
+    '<span class="chip">Site <b>'+state.place+'</b></span>'+skychip+wchip+cchip+moon+
+    '<span class="chip">Times <b>'+tzLabel()+'</b></span>';
+  const rb=$('wxRetry');
+  if(rb) rb.addEventListener('click',()=>refresh());
+}
+
+/* --- the ribbon: one column per night, dusk at the top (signature view) --- */
+const RIB={GAP:4,H:160,TOP:18,BOT:26,PAD:10};
+const RIB_START=16, RIB_END=8;            // ribbon rows run from 16:00 local to 08:00 next day
+function colW(){return state.range===15?54:state.range===30?30:20;}
+function colAt(e){
+  const r=e.currentTarget.getBoundingClientRect();
+  const i=Math.floor((e.clientX-r.left-RIB.PAD)/(colW()+RIB.GAP));
+  return (i>=0&&i<state.range)?i:null;
+}
+function renderRibbon(){
+  const {GAP,H,TOP,BOT,PAD}=RIB, CW=colW();
+  const W=state.range*(CW+GAP)+2*PAD, HH=H+TOP+BOT;
+  renderGutter();
+  const box=$('ribbon');
+  let cv=box.querySelector?box.querySelector('canvas'):null;
+  if(!cv){
+    box.innerHTML='';
+    cv=document.createElement('canvas');
+    if(!cv.getContext) return;               // headless / no canvas support
+    box.appendChild(cv);
+    cv.addEventListener('click',e=>{
+      const i=colAt(e); if(i==null) return;
+      state.selected=i; renderRibbon(); renderNight(); renderChips();
+    });
+    cv.addEventListener('mousemove',e=>{
+      const i=colAt(e), r=$('ribbonRead');
+      if(i==null){r.textContent='';return;}
+      const n=state.nights[i];
+      r.textContent=fmtDate(n.y,n.m,n.d)+'  ·  peak '+(n.peak?n.peak.rate.toFixed(0):'0')+
+        '/hr  ·  '+(n.headline?n.headline.name:'no shower')+'  ·  '+verdictWord(n.score);
+    });
+    cv.addEventListener('mouseleave',()=>{$('ribbonRead').textContent='';});
+  }
+  const dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(HH*dpr);
+  cv.style.width=W+'px'; cv.style.height=HH+'px'; cv.style.display='block';
+  const c=cv.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+  c.clearRect(0,0,W,HH);
+  c.font='8px "IBM Plex Mono",ui-monospace,monospace';
+  c.textAlign='center';
+  state.nights.forEach((n,i)=>{
+    const x=PAD+i*(CW+GAP), N=n.slots.length, sh=H/N;
+    const snap=v=>Math.round(v*dpr)/dpr;              // keep slot edges on device pixels
+    c.fillStyle='#10141f'; c.fillRect(x,TOP,CW,H);    // one opaque base, no overlapping fills
+    for(let k=0;k<N;k++){
+      const s=n.slots[k], y0=snap(TOP+k*sh), y1=snap(TOP+(k+1)*sh), hh=Math.max(y1-y0,0.5);
+      if(s.sunAlt>-6){
+        c.fillStyle = s.sunAlt>0 ? '#2c3757' : '#1e2743';   // daylight, then civil twilight
+        c.fillRect(x,y0,CW,hh);
+        continue;
+      }
+      const a=alphaOf(s.rate);
+      if(a>0.02){c.fillStyle='rgba(245,168,0,'+a.toFixed(3)+')';c.fillRect(x,y0,CW,hh);}
+      if(s.moonAlt>0){
+        const mo=clamp(0.12+0.5*s.illum*Math.min(1,s.moonAlt/40),0,0.62);
+        c.fillStyle='rgba(159,182,216,'+mo.toFixed(3)+')';c.fillRect(x,y0,3,hh);
+      }
+      if(s.cloud&&(!s.cloud.assumed||s.cloud.typical)){
+        const co=clamp(s.cloud.total/100,0,1)*(s.cloud.typical?0.45:0.8);
+        if(co>0.03){c.fillStyle='rgba(92,100,120,'+co.toFixed(3)+')';c.fillRect(x+CW-3,y0,3,hh);}
+      }
+    }
+    if(i===state.selected){c.strokeStyle='#f5a800';c.lineWidth=1.5;c.strokeRect(x-1.5,TOP-1.5,CW+3,H+3);}
+    c.fillStyle=(i===state.selected)?'#f5a800':'#6b7488';
+    c.fillText(String(n.d),x+CW/2,TOP+H+12);
+    if(n.d===1||i===0){c.fillStyle='#8f97ab';c.fillText(MONTHS[n.m],x+CW/2,TOP+H+22);}
+    if(n.headline&&n.headline.det&&n.headline.det.activityFrac>0.5&&n.headline.peak>4){
+      c.fillStyle='#f5a800';c.fillText(n.headline.code,x+CW/2,TOP-6);
+    }
+  });
+  const sel=$('ribbonScroll');
+  if(sel&&state.selected>6) sel.scrollLeft=Math.max(0,(state.selected-5)*(CW+GAP));
+}
+
+/* --- fixed left gutter: makes it plain that the columns run dusk to dawn --- */
+function renderGutter(){
+  const g=$('ribbonGutter'); if(!g) return;
+  const {H,TOP,BOT}=RIB, HH=H+TOP+BOT;
+  const y=h=>TOP+((h-RIB_START+24)%24)/(((RIB_END-RIB_START)+24)%24)*H;
+  let html='<div class="gut" style="height:'+HH+'px">';
+  html+='<div class="gut-arrow" style="top:'+TOP+'px;height:'+H+'px"></div>';
+  html+='<div class="gut-cap gut-top" style="top:'+(TOP-13)+'px">Dusk</div>';
+  [18,21,0,3,6].forEach(h=>{
+    html+='<div class="gut-h" style="top:'+(y(h)-6)+'px">'+pad(h)+':00</div>';
+  });
+  html+='<div class="gut-cap gut-bot" style="top:'+(TOP+H+2)+'px">Dawn</div>';
+  html+='</div>';
+  g.innerHTML=html;
+}
+
+/* --- night chart --- */
 function nightChart(n){
-  /* Sized to fit a phone screen whole: the point is an overview of one night, so the design
-     width is small and the type is large relative to it, rather than a wide chart you scroll. */
-  const W=400,H=300,L=34,R=34,T=44,B=54;
+  const W=980,H=306,L=58,R=70,T=36,B=50;
   const dark=n.slots.filter(s=>s.sunAlt<-3);
   if(!dark.length) return '<div class="loading">The Sun never gets low enough for meteor watching on this night at this latitude.</div>';
   const t0=dark[0].t.getTime(), t1=dark[dark.length-1].t.getTime();
@@ -621,9 +916,9 @@ function nightChart(n){
   const maxRate=Math.max(6,...dark.map(s=>s.rate));
   const Y=r=>T+PH*(1-r/maxRate);
   const YA=a=>T+PH*(1-clamp(a,0,90)/90);
-  const F='JetBrains Mono,monospace';
-  const txt=(x,y,t,o)=>{o=o||{};return '<text x="'+x+'" y="'+y+'" font-family="'+F+'" font-size="'+(o.s||13)+
-    '" fill="'+(o.f||'#A9A8C4')+'"'+(o.a?' text-anchor="'+o.a+'"':'')+(o.ls?' letter-spacing="'+o.ls+'"':'')+
+  const F='IBM Plex Mono,monospace';
+  const txt=(x,y,t,o)=>{o=o||{};return '<text x="'+x+'" y="'+y+'" font-family="'+F+'" font-size="'+(o.s||9.5)+
+    '" fill="'+(o.f||'#6b7488')+'"'+(o.a?' text-anchor="'+o.a+'"':'')+(o.ls?' letter-spacing="'+o.ls+'"':'')+
     (o.tr?' transform="'+o.tr+'"':'')+'>'+t+'</text>';};
   let g='<svg width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Hour by hour conditions for the selected night">';
 
@@ -631,117 +926,122 @@ function nightChart(n){
   dark.forEach((s,i)=>{
     if(i===dark.length-1) return;
     const x=X(s.t.getTime()), w=X(dark[i+1].t.getTime())-x+0.5;
-    const fill = s.sunAlt>-12 ? '#2B2560' : s.sunAlt>-18 ? '#1B1546' : '#0F0B33';
+    const fill = s.sunAlt>-12 ? '#1e2743' : s.sunAlt>-18 ? '#141a2c' : '#0b0e18';
     g+='<rect x="'+x+'" y="'+T+'" width="'+w+'" height="'+PH+'" fill="'+fill+'"/>';
   });
   if(n.win){
     const xa=X(n.win.from.getTime()), xb=X(n.win.to.getTime());
     if(xb>xa){
-      g+='<rect x="'+xa+'" y="'+T+'" width="'+(xb-xa)+'" height="'+PH+'" fill="#FAA338" opacity="0.09"/>';
-      const by=H-B+30;
-      g+='<line x1="'+xa+'" y1="'+by+'" x2="'+xb+'" y2="'+by+'" stroke="#FAA338" stroke-width="1.2"/>';
-      g+='<line x1="'+xa+'" y1="'+(by-5)+'" x2="'+xa+'" y2="'+(by+5)+'" stroke="#FAA338" stroke-width="1.2"/>';
-      g+='<line x1="'+xb+'" y1="'+(by-5)+'" x2="'+xb+'" y2="'+(by+5)+'" stroke="#FAA338" stroke-width="1.2"/>';
-      g+=txt(clamp((xa+xb)/2,L+56,W-R-56),by+16,'best '+fmtTime(n.win.from)+'\u2013'+fmtTime(n.win.to),
-             {s:12.5,f:'#FAA338',a:'middle'});
+      g+='<rect x="'+xa+'" y="'+T+'" width="'+(xb-xa)+'" height="'+PH+'" fill="#f5a800" opacity="0.09"/>';
+      const by=H-B+26;
+      g+='<line x1="'+xa+'" y1="'+by+'" x2="'+xb+'" y2="'+by+'" stroke="#f5a800" stroke-width="1"/>';
+      g+='<line x1="'+xa+'" y1="'+(by-4)+'" x2="'+xa+'" y2="'+(by+4)+'" stroke="#f5a800" stroke-width="1"/>';
+      g+='<line x1="'+xb+'" y1="'+(by-4)+'" x2="'+xb+'" y2="'+(by+4)+'" stroke="#f5a800" stroke-width="1"/>';
+      g+=txt((xa+xb)/2,by+14,'best window '+fmtTime(n.win.from)+' to '+fmtTime(n.win.to),
+             {s:8.5,f:'#f5a800',a:'middle',ls:'0.08em'});
     }
   }
 
   // ---- cloud lane, always drawn so an empty lane still reads as "no cloud" ----
-  const CY=4,CH=16;
-  g+='<rect x="'+L+'" y="'+CY+'" width="'+(W-L-R)+'" height="'+CH+'" fill="#1C1546"/>';
+  const CY=8,CH=18;
+  g+='<rect x="'+L+'" y="'+CY+'" width="'+(W-L-R)+'" height="'+CH+'" fill="#141828"/>';
   const withCloud=dark.filter(s=>s.cloud&&(!s.cloud.assumed||s.cloud.typical));
   const climOnly=withCloud.length>1&&withCloud[0].cloud.typical;
   if(withCloud.length>1){
-    const cpts=withCloud.map(s=>[X(s.t.getTime()),CY+CH-CH*clamp(s.cloud.total/100,0,1)]);
-    let cp='M'+X(withCloud[0].t.getTime()).toFixed(1)+','+(CY+CH)+' L'+smoothPath(cpts).slice(1)+
-      ' L'+X(withCloud[withCloud.length-1].t.getTime()).toFixed(1)+','+(CY+CH)+' Z';
-    g+='<path d="'+cp+'" fill="#E6E3F4" opacity="'+(climOnly?0.4:0.72)+'"/>';
-    g+='<line x1="'+L+'" y1="'+(CY+CH/2)+'" x2="'+(W-R)+'" y2="'+(CY+CH/2)+'" stroke="rgba(245,245,245,.20)" stroke-width="0.6" stroke-dasharray="3 4"/>';
-    g+=txt(W-R+4,CY+6.5,'100',{s:9,f:'#A9A8C4'});
-    g+=txt(W-R+4,CY+CH+2,'0',{s:9,f:'#A9A8C4'});
-    if(climOnly) g+=txt(L+4,CY+CH-4,'typical, not a forecast',{s:9.5,f:'#8583A8'});
+    let cp='M'+X(withCloud[0].t.getTime())+','+(CY+CH);
+    withCloud.forEach(s=>{cp+=' L'+X(s.t.getTime()).toFixed(1)+','+(CY+CH-CH*clamp(s.cloud.total/100,0,1)).toFixed(1);});
+    cp+=' L'+X(withCloud[withCloud.length-1].t.getTime())+','+(CY+CH)+' Z';
+    g+='<path d="'+cp+'" fill="#7a839b" opacity="'+(climOnly?0.45:0.8)+'"/>';
+    g+='<line x1="'+L+'" y1="'+(CY+CH/2)+'" x2="'+(W-R)+'" y2="'+(CY+CH/2)+'" stroke="#2b3247" stroke-width="0.6" stroke-dasharray="3 4"/>';
+    g+=txt(W-R+8,CY+7,'100%',{s:7.5,f:'#6b7488'});
+    g+=txt(W-R+8,CY+CH,'0%',{s:7.5,f:'#6b7488'});
   } else {
-    g+=txt(L+4,CY+12,'no cloud forecast',{s:10.5,f:'#8583A8'});
+    g+=txt(L+8,CY+13,'no cloud forecast for this night',{s:8.5,f:'#4f5568'});
   }
-  g+='<rect x="'+L+'" y="'+CY+'" width="'+(W-L-R)+'" height="'+CH+'" fill="none" stroke="rgba(245,245,245,.14)"/>';
-  g+=txt(L-3,CY+12,'CLOUD',{s:9,a:'end',f:'#A9A8C4',ls:'0.06em'});
+  g+='<rect x="'+L+'" y="'+CY+'" width="'+(W-L-R)+'" height="'+CH+'" fill="none" stroke="#242a3d"/>';
+  g+=txt(L-8,CY+13,'CLOUD',{s:8,a:'end',f:'#6b7488',ls:'0.1em'});
+  if(climOnly) g+=txt(L+8,CY+13,'typical for this date, not a forecast',{s:8,f:'#8a93a8'});
 
   // ---- meteors per hour ----
-  const rpts=dark.map(s=>[X(s.t.getTime()),Y(s.rate)]);
-  const rline=smoothPath(rpts);
-  const path=rline+' L'+X(t1).toFixed(1)+','+Y(0).toFixed(1)+' L'+X(t0).toFixed(1)+','+Y(0).toFixed(1)+' Z';
-  g+='<path d="'+path+'" fill="#FAA338" opacity="0.26"/>';
-  g+='<path d="'+rline+'" fill="none" stroke="#FAA338" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  let path='M'+X(t0)+','+Y(0);
+  dark.forEach(s=>{path+=' L'+X(s.t.getTime()).toFixed(1)+','+Y(s.rate).toFixed(1);});
+  path+=' L'+X(t1)+','+Y(0)+' Z';
+  g+='<path d="'+path+'" fill="#f5a800" opacity="0.26"/>';
+  g+='<path d="'+path+'" fill="none" stroke="#f5a800" stroke-width="1.8"/>';
 
   // ---- moon altitude, only while it is up ----
-  let mseg=[],mruns=[],mlast=null;
+  let mp='',mopen=false,mlast=null;
   dark.forEach(s=>{
-    if(s.moonAlt>0){ const x=X(s.t.getTime()),y=YA(s.moonAlt); mseg.push([x,y]); mlast={x,y}; }
-    else if(mseg.length){ mruns.push(mseg); mseg=[]; }
+    if(s.moonAlt>0){
+      const x=X(s.t.getTime()),y=YA(s.moonAlt);
+      mp+=(mopen?' L':'M')+x.toFixed(1)+','+y.toFixed(1);mopen=true;mlast={x,y};
+    } else mopen=false;
   });
-  if(mseg.length) mruns.push(mseg);
-  const mp=mruns.map(smoothPath).join(' ');
   if(mp){
-    g+='<path d="'+mp+'" fill="none" stroke="#9FB6D8" stroke-width="1.8" opacity="0.95"/>';
-    const near=mlast.x>W-R-46;
-    g+=txt(mlast.x+(near?-5:5),Math.max(mlast.y-6,T+13),'Moon',{s:12,f:'#9FB6D8',a:near?'end':'start'});
+    g+='<path d="'+mp+'" fill="none" stroke="#9fb6d8" stroke-width="1.6" opacity="0.95"/>';
+    const near=mlast.x>W-R-70;
+    g+=txt(mlast.x+(near?-6:6),Math.max(mlast.y-6,T+10),'Moon',{s:9,f:'#9fb6d8',a:near?'end':'start'});
   } else {
-    g+=txt(L+5,H-B-8,'Moon down all night',{s:12,f:'#9FB6D8'});
+    g+=txt(L+8,H-B-10,'Moon below the horizon all night',{s:9,f:'#9fb6d8'});
   }
 
   // ---- radiant altitude of the headline shower ----
   if(n.headline){
-    const rad=[];let rlast=null;
+    let rp='',started=false,rlast=null;
     dark.forEach(s=>{
       const src=s.sources.find(x=>x.code===n.headline.code);
       if(!src) return;
       const x=X(s.t.getTime()),y=YA(src.radAlt);
-      rad.push([x,y]);rlast={x,y};
+      rp+=(started?' L':'M')+x.toFixed(1)+','+y.toFixed(1);started=true;rlast={x,y};
     });
-    const rp=smoothPath(rad), started=rad.length>1;
     if(started){
-      g+='<path d="'+rp+'" fill="none" stroke="#FAA338" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.8"/>';
-      const near=rlast.x>W-R-46;
-      g+=txt(rlast.x+(near?-5:5),clamp(rlast.y-6,T+13,H-B-4),n.headline.code,{s:12,f:'#FAA338',a:near?'end':'start'});
+      g+='<path d="'+rp+'" fill="none" stroke="#f5a800" stroke-width="1.3" stroke-dasharray="5 4" opacity="0.8"/>';
+      const near=rlast.x>W-R-90;
+      g+=txt(rlast.x+(near?-6:6),rlast.y-6,n.headline.code+' radiant',{s:9,f:'#f5a800',a:near?'end':'start'});
     }
   }
 
   // ---- frame and scales ----
-  g+='<line x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-R)+'" y2="'+(H-B)+'" stroke="rgba(245,245,245,.20)"/>';
-  dark.forEach(s=>{const p=localParts(s.t);if(p.mi===0&&p.h%2===0){
+  g+='<line x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-R)+'" y2="'+(H-B)+'" stroke="#2b3247"/>';
+  dark.forEach(s=>{const p=localParts(s.t);if(p.mi===0){
     const x=X(s.t.getTime());
-    g+='<line x1="'+x+'" y1="'+T+'" x2="'+x+'" y2="'+(H-B)+'" stroke="rgba(245,245,245,.08)" stroke-width="0.7"/>';
-    g+=txt(x,H-B+16,pad(p.h),{s:12.5,a:'middle'});
+    g+='<line x1="'+x+'" y1="'+T+'" x2="'+x+'" y2="'+(H-B)+'" stroke="#1a2032" stroke-width="0.7"/>';
+    g+=txt(x,H-B+14,pad(p.h),{a:'middle'});
   }});
   [0,0.5,1].forEach(f=>{
     const r=maxRate*f;
-    g+='<line x1="'+L+'" y1="'+Y(r)+'" x2="'+(W-R)+'" y2="'+Y(r)+'" stroke="rgba(245,245,245,.08)" stroke-width="0.6"/>';
-    g+=txt(L-3,Y(r)+4.5,r.toFixed(0),{s:12.5,a:'end',f:'#FAA338'});
+    g+='<line x1="'+L+'" y1="'+Y(r)+'" x2="'+(W-R)+'" y2="'+Y(r)+'" stroke="#1a2032" stroke-width="0.6"/>';
+    g+=txt(L-8,Y(r)+3.5,r.toFixed(0),{a:'end',f:'#c98f1e'});
   });
   [0,45,90].forEach(a=>{
-    g+=txt(W-R+4,YA(a)+4.5,a+'\u00b0',{s:11.5,f:'#9FB6D8'});
+    g+=txt(W-R+8,YA(a)+3.5,a+'\u00b0',{f:'#7f93b5'});
   });
-  g+=txt(L-3,T-7,'/HR',{s:9,f:'#FAA338',a:'end',ls:'0.06em'});
-  g+=txt(W-R+4,T-7,'ALT',{s:9,f:'#9FB6D8',ls:'0.06em'});
+  g+=txt(0,0,'METEORS PER HOUR',{s:8,f:'#c98f1e',a:'middle',ls:'0.14em',tr:'translate(15,'+(T+PH/2)+') rotate(-90)'});
+  g+=txt(0,0,'ALTITUDE',{s:8,f:'#7f93b5',a:'middle',ls:'0.14em',tr:'translate('+(W-13)+','+(T+PH/2)+') rotate(-90)'});
 
   // ---- where full astronomical darkness starts and ends ----
   for(let i=1;i<dark.length;i++){
     const a=dark[i-1].sunAlt,b=dark[i].sunAlt;
     if((a>-18&&b<=-18)||(a<=-18&&b>-18)){
       const x=X(dark[i].t.getTime());
-      g+='<line x1="'+x+'" y1="'+T+'" x2="'+x+'" y2="'+(H-B)+'" stroke="#6E6BA8" stroke-width="1" stroke-dasharray="2 4"/>';
+      g+='<line x1="'+x+'" y1="'+T+'" x2="'+x+'" y2="'+(H-B)+'" stroke="#4e5c7a" stroke-width="1" stroke-dasharray="2 4"/>';
       const lead=b<=-18;
-      g+=txt(x+(lead?4:-4),T+(lead?13:27),(lead?'dark from ':'dark ends ')+fmtTime(dark[i].t),
-             {s:11,f:'#9FB6D8',a:lead?'start':'end'});
+      g+=txt(x+(lead?4:-4),T+11,(lead?'full dark from ':'full dark ends ')+fmtTime(dark[i].t),
+             {s:8,f:'#7f93b5',a:lead?'start':'end'});
     }
   }
   if(n.peak){
     const x=X(n.peak.t.getTime());
-    g+='<line x1="'+x+'" y1="'+Y(n.peak.rate)+'" x2="'+x+'" y2="'+(H-B)+'" stroke="#FAA338" stroke-width="1" stroke-dasharray="2 3" opacity="0.65"/>';
+    g+='<line x1="'+x+'" y1="'+Y(n.peak.rate)+'" x2="'+x+'" y2="'+(H-B)+'" stroke="#f5a800" stroke-width="1" stroke-dasharray="2 3" opacity="0.65"/>';
   }
   g+='</svg>';
   return g;
+}
+
+function bar(label,val,colour,note){
+  const pct=clamp(val*100,0,100);
+  return '<div class="bar"><div class="bk"><span>'+label+'</span><span>'+(note||Math.round(pct)+'%')+'</span></div>'+
+         '<div class="bt"><i style="width:'+pct.toFixed(1)+'%;background:'+colour+'"></i></div></div>';
 }
 
 function fovFraction(focal){
@@ -751,6 +1051,121 @@ function fovFraction(focal){
   return {frac:om/(2*Math.PI),wd,ht};
 }
 
+function renderNight(){
+  const n=state.nights[state.selected];
+  if(!n){$('night').innerHTML='<div class="loading">No night selected.</div>';return;}
+  const dateStr=fmtDate(n.y,n.m,n.d)+'/'+((new Date(Date.UTC(n.y,n.m,n.d+1))).getUTCDate());
+  $('nightTitle').textContent='Night of '+dateStr+' '+n.y;
+  $('nightSub').textContent=
+    n.forecast ? 'Cloud from live forecast'
+    : n.typical ? 'Beyond the forecast — typical cloud for this time of year, from '+(state.climYears||3)+' past years'
+    : (state.assumedCloud&&state.assumedCloud!=='typical')
+        ? 'No forecast for this night — assuming '+state.assumedCloud+'% cloud'
+        : 'No forecast for this night — rates assume clear sky';
+
+  const peakRate=n.peak?n.peak.rate:0;
+  const head=n.headline;
+  let html='';
+
+  html+='<div class="night-top">';
+  html+='<div class="stat"><div class="k">Best rate</div><div class="v meteor">'+peakRate.toFixed(0)+'</div>'+
+        '<div class="s">meteors per hour, all sources</div></div>';
+  html+='<div class="stat"><div class="k">Best window</div><div class="v">'+
+        (n.win?fmtTime(n.win.from)+'–'+fmtTime(n.win.to):'—')+'</div>'+
+        '<div class="s">'+(n.peak?'peak around '+fmtTime(n.peak.t)+' local':'no dark hours')+'</div></div>';
+  html+='<div class="stat"><div class="k">Night total</div><div class="v">'+Math.round(n.total)+'</div>'+
+        '<div class="s">meteors across the dark hours</div></div>';
+  html+='<div class="stat"><div class="k">Score</div><div class="v">'+Math.round(n.score)+'</div>'+
+        '<div class="s">'+verdictWord(n.score)+'</div></div>';
+  html+='<div class="stat"><div class="k">Moon</div><div class="v" style="color:var(--moon)">'+
+        (n.moonWin?Math.round(n.moonWin.maxIllum*100)+'%':'—')+'</div>'+
+        '<div class="s">'+(n.moonWin?'lit, up '+fmtTime(n.moonWin.from)+'–'+fmtTime(n.moonWin.to)
+                                    :'below the horizon all night')+'</div></div>';
+  html+='</div>';
+
+  html+='<div class="chart-box">'+nightChart(n)+'</div>';
+  const glyph=inner=>'<svg width="24" height="10" aria-hidden="true">'+inner+'</svg>';
+  html+='<div class="chart-key">'+
+    '<span>'+glyph('<rect x="0" y="3" width="24" height="7" fill="#f5a800" opacity="0.26"/>'+
+      '<line x1="0" y1="3" x2="24" y2="3" stroke="#f5a800" stroke-width="1.8"/>')+
+      'Meteors per hour, all sources (left scale)</span>'+
+    '<span>'+glyph('<line x1="0" y1="5" x2="24" y2="5" stroke="#9fb6d8" stroke-width="1.6"/>')+
+      'Moon altitude (right scale)</span>'+
+    '<span>'+glyph('<line x1="0" y1="5" x2="24" y2="5" stroke="#f5a800" stroke-width="1.3" stroke-dasharray="5 4"/>')+
+      (head?head.code:'Shower')+' radiant altitude (right scale)</span>'+
+    '<span>'+glyph('<rect x="0" y="1" width="24" height="8" fill="#141828"/>'+
+      '<path d="M0,9 L0,6 L6,3 L12,5 L18,2 L24,4 L24,9 Z" fill="#7a839b" opacity="0.8"/>')+
+      'Cloud cover 0 to 100% (lane at top)</span>'+
+    '<span>'+glyph('<rect x="0" y="1" width="24" height="8" fill="#1e2743"/>')+
+      'Twilight, too light for meteors</span>'+
+    '<span>'+glyph('<rect x="0" y="1" width="24" height="8" fill="#f5a800" opacity="0.09"/>'+
+      '<rect x="0" y="1" width="24" height="8" fill="none" stroke="#f5a800" stroke-width="0.6" opacity="0.5"/>')+
+      'Best window, rate within 30% of its peak</span>'+
+    '</div>';
+
+  // camera panel
+  const fv=fovFraction(state.focal);
+  const inFrame=peakRate*fv.frac*0.55;
+  if(n.rh!=null||n.dewGap!=null){
+    const bits=[];
+    if(n.rh!=null) bits.push('Humidity averages <b>'+Math.round(n.rh)+'%</b> through the dark hours'+
+      (n.rh>85?', which will haze the sky and soften faint meteors':n.rh>70?', enough to take the edge off transparency':', so transparency should hold up'));
+    if(n.dewGap!=null&&n.dewGap<2.5) bits.push('Air comes within <b>'+n.dewGap.toFixed(1)+'\u00b0C</b> of the dew point around '+fmtTime(n.dewAt)+', so run a lens warmer');
+    html+='<div class="cam"><span>Air: '+bits.join('. ')+'.</span></div>';
+  }
+  html+='<div class="cam"><span>Camera:</span><select id="focal">'+
+    ['14','20','24','35','50'].map(f=>'<option value="'+f+'"'+(f===state.focal?' selected':'')+'>'+f+'mm full frame</option>').join('')+
+    '</select><span>covers <b>'+Math.round(fv.frac*100)+'%</b> of the sky, so at the best hour expect roughly <b>'+
+    inFrame.toFixed(1)+'</b> meteors in frame per hour'+
+    (head&&head.det?', with the radiant '+Math.round(head.det.radAlt)+'° up in the '+compass(head.det.radAz)+
+      ' — point 40 to 60° away from it for longer trails':'')+'.</span></div>';
+
+  // shower list
+  n.showers.forEach((sw,i)=>{
+    const d=sw.det;
+    const meta=sw.sh;
+    html+='<div class="shower'+(i===0?' open':'')+'" data-code="'+sw.code+'">';
+    html+='<div class="shower-head">'+
+      '<span class="code">'+sw.code+'</span>'+
+      '<span class="sname">'+sw.name+'</span>'+
+      '<span class="meter"><i style="width:'+scoreOf(sw.peak).toFixed(0)+'%"></i></span>'+
+      '<span class="srate">'+sw.peak.toFixed(1)+'<span class="sunit">/hr</span></span>'+
+      '</div>';
+    html+='<div class="shower-body">';
+    html+='<div class="verdict">'+sentence(sw,n)+'</div>';
+    html+='<div class="bars">';
+    html+=bar('Shower activity',d.activityFrac,'#f5a800',Math.round(d.zhr)+' ZHR');
+    if(sw.code!=='SPO') html+=bar('Radiant height',d.altFactor,'#f5a800',Math.round(d.radAlt)+'° '+compass(d.radAz));
+    html+=bar('Moonlight',d.moonFactor,'#9fb6d8',d.moonLoss>0.05?'−'+d.moonLoss.toFixed(1)+' mag':'none');
+    html+=bar('Sky darkness',clamp(d.darkFactor,0,1),'#f5a800',state.sky.sqm.toFixed(1)+' mag, Bortle '+state.sky.bortle);
+    html+=bar('Transparency',clamp(d.transFactor,0,1),'#7f93b5',
+      (d.glowLoss+d.humLoss)>0.05?'\u2212'+(d.glowLoss+d.humLoss).toFixed(1)+' mag':'clean air');
+    html+=bar('Clear sky',d.clear,'#5c6478',
+      !d.assumed ? Math.round(d.clear*100)+'%'
+      : d.typical ? 'typical '+Math.round(d.clear*100)+'%'
+      : state.assumedCloud==='typical'||!state.assumedCloud ? 'assumed clear'
+      : 'assumed '+(100-state.assumedCloud)+'%');
+    html+='</div>';
+    html+='<div class="meta">'+
+      (meta.active?'<span>Active <b>'+meta.active+'</b></span>':'')+
+      (meta.parent?'<span>Parent <b>'+meta.parent+'</b></span>':'')+
+      (meta.v?'<span>Speed <b>'+meta.v+' km/s</b> ('+speedWord(meta.v)+')</span>':'')+
+      (meta.r?'<span>Population index <b>r = '+meta.r+'</b> ('+(meta.r<2.4?'brighter than average':meta.r>2.8?'fainter than average':'average brightness')+')</span>':'')+
+      '<span>Naked-eye limit now <b>'+d.nelm.toFixed(1)+'</b></span>'+
+      '<span>Night total <b>'+sw.total.toFixed(0)+'</b></span>'+
+      '</div>';
+    html+='<div class="facts">'+(meta.facts||'')+'</div>';
+    html+='</div></div>';
+  });
+  if(!n.showers.length) html+='<div class="loading">Nothing above the detection threshold on this night.</div>';
+
+  $('night').innerHTML=html;
+  $('night').querySelectorAll('.shower-head').forEach(h=>{
+    h.addEventListener('click',()=>h.parentElement.classList.toggle('open'));
+  });
+  const f=$('focal');
+  if(f) f.addEventListener('change',e=>{state.focal=e.target.value;renderNight();});
+}
 
 function verdictWord(s){
   if(s>=82) return 'exceptional';
@@ -777,442 +1192,126 @@ function sentence(sw,n){
   if(d.cf!=null&&d.cf<0.35) parts.push('Cloud is the bigger problem: the forecast leaves only about '+Math.round(d.clear*100)+'% of the sky usable.');
   if(d.glowLoss>0.35) parts.push('Thin cloud is scattering ground light and moonlight back down, costing a further '+d.glowLoss.toFixed(1)+' magnitudes on top of the blocking.');
   if(d.humLoss>0.25) parts.push('Humid air is hazing the sky as well, worth about '+d.humLoss.toFixed(1)+' magnitudes of transparency.');
-  if(state.sky&&state.sky.bortle>=6) parts.push('At Bortle '+state.sky.bortle+' you are losing most of the fainter meteors before anything else gets a say.');
+  if(state.sky.bortle>=6) parts.push('At Bortle '+state.sky.bortle+' you are losing most of the fainter meteors before anything else gets a say.');
   return parts.join(' ');
 }
 
-
-
-/* ---------------- Noctography additions ---------------- */
-const MW_RA = 266.42, MW_DEC = -29.01;   // galactic centre
-
-function crossings(slots, key, level){
-  const out = [];
-  for (let i = 1; i < slots.length; i++){
-    const a = slots[i-1][key], b = slots[i][key];
-    if ((a <= level && b > level) || (a > level && b <= level))
-      out.push({ t: slots[i].t, rising: b > a });
-  }
-  return out;
-}
-
-/* Sunrise for a local calendar day at the current site, read off the sun's own altitude.
-   Returns null where the sun does not rise at all — polar day and polar night both. */
-function sunriseOn(y, m, d){
-  let prev = null;
-  for (let mi = 0; mi <= 14 * 60; mi += 10){
-    const dt = toUTC(y, m, d, 0, mi), jd = jdFrom(dt), s = sunPos(jd);
-    const h = eq2horiz(s.ra, s.dec, state.lat, lstOf(jd, state.lon)).alt;
-    if (prev && prev.h <= HORIZON_SUN && h > HORIZON_SUN){
-      const f = (HORIZON_SUN - prev.h) / (h - prev.h);
-      return new Date(prev.t.getTime() + f * (dt.getTime() - prev.t.getTime()));
-    }
-    prev = { t: dt, h };
-  }
-  return null;
-}
-
-/* Which night the app is showing. While it is still dark you are on last night, so the screen
-   only rolls over to the coming night thirty minutes before sunrise — which moves with the
-   season and the latitude, where a fixed hour does not. Inside either polar circle the sun may
-   not rise from this site at all, and there 06:00 local is the fallback. */
-function nightAnchor(now){
-  now = now || new Date();
-  const p = localParts(now);
-  if (p.h >= 12) return { y: p.y, m: p.m, d: p.d, rollover: null, rise: null };
-  const rise = sunriseOn(p.y, p.m, p.d);
-  const roll = rise ? new Date(rise.getTime() - 30 * 60000) : toUTC(p.y, p.m, p.d, 6, 0);
-  const back = now.getTime() < roll.getTime() ? 1 : 0;
-  const base = new Date(Date.UTC(p.y, p.m, p.d - back));
-  return { y: base.getUTCFullYear(), m: base.getUTCMonth(), d: base.getUTCDate(), rollover: roll, rise };
-}
-
-/* ============================ eclipses ============================
-   Both kinds fall out of the same sun and moon positions the rest of the app uses. A lunar
-   eclipse is the moon entering the Earth's shadow, which everyone on the night side sees
-   identically — so it is found once and then checked against the moon's altitude here. A solar
-   eclipse is local, and is worked out from where the site actually stands on the globe. */
-const EARTH_R = 6378.14, MOON_KM = 1737.4, SUN_SEMI = 0.2666, SUN_PARALLAX = 0.00224;
-function wrap180(a){ let d = a; while (d > 180) d -= 360; while (d < -180) d += 360; return d; }
-
-/* Fraction of disc 1 hidden behind disc 2, both as circles of angular radius r1 and r2
-   separated by d. Used for the covered share of the sun, which is what you actually notice. */
-function discOverlap(d, r1, r2){
-  if (d >= r1 + r2) return 0;
-  if (d <= Math.abs(r1 - r2)) return r2 >= r1 ? 1 : (r2 * r2) / (r1 * r1);
-  const a1 = Math.acos((d * d + r1 * r1 - r2 * r2) / (2 * d * r1));
-  const a2 = Math.acos((d * d + r2 * r2 - r1 * r1) / (2 * d * r2));
-  const area = r1 * r1 * (a1 - Math.sin(2 * a1) / 2) + r2 * r2 * (a2 - Math.sin(2 * a2) / 2);
-  return clamp(area / (Math.PI * r1 * r1), 0, 1);
-}
-
-function lunarEclipse(t0, t1){
-  const STEP_MS = 10 * 60000, rows = [];
-  for (let t = t0; t <= t1; t += STEP_MS){
-    const jd = jdFrom(new Date(t)), s = sunPos(jd), m = moonPos(jd);
-    const dl = wrap180(m.lam - s.lam - 180) * cos(m.bet);
-    rows.push({ t, jd, sep: Math.sqrt(dl * dl + m.bet * m.bet), dist: m.distKm, ra: m.ra, dec: m.dec });
-  }
-  if (!rows.length) return null;
-  const best = rows.reduce((a, b) => b.sep < a.sep ? b : a);
-  const parM = Math.asin(EARTH_R / best.dist) * R2D;
-  const semiM = Math.asin(MOON_KM / best.dist) * R2D;
-  // the 1.02 is the standard enlargement for the Earth's atmosphere, which widens the shadow
-  const umbra = 1.02 * (parM + SUN_PARALLAX - SUN_SEMI);
-  const penumbra = 1.02 * (parM + SUN_PARALLAX + SUN_SEMI);
-  let kind = null;
-  if (best.sep + semiM < umbra) kind = 'total';
-  else if (best.sep - semiM < umbra) kind = 'partial';
-  else if (best.sep - semiM < penumbra) kind = 'penumbral';
-  if (!kind) return null;
-  const altOf = r => eq2horiz(r.ra, r.dec, state.lat, lstOf(r.jd, state.lon)).alt;
-  const span = lim => {
-    const i = rows.filter(r => r.sep - semiM < lim);
-    return i.length ? { from: new Date(i[0].t), to: new Date(i[i.length - 1].t), rows: i } : null;
-  };
-  const pen = span(penumbra), umb = kind === 'penumbral' ? null : span(umbra);
-  const shown = umb || pen;
-  const maxAlt = shown ? Math.max.apply(null, shown.rows.map(altOf)) : -90;
-  return { type: 'lunar', kind, greatest: new Date(best.t), alt: altOf(best), maxAlt,
-    mag: Math.max(0, (umbra + semiM - best.sep) / (2 * semiM)),
-    umbral: umb ? { from: umb.from, to: umb.to } : null,
-    penumbral: pen ? { from: pen.from, to: pen.to } : null };
-}
-
-/* Is there a solar eclipse anywhere on Earth in this window? Cheap geocentric test, run first
-   so the expensive topocentric scan only happens on the handful of days it can matter. */
-function solarEclipseGlobal(t0, t1){
-  const STEP_MS = 10 * 60000;
-  let best = null;
-  for (let t = t0; t <= t1; t += STEP_MS){
-    const jd = jdFrom(new Date(t)), s = sunPos(jd), m = moonPos(jd);
-    const dl = Math.abs(wrap180(m.lam - s.lam));
-    if (!best || dl < best.dl) best = { dl, bet: Math.abs(m.bet), t };
-  }
-  if (!best || best.dl > 1.8) return null;
-  return best.bet < 1.58 ? { at: new Date(best.t), bet: best.bet } : null;
-}
-
-/* The moon and sun as the site itself sees them: close enough that standing on the surface
-   rather than at the centre of the Earth shifts the moon by up to a degree against the sun,
-   which is the whole reason a total eclipse is a narrow track and not a hemisphere. */
-function solarSample(t){
-  const jd = jdFrom(new Date(t)), s = sunPos(jd), m = moonPos(jd), st = lstOf(jd, state.lon);
-  const cl = cos(state.lat), sl = sin(state.lat);
-  const ox = EARTH_R * cl * cos(st), oy = EARTH_R * cl * sin(st), oz = EARTH_R * sl;
-  const r = m.distKm;
-  const mx = r * cos(m.dec) * cos(m.ra) - ox, my = r * cos(m.dec) * sin(m.ra) - oy, mz = r * sin(m.dec) - oz;
-  const rt = Math.sqrt(mx * mx + my * my + mz * mz);
-  const ra = norm(Math.atan2(my, mx) * R2D), dec = Math.asin(mz / rt) * R2D;
-  return { t, sep: angSep(dec, ra, s.dec, s.ra), semiM: Math.asin(MOON_KM / rt) * R2D,
-           sunAlt: eq2horiz(s.ra, s.dec, state.lat, st).alt };
-}
-
-function solarEclipse(t0, t1){
-  const glob = solarEclipseGlobal(t0, t1);
-  if (!glob) return null;
-  const STEP_MS = 5 * 60000, rows = [];
-  for (let t = t0; t <= t1; t += STEP_MS) rows.push(solarSample(t));
-  const inside = rows.filter(r => r.sep < SUN_SEMI + r.semiM && r.sunAlt > -0.5);
-  if (!inside.length) return { type: 'solar', kind: 'elsewhere', at: glob.at, greatest: glob.at };
-  const depth = r => SUN_SEMI + r.semiM - r.sep;
-  let g = inside.reduce((a, b) => depth(b) > depth(a) ? b : a);
-  // Totality lasts a couple of minutes. A five-minute grid steps straight over it and would
-  // report the deepest total eclipse as a partial one, so the moment of greatest eclipse is
-  // resampled at ten seconds — only ever on the handful of days that get this far.
-  for (let t = g.t - 10 * 60000; t <= g.t + 10 * 60000; t += 10000){
-    const r = solarSample(t);
-    if (r.sunAlt > -0.5 && depth(r) > depth(g)) g = r;
-  }
-  const kind = g.sep < Math.abs(g.semiM - SUN_SEMI) ? (g.semiM >= SUN_SEMI ? 'total' : 'annular') : 'partial';
-  return { type: 'solar', kind, from: new Date(inside[0].t), to: new Date(inside[inside.length - 1].t),
-    greatest: new Date(g.t), alt: g.sunAlt, obscuration: discOverlap(g.sep, SUN_SEMI, g.semiM) };
-}
-
-/* Eclipses belonging to one night: local midday to the next, so every eclipse lands on exactly
-   one night and none is counted twice. The scan runs three hours wider at each end — an eclipse
-   straddling the boundary would otherwise be measured on a truncated half of itself — and the
-   result is then kept only if greatest fell inside the night proper. Cached, because the outlook
-   asks for ten nights on every render and the answer never moves. */
-const ECL_CACHE = {};
-function eclipsesFor(y, m, d){
-  const key = y + '-' + m + '-' + d + '|' + state.lat.toFixed(2) + '|' + state.lon.toFixed(2);
-  if (ECL_CACHE[key]) return ECL_CACHE[key];
-  const t0 = toUTC(y, m, d, 12, 0).getTime(), t1 = toUTC(y, m, d + 1, 12, 0).getTime();
-  const PAD = 3 * 3600000;
-  const owns = x => x && (x.greatest || x.at).getTime() >= t0 && (x.greatest || x.at).getTime() < t1;
-  const lunar = lunarEclipse(t0 - PAD, t1 + PAD), solar = solarEclipse(t0 - PAD, t1 + PAD);
-  const out = { lunar: owns(lunar) ? lunar : null, solar: owns(solar) ? solar : null };
-  ECL_CACHE[key] = out;
-  return out;
-}
-
-/* Everything the home screen needs for the coming night. */
-function tonight(){
-  const a = nightAnchor();
-  const n = computeNight(a.y, a.m, a.d);
-
-  const slots = n.slots;
-  slots.forEach(s => {
-    const jd = jdFrom(s.t), st = lstOf(jd, state.lon);
-    const mw = eq2horiz(MW_RA, MW_DEC, state.lat, st);
-    s.mwAlt = mw.alt; s.mwAz = mw.az;
-    const m = moonPos(jd), mh = eq2horiz(m.ra, m.dec, state.lat, st);
-    s.moonAz = mh.az;
-  });
-
-  const dark = slots.filter(s => s.sunAlt < -18);
-  const naut = slots.filter(s => s.sunAlt < -12);
-  const usable = dark.length ? dark : naut;
-  const darkWin = usable.length ? { from: usable[0].t, to: usable[usable.length-1].t, full: dark.length > 0 } : null;
-
-  const mc = crossings(slots, 'moonAlt', 0);
-  const moonRise = (mc.find(c => c.rising) || {}).t || null;
-  const moonSet  = (mc.find(c => !c.rising) || {}).t || null;
-
-  // Milky Way core, only counted while it is dark
-  let mwBest = null;
-  usable.forEach(s => { if (!mwBest || s.mwAlt > mwBest.mwAlt) mwBest = s; });
-
-  // shooting quality per slot: clear sky x sky darkness lost to moon
-  let best = null;
-  usable.forEach(s => {
-    const cf = clearFraction(s.cloud);
-    const clear = cf == null ? 0.75 : cf;
-    const moonPen = s.moonAlt > 0 ? clamp(1 - (0.25 + 0.75 * s.illum) * Math.min(1, (s.moonAlt + 5) / 45), 0.12, 1) : 1;
-    s.quality = clear * moonPen;
-    if (!best || s.quality > best.quality) best = s;
-  });
-  let win = null, meanQ = 0;
-  if (best){
-    usable.forEach(s => { meanQ += s.quality; });
-    meanQ /= usable.length;
-    const thr = Math.max(best.quality * 0.7, 0.12);
-    const i = usable.indexOf(best);
-    let a = i, b = i;
-    while (a > 0 && usable[a-1].quality >= thr) a--;
-    while (b < usable.length - 1 && usable[b+1].quality >= thr) b++;
-    // never advertise a window shorter than an hour: grow towards whichever side holds up better
-    const minSlots = Math.min(usable.length - 1, Math.round(60 / STEP));
-    while (b - a < minSlots){
-      const ca = a > 0 ? usable[a-1].quality : -1;
-      const cb = b < usable.length - 1 ? usable[b+1].quality : -1;
-      if (ca < 0 && cb < 0) break;
-      if (cb >= ca) b++; else a--;
-    }
-    win = { from: usable[a].t, to: usable[b].t, quality: best.quality };
-  }
-
-  // cloud is reported over exactly the hours the verdict is judged on, so the two agree
-  const winds = usable.filter(s => s.cloud && s.cloud.wind != null).map(s => s.cloud.wind);
-  const gusts = usable.filter(s => s.cloud && s.cloud.gust != null).map(s => s.cloud.gust);
-  const wind = winds.length ? { mean: winds.reduce((a, b) => a + b, 0) / winds.length,
-    max: Math.max.apply(null, winds), gust: gusts.length ? Math.max.apply(null, gusts) : null } : null;
-  const cloudSeries = usable.filter(s => s.cloud).map(s => {
-    const cf = clearFraction(s.cloud);
-    return { t: s.t, v: cf == null ? s.cloud.total : (1 - cf) * 100, assumed: !!s.cloud.assumed };
-  });
-  const midIllum = slots[Math.floor(slots.length / 2)].illum;
-
-  // headline verdict for the greeting
-  const q = best ? 0.5 * best.quality + 0.5 * meanQ : 0;
-  const hours = usable.length * STEP / 60;
-  let verdict;
-  if (!usable.length) verdict = 'too light for astro — the sun barely sets';
-  else if (q >= 0.72 && meanQ >= 0.6 && hours > 2) verdict = 'great';
-  else if (q >= 0.5 && meanQ >= 0.35) verdict = 'not bad';
-  else if (q >= 0.28 || best.quality >= 0.6) verdict = 'challenging';
-  else verdict = 'quite rough';
-
-  const sun = sunTimes(n), mt = moonTimes(n), fog = fogRisk(n);
-  return { night: n, darkWin, moonRise, moonSet, midIllum, mwBest, win, best, cloudSeries, wind, sun, mt, fog,
-           verdict, quality: q, peakQuality: best ? best.quality : 0, meanQuality: meanQ, darkHours: hours };
-}
-
-/* Where an altitude is crossed, with the time interpolated between the two straddling slots
-   rather than snapped to a 15-minute step. */
-function crossTime(slots, key, level, wantRising){
-  for (let i = 1; i < slots.length; i++){
-    const a = slots[i-1][key], b = slots[i][key];
-    const rising = b > a;
-    if (rising !== wantRising) continue;
-    if ((a <= level && b > level) || (a > level && b <= level)){
-      const f = (level - a) / (b - a);
-      return new Date(slots[i-1].t.getTime() + f * (slots[i].t.getTime() - slots[i-1].t.getTime()));
-    }
-  }
-  return null;
-}
-const HORIZON_SUN = -0.833, HORIZON_MOON = 0.125;   // refraction, and the moon's semi-diameter
-
-function sunTimes(n){
-  return { set: crossTime(n.slots, 'sunAlt', HORIZON_SUN, false),
-           rise: crossTime(n.slots, 'sunAlt', HORIZON_SUN, true) };
-}
-function moonTimes(n){
-  return { set: crossTime(n.slots, 'moonAlt', HORIZON_MOON, false),
-           rise: crossTime(n.slots, 'moonAlt', HORIZON_MOON, true) };
-}
-
-/* Radiation fog: the classic clear, still, damp night that ruins an otherwise perfect forecast.
-   It needs the air to reach its dew point, almost no wind to mix it away, and a clear sky to
-   radiate heat to — which is exactly the night you would otherwise have driven out for. */
-function fogRisk(n){
-  const dark = n.slots.filter(s => s.sunAlt < -6 && s.cloud);
-  if (!dark.length) return null;
-  let worst = null;
-  dark.forEach(s => {
-    const c = s.cloud;
-    if (c.temp == null || c.dew == null) return;
-    const gap = c.temp - c.dew;
-    const wind = c.wind == null ? null : c.wind;
-    const cover = c.total == null ? 50 : c.total;
-    // each term is 0 to 1, and all three have to line up for fog to form
-    const damp = clamp((2.5 - gap) / 2.5, 0, 1);
-    const still = wind == null ? 0.5 : clamp((10 - wind) / 8, 0, 1);
-    const clear = clamp((70 - cover) / 50, 0, 1);
-    let score = damp * still * clear;
-    // a visibility forecast, where there is one, is worth more than the proxy
-    if (c.vis != null && c.vis < 5000) score = Math.max(score, clamp((5000 - c.vis) / 4000, 0, 1));
-    if (!worst || score > worst.score) worst = { score, t: s.t, gap, wind, cover, vis: c.vis };
-  });
-  if (!worst || worst.score < 0.28) return null;
-  return {
-    level: worst.score >= 0.62 ? 'likely' : worst.score >= 0.42 ? 'possible' : 'slight',
-    score: worst.score, t: worst.t, gap: worst.gap, wind: worst.wind, vis: worst.vis,
-  };
-}
-
-/* ---- Real-world sky brightness ----
-   The atlas gives what a site would read on a perfect moonless night. What you actually get is
-   that, plus moonlight, plus whatever haze the humidity has put in the air, plus town glow
-   scattered back down by thin cloud. This evaluates the full model at the zenith through the
-   dark hours and reports the median, so one bright half-hour does not define the night. */
-function realSky(n){
-  const dark = n.slots.filter(s => s.sunAlt < -15 && s.env && s.env.b);
-  const slots = dark.length ? dark : n.slots.filter(s => s.env && s.env.b);
-  if (!slots.length) return null;
-  const vals = slots.map(s => {
-    const lm = limitingMag(s.env, 90, 0);
-    return { sqm: lm.sky, nelm: lm.nelm, moonLoss: lm.moonLoss, humLoss: lm.humLoss, glowLoss: lm.glowLoss };
-  }).sort((a, b) => a.sqm - b.sqm);
-  const med = vals[Math.floor(vals.length / 2)];
-  const best = vals[vals.length - 1];
-  const worst = vals[0];
-  return {
-    sqm: med.sqm, bortle: bortleFor(med.sqm), nelm: med.nelm,
-    moonLoss: med.moonLoss, humLoss: med.humLoss, glowLoss: med.glowLoss,
-    bestSqm: best.sqm, bestBortle: bortleFor(best.sqm),
-    worstBortle: bortleFor(worst.sqm),
-    baseBortle: state.sky ? state.sky.bortle : null,
-    baseSqm: state.sky ? state.sky.sqm : null,
-  };
-}
-
-/* One row of the ten-night outlook. */
-function nightSummary(n){
-  const dark18 = n.slots.filter(s => s.sunAlt < -18);
-  const dark12 = n.slots.filter(s => s.sunAlt < -12);
-  const usable = dark18.length ? dark18 : dark12;
-  const darkWin = usable.length ? { from: usable[0].t, to: usable[usable.length - 1].t } : null;
-
-  const withCloud = usable.filter(s => s.cloud);
-  const live = withCloud.filter(s => !s.cloud.assumed);
-  const quoted = live.length ? live : withCloud;
-  let cloud = null, cloudKind = 'none';
-  if (quoted.length){
-    const vals = quoted.map(s => { const cf = clearFraction(s.cloud); return cf == null ? s.cloud.total : (1 - cf) * 100; });
-    cloud = vals.reduce((a, b) => a + b, 0) / vals.length;
-    cloudKind = live.length ? (live.length < withCloud.length ? 'partial' : 'live') : 'typical';
-  }
-
-  const mid = usable.length ? usable[Math.floor(usable.length / 2)] : n.slots[Math.floor(n.slots.length / 2)];
-  const moonUp = usable.some(s => s.moonAlt > 0);
-  return {
-    y: n.y, m: n.m, d: n.d, t: usable.length ? usable[0].t : n.slots[0].t,
-    darkWin, darkHours: usable.length * STEP / 60,
-    cloud, cloudKind,
-    moonPct: mid ? mid.illum * 100 : 0, moonUp,
-    sky: realSky(n), sun: sunTimes(n), mt: moonTimes(n), fog: fogRisk(n),
-    peakRate: n.peak ? n.peak.rate : 0,
-    headline: n.headline ? n.headline.code : null,
-    headlineName: n.headline ? n.headline.name : null,
-    win: n.win, score: n.score,
-  };
-}
-
-/* NOAA planetary K index — 3-hourly forecast */
-/* NOAA planetary K index — 3-hourly forecast, about three days ahead.
-   The whole series is returned; windowing it to a particular night is the caller's job,
-   because a rolling window around "now" says nothing about the night being displayed. */
-async function loadKp(){
+/* ============================ geocoding ============================ */
+let searchTimer=null;
+async function search(q){
   try{
-    const r = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json');
-    const j = await r.json();
-    let rows = [];
-    if (Array.isArray(j) && j.length && Array.isArray(j[0])){
-      rows = j.slice(1).map(x => ({ t: new Date(String(x[0]).replace(' ', 'T') + 'Z'), kp: parseFloat(x[1]) }));
-    } else if (Array.isArray(j)){
-      rows = j.map(x => ({ t: new Date(String(x.time_tag).replace(' ', 'T') + (String(x.time_tag).endsWith('Z') ? '' : 'Z')), kp: parseFloat(x.kp) }));
-    }
-    rows = rows.filter(x => !isNaN(x.kp) && !isNaN(x.t.getTime())).sort((a, b) => a.t - b.t);
-    return rows.length ? { rows } : null;
-  }catch(e){ return null; }
+    const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?count=5&language=en&format=json&name='+encodeURIComponent(q));
+    const j=await r.json();
+    const box=$('results');
+    if(!j.results||!j.results.length){box.style.display='none';return;}
+    box.innerHTML=j.results.map((x,i)=>'<div data-i="'+i+'">'+x.name+
+      (x.admin1?', '+x.admin1:'')+(x.country?', '+x.country:'')+'</div>').join('');
+    box.style.display='block';
+    box.querySelectorAll('div').forEach(el=>{
+      el.addEventListener('click',async()=>{
+        const x=j.results[+el.dataset.i];
+        state.lat=x.latitude;state.lon=x.longitude;
+        state.place=x.name+(x.country_code?', '+x.country_code:'');
+        $('lat').value=state.lat.toFixed(3);$('lon').value=state.lon.toFixed(3);
+        box.style.display='none';$('q').value='';
+        await refresh();
+      });
+    });
+  }catch(e){$('results').style.display='none';}
 }
 
-/* Peak and shape of Kp across one night's dark hours. A 3-hourly sample stamped 21:00 describes
-   21:00-24:00, so a sample counts when its three-hour span overlaps the window at all. */
-function kpForNight(kp, win){
-  if (!kp || !kp.rows || !kp.rows.length || !win) return null;
-  const a = win.from.getTime(), b = win.to.getTime(), SPAN = 3 * 3600000;
-  const s = kp.rows.filter(x => x.t.getTime() + SPAN > a && x.t.getTime() < b);
-  if (!s.length) return null;
-  const peak = s.reduce((m, x) => x.kp > m.kp ? x : m);
-  return { peak: peak.kp, at: peak.t, series: s, first: s[0].kp, last: s[s.length - 1].kp };
+/* ============================ wiring ============================ */
+async function refresh(){
+  await loadAtlas();
+  updateSky();
+  renderChips();
+  await loadWeather();
+  computeAll();
+  renderRibbon();renderNight();renderChips();
+  writeHash();
+  if(state.assumedCloud==='typical'){
+    const ok=await loadClimatology();
+    if(ok){computeAll();renderRibbon();renderNight();renderChips();}
+  }
+}
+function writeHash(){
+  location.hash='lat='+state.lat.toFixed(3)+'&lon='+state.lon.toFixed(3)+
+    '&b='+state.skyMode+'&d='+state.start.y+'-'+pad(state.start.m+1)+'-'+pad(state.start.d)+
+    '&p='+encodeURIComponent(state.place);
+}
+function readHash(){
+  if(!location.hash) return;
+  const p=new URLSearchParams(location.hash.slice(1));
+  if(p.get('lat')) state.lat=+p.get('lat');
+  if(p.get('lon')) state.lon=+p.get('lon');
+  if(p.get('b')) state.skyMode=(p.get('b')==='auto')?'auto':+p.get('b');
+  if(p.get('p')) state.place=decodeURIComponent(p.get('p'));
+  if(p.get('d')){const [y,m,d]=p.get('d').split('-').map(Number);state.start={y,m:m-1,d};}
 }
 
-async function geocode(q){
-  try{
-    const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?count=5&language=en&format=json&name=' + encodeURIComponent(q));
-    const j = await r.json();
-    return j.results || [];
-  }catch(e){ return []; }
-}
+function init(){
+  const sel=$('bortle');
+  const auto=document.createElement('option');
+  auto.value='auto';auto.textContent='Auto \u2014 from light pollution atlas';sel.appendChild(auto);
+  for(let i=1;i<=9;i++){
+    const o=document.createElement('option');o.value=i;o.textContent=BORTLE[i].label;sel.appendChild(o);
+  }
+  const now=new Date();
+  state.start={y:now.getFullYear(),m:now.getMonth(),d:now.getDate()};
+  readHash();
+  updateSky();
+  sel.value=String(state.skyMode);
+  $('lat').value=state.lat.toFixed(3);
+  $('lon').value=state.lon.toFixed(3);
+  $('start').value=state.start.y+'-'+pad(state.start.m+1)+'-'+pad(state.start.d);
 
-/* Rough home location from the browser timezone, for when GPS is refused. */
-const TZ_HOME = {
-  'Europe/London':[52.958,0.573,'Thornham, Norfolk'], 'Europe/Dublin':[53.35,-6.26,'Dublin'],
-  'Europe/Paris':[48.86,2.35,'Paris'], 'Europe/Berlin':[52.52,13.40,'Berlin'], 'Europe/Madrid':[40.42,-3.70,'Madrid'],
-  'Europe/Rome':[41.90,12.50,'Rome'], 'Europe/Amsterdam':[52.37,4.90,'Amsterdam'], 'Europe/Oslo':[59.91,10.75,'Oslo'],
-  'Europe/Stockholm':[59.33,18.07,'Stockholm'], 'Europe/Helsinki':[60.17,24.94,'Helsinki'], 'Europe/Warsaw':[52.23,21.01,'Warsaw'],
-  'Europe/Lisbon':[38.72,-9.14,'Lisbon'], 'Europe/Zurich':[47.38,8.54,'Zurich'], 'Europe/Vienna':[48.21,16.37,'Vienna'],
-  'America/New_York':[40.71,-74.01,'New York'], 'America/Chicago':[41.88,-87.63,'Chicago'],
-  'America/Denver':[39.74,-104.99,'Denver'], 'America/Los_Angeles':[34.05,-118.24,'Los Angeles'],
-  'America/Toronto':[43.65,-79.38,'Toronto'], 'America/Vancouver':[49.28,-123.12,'Vancouver'],
-  'Australia/Sydney':[-33.87,151.21,'Sydney'], 'Australia/Melbourne':[-37.81,144.96,'Melbourne'],
-  'Australia/Perth':[-31.95,115.86,'Perth'], 'Pacific/Auckland':[-36.85,174.76,'Auckland'],
-  'Africa/Johannesburg':[-26.20,28.05,'Johannesburg'], 'Asia/Tokyo':[35.68,139.69,'Tokyo'],
-  'Asia/Singapore':[1.35,103.82,'Singapore'], 'Asia/Dubai':[25.20,55.27,'Dubai'], 'Asia/Kolkata':[28.61,77.21,'Delhi'],
-};
-function homeFromTimezone(){
-  let tz = '';
-  try{ tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; }catch(e){}
-  const hit = TZ_HOME[tz];
-  if (hit) return { lat: hit[0], lon: hit[1], place: hit[2], guessed: true };
-  // fall back to the offset: put them mid-latitude at the right longitude
-  const lon = clamp(-new Date().getTimezoneOffset() / 4, -180, 180);
-  return { lat: 52.958, lon: 0.573, place: 'Thornham, Norfolk', guessed: true, unknownTz: true, lonHint: lon };
+  const seg=$('rangeSeg');
+  if(seg.querySelectorAll) seg.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      state.range=+b.dataset.n;
+      seg.querySelectorAll('button').forEach(x=>x.className=(+x.dataset.n===state.range)?'on':'');
+      $('ribbonTitle').textContent='The next '+state.range+' nights';
+      if(state.selected>=state.range) state.selected=0;
+      computeAll();renderRibbon();renderNight();renderChips();writeHash();
+    });
+  });
+  $('assumed').value=String(state.assumedCloud);
+  $('assumed').addEventListener('change',e=>{
+    state.assumedCloud=(e.target.value==='typical')?'typical':+e.target.value;computeAll();renderRibbon();renderNight();renderChips();
+  });
+  sel.addEventListener('change',e=>{
+    state.skyMode=(e.target.value==='auto')?'auto':+e.target.value;
+    updateSky();sel.value=String(state.skyMode);
+    computeAll();renderRibbon();renderNight();renderChips();writeHash();
+  });
+  $('start').addEventListener('change',async e=>{
+    const [y,m,d]=e.target.value.split('-').map(Number);
+    if(!y) return;
+    state.start={y,m:m-1,d};state.selected=0;computeAll();renderRibbon();renderNight();writeHash();
+  });
+  ['lat','lon'].forEach(id=>$(id).addEventListener('change',async()=>{
+    const la=parseFloat($('lat').value),lo=parseFloat($('lon').value);
+    if(isNaN(la)||isNaN(lo)) return;
+    state.lat=clamp(la,-89,89);state.lon=clamp(lo,-180,180);state.place='Custom '+state.lat.toFixed(2)+', '+state.lon.toFixed(2);
+    await refresh();
+  }));
+  $('q').addEventListener('input',e=>{
+    clearTimeout(searchTimer);
+    const v=e.target.value.trim();
+    if(v.length<2){$('results').style.display='none';return;}
+    searchTimer=setTimeout(()=>search(v),350);
+  });
+  $('geo').addEventListener('click',()=>{
+    if(!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      state.lat=pos.coords.latitude;state.lon=pos.coords.longitude;state.place='My location';
+      $('lat').value=state.lat.toFixed(3);$('lon').value=state.lon.toFixed(3);
+      await refresh();
+    },()=>{});
+  });
+  refresh();
 }
-
-window.NoctoEngine = {
-  state, STEP, SHOWERS, BORTLE, ANT, SPO,
-  loadAtlas, atlasSky, updateSky, nelmFor, bortleFor,
-  loadWeather, loadClimatology, computeNight, computeAll,
-  sunPos, moonPos, moonIllum, lstOf, eq2horiz, jdFrom, clamp, norm,
-  clearFraction, rateFor, sampleSky, scoreOf, alphaOf,
-  localParts, fmtTime, fmtDate, toUTC, pad, MONTHS, compass, tzOffset: () => state.tzOffset,
-  nightChart, fovFraction, verdictWord, speedWord, sentence,
-  tonight, realSky, nightSummary, sunTimes, moonTimes, fogRisk, loadKp, kpForNight, geocode, homeFromTimezone, MW_RA, MW_DEC,
-  nightAnchor, sunriseOn, eclipsesFor, lunarEclipse, solarEclipse,
-};
-})();
+init();
+</script>
+</body>
+</html>

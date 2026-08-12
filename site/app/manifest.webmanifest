@@ -1,0 +1,25 @@
+{
+  "name": "Noctography",
+  "short_name": "Noctography",
+  "description": "Tools for the nightscape photographer.",
+  "display": "standalone",
+  "background_color": "#160F47",
+  "theme_color": "#160F47",
+  "start_url": "./",
+  "scope": "./",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "../assets/noctography-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

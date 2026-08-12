@@ -1,0 +1,15 @@
+:root{
+  --radius-0:0px;
+  --radius-1:3px;
+  --radius-2:6px;
+  --radius-3:10px;
+  --radius-4:16px;
+  --radius-5:24px;
+  --radius-pill:999px;
+  --radius-circle:50%;
+
+  --radius-control:var(--radius-2);
+  --radius-card:var(--radius-3);
+  --radius-sheet:var(--radius-4);
+  --radius-image:var(--radius-2);
+}

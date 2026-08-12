@@ -1,0 +1,19 @@
+:root{
+  /* Night shadows are cast by absence of light, not blur: mostly hairlines + soft haze. */
+  --shadow-none:none;
+  --shadow-1:0 1px 0 rgba(245,245,245,.06) inset;
+  --shadow-2:0 2px 12px rgba(5,4,24,.5);
+  --shadow-3:0 12px 40px rgba(5,4,24,.62);
+  --shadow-4:0 28px 80px rgba(5,4,24,.7);
+
+  /* amber glow — focus, active nav, torch-on states. Never decorative. */
+  --glow-amber:0 0 0 1px var(--amber-500),0 0 24px rgba(250,163,56,.28);
+  --glow-amber-soft:0 0 18px rgba(250,163,56,.22);
+  --glow-nightvision:0 0 14px rgba(255,59,24,.35);
+
+  /* protection gradients over photography */
+  --scrim-bottom:linear-gradient(to top,rgba(5,4,24,.92) 0%,rgba(5,4,24,.6) 38%,rgba(5,4,24,0) 100%); /* @kind color */
+  --scrim-top:linear-gradient(to bottom,rgba(5,4,24,.8) 0%,rgba(5,4,24,0) 65%); /* @kind color */
+  --scrim-full:linear-gradient(to bottom,rgba(5,4,24,.55),rgba(5,4,24,.78)); /* @kind color */
+  --sky-wash:radial-gradient(120% 90% at 50% 0%,var(--violet-700) 0%,var(--violet-900) 48%,var(--void-1000) 100%); /* @kind color */
+}

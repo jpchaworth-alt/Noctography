@@ -1,0 +1,39 @@
+<!-- ══════════════════════════════════════════════════════════════
+     Panorama overlap tool — Squarespace PAGE HEADER CODE INJECTION
+     Page Settings → Advanced → Page Header Code Injection
+     (This is the page-level box, NOT the site-wide one — pasting it
+     site-wide would hide the navigation on every page.)
+     ══════════════════════════════════════════════════════════════ -->
+
+<!-- 1. Home screen icon and app title -->
+<link rel="apple-touch-icon" sizes="180x180" href="https://static1.squarespace.com/static/64bec8748e421c633d6a409f/t/6a777eecfeeb3b5d2712e08a/1786216172059/app-icon-pano-180.png">
+<link rel="icon" type="image/png" sizes="180x180" href="https://static1.squarespace.com/static/64bec8748e421c633d6a409f/t/6a777eecfeeb3b5d2712e08a/1786216172059/app-icon-pano-180.png">
+<meta name="apple-mobile-web-app-title" content="Pano Rotation">
+<meta name="application-name" content="Pano Rotation">
+
+<!-- 2. Full-screen web app behaviour + dark chrome -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#241B54">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<style>
+  /* 3. Dark page behind the tool. No !important here — the code block's
+        night-vision rule needs to be able to override it. */
+  html, body { background: #241B54; color-scheme: dark; }
+
+  /* 4. Strip the site chrome so the tool owns the screen */
+  .header,
+  .header-announcement-bar-wrapper,
+  #footer-sections,
+  footer.sections { display: none !important; }
+
+  /* 5. Remove the templated column so the card can go edge to edge */
+  main#page,
+  .page-section,
+  .content-wrapper,
+  .fluid-engine { padding: 0 !important; max-width: 100% !important; }
+  .page-section > .content-wrapper > .content { padding: 0 !important; }
+</style>

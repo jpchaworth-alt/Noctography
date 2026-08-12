@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/paul-haworth-nightscapes-design-system-721589aa-e134-4707-b295-c346acd7a21b/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/paul-haworth-nightscapes-design-system-721589aa-e134-4707-b295-c346acd7a21b/tokens/colors.css">
+<link rel="stylesheet" href="_ds/paul-haworth-nightscapes-design-system-721589aa-e134-4707-b295-c346acd7a21b/tokens/typography.css">
+<link rel="stylesheet" href="_ds/paul-haworth-nightscapes-design-system-721589aa-e134-4707-b295-c346acd7a21b/styles.css">
+<script src="_ds/paul-haworth-nightscapes-design-system-721589aa-e134-4707-b295-c346acd7a21b/_ds_bundle.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #0B0820; }
+  a { color: #FAA338; text-decoration: none; }
+  a:hover { color: #FFC172; }
+</style>
+</helmet>
+
+<div style="display: grid; gap: 28px; padding: 24px; justify-items: start;">
+
+  <!-- 1200 x 630 share card. Composed centred, so a square crop (WhatsApp, iMessage)
+       still gets the moon, the wordmark and the strapline. -->
+  <div id="card" style="position: relative; width: 1200px; height: 630px; overflow: hidden; background: #160F47; font-family: 'Barlow', system-ui, sans-serif;">
+
+    <i style="position: absolute; inset: 0; background-image: url(assets/noctography-icon.png); background-size: 1200px auto; background-position: 50% 0; background-repeat: no-repeat;"></i>
+
+    <i style="position: absolute; inset: 0; background: radial-gradient(50% 56% at 48% 54%, rgba(11,8,32,.92) 0%, rgba(11,8,32,.8) 54%, rgba(11,8,32,.2) 86%, rgba(11,8,32,0) 100%);"></i>
+    <i style="position: absolute; inset: auto 0 0 0; height: 260px; background: linear-gradient(to top, rgba(11,8,32,.92), rgba(11,8,32,0));"></i>
+
+    <div style="position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: 0; padding: 0 90px; text-align: center;">
+      <span style="font-size: 20px; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: #C9C7DC;">Paul Haworth Nightscapes</span>
+      <span style="margin: 14px 0 0; font-family: 'Barlow Condensed', 'Barlow', sans-serif; font-weight: 600; font-size: 132px; line-height: .9; letter-spacing: .012em; text-transform: uppercase; color: #FAA338; text-shadow: 0 6px 40px rgba(11,8,32,.75);">Noctography</span>
+      <span style="width: 148px; height: 2px; margin: 30px 0 24px; background: rgba(250,163,56,.55);"></span>
+      <span style="font-size: 30px; line-height: 1.3; color: #F0EFF6; text-shadow: 0 2px 18px rgba(11,8,32,.9);">Tools for the nightscape photographer</span>
+      <span style="margin: 30px 0 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 20px; letter-spacing: .04em; color: #FAA338;">noctography.net</span>
+    </div>
+  </div>
+
+  <!-- how it survives a square crop -->
+  <div style="display: flex; align-items: center; gap: 18px; font-family: 'Barlow', sans-serif;">
+    <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Square crop check</span>
+    <span style="position: relative; width: 315px; height: 315px; overflow: hidden; border-radius: 8px; border: 1px solid rgba(245,245,245,.16);">
+      <i style="position: absolute; top: 0; left: -142px; width: 600px; height: 315px; background-image: url(assets/noctography-link-preview.png); background-size: 600px auto; background-position: 0 0; background-repeat: no-repeat;"></i>
+    </span>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1260,&quot;height&quot;:1030}}"></script>
+</body>
+</html>
