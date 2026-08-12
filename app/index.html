@@ -85,16 +85,16 @@
 
 <div style="min-height: 100vh; background: #160F47; color: #F5F5F5; font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif; line-height: 1.45; padding: 0 0 8px; display: flex; flex-direction: column; align-items: center;">
 
-  <div style="width: 100%; max-width: 620px; min-width: 0; padding: 0 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px;">
+  <div style="width: 100%; max-width: 620px; min-width: 0; padding: 0 clamp(10px, 3.2vw, 16px); box-sizing: border-box; display: flex; flex-direction: column; gap: 18px;">
 
-    <header style="display: flex; align-items: center; gap: 12px; padding: 18px 0 12px; border-bottom: 1px solid rgba(245,245,245,.14);">
-      <img src="../assets/noctography-icon-128.png" alt="Noctography" width="128" height="128" decoding="async" style="width: 44px; height: 44px; flex: 0 0 44px; border-radius: 10px; display: block; object-fit: cover;">
-      <div style="display: grid; gap: 3px; margin-right: auto;">
-        <span style="font-size: 15px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: #F5F5F5;">Noctography</span>
-        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: .02em; color: #A9A8C4; white-space: nowrap;">Paul Haworth Nightscapes</span>
+    <header style="display: flex; align-items: center; gap: clamp(8px, 2.4vw, 12px); padding: 18px 0 12px; border-bottom: 1px solid rgba(245,245,245,.14);">
+      <img src="../assets/noctography-icon-128.png" alt="Noctography" width="128" height="128" decoding="async" style="width: clamp(38px, 10.5vw, 44px); height: clamp(38px, 10.5vw, 44px); flex: 0 0 auto; border-radius: 10px; display: block; object-fit: cover;">
+      <div style="display: grid; gap: 3px; margin-right: auto; flex: 0 0 auto; min-width: 0;">
+        <span style="font-size: clamp(12.5px, 3.5vw, 15px); font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: #F5F5F5;">Noctography</span>
+        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: clamp(9.5px, 2.8vw, 11px); letter-spacing: .02em; color: #A9A8C4; white-space: nowrap;">Paul Haworth Nightscapes</span>
       </div>
-      <a href="../index.html" title="About Noctography" style="min-height: 44px; display: flex; align-items: center; padding: 0 10px; color: #A9A8C4; font-size: 20px; line-height: 1;">‹</a>
-      <button type="button" onClick="{{ openLocation }}" style="min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(245,245,245,.14); background: rgba(5,4,24,.45); color: #DEDDEA; font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; max-width: 42%; min-width: 0;">
+      <a href="../index.html" title="About Noctography" style="min-height: 44px; display: flex; align-items: center; padding: 0 clamp(5px, 1.8vw, 10px); color: #A9A8C4; font-size: 20px; line-height: 1;">‹</a>
+      <button type="button" onClick="{{ openLocation }}" style="min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(245,245,245,.14); background: rgba(5,4,24,.45); color: #DEDDEA; font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; flex: 0 1 auto; max-width: min(46%, 170px); min-width: 0;">
         <span data-nv-dot="on" style="width: 6px; height: 6px; border-radius: 50%; background: #FAA338; flex: 0 0 6px;"></span>
         <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ placeName }}</span>
       </button>
@@ -103,7 +103,7 @@
     <sc-if value="{{ showInstall }}" hint-placeholder-val="{{ false }}">
       <aside style="display: grid; gap: 10px; padding: 16px; background: #241B54; border: 1px solid rgba(250,163,56,.45); border-radius: 12px;">
         <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
-          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Keep it on your phone</span>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Keep it on your phone</span>
           <button type="button" onClick="{{ dismissInstall }}" style="background: none; border: 0; color: #A9A8C4; font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; min-height: 44px;">Not now</button>
         </div>
         <p style="margin: 0; font-size: 16px; line-height: 1.45; color: #DEDDEA; text-wrap: pretty;">{{ installText }}</p>
@@ -116,7 +116,7 @@
     <sc-if value="{{ showStale }}" hint-placeholder-val="{{ false }}">
       <aside style="display: grid; gap: 10px; padding: 16px; background: #241B54; border: 1px solid rgba(250,163,56,.45); border-radius: 12px;">
         <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
-          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Been open a while</span>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Been open a while</span>
           <button type="button" onClick="{{ dismissStale }}" style="background: none; border: 0; color: #A9A8C4; font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; min-height: 44px;">Not now</button>
         </div>
         <p style="margin: 0; font-size: 16px; line-height: 1.45; color: #DEDDEA; text-wrap: pretty;">{{ staleText }}</p>
@@ -127,7 +127,7 @@
     <sc-if value="{{ showLoc }}" hint-placeholder-val="{{ false }}">
       <section style="display: grid; gap: 12px; padding: 18px; background: #241B54; border: 1px solid rgba(250,163,56,.45); border-radius: 16px;">
         <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
-          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Where are you shooting</span>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Where are you shooting</span>
           <button type="button" onClick="{{ closeLocation }}" style="background: none; border: 0; color: #A9A8C4; font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; min-height: 44px;">Close</button>
         </div>
         <div style="display: flex; gap: 8px;">
@@ -140,7 +140,7 @@
         <div style="display: grid; gap: 8px;">
           <sc-if value="{{ hasFavs }}" hint-placeholder-val="{{ false }}">
             <div style="display: grid; gap: 6px;">
-              <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Favourites</span>
+              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Favourites</span>
               <select value="{{ favValue }}" onChange="{{ onPickFav }}" style="min-height: 48px; padding: 0 12px; border-radius: 10px; border: 1px solid rgba(245,245,245,.14); background: rgba(5,4,24,.45); color: #F5F5F5; font-family: 'Barlow', sans-serif; font-size: 15px;">
                 <option value="">Jump to a saved place…</option>
                 <sc-for list="{{ favOptions }}" as="f" hint-placeholder-count="0">
@@ -152,7 +152,7 @@
           <button type="button" onClick="{{ toggleFav }}" style="min-height: 48px; padding: 0 18px; border-radius: 10px; border: 1px solid {{ favBorder }}; background: transparent; color: {{ favColour }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">{{ favLabel }}</button>
         </div>
         <div style="display: grid; gap: 6px;">
-          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Sky darkness</span>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Sky darkness</span>
           <select value="{{ skyMode }}" onChange="{{ onSkyMode }}" style="min-height: 48px; padding: 0 12px; border-radius: 10px; border: 1px solid rgba(245,245,245,.14); background: rgba(5,4,24,.45); color: #F5F5F5; font-family: 'Barlow', sans-serif; font-size: 15px;">
             <sc-for list="{{ bortleOptions }}" as="b" hint-placeholder-count="10">
               <option value="{{ b.value }}">{{ b.label }}</option>
@@ -167,14 +167,14 @@
       <section data-screen-label="Tonight" style="display: grid; gap: 14px;">
 
         <div style="display: grid; gap: 8px; padding: 4px 0 2px;">
-          <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: 40px; line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ greeting }}</h1>
+          <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(30px, 9vw, 40px); line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ greeting }}</h1>
           <p style="margin: 0; font-size: 19px; line-height: 1.4; color: #DEDDEA; text-wrap: pretty;">{{ greetLine }}</p>
         </div>
 
         <article style="display: grid; gap: 12px; padding: 18px; background: rgba(5,4,24,.45); border: 1px solid #FAA338; border-radius: 12px;">
-          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Best window tonight</span>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Best window tonight</span>
           <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 42px; line-height: 1; color: #FAA338; letter-spacing: -.02em;">{{ bestRange }}</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(30px, 9.5vw, 42px); line-height: 1; color: #FAA338; letter-spacing: -.02em;">{{ bestRange }}</span>
           </div>
           <div style="height: 6px; border-radius: 999px; background: rgba(245,245,245,.12); overflow: hidden;">
             <i style="display: block; height: 100%; background: #FAA338; width: {{ bestPct }}%;"></i>
@@ -188,10 +188,10 @@
           </sc-if>
         </article>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 148px), 1fr)); gap: clamp(8px, 2.4vw, 10px);">
 
-          <div style="display: grid; gap: 8px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Cloud</span>
+          <div style="display: grid; gap: 8px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Cloud</span>
             <div style="display: flex; align-items: flex-end; gap: 2px; height: 40px; padding: 4px; background: rgba(5,4,24,.45); border-radius: 6px;">
               <sc-for list="{{ cloudBars }}" as="b" hint-placeholder-count="16">
                 <i style="flex: 1; min-width: 2px; border-radius: 1px; background: #8C8AB4; opacity: {{ b.op }}; height: {{ b.h }}%;"></i>
@@ -201,78 +201,78 @@
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.3;">{{ cloudSub }}</span>
           </div>
 
-          <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Air temperature</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 30px; line-height: 1.1; color: #F5F5F5;">{{ airVal }}</span>
+          <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Air temperature</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(24px, 7vw, 30px); line-height: 1.1; color: #F5F5F5;">{{ airVal }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ airSub }}</span>
           </div>
 
-          <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Wind</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 30px; line-height: 1.1; color: #F5F5F5;">{{ windVal }}</span>
+          <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Wind</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(24px, 7vw, 30px); line-height: 1.1; color: #F5F5F5;">{{ windVal }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ windSub }}</span>
           </div>
 
-          <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Sun set / rise</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: #F5F5F5;">{{ sunVal }}</span>
+          <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Sun set / rise</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(18px, 5.6vw, 22px); line-height: 1.1; color: #F5F5F5;">{{ sunVal }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ sunSub }}</span>
             <sc-if value="{{ solOn }}" hint-placeholder-val="{{ false }}">
               <span style="font-size: 13.5px; line-height: 1.35; color: #FAA338; text-wrap: pretty;">{{ solLine }}</span>
             </sc-if>
           </div>
 
-          <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Moon</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 30px; line-height: 1.1; color: #9FB6D8;">{{ moonVal }}</span>
+          <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Moon</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(24px, 7vw, 30px); line-height: 1.1; color: #9FB6D8;">{{ moonVal }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ moonSub }}</span>
             <sc-if value="{{ lunOn }}" hint-placeholder-val="{{ false }}">
               <span style="font-size: 13.5px; line-height: 1.35; color: #FAA338; text-wrap: pretty;">{{ lunLine }}</span>
             </sc-if>
           </div>
 
-          <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Darkness</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: #F5F5F5;">{{ darkRange }}</span>
+          <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Darkness</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(18px, 5.6vw, 22px); line-height: 1.1; color: #F5F5F5;">{{ darkRange }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ darkSub }}</span>
           </div>
 
-          <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Real-world Bortle</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 26px; line-height: 1.1; color: {{ rwbColour }};">{{ rwbVal }}</span>
+          <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Real-world Bortle</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(21px, 6.3vw, 26px); line-height: 1.1; color: {{ rwbColour }};">{{ rwbVal }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ rwbSub }}</span>
           </div>
 
-          <button type="button" onClick="{{ goMeteors }}" style="display: grid; gap: 6px; align-content: start; text-align: left; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px; color: #F5F5F5; font-family: 'Barlow', sans-serif; cursor: pointer;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Meteors tonight</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 30px; line-height: 1.05; color: #FAA338;">{{ metVal }}</span>
+          <button type="button" onClick="{{ goMeteors }}" style="display: grid; gap: 6px; align-content: start; text-align: left; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px; color: #F5F5F5; font-family: 'Barlow', sans-serif; cursor: pointer;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Meteors tonight</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(24px, 7vw, 30px); line-height: 1.05; color: #FAA338;">{{ metVal }}</span>
             <span style="font-size: 17px; color: #DEDDEA;">{{ metName }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ metSub }}</span>
           </button>
 
           <sc-if value="{{ auroraOn }}" hint-placeholder-val="{{ true }}">
-            <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-              <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Aurora · peak Kp</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 30px; line-height: 1.05; color: {{ kpColour }};">{{ kpVal }}</span>
+            <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Aurora · peak Kp</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(24px, 7vw, 30px); line-height: 1.05; color: {{ kpColour }};">{{ kpVal }}</span>
               <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ kpSub }}</span>
             </div>
           </sc-if>
 
-          <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Milky Way core</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 30px; line-height: 1.1; color: #F5F5F5;">{{ mwVal }}</span>
+          <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Milky Way core</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(24px, 7vw, 30px); line-height: 1.1; color: #F5F5F5;">{{ mwVal }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ mwSub }}</span>
           </div>
 
-          <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">ISS</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: {{ issColour }};">{{ issVal }}</span>
+          <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">ISS</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(18px, 5.6vw, 22px); line-height: 1.1; color: {{ issColour }};">{{ issVal }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ issSub }}</span>
           </div>
 
-          <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Starlink</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: {{ slColour }};">{{ slVal }}</span>
+          <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Starlink</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(18px, 5.6vw, 22px); line-height: 1.1; color: {{ slColour }};">{{ slVal }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ slSub }}</span>
           </div>
 
@@ -280,7 +280,7 @@
 
         <div style="display: grid; gap: 10px; padding-top: 10px;">
           <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Looking ahead</span>
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Looking ahead</span>
             <span style="font-size: 14px; color: #8583A8;">Next 10 nights</span>
           </div>
           <p style="margin: 0; font-size: 15px; line-height: 1.45; color: #DEDDEA; text-wrap: pretty;">{{ aheadLead }}</p>
@@ -362,7 +362,7 @@
         </div>
 
         <div style="display: grid; gap: 10px; padding-top: 4px;">
-          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Tools</span>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Tools</span>
           <button type="button" onClick="{{ goMeteors }}" style="display: flex; align-items: center; gap: 14px; text-align: left; padding: 16px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px; color: #F5F5F5; font-family: 'Barlow', sans-serif; cursor: pointer;">
             <span data-nv-dot="on" style="width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: #FAA338;"></span>
             <span style="display: grid; gap: 3px; margin-right: auto;">
@@ -392,8 +392,8 @@
       <section data-screen-label="Meteors" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px;">
 
         <div style="display: grid; gap: 6px;">
-          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Meteor outlook</span>
-          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.05; margin: 0;">{{ ribbonTitle }}</h2>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Meteor outlook</span>
+          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(26px, 8vw, 34px); line-height: 1.05; margin: 0;">{{ ribbonTitle }}</h2>
           <p style="margin: 0; font-size: 16px; color: #DEDDEA;">Each column is one night, read dusk at the top to dawn at the bottom.</p>
         </div>
 
@@ -408,7 +408,7 @@
 
         <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">{{ ribbonRead }}</span>
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">{{ ribbonRead }}</span>
             <span style="display: inline-flex; border: 1px solid rgba(245,245,245,.14); border-radius: 999px; overflow: hidden;">
               <button type="button" onClick="{{ setRange15 }}" data-nv-active="{{ on15 }}" style="min-height: 40px; padding: 0 14px; border: 0; background: {{ bg15 }}; color: {{ fg15 }}; font-family: 'JetBrains Mono', monospace; font-size: 13px; cursor: pointer;">15</button>
               <button type="button" onClick="{{ setRange30 }}" data-nv-active="{{ on30 }}" style="min-height: 40px; padding: 0 14px; border: 0; background: {{ bg30 }}; color: {{ fg30 }}; font-family: 'JetBrains Mono', monospace; font-size: 13px; cursor: pointer;">30</button>
@@ -446,10 +446,10 @@
           <span style="font-size: 14px; color: #A9A8C4;">{{ nightSub }}</span>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 138px), 1fr)); gap: clamp(8px, 2.4vw, 10px);">
           <sc-for list="{{ nightStats }}" as="s" hint-placeholder-count="5">
-            <div style="display: grid; gap: 4px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-              <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">{{ s.k }}</span>
+            <div style="display: grid; gap: 4px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">{{ s.k }}</span>
               <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.15; color: {{ s.c }};">{{ s.v }}</span>
               <span style="font-size: 13px; color: #A9A8C4; line-height: 1.35;">{{ s.s }}</span>
             </div>
@@ -459,7 +459,7 @@
         <div style="min-width: 0; padding: 12px 10px; background: rgba(5,4,24,.45); border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">{{ chartEl }}</div>
 
         <div style="display: grid; gap: 10px; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Capturing images</span>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Capturing images</span>
           <div style="display: flex; flex-wrap: wrap; gap: 6px;">
             <sc-for list="{{ focalOptions }}" as="f" hint-placeholder-count="6">
               <button type="button" onClick="{{ f.pick }}" data-nv-active="{{ f.on }}" style="min-height: 48px; padding: 0 16px; border-radius: 999px; border: 1px solid {{ f.bd }}; background: {{ f.bg }}; color: {{ f.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; cursor: pointer;">{{ f.label }}</button>
@@ -483,7 +483,7 @@
               <sc-if value="{{ sw.open }}" hint-placeholder-val="{{ false }}">
                 <div style="display: grid; gap: 14px; padding: 4px 14px 18px; border-top: 1px solid rgba(245,245,245,.1); background: rgba(5,4,24,.35);">
                   <p style="margin: 12px 0 0; padding: 10px 12px; background: rgba(5,4,24,.5); border-left: 2px solid #FAA338; font-size: 15px; line-height: 1.55; color: #F5F5F5; text-wrap: pretty;">{{ sw.verdict }}</p>
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 22px;">
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr)); gap: 10px clamp(14px, 4vw, 22px);">
                     <sc-for list="{{ sw.bars }}" as="b" hint-placeholder-count="6">
                       <div style="display: grid; gap: 4px;">
                         <span style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #A9A8C4;">
@@ -509,7 +509,7 @@
         </div>
 
         <details style="padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px; color: #A9A8C4; font-size: 14px; line-height: 1.65;">
-          <summary style="cursor: pointer; color: #DEDDEA; font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; min-height: 30px;">What the numbers mean</summary>
+          <summary style="cursor: pointer; color: #DEDDEA; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; min-height: 30px;">What the numbers mean</summary>
           <p style="margin: 12px 0 0; text-wrap: pretty;">The headline figure is meteors per hour you could expect to see, not the shower's quoted ZHR. One relation is evaluated every 15 minutes through the night, separately for every active shower and the sporadic background:</p>
           <p style="margin: 10px 0 0; padding: 10px 12px; background: rgba(5,4,24,.5); border: 1px solid rgba(245,245,245,.14); border-radius: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: #FAA338; line-height: 1.5;">rate = ZHR(t) × sin(h) × r^(lm − 6.5) × clear × 0.75</p>
           <p style="margin: 10px 0 0; text-wrap: pretty;">ZHR(t) is the shower's strength at this point in its cycle, anchored to solar longitude rather than calendar date, with a narrow peak and a broad component for streams with long wings. sin(h) is the radiant altitude, tapered below 8° for extinction and terrain. r is the population index — an exponent, not a multiplier, which is why one lost magnitude of sky darkness roughly halves the rate.</p>
@@ -530,8 +530,8 @@
     <sc-if value="{{ isMore }}" hint-placeholder-val="{{ false }}">
       <section data-screen-label="More" style="display: grid; gap: 16px;">
         <div style="display: grid; gap: 8px;">
-          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">More</span>
-          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.05; margin: 0;">Constantly being updated</h2>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">More</span>
+          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(26px, 8vw, 34px); line-height: 1.05; margin: 0;">Constantly being updated</h2>
           <p style="margin: 0; font-size: 17px; line-height: 1.5; color: #DEDDEA; max-width: 46ch; text-wrap: pretty;">Noctography is where I keep the tools I actually use in the field. I'm adding to them all the time. If there's an idea you have, let me know via the Feedback button.</p>
         </div>
         <div style="display: grid; gap: 10px;">
@@ -557,12 +557,12 @@
     <sc-if value="{{ isData }}" hint-placeholder-val="{{ false }}">
       <section data-screen-label="Data sources" style="display: grid; gap: 12px;">
         <div style="display: grid; gap: 8px;">
-          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Data sources</span>
-          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.05; margin: 0;">Where every number comes from</h2>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Data sources</span>
+          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(26px, 8vw, 34px); line-height: 1.05; margin: 0;">Where every number comes from</h2>
           <p style="margin: 0; font-size: 17px; line-height: 1.5; color: #DEDDEA; max-width: 48ch; text-wrap: pretty;">Noctography has no server of its own. It reads these feeds directly from your device and does the astronomy in the browser. Credit where it is due.</p>
         </div>
 
-        <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4; padding-top: 6px;">Live feeds</span>
+        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4; padding-top: 6px;">Live feeds</span>
         <div style="display: grid; gap: 8px;">
           <a href="https://open-meteo.com" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px; color: #F5F5F5;">
             <span style="font-size: 16px; font-weight: 600;">Open-Meteo forecast</span>
@@ -592,7 +592,7 @@
           <span style="font-size: 14px; line-height: 1.45; color: #A9A8C4; text-wrap: pretty;">Two-line elements for the International Space Station and for launches in the last thirty days. Dr T.S. Kelso's service, free for public use. The orbits themselves are propagated on your device, not fetched as a list of passes.</span>
         </div>
 
-        <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4; padding-top: 6px;">Baked into the app, no network</span>
+        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4; padding-top: 6px;">Baked into the app, no network</span>
         <div style="display: grid; gap: 8px;">
           <a href="https://djlorenz.github.io/astronomy/" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px; color: #F5F5F5;">
             <span style="font-size: 16px; font-weight: 600;">David Lorenz — World Atlas of Artificial Night Sky Brightness</span>
@@ -606,7 +606,7 @@
           </a>
         </div>
 
-        <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4; padding-top: 6px;">Method</span>
+        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4; padding-top: 6px;">Method</span>
         <div style="display: grid; gap: 8px;">
           <a href="https://ui.adsabs.harvard.edu/abs/1991PASP..103.1033K/abstract" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px; color: #F5F5F5;">
             <span style="font-size: 16px; font-weight: 600;">Moonlight sky brightness model</span>
@@ -625,7 +625,7 @@
           </a>
         </div>
 
-        <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4; padding-top: 6px;">Worked out here, not fetched</span>
+        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4; padding-top: 6px;">Worked out here, not fetched</span>
         <div style="display: grid; gap: 4px; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
           <span style="font-size: 16px; font-weight: 600; color: #F5F5F5;">Real-world Bortle</span>
           <span style="font-size: 14px; line-height: 1.45; color: #A9A8C4; text-wrap: pretty;">Not a published figure. The Lorenz atlas value for your site, plus moonlight (Krisciunas &amp; Schaefer), haze from Open-Meteo humidity, and town glow scattered back down by Open-Meteo cloud — evaluated at the zenith through the dark hours and converted back to a Bortle class. Shown so a dark site under a bright moon is not mistaken for a dark night.</span>
@@ -663,11 +663,11 @@
       </div>
     </footer>
 
-    <div data-nv-bar="1" style="position: sticky; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(4, 1fr) 48px; gap: 4px; margin-top: 6px; padding: 6px; background: rgba(5,4,24,.86); backdrop-filter: blur(14px); border: 1px solid rgba(245,245,245,.14); border-radius: 999px;">
-      <button type="button" onClick="{{ goTonight }}" data-nv-active="{{ navOn1 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg1 }}; color: {{ navFg1 }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">Tonight</button>
-      <button type="button" onClick="{{ goMeteors }}" data-nv-active="{{ navOn2 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg2 }}; color: {{ navFg2 }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">Meteors</button>
-      <button type="button" onClick="{{ goPano }}" data-nv-active="{{ navOn3 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg3 }}; color: {{ navFg3 }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">Pano</button>
-      <button type="button" onClick="{{ goMore }}" data-nv-active="{{ navOn4 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg4 }}; color: {{ navFg4 }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">More</button>
+    <div data-nv-bar="1" style="position: sticky; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) clamp(44px, 12vw, 48px); gap: clamp(3px, 1vw, 4px); margin-top: 6px; padding: 6px; background: rgba(5,4,24,.86); backdrop-filter: blur(14px); border: 1px solid rgba(245,245,245,.14); border-radius: 999px;">
+      <button type="button" onClick="{{ goTonight }}" data-nv-active="{{ navOn1 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg1 }}; color: {{ navFg1 }}; font-family: 'Barlow', sans-serif; font-size: clamp(10px, 2.9vw, 12px); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Tonight</button>
+      <button type="button" onClick="{{ goMeteors }}" data-nv-active="{{ navOn2 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg2 }}; color: {{ navFg2 }}; font-family: 'Barlow', sans-serif; font-size: clamp(10px, 2.9vw, 12px); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Meteors</button>
+      <button type="button" onClick="{{ goPano }}" data-nv-active="{{ navOn3 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg3 }}; color: {{ navFg3 }}; font-family: 'Barlow', sans-serif; font-size: clamp(10px, 2.9vw, 12px); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Pano</button>
+      <button type="button" onClick="{{ goMore }}" data-nv-active="{{ navOn4 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg4 }}; color: {{ navFg4 }}; font-family: 'Barlow', sans-serif; font-size: clamp(10px, 2.9vw, 12px); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">More</button>
       <button type="button" onClick="{{ toggleNv }}" title="{{ nvLabel }}" aria-label="{{ nvLabel }}" data-nv-toggle="{{ nvState }}" style="min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ nvBorder }}; border-radius: 999px; background: {{ nvBg }}; color: {{ nvIcon }}; cursor: pointer;">
         <sc-if value="{{ nvOff }}" hint-placeholder-val="{{ true }}">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
