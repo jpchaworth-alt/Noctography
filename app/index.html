@@ -38,8 +38,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap">
-<script src="../noctography-engine.js"></script>
-<script src="../noctography-sat.js"></script>
+<!-- Bump ?v= on every deploy. index.html revalidates within minutes on GitHub Pages, but the
+     scripts are cached far longer and are fetched independently — without a version on the URL a
+     phone can end up running the new page against the old engine. -->
+<script src="../noctography-engine.js?v=2026-08-12"></script>
+<script src="../noctography-sat.js?v=2026-08-12"></script>
 <style>
   html, body { margin: 0; padding: 0; background: #160F47; color-scheme: dark; }
   body { -webkit-font-smoothing: antialiased; }
@@ -110,6 +113,17 @@
       </aside>
     </sc-if>
 
+    <sc-if value="{{ showStale }}" hint-placeholder-val="{{ false }}">
+      <aside style="display: grid; gap: 10px; padding: 16px; background: #241B54; border: 1px solid rgba(250,163,56,.45); border-radius: 12px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+          <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">Been open a while</span>
+          <button type="button" onClick="{{ dismissStale }}" style="background: none; border: 0; color: #A9A8C4; font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; min-height: 44px;">Not now</button>
+        </div>
+        <p style="margin: 0; font-size: 16px; line-height: 1.45; color: #DEDDEA; text-wrap: pretty;">{{ staleText }}</p>
+        <button type="button" onClick="{{ doRefresh }}" style="justify-self: start; min-height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid #FAA338; background: rgba(250,163,56,.14); color: #FAA338; font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">Refresh</button>
+      </aside>
+    </sc-if>
+
     <sc-if value="{{ showLoc }}" hint-placeholder-val="{{ false }}">
       <section style="display: grid; gap: 12px; padding: 18px; background: #241B54; border: 1px solid rgba(250,163,56,.45); border-radius: 16px;">
         <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
@@ -123,6 +137,20 @@
         <sc-for list="{{ results }}" as="r" hint-placeholder-count="0">
           <button type="button" onClick="{{ r.pick }}" style="display: block; width: 100%; text-align: left; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(245,245,245,.14); background: rgba(5,4,24,.45); color: #DEDDEA; font-family: 'Barlow', sans-serif; font-size: 15px; cursor: pointer;">{{ r.label }}</button>
         </sc-for>
+        <div style="display: grid; gap: 8px;">
+          <sc-if value="{{ hasFavs }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Favourites</span>
+              <select value="{{ favValue }}" onChange="{{ onPickFav }}" style="min-height: 48px; padding: 0 12px; border-radius: 10px; border: 1px solid rgba(245,245,245,.14); background: rgba(5,4,24,.45); color: #F5F5F5; font-family: 'Barlow', sans-serif; font-size: 15px;">
+                <option value="">Jump to a saved place…</option>
+                <sc-for list="{{ favOptions }}" as="f" hint-placeholder-count="0">
+                  <option value="{{ f.value }}">{{ f.label }}</option>
+                </sc-for>
+              </select>
+            </div>
+          </sc-if>
+          <button type="button" onClick="{{ toggleFav }}" style="min-height: 48px; padding: 0 18px; border-radius: 10px; border: 1px solid {{ favBorder }}; background: transparent; color: {{ favColour }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">{{ favLabel }}</button>
+        </div>
         <div style="display: grid; gap: 6px;">
           <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Sky darkness</span>
           <select value="{{ skyMode }}" onChange="{{ onSkyMode }}" style="min-height: 48px; padding: 0 12px; border-radius: 10px; border: 1px solid rgba(245,245,245,.14); background: rgba(5,4,24,.45); color: #F5F5F5; font-family: 'Barlow', sans-serif; font-size: 15px;">
@@ -186,15 +214,21 @@
           </div>
 
           <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
-            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Sun</span>
+            <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Sun set / rise</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: #F5F5F5;">{{ sunVal }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ sunSub }}</span>
+            <sc-if value="{{ solOn }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 13.5px; line-height: 1.35; color: #FAA338; text-wrap: pretty;">{{ solLine }}</span>
+            </sc-if>
           </div>
 
           <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
             <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9A8C4;">Moon</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 30px; line-height: 1.1; color: #9FB6D8;">{{ moonVal }}</span>
             <span style="font-size: 14px; color: #A9A8C4; line-height: 1.35;">{{ moonSub }}</span>
+            <sc-if value="{{ lunOn }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 13.5px; line-height: 1.35; color: #FAA338; text-wrap: pretty;">{{ lunLine }}</span>
+            </sc-if>
           </div>
 
           <div style="display: grid; gap: 6px; align-content: start; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
@@ -316,6 +350,14 @@
               <span><b style="color: #A9A8C4; font-weight: 500;">Met</b> — meteors an hour at their best. <b style="color: #A9A8C4; font-weight: 500;">Kp</b> — aurora strength, 5 and up is worth watching.</span>
               <span><b style="color: #A9A8C4; font-weight: 500;">Sun</b> — sunset above, sunrise below. <b style="color: #A9A8C4; font-weight: 500;">Moon</b> — moonrise above, moonset below.</span>
             </div>
+            <sc-if value="{{ eclOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; gap: 6px; margin-top: 10px; padding: 10px 12px; background: rgba(5,4,24,.5); border-left: 2px solid #FAA338; border-radius: 4px;">
+                <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #FAA338;">Eclipses ahead</span>
+                <sc-for list="{{ eclList }}" as="e" hint-placeholder-count="1">
+                  <span style="font-size: 14px; line-height: 1.45; color: #DEDDEA; text-wrap: pretty;">{{ e.line }}</span>
+                </sc-for>
+              </div>
+            </sc-if>
           </div>
         </div>
 
@@ -489,10 +531,11 @@
       <section data-screen-label="More" style="display: grid; gap: 16px;">
         <div style="display: grid; gap: 8px;">
           <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #FAA338;">More</span>
-          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.05; margin: 0;">Still building this</h2>
-          <p style="margin: 0; font-size: 17px; line-height: 1.5; color: #DEDDEA; max-width: 46ch; text-wrap: pretty;">Noctography is where I keep the tools I actually use in the field. Two of them are here. More coming soon — if there is something you keep working out on the back of your hand at 2am, tell me and I will build it.</p>
+          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.05; margin: 0;">Constantly being updated</h2>
+          <p style="margin: 0; font-size: 17px; line-height: 1.5; color: #DEDDEA; max-width: 46ch; text-wrap: pretty;">Noctography is where I keep the tools I actually use in the field. I'm adding to them all the time. If there's an idea you have, let me know via the Feedback button.</p>
         </div>
         <div style="display: grid; gap: 10px;">
+          <a href="mailto:jpchaworth@gmail.com?subject=Noctography%20Feedback" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid #FAA338; background: rgba(250,163,56,.14); color: #FAA338; font-size: 14px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;">Feedback</a>
           <a href="https://www.youtube.com/@nightscapejournals" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 14px; padding: 16px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px; color: #F5F5F5;">
             <span style="display: grid; gap: 3px; margin-right: auto;">
               <span style="font-size: 17px; font-weight: 600;">Nightscape Journals</span>
@@ -502,7 +545,7 @@
           </a>
           <a href="https://www.paulhaworthnightscapes.com" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 14px; padding: 16px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px; color: #F5F5F5;">
             <span style="display: grid; gap: 3px; margin-right: auto;">
-              <span style="font-size: 17px; font-weight: 600;">Talks, galleries and free stuff</span>
+              <span style="font-size: 17px; font-weight: 600;">Book me to talk at your club or event</span>
               <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #FAA338;">paulhaworthnightscapes.com</span>
             </span>
             <span style="color: #A9A8C4; font-size: 20px;">›</span>
@@ -596,6 +639,10 @@
           <span style="font-size: 14px; line-height: 1.45; color: #A9A8C4; text-wrap: pretty;">Radiation fog needs three things at once: air close to its dew point, almost no wind to mix it away, and a clear sky to radiate heat to — which is exactly the night you would otherwise drive out for. Temperature, dew point, wind and forecast visibility come from Open-Meteo; the warning fires when all three line up, and defers to the visibility forecast where one exists.</span>
         </div>
         <div style="display: grid; gap: 4px; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
+          <span style="font-size: 16px; font-weight: 600; color: #F5F5F5;">Eclipses</span>
+          <span style="font-size: 14px; line-height: 1.45; color: #A9A8C4; text-wrap: pretty;">Worked out from the same sun and moon positions as everything else: a lunar eclipse when the moon enters the Earth's shadow cone, a solar one when the moon's disc crosses the sun as seen from your position on the globe rather than from its centre — which is what makes a solar eclipse local. Enough to tell you one is coming and roughly when. Times are to the nearest few minutes and the covered fraction is approximate, so check a dedicated prediction before planning a trip around one.</span>
+        </div>
+        <div style="display: grid; gap: 4px; padding: 14px; background: #241B54; border: 1px solid rgba(245,245,245,.14); border-radius: 10px;">
           <span style="font-size: 16px; font-weight: 600; color: #F5F5F5;">Looking ahead</span>
           <span style="font-size: 14px; line-height: 1.45; color: #A9A8C4; text-wrap: pretty;">Ten nights ranked on clear sky first, then real-world darkness, then how much is going on overhead. Cloud is live forecast for about 16 days and climatology beyond it, shown faded when it is climatology. Aurora is only shown for nights the NOAA forecast actually reaches.</span>
         </div>
@@ -621,8 +668,18 @@
       <button type="button" onClick="{{ goMeteors }}" data-nv-active="{{ navOn2 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg2 }}; color: {{ navFg2 }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">Meteors</button>
       <button type="button" onClick="{{ goPano }}" data-nv-active="{{ navOn3 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg3 }}; color: {{ navFg3 }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">Pano</button>
       <button type="button" onClick="{{ goMore }}" data-nv-active="{{ navOn4 }}" style="min-height: 48px; border: 0; border-radius: 999px; background: {{ navBg4 }}; color: {{ navFg4 }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">More</button>
-      <button type="button" onClick="{{ toggleNv }}" title="Night vision" aria-label="Night vision" data-nv-toggle="{{ nvState }}" style="min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ nvBorder }}; border-radius: 999px; background: {{ nvBg }}; cursor: pointer;">
-        <span data-nv-dot="{{ nvState }}" style="width: 14px; height: 14px; border-radius: 50%; background: {{ nvDot }};"></span>
+      <button type="button" onClick="{{ toggleNv }}" title="{{ nvLabel }}" aria-label="{{ nvLabel }}" data-nv-toggle="{{ nvState }}" style="min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ nvBorder }}; border-radius: 999px; background: {{ nvBg }}; color: {{ nvIcon }}; cursor: pointer;">
+        <sc-if value="{{ nvOff }}" hint-placeholder-val="{{ true }}">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
+        </sc-if>
+        <sc-if value="{{ nvOn }}" hint-placeholder-val="{{ false }}">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+        </sc-if>
       </button>
     </div>
 
@@ -636,7 +693,8 @@ class Component extends DCLogic {
     tab: 'tonight', ready: false, showLoc: false, query: '', results: [],
     place: '', skyMode: 'auto', range: 60, sel: 0, open: { 0: true },
     t: null, kp: null, nights: [], sky: null, wx: 'idle', clim: 'idle', tick: 0, nv: false,
-    iss: null, issState: 'idle', trains: null, count: 0, trainState: 'idle', focal: '24',
+    iss: null, issState: 'idle', trains: null, count: 0, trainState: 'idle', focal: '24', favs: [],
+    stale: false, staleOff: false,
   };
 
   E() { return window.NoctoEngine; }
@@ -646,10 +704,13 @@ class Component extends DCLogic {
     try { nv = localStorage.getItem('noctography.nv') === 'on'; } catch (e) {}
     if (nv) this.setState({ nv: true });
     this.applyNv(nv);
+    this.setState({ favs: this.loadFavs() });
     this.installShell();
     this._onResize = () => this.forceUpdate();
     window.addEventListener('resize', this._onResize);
     this.watchInstall();
+    this._loadedAt = Date.now();
+    this.watchStale();
     this.waitForEngine().then(() => this.boot());
   }
 
@@ -681,7 +742,7 @@ class Component extends DCLogic {
     if (this._passKey === key) return;
     this._passKey = key;
     // search the night the app is showing, not the hours after you happen to open it —
-    // before 08:00 those are two different nights
+    // before the rollover those are two different nights
     const t = this.state.t;
     const dw = t && t.darkWin;
     const from = dw ? new Date(dw.from.getTime() - 3 * 3600000) : new Date(Date.now() - 2 * 3600000);
@@ -740,6 +801,23 @@ class Component extends DCLogic {
   componentWillUnmount() {
     if (this._onResize) window.removeEventListener('resize', this._onResize);
     if (this._onPrompt) window.removeEventListener('beforeinstallprompt', this._onPrompt);
+    if (this._onVis) document.removeEventListener('visibilitychange', this._onVis);
+  }
+
+  /* Saved to a home screen there is no service worker and no update prompt: the page simply
+     reloads whenever it is opened cold. iOS does not open it cold — a web app left in the app
+     switcher is held in memory for days and comes back showing whatever night it was showing
+     when you last looked. So when the app returns to the foreground long after it loaded, offer
+     the reload rather than letting somebody plan tonight around last Tuesday's forecast. */
+  watchStale() {
+    const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || window.navigator.standalone === true;
+    if (!standalone) return;
+    this._onVis = () => {
+      if (document.visibilityState !== 'visible' || this.state.staleOff) return;
+      if (Date.now() - this._loadedAt > 6 * 3600000) this.setState({ stale: true });
+    };
+    document.addEventListener('visibilitychange', this._onVis);
   }
 
   /* Nudge towards the home screen, once, on a phone, and never again once it is installed
@@ -813,7 +891,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js';
+    s.src = '../pano-calculator.js?v=2026-08-12';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -844,14 +922,45 @@ class Component extends DCLogic {
     try { localStorage.setItem('noctography.site', JSON.stringify(site)); } catch (e) {}
   }
 
+  /* Favourite sites. Keyed on coordinates rather than name, so the same field saved once from
+     GPS and once by search does not end up in the list twice. */
+  loadFavs() {
+    try { const v = JSON.parse(localStorage.getItem('noctography.favs') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; }
+  }
+  storeFavs(list) {
+    this.setState({ favs: list });
+    try { localStorage.setItem('noctography.favs', JSON.stringify(list)); } catch (e) {}
+  }
+  favKey(lat, lon) { return lat.toFixed(3) + ',' + lon.toFixed(3); }
+  currentKey() {
+    const E = this.E();
+    if (!E || E.state.lat == null) return null;
+    return this.favKey(E.state.lat, E.state.lon);
+  }
+  isFav() {
+    const k = this.currentKey();
+    return !!k && this.state.favs.some(f => this.favKey(f.lat, f.lon) === k);
+  }
+  toggleFav() {
+    const E = this.E(), k = this.currentKey();
+    if (!k) return;
+    if (this.isFav()) { this.storeFavs(this.state.favs.filter(f => this.favKey(f.lat, f.lon) !== k)); return; }
+    // a GPS fix has no name worth saving, so it is filed under its own coordinates
+    const place = (!this.state.place || this.state.place === 'My location')
+      ? E.state.lat.toFixed(2) + ', ' + E.state.lon.toFixed(2)
+      : this.state.place;
+    this.storeFavs(this.state.favs.concat([{ lat: E.state.lat, lon: E.state.lon, place }]));
+  }
+  pickFav(key) {
+    const f = this.state.favs.find(x => this.favKey(x.lat, x.lon) === key);
+    if (!f) return;
+    this.applySite({ lat: f.lat, lon: f.lon, place: f.place }, true);
+    this.setState({ showLoc: false, results: [], query: '' });
+    this.refresh();
+  }
+
   async boot() {
     const E = this.E();
-    // Before 08:00 you are still out on last night, and tonight() rolls back to it. The night
-    // list has to start on the same night or the tiles and the outlook disagree about "tonight".
-    const now = new Date();
-    const anchor = new Date(now);
-    if (now.getHours() < 8) anchor.setDate(anchor.getDate() - 1);
-    E.state.start = { y: anchor.getFullYear(), m: anchor.getMonth(), d: anchor.getDate() };
     const site = this.saved();
     if (site) {
       this.applySite(site, false);
@@ -882,6 +991,13 @@ class Component extends DCLogic {
     E.updateSky();
     this.setState({ sky: E.state.sky, wx: 'pending' });
     await E.loadWeather();
+    // Until half an hour before sunrise you are still out on last night, and tonight() stays
+    // there. The night list has to start on the same night or the tiles and the outlook would
+    // disagree about which one is "tonight". This has to come after the forecast, not before:
+    // the anchor is worked out in local time, and loadWeather is what tells us which local time
+    // this site is in — run it first and a move to a distant timezone anchors on the old one.
+    const a = E.nightAnchor();
+    E.state.start = { y: a.y, m: a.m, d: a.d };
     E.computeAll();
     this.setState({
       nights: E.state.nights.slice(), t: E.tonight(), sky: E.state.sky,
@@ -1011,6 +1127,12 @@ class Component extends DCLogic {
             : 'Open your browser menu and choose “Add to Home screen”. It opens full screen, remembers your site, and keeps night vision where you left it.'),
       dismissInstall: () => this.dismissInstall(),
       doInstall: () => this.doInstall(),
+      showStale: !!st.stale,
+      staleText: (this._loadedAt && E)
+        ? 'This has been open since ' + this.hhmm(new Date(this._loadedAt)) + ', so the forecast and the times below are that old. Refresh to fetch them again — and to pick up anything I have added since.'
+        : 'This has been open a while, so the forecast below may have moved on. Refresh to fetch it again.',
+      dismissStale: () => this.setState({ stale: false, staleOff: true }),
+      doRefresh: () => window.location.reload(),
       placeName: st.place || 'Finding you…',
       navBg1: n1.bg, navFg1: n1.fg, navBg2: n2.bg, navFg2: n2.fg,
       navBg3: n3.bg, navFg3: n3.fg, navBg4: n4.bg, navFg4: n4.fg,
@@ -1023,6 +1145,11 @@ class Component extends DCLogic {
       nvBorder: st.nv ? amber : 'rgba(245,245,245,.2)',
       nvDot: st.nv ? amber : 'rgba(245,245,245,.32)',
       nvState: st.nv ? 'on' : 'off',
+      nvOn: !!st.nv, nvOff: !st.nv,
+      nvIcon: st.nv ? amber : '#A9A8C4',
+      // the icon shows what the tap will do, not what is on: a moon takes you into night vision,
+      // a sun brings you back out of it
+      nvLabel: st.nv ? 'Turn night vision off' : 'Turn night vision on',
       goTonight: () => this.setState({ tab: 'tonight' }),
       goMeteors: () => this.setState({ tab: 'meteors' }),
       goPano: () => { this.loadPano(); this.setState({ tab: 'pano' }); },
@@ -1046,6 +1173,14 @@ class Component extends DCLogic {
         pick: () => this.pickPlace(r),
       })),
       bortleOptions: this.bortleOptions(),
+      hasFavs: st.favs.length > 0,
+      favOptions: st.favs.map(f => ({ value: this.favKey(f.lat, f.lon), label: f.place })),
+      favValue: '',
+      onPickFav: e => { const v = e.target.value; if (v) this.pickFav(v); },
+      toggleFav: () => this.toggleFav(),
+      favLabel: this.isFav() ? 'Remove from favourites' : 'Add to favourites',
+      favColour: this.isFav() ? '#A9A8C4' : amber,
+      favBorder: this.isFav() ? 'rgba(245,245,245,.24)' : 'rgba(250,163,56,.5)',
       skyLine: st.sky ? 'Bortle ' + st.sky.bortle + ' · ' + st.sky.sqm.toFixed(2) + ' mag/arcsec² · naked-eye limit ' + st.sky.nelm.toFixed(1) : 'Reading the light pollution atlas…',
       ribbonTitle: 'The next ' + st.range + ' nights',
       ribbonEl: React.createElement('canvas', {
@@ -1109,6 +1244,7 @@ class Component extends DCLogic {
       rwbVal: '—', rwbSub: '', rwbColour: '#F5F5F5', ahead: [], aheadLead: '', aheadHint: '',
       sunVal: '—', sunSub: '', issVal: '—', issSub: '', issColour: '#A9A8C4',
       slVal: '—', slSub: '', slColour: '#A9A8C4', fogOn: false, fogLine: '',
+      solOn: false, solLine: '', lunOn: false, lunLine: '', eclOn: false, eclList: [],
     };
     const n = t.night;
     const place = this.state.place && this.state.place !== 'My location' ? ' at ' + this.state.place : '';
@@ -1185,8 +1321,11 @@ class Component extends DCLogic {
     const train = this.trainTonight();
 
     const head = n.headline;
+    const ecl = E.eclipsesFor(n.y, n.m, n.d);
     return {
       ...this.aheadVals(),
+      solOn: !!ecl.solar, solLine: this.solarLine(ecl.solar),
+      lunOn: !!ecl.lunar, lunLine: this.lunarLine(ecl.lunar),
       sunVal: sun.set ? this.hhmm(sun.set) + '–' + (sun.rise ? this.hhmm(sun.rise) : '—') : '—',
       sunSub: sun.set
         ? (t.darkWin
@@ -1282,11 +1421,34 @@ class Component extends DCLogic {
     return lead + bits.join(', ');
   }
 
+  /* Eclipse wording. Both stay honest about whether it can be seen from where you are standing:
+     a lunar eclipse below the horizon is somebody else's, and most solar eclipses are. */
+  lunarLine(e) {
+    if (!e) return '';
+    const kind = e.kind === 'total' ? 'Total lunar eclipse'
+      : e.kind === 'partial' ? 'Partial lunar eclipse' : 'Penumbral lunar eclipse';
+    const when = 'greatest ' + this.hhmm(e.greatest);
+    if (e.alt > 3) return kind + ' · ' + when + ', moon ' + Math.round(e.alt) + '° up';
+    if (e.maxAlt > 0) return kind + ' · ' + when + ' — only part of it clears the horizon here';
+    return kind + ' tonight, but the moon is below the horizon here';
+  }
+  solarLine(e) {
+    if (!e) return '';
+    if (e.kind === 'elsewhere') return 'Solar eclipse today, but not from here';
+    const span = this.hhmm(e.from) + '–' + this.hhmm(e.to);
+    if (e.kind === 'total') return 'Total solar eclipse · ' + span + ', totality around ' + this.hhmm(e.greatest);
+    if (e.kind === 'annular') return 'Annular solar eclipse · ' + span + ', ring around ' + this.hhmm(e.greatest);
+    // 99.4% is still a partial eclipse, and rounding it to a flat 100 would contradict the word
+    const pct = Math.min(99, Math.max(5, Math.round(e.obscuration * 20) * 5));
+    return 'Partial solar eclipse · ' + span + ', roughly ' + pct + '% of the sun covered at ' + this.hhmm(e.greatest);
+  }
+
   /* The ten-night outlook: one row per night, so a better night three days out is obvious. */
   aheadVals() {
     const E = this.E(), st = this.state;
-    // The tiles above describe tonight(), which before 08:00 is still last night. Anchor the table
-    // to that same night so one screen never shows two different figures for "tonight".
+    // The tiles above describe tonight(), which until half an hour before sunrise is still last
+    // night. Anchor the table to that same night so one screen never shows two different figures
+    // for "tonight".
     const t = st.t;
     let from = 0;
     if (t && t.night) {
@@ -1366,11 +1528,27 @@ class Component extends DCLogic {
 
     return {
       ahead, aheadLead: lead, aheadHint: hint,
+      ...this.eclipsesAhead(rows, DAYS),
       aheadFade: (hidden > 6 && seen < hidden - 6) ? 1 : 0,
       aheadScroll: el => { this.aheadBox = el; },
       onAheadScroll: e => this.setState({ aheadX: e.currentTarget.scrollLeft, aheadMax: e.currentTarget.scrollWidth - e.currentTarget.clientWidth }),
     };
   }
+
+  /* Eclipses are rare enough that a dedicated column in the table would be empty almost every
+     day of the year, so they are called out underneath it only when there is one to call out. */
+  eclipsesAhead(rows, DAYS) {
+    const E = this.E(), lines = [];
+    rows.forEach(r => {
+      const s = r.s, ecl = E.eclipsesFor(s.y, s.m, s.d);
+      const dt = new Date(Date.UTC(s.y, s.m, s.d));
+      const when = r.i === 0 ? 'Tonight' : r.i === 1 ? 'Tomorrow' : DAYS[dt.getUTCDay()] + ' ' + s.d + ' ' + E.MONTHS[s.m];
+      if (ecl.lunar) lines.push({ line: when + ' — ' + this.lower(this.lunarLine(ecl.lunar)) });
+      if (ecl.solar) lines.push({ line: when + ' — ' + this.lower(this.solarLine(ecl.solar)) });
+    });
+    return { eclOn: lines.length > 0, eclList: lines };
+  }
+  lower(s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; }
 
   /* The verdict word, with a bit of range. Seeded off the date so it holds steady all night
      and reads differently tomorrow, rather than reshuffling on every render. */
