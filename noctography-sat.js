@@ -1,7 +1,7 @@
-/* Noctography — satellite passes.
+/* Noctography: satellite passes.
    A compact SGP4 propagator (near-Earth branch, which is what everything in low orbit needs),
    plus visibility logic: the satellite has to be in sunlight while you are in darkness.
-   TLEs come from Celestrak. Nothing here talks to a server that computes passes for you —
+   TLEs come from Celestrak. Nothing here talks to a server that computes passes for you: 
    the orbit is propagated on your device. */
 "use strict";
 (function () {
