@@ -1,22 +1,22 @@
 {
   "name": "Noctography",
   "short_name": "Noctography",
-  "description": "Tools for the nightscape photographer.",
+  "description": "Plan the night, frame the shot. Conditions, aurora, meteors, star trails, sky subjects, panoramas and a live AR overlay on the real sky.",
   "display": "standalone",
-  "background_color": "#160F47",
-  "theme_color": "#160F47",
+  "background_color": "#0A0A0B",
+  "theme_color": "#0A0A0B",
   "start_url": "./",
   "scope": "./",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "../assets/noctography-icon.png",
+      "src": "../assets/noctography-icon-graded.png?v=2026-09-05",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "../favicon.png",
+      "src": "../favicon.png?v=2026-09-05",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

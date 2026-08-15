@@ -1,4 +1,4 @@
-/* Noctography engine — meteor rates, sky brightness, weather.
+/* Noctography engine: meteor rates, sky brightness, weather.
    Astronomy, shower data and rate model carried over from Meteor Watch. */
 "use strict";
 (function(){
@@ -33,7 +33,7 @@ function sunPos(jd){
 /* Moon position from the standard periodic series (Meeus, Astronomical Algorithms ch. 47).
    The four-term latitude approximation this started with is fine for knowing where the moon is
    in the sky, but an eclipse turns on a tenth of a degree of ecliptic latitude, which that model
-   cannot see — it would call a comfortably total lunar eclipse a partial one. Coefficients are
+   cannot see: it would call a comfortably total lunar eclipse a partial one. Coefficients are
    millionths of a degree for longitude and latitude, and metres for the distance. */
 const MOON_LON = [
   [0,0,1,0,6288774,-20905355],[2,0,-1,0,1274027,-3699111],[2,0,0,0,658314,-2955968],
@@ -205,15 +205,15 @@ const SPO={code:'SPO',name:'Sporadic background',r:3.0,v:35,
   facts:'Meteors not tied to any recognised stream. Rates roughly double between early evening and dawn, because after midnight your side of the planet turns to face the direction Earth is travelling and sweeps up particles head-on rather than waiting to be caught. On a night with no shower running, this is what you are shooting.'};
 
 const BORTLE=[null,
- {sqm:22.0,nelm:7.7,label:'1 — Pristine'},
- {sqm:21.9,nelm:7.3,label:'2 — Truly dark'},
- {sqm:21.7,nelm:6.9,label:'3 — Rural'},
- {sqm:21.3,nelm:6.4,label:'4 — Rural / suburban transition'},
- {sqm:20.4,nelm:6.0,label:'5 — Suburban'},
- {sqm:19.3,nelm:5.5,label:'6 — Bright suburban'},
- {sqm:18.7,nelm:5.0,label:'7 — Suburban / urban transition'},
- {sqm:18.2,nelm:4.5,label:'8 — City'},
- {sqm:17.8,nelm:4.0,label:'9 — Inner city'}];
+ {sqm:22.0,nelm:7.7,label:'1 – Pristine'},
+ {sqm:21.9,nelm:7.3,label:'2 – Truly dark'},
+ {sqm:21.7,nelm:6.9,label:'3 – Rural'},
+ {sqm:21.3,nelm:6.4,label:'4 – Rural / suburban transition'},
+ {sqm:20.4,nelm:6.0,label:'5 – Suburban'},
+ {sqm:19.3,nelm:5.5,label:'6 – Bright suburban'},
+ {sqm:18.7,nelm:5.0,label:'7 – Suburban / urban transition'},
+ {sqm:18.2,nelm:4.5,label:'8 – City'},
+ {sqm:17.8,nelm:4.0,label:'9 – Inner city'}];
 
 
 /* ============================ light pollution atlas ============================ */
@@ -403,7 +403,9 @@ const state={
   lat:52.958,lon:0.573,place:'Thornham, Norfolk',skyMode:'auto',sky:null,
   tzOffset:-new Date().getTimezoneOffset(), // minutes east of UTC
   start:null, selected:null, weather:null, weatherStatus:'pending',
-  assumedCloud:'typical', focal:'24', range:60, clim:null, climStatus:'idle', nights:[]
+  assumedCloud:'typical', focal:'24', range:60, clim:null, climStatus:'idle', nights:[], past:[],
+  wind:null, windStatus:'idle', ovationGrid:null, ovationAt:0, ovationStatus:'idle',
+  northCloud:null, northCloudStatus:'idle', alerts:[], alertStatus:'idle', outlook27:[], outlookStatus:'idle'
 };
 const STEP=15; // minutes per sample
 
@@ -425,7 +427,7 @@ async function loadWeather(){
   const url='https://api.open-meteo.com/v1/forecast?latitude='+state.lat.toFixed(4)+
     '&longitude='+state.lon.toFixed(4)+
     '&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,temperature_2m,dew_point_2m,wind_speed_10m,wind_gusts_10m,visibility'+
-    '&forecast_days=16&timezone=auto';
+    '&past_days=' + HISTORY_NIGHTS + '&forecast_days=16&timezone=auto';
   try{
     const res=await fetch(url);
     if(!res.ok) throw new Error('HTTP '+res.status);
@@ -583,9 +585,17 @@ function computeNight(y,m,d){
           cloud:cloudN?cloudSum/cloudN:null,showers:list,headline,
           score:peak?scoreOf(peak.rate):0};
 }
+/* Recent history. Open-Meteo returns the same hourly fields for past days, so these nights are
+   computed exactly like the forecast ones: the difference is only that they already happened. */
+const HISTORY_NIGHTS=5;
 function computeAll(){
   const s=state.start;
   state.nights=[];
+  state.past=[];
+  for(let i=HISTORY_NIGHTS;i>=1;i--){
+    const b=new Date(Date.UTC(s.y,s.m,s.d-i));
+    state.past.push(computeNight(b.getUTCFullYear(),b.getUTCMonth(),b.getUTCDate()));
+  }
   for(let i=0;i<state.range;i++){
     const base=new Date(Date.UTC(s.y,s.m,s.d+i));
     state.nights.push(computeNight(base.getUTCFullYear(),base.getUTCMonth(),base.getUTCDate()));
@@ -701,9 +711,11 @@ function nightChart(n){
     });
     const rp=smoothPath(rad), started=rad.length>1;
     if(started){
-      g+='<path d="'+rp+'" fill="none" stroke="#FAA338" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.8"/>';
+      /* The radiant is read against the right-hand ALT axis, not the rate axis, so it takes the
+         axis's own white rather than amber: dashed for a radiant, solid for the moon. */
+      g+='<path d="'+rp+'" fill="none" stroke="#E6E3F4" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.85"/>';
       const near=rlast.x>W-R-46;
-      g+=txt(rlast.x+(near?-5:5),clamp(rlast.y-6,T+13,H-B-4),n.headline.code,{s:12,f:'#FAA338',a:near?'end':'start'});
+      g+=txt(rlast.x+(near?-5:5),clamp(rlast.y-6,T+13,H-B-4),n.headline.code,{s:12,f:'#E6E3F4',a:near?'end':'start'});
     }
   }
 
@@ -720,10 +732,10 @@ function nightChart(n){
     g+=txt(L-3,Y(r)+4.5,r.toFixed(0),{s:12.5,a:'end',f:'#FAA338'});
   });
   [0,45,90].forEach(a=>{
-    g+=txt(W-R+4,YA(a)+4.5,a+'\u00b0',{s:11.5,f:'#9FB6D8'});
+    g+=txt(W-R+4,YA(a)+4.5,a+'\u00b0',{s:11.5,f:'#E6E3F4'});
   });
   g+=txt(L-3,T-7,'/HR',{s:9,f:'#FAA338',a:'end',ls:'0.06em'});
-  g+=txt(W-R+4,T-7,'ALT',{s:9,f:'#9FB6D8',ls:'0.06em'});
+  g+=txt(W-R+4,T-7,'ALT',{s:9,f:'#E6E3F4',ls:'0.06em'});
 
   // ---- where full astronomical darkness starts and ends ----
   for(let i=1;i<dark.length;i++){
@@ -768,7 +780,7 @@ function sentence(sw,n){
   if(sw.code==='SPO'){
     parts.push('Background meteors with no parent stream, running at about '+sw.peak.toFixed(1)+' an hour at best and rising towards dawn.');
   }else{
-    const when=sw.at?fmtTime(sw.at):'—';
+    const when=sw.at?fmtTime(sw.at):'–';
     parts.push('Peaks for you around '+when+' at roughly '+sw.peak.toFixed(1)+' an hour, with the radiant '+Math.round(d.radAlt)+'° above the horizon in the '+compass(d.radAz)+'.');
     if(d.activityFrac<0.25) parts.push('The shower itself is well off its maximum, at about '+Math.round(d.activityFrac*100)+'% of peak strength.');
   }
@@ -797,7 +809,7 @@ function crossings(slots, key, level){
 }
 
 /* Sunrise for a local calendar day at the current site, read off the sun's own altitude.
-   Returns null where the sun does not rise at all — polar day and polar night both. */
+   Returns null where the sun does not rise at all: polar day and polar night both. */
 function sunriseOn(y, m, d){
   let prev = null;
   for (let mi = 0; mi <= 14 * 60; mi += 10){
@@ -813,7 +825,7 @@ function sunriseOn(y, m, d){
 }
 
 /* Which night the app is showing. While it is still dark you are on last night, so the screen
-   only rolls over to the coming night thirty minutes before sunrise — which moves with the
+   only rolls over to the coming night thirty minutes before sunrise, which moves with the
    season and the latitude, where a fixed hour does not. Inside either polar circle the sun may
    not rise from this site at all, and there 06:00 local is the fallback. */
 function nightAnchor(now){
@@ -830,7 +842,7 @@ function nightAnchor(now){
 /* ============================ eclipses ============================
    Both kinds fall out of the same sun and moon positions the rest of the app uses. A lunar
    eclipse is the moon entering the Earth's shadow, which everyone on the night side sees
-   identically — so it is found once and then checked against the moon's altitude here. A solar
+   identically, so it is found once and then checked against the moon's altitude here. A solar
    eclipse is local, and is worked out from where the site actually stands on the globe. */
 const EARTH_R = 6378.14, MOON_KM = 1737.4, SUN_SEMI = 0.2666, SUN_PARALLAX = 0.00224;
 function wrap180(a){ let d = a; while (d > 180) d -= 360; while (d < -180) d += 360; return d; }
@@ -919,7 +931,7 @@ function solarEclipse(t0, t1){
   let g = inside.reduce((a, b) => depth(b) > depth(a) ? b : a);
   // Totality lasts a couple of minutes. A five-minute grid steps straight over it and would
   // report the deepest total eclipse as a partial one, so the moment of greatest eclipse is
-  // resampled at ten seconds — only ever on the handful of days that get this far.
+  // resampled at ten seconds: only ever on the handful of days that get this far.
   for (let t = g.t - 10 * 60000; t <= g.t + 10 * 60000; t += 10000){
     const r = solarSample(t);
     if (r.sunAlt > -0.5 && depth(r) > depth(g)) g = r;
@@ -930,8 +942,8 @@ function solarEclipse(t0, t1){
 }
 
 /* Eclipses belonging to one night: local midday to the next, so every eclipse lands on exactly
-   one night and none is counted twice. The scan runs three hours wider at each end — an eclipse
-   straddling the boundary would otherwise be measured on a truncated half of itself — and the
+   one night and none is counted twice. The scan runs three hours wider at each end: an eclipse
+   straddling the boundary would otherwise be measured on a truncated half of itself, and the
    result is then kept only if greatest fell inside the night proper. Cached, because the outlook
    asks for ten nights on every render and the answer never moves. */
 const ECL_CACHE = {};
@@ -1018,7 +1030,7 @@ function tonight(){
   const q = best ? 0.5 * best.quality + 0.5 * meanQ : 0;
   const hours = usable.length * STEP / 60;
   let verdict;
-  if (!usable.length) verdict = 'too light for astro — the sun barely sets';
+  if (!usable.length) verdict = 'too light for astro, the sun barely sets';
   else if (q >= 0.72 && meanQ >= 0.6 && hours > 2) verdict = 'great';
   else if (q >= 0.5 && meanQ >= 0.35) verdict = 'not bad';
   else if (q >= 0.28 || best.quality >= 0.6) verdict = 'challenging';
@@ -1056,7 +1068,7 @@ function moonTimes(n){
 
 /* Radiation fog: the classic clear, still, damp night that ruins an otherwise perfect forecast.
    It needs the air to reach its dew point, almost no wind to mix it away, and a clear sky to
-   radiate heat to — which is exactly the night you would otherwise have driven out for. */
+   radiate heat to, which is exactly the night you would otherwise have driven out for. */
 function fogRisk(n){
   const dark = n.slots.filter(s => s.sunAlt < -6 && s.cloud);
   if (!dark.length) return null;
@@ -1141,8 +1153,8 @@ function nightSummary(n){
   };
 }
 
-/* NOAA planetary K index — 3-hourly forecast */
-/* NOAA planetary K index — 3-hourly forecast, about three days ahead.
+/* NOAA planetary K index, 3-hourly forecast */
+/* NOAA planetary K index, 3-hourly forecast, about three days ahead.
    The whole series is returned; windowing it to a particular night is the caller's job,
    because a rolling window around "now" says nothing about the night being displayed. */
 async function loadKp(){
@@ -1204,6 +1216,436 @@ function homeFromTimezone(){
   return { lat: 52.958, lon: 0.573, place: 'Thornham, Norfolk', guessed: true, unknownTz: true, lonHint: lon };
 }
 
+/* ======================= noctilucent cloud ======================= */
+/* There is no NLC forecast anywhere and this does not pretend to be one. Season and latitude are
+   climatology; the window is geometry. The ice sits near 83 km and shines by sunlight after the
+   ground is already dark, which is the stretch when the sun is between 6 and 16 degrees below the
+   horizon: any shallower and the sky drowns it, any deeper and the cloud itself is in shadow. */
+const NLC_DEEP = -16, NLC_SHALLOW = -6;
+function nlcSeason(y, m, d, lat){
+  lat = lat == null ? state.lat : lat;
+  const md = (m + 1) * 100 + d;
+  const north = lat >= 0;
+  const inSeason = north ? (md >= 520 && md <= 820) : (md >= 1115 || md <= 215);
+  const peak = north ? (md >= 615 && md <= 715) : (md >= 1210 || md <= 110);
+  const a = Math.abs(lat);
+  const band = a < 45 ? 'unlikely' : a < 50 ? 'possible' : a <= 58 ? 'prime' : a <= 62 ? 'possible' : 'bright';
+  return { inSeason, peak, band, north,
+    bandWord: band === 'prime' ? 'prime latitude for them'
+      : band === 'possible' ? 'possible from this latitude'
+      : band === 'bright' ? 'this far poleward midsummer twilight is too bright, they return later in the season'
+      : 'rarely works from this latitude' };
+}
+/* The twilight window, or windows: displays that fade in the evening often come back before dawn
+   as the cloud drifts back out of the Earth's shadow. */
+function nlcWindows(n){
+  const runs = [];
+  let cur = null;
+  n.slots.forEach(s => {
+    const ok = s.sunAlt <= NLC_SHALLOW && s.sunAlt >= NLC_DEEP;
+    if(ok){
+      if(!cur) cur = { from: s.t, to: s.t, slots: [s] };
+      else { cur.to = s.t; cur.slots.push(s); }
+    } else if(cur){ runs.push(cur); cur = null; }
+  });
+  if(cur) runs.push(cur);
+  return runs.filter(r => (r.to - r.from) >= 20 * 60000).map((r, i, all) => {
+    const mid = r.slots[Math.floor(r.slots.length / 2)];
+    const env = mid.env;
+    const az = env && env.sun ? eq2horiz(env.sun.ra, env.sun.dec, state.lat, env.st).az : null;
+    const withCloud = r.slots.filter(s => s.cloud && s.cloud.total != null);
+    return {
+      from: r.from, to: r.to, az,
+      compass: az == null ? null : compass(az),
+      label: all.length > 1 ? (i === 0 ? 'evening' : i === all.length - 1 ? 'before dawn' : 'later') : 'tonight',
+      cloud: withCloud.length ? withCloud.reduce((a2, b) => a2 + b.cloud.total, 0) / withCloud.length : null,
+      assumed: withCloud.length ? withCloud.every(s => s.cloud.assumed) : true,
+    };
+  });
+}
+
+/* ============================ aurora ============================ */
+/* Kp is a three-hourly planetary average. Everything below turns it, and the live solar wind,
+   into something local: where the oval sits relative to this user, how high the arc would stand
+   above their horizon, and what the sky in that direction is actually like. */
+
+/* Dipole geomagnetic latitude. IGRF pole for 2025 is 80.7N 72.7W; a dipole is good to a fraction
+   of a degree here, and the oval geometry it feeds is only good to a couple of degrees anyway. */
+const GEOMAG_POLE = { lat: 80.7, lon: -72.7 };
+function geomagLat(lat, lon){
+  const d = Math.PI / 180;
+  const s = Math.sin(lat * d) * Math.sin(GEOMAG_POLE.lat * d) +
+            Math.cos(lat * d) * Math.cos(GEOMAG_POLE.lat * d) * Math.cos((lon - GEOMAG_POLE.lon) * d);
+  return Math.asin(clamp(s, -1, 1)) / d;
+}
+/* Equatorward edge of the auroral oval by Kp, in geomagnetic latitude: the standard
+   "aurora may be overhead this far down" table, near enough 2 degrees per Kp step. */
+function ovalEdge(kp){ return 66.5 - 2.07 * clamp(kp, 0, 9); }
+
+/* Elevation of an emission layer h km up standing dDeg of latitude away, on a spherical Earth.
+   Negative when the layer is over the horizon. */
+function arcElevation(dDeg, h){
+  const R = 6371, th = Math.abs(dDeg) * 111.195 / R;
+  return Math.atan2((R + h) * Math.cos(th) - R, (R + h) * Math.sin(th)) * 180 / Math.PI;
+}
+function destPoint(lat, lon, brg, km){
+  const d = Math.PI / 180, R = 6371, ad = km / R;
+  const la = lat * d, lo = lon * d, b = brg * d;
+  const la2 = Math.asin(Math.sin(la) * Math.cos(ad) + Math.cos(la) * Math.sin(ad) * Math.cos(b));
+  const lo2 = lo + Math.atan2(Math.sin(b) * Math.sin(ad) * Math.cos(la), Math.cos(ad) - Math.sin(la) * Math.sin(la2));
+  return { lat: la2 / d, lon: ((lo2 / d + 540) % 360) - 180 };
+}
+
+/* Where the aurora would stand for this user, from a Kp value.
+   The tabulated Kp latitude is the equatorward limit of where aurora can be SEEN, low on the
+   poleward horizon. The band people photograph stands about 8 degrees of latitude poleward of
+   that limit, which is why a Kp 6 night from Norfolk is a glow on the horizon and not curtains
+   overhead. ARC_OFFSET is the load-bearing constant here and wants validating against the
+   Aurorasaurus archive before anyone treats it as settled. */
+const ARC_OFFSET = 8;
+function auroraGeometry(kp, lat, lon){
+  const la = lat == null ? state.lat : lat, lo = lon == null ? state.lon : lon;
+  const mlat = geomagLat(la, lo);
+  const limit = ovalEdge(kp);
+  const arcLat = limit + ARC_OFFSET;
+  const gap = arcLat - Math.abs(mlat);        // degrees poleward of the user, 0 or less is overhead
+  const low = arcElevation(gap > 0 ? gap : 0, 100);
+  const high = arcElevation(gap > 0 ? gap : 0, 250);
+  return {
+    mlat, edge: limit, arcLat, gap,
+    overhead: gap <= 0,
+    low: Math.max(0, low), high: Math.max(0, high),
+    reaches: Math.abs(mlat) >= limit,          // aurora reaches this latitude at all
+    visible: gap <= 0 || high > 1,
+    km: Math.round(Math.max(0, gap) * 111.195),
+    poleward: la >= 0 ? 'north' : 'south',
+  };
+}
+
+/* ---- live solar wind (NOAA SWPC, L1) ---- */
+/* Two calls, deliberately unequal. The minute-cadence history file is 1.4 MB, so it is fetched
+   once and then kept current from a 60-byte summary that costs nothing to poll: these are free
+   public endpoints and the trace only needs the last hour. Fields are read at runtime because
+   the L1 fleet changed in 2026 (SOLAR-1 primary, IMAP backup) and will change again. */
+const SW_SEED = 'https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json';
+const SW_MAG_NOW = 'https://services.swpc.noaa.gov/products/summary/solar-wind-mag-field.json';
+const SW_SPEED_NOW = 'https://services.swpc.noaa.gov/products/summary/solar-wind-speed.json';
+async function loadSolarWind(){
+  const get = async u => { const r = await fetch(u); if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); };
+  const parse = t => Date.parse(/[zZ]$/.test(String(t)) ? String(t) : String(t).replace(' ', 'T') + 'Z');
+  try{
+    const keepMin = Math.max(90, ((state.wind && state.wind.lag) || 60) + 30);
+    let series = (state.wind && state.wind.series) || [];
+    const seedAge = Date.now() - (state.windSeedAt || 0);
+    if(!series.length || seedAge > 15 * 60000){
+      const rows = await get(SW_SEED);          // newest first
+      const seeded = [];
+      for(const r of rows){
+        const t = parse(r.time_tag), bz = parseFloat(r.bz_gsm);
+        if(!isFinite(t) || !isFinite(bz)) continue;
+        if(Date.now() - t > keepMin * 60000) break;
+        seeded.push({ t, bz, bt: isFinite(parseFloat(r.bt)) ? parseFloat(r.bt) : null });
+      }
+      seeded.reverse();
+      if(seeded.length){ series = seeded; state.windSeedAt = Date.now(); state.windSource = rows[0] && rows[0].source || null; }
+    }
+    const [nowMag, nowSpeed] = await Promise.all([get(SW_MAG_NOW).catch(() => null), get(SW_SPEED_NOW).catch(() => null)]);
+    const m = nowMag && nowMag[0], sp = nowSpeed && nowSpeed[0];
+    if(m && isFinite(parseFloat(m.bz_gsm))){
+      const t = parse(m.time_tag);
+      if(!series.length || t > series[series.length - 1].t) series = series.concat([{ t, bz: parseFloat(m.bz_gsm), bt: isFinite(parseFloat(m.bt)) ? parseFloat(m.bt) : null }]);
+    }
+    series = series.filter(s => Date.now() - s.t <= keepMin * 60000);
+    if(!series.length) throw new Error('no mag samples');
+    const speed = sp && isFinite(parseFloat(sp.proton_speed)) ? parseFloat(sp.proton_speed) : (state.wind && state.wind.speed) || null;
+    const density = null;
+    const now = series[series.length - 1].t;
+    const within = m => series.filter(s => now - s.t <= m * 60000);
+    const m30 = within(30), h60 = within(60);
+    const mean30 = m30.length ? m30.reduce((a, b) => a + b.bz, 0) / m30.length : null;
+    const southFrac = h60.length ? h60.filter(s => s.bz < 0).length / h60.length : null;
+    let run = 0;
+    for(let i = series.length - 1; i >= 0; i--){ if(series[i].bz < -2) run = (now - series[i].t) / 60000 + 1; else break; }
+    let flips = 0;
+    for(let i = 1; i < h60.length; i++) if((h60[i].bz < 0) !== (h60[i - 1].bz < 0)) flips++;
+    state.wind = {
+      bz: series[series.length - 1].bz, bt: series[series.length - 1].bt,
+      speed, density, series, mean30, southFrac, run: Math.round(run), flips,
+      lag: speed ? Math.round(1.5e6 / speed / 60) : null,
+      at: now, stale: (Date.now() - now) > 10 * 60000,
+    };
+    state.windStatus = 'live';
+    return true;
+  }catch(e){ state.windStatus = 'unavailable'; return false; }
+}
+
+/* First match wins, in the order a chaser reads them. */
+function windState(){
+  const w = state.wind;
+  if(!w || w.bz == null) return { key: 'none', label: 'No live data', tier: '', open: false };
+  const tier = w.bz <= -15 ? 'severe' : w.bz <= -8 ? 'strong' : w.bz <= -4 ? 'moderate' : '';
+  if(w.mean30 != null && w.mean30 <= -4 && w.southFrac >= 0.75) return { key: 'holding', label: 'South and holding', tier, open: true };
+  if(w.bz <= -4) return { key: 'swung', label: 'Swung south', tier, open: true };
+  if(w.flips >= 3 && w.mean30 != null && Math.abs(w.mean30) < 2) return { key: 'flicker', label: 'Flickering', tier: '', open: false };
+  if(w.mean30 != null && w.mean30 > 0) return { key: 'north', label: 'North, door closed', tier: '', open: false };
+  return { key: 'quiet', label: 'Quiet', tier: '', open: false };
+}
+
+/* ---- OVATION probability grid: one global file, sampled on the device ---- */
+async function loadOvation(){
+  if(state.ovationGrid && Date.now() - state.ovationAt < 5 * 60000) return true;
+  try{
+    const r = await fetch('https://services.swpc.noaa.gov/json/ovation_aurora_latest.json');
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const grid = {};
+    (j.coordinates || []).forEach(c => { grid[c[0] + ',' + c[1]] = c[2]; });
+    if(!Object.keys(grid).length) throw new Error('empty grid');
+    state.ovationGrid = grid;
+    state.ovationAt = Date.now();
+    state.ovationTime = j['Forecast Time'] || j['Observation Time'] || null;
+    state.ovationStatus = 'live';
+    return true;
+  }catch(e){ state.ovationStatus = 'unavailable'; return false; }
+}
+function ovationAt(lat, lon){
+  const g = state.ovationGrid;
+  if(!g) return null;
+  let lo = Math.round(((lon % 360) + 360) % 360); if(lo > 359) lo -= 360;
+  const v = g[lo + ',' + Math.round(clamp(lat, -90, 90))];
+  return v == null ? null : v;
+}
+/* The oval is usually poleward of the user. Aurora 100 to 250 km up is visible from a long way
+   equatorward, so the poleward cells are scanned and the best one that still clears the horizon
+   is kept: that, not the user's own cell, is the number worth acting on at mid latitudes. */
+function ovationScan(lat, lon){
+  lat = lat == null ? state.lat : lat; lon = lon == null ? state.lon : lon;
+  const own = ovationAt(lat, lon), sign = lat >= 0 ? 1 : -1;
+  let best = null;
+  for(let d = 1; d <= 12; d++){
+    const el = arcElevation(d, 150);
+    if(el < 1) break;
+    const v = ovationAt(lat + sign * d, lon);
+    if(v == null) continue;
+    if(!best || v > best.p) best = { p: v, offset: d, elev: el };
+  }
+  return { own, best };
+}
+
+/* ---- what the sky in that direction is actually like ---- */
+/* The atlas sampled across the poleward quarter, out to where a low arc sits. Near glow dominates
+   a horizon, so each sample is weighted by distance. */
+function polewardGlow(lat, lon){
+  lat = lat == null ? state.lat : lat; lon = lon == null ? state.lon : lon;
+  const centre = lat >= 0 ? 0 : 180;
+  const zen = atlasSky(lat, lon);
+  const sectors = [];
+  let sqmSum = 0, sqmWt = 0;
+  for(let i = 0; i < 10; i++){
+    const brg = (centre - 45 + i * 10 + 360) % 360;
+    let art = 0, got = 0, sqm = null;
+    [15, 40, 80, 140].forEach(km => {
+      const p = destPoint(lat, lon, brg, km);
+      const a = atlasSky(p.lat, p.lon);
+      if(!a) return;
+      got++;
+      if(sqm == null || a.sqm < sqm) sqm = a.sqm;
+      const ratio = Math.max(0, Math.pow(10, (22.0 - a.sqm) / 2.5) - 1);
+      const w = 1 / (1 + km / 40);
+      art += ratio * w;
+      sqmSum += a.sqm * w; sqmWt += w;
+    });
+    sectors.push({ brg, art: got ? art : null, sqm });
+  }
+  const arts = sectors.map(s => s.art).filter(v => v != null);
+  const peak = arts.length ? Math.max(...arts) : 0;
+  sectors.forEach(s => { s.level = (s.art == null || peak <= 0) ? 0 : clamp(s.art / peak, 0, 1); });
+  const meanSqm = sqmWt ? sqmSum / sqmWt : null;
+  const worst = sectors.reduce((a, b) => (b.art != null && (!a || b.art > a.art)) ? b : a, null);
+  return {
+    sectors, meanSqm,
+    bortle: meanSqm == null ? null : bortleFor(meanSqm),
+    zenithSqm: zen ? zen.sqm : null,
+    zenithBortle: zen ? bortleFor(zen.sqm) : null,
+    worst: worst && worst.art > 0.15 ? worst : null,
+    label: lat >= 0 ? 'NW to NE' : 'SE to SW',
+  };
+}
+
+/* The whole horizon, not just the poleward quarter. The atlas is sampled on sixteen bearings out
+   to 150 km, weighted so a nearby town dominates the way it actually does on a real horizon. Haze
+   is what puts that light back in your eyes, so humidity and high cloud scale the whole ring: the
+   same glow is far worse on a muggy night than a dry one. */
+const COMPASS16 = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+function allSkyGlow(lat, lon, opts){
+  lat = lat == null ? state.lat : lat; lon = lon == null ? state.lon : lon;
+  opts = opts || {};
+  const zen = atlasSky(lat, lon);
+  const known = opts.rh != null || opts.highCloud != null;
+  const rh = opts.rh == null ? 60 : opts.rh;
+  const hi = opts.highCloud == null ? 0 : opts.highCloud;
+  const haze = known ? 1 + 0.9 * clamp((rh - 60) / 40, 0, 1) + 0.6 * clamp(hi / 100, 0, 1) : 1;
+  const sectors = COMPASS16.map((name, i) => {
+    const brg = i * 22.5;
+    let art = 0, wsum = 0, sqm = null;
+    [10, 30, 60, 100, 150].forEach(km => {
+      const p = destPoint(lat, lon, brg, km);
+      const a = atlasSky(p.lat, p.lon);
+      if(!a) return;
+      if(sqm == null || a.sqm < sqm) sqm = a.sqm;
+      const ratio = Math.max(0, Math.pow(10, (22.0 - a.sqm) / 2.5) - 1);
+      const w = 1 / (1 + km / 35);
+      art += ratio * w; wsum += w;
+    });
+    return { name, brg, art: wsum ? art * haze : null, sqm };
+  });
+  const arts = sectors.map(s => s.art).filter(v => v != null);
+  const peak = arts.length ? Math.max(...arts) : 0;
+  const low = arts.length ? Math.min(...arts) : 0;
+  /* square root, because the eye reads a horizon glow far more gently than the photometry does */
+  sectors.forEach(s => { s.level = (s.art == null || peak <= 0) ? 0 : clamp(Math.sqrt(s.art / peak), 0, 1); });
+  const worst = sectors.reduce((a, b) => (b.art != null && (!a || b.art > a.art)) ? b : a, null);
+  const best = sectors.reduce((a, b) => (b.art != null && (!a || b.art < a.art)) ? b : a, null);
+  return {
+    sectors, haze, hazeKnown: known, worst, best,
+    even: peak > 0 ? (low / peak) : 1,
+    zenithSqm: zen ? zen.sqm : null,
+    zenithBortle: zen ? bortleFor(zen.sqm) : null,
+  };
+}
+
+/* Cloud over the sky the arc would occupy, rather than over the user's head. */
+async function loadPolewardCloud(win){
+  const sign = state.lat >= 0 ? 1 : -1;
+  const las = [clamp(state.lat + sign * 0.5, -89, 89), clamp(state.lat + sign * 1.0, -89, 89)];
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + las.map(v => v.toFixed(3)).join(',') +
+    '&longitude=' + las.map(() => state.lon.toFixed(3)).join(',') +
+    '&hourly=cloud_cover,cloud_cover_low&forecast_days=3&timezone=UTC';
+  try{
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const rows = Array.isArray(j) ? j : [j];
+    let tot = 0, low = 0, n = 0;
+    rows.forEach(p => {
+      const h = p.hourly; if(!h || !h.time) return;
+      h.time.forEach((t, i) => {
+        const ms = Date.parse(t + ':00Z');
+        if(win && (ms < win.from.getTime() - 1800000 || ms > win.to.getTime() + 1800000)) return;
+        const c = h.cloud_cover[i], l = h.cloud_cover_low[i];
+        if(c == null) return;
+        tot += c; low += (l == null ? 0 : l); n++;
+      });
+    });
+    state.northCloud = n ? { total: tot / n, low: low / n, hours: n } : null;
+    state.northCloudStatus = n ? 'live' : 'unavailable';
+    return !!n;
+  }catch(e){ state.northCloud = null; state.northCloudStatus = 'unavailable'; return false; }
+}
+
+/* ---- camera and eye thresholds ----
+   One signal, two thresholds. A sensor holding the shutter open picks up aurora five to ten times
+   fainter than a dark-adapted eye, which is colour-blind and far less sensitive. The thresholds
+   move with moon, cloud and site brightness; the signal does not. */
+function auroraThresholds(opts){
+  opts = opts || {};
+  const scan = ovationScan();
+  const own = scan.own == null ? null : scan.own;
+  const pole = scan.best ? scan.best.p : null;
+  const signal = (own == null && pole == null) ? null : Math.max(own || 0, (pole || 0) * 0.85);
+  const moonIll = opts.moonIllum == null ? 0 : opts.moonIllum;
+  const moonUp = opts.moonUp ? 1 : 0;
+  const cloud = opts.cloud == null ? 0.25 : clamp(opts.cloud / 100, 0, 1);
+  const bortle = opts.bortle == null ? 4 : opts.bortle;
+  const skyPen = 1 + Math.max(0, bortle - 3) * 0.09;
+  const cloudPen = 1 + cloud * 1.6;
+  const camera = clamp(12 * (1 + 0.6 * moonIll * moonUp) * skyPen * cloudPen, 4, 96);
+  const eye = clamp(42 * (1 + 1.8 * moonIll * moonUp) * skyPen * cloudPen, 8, 98);
+  const state_ = signal == null ? 'none' : signal >= eye ? 'eye' : signal >= camera ? 'camera' : 'quiet';
+  return { signal, own, pole, polewardOffset: scan.best ? scan.best.offset : null, camera, eye, state: state_ };
+}
+
+/* ---- storm watches and the 27-day outlook ---- */
+const MON3 = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+async function loadAlerts(){
+  try{
+    const r = await fetch('https://services.swpc.noaa.gov/products/alerts.json');
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const out = [];
+    const yr = new Date().getUTCFullYear();
+    j.slice(0, 80).forEach(a => {
+      const id = String(a.product_id || ''), msg = String(a.message || '');
+      const isWatch = /^WATA/.test(id) || /WATCH/i.test(msg);
+      const inEffect = /^(WARK|ALTK)/.test(id);
+      if(!isWatch && !inEffect) return;
+      /* the "Highest Storm Level Predicted by Day" block is the parseable part; the body text is
+         display only, never trusted for logic */
+      const days = [...msg.matchAll(/([A-Z][a-z]{2})\s+(\d{1,2}):\s*G([1-5])/g)].map(m => ({
+        m: MON3.indexOf(m[1].toLowerCase()), d: parseInt(m[2], 10), g: parseInt(m[3], 10),
+      })).filter(x => x.m >= 0);
+      const g = (msg.match(/Category G([1-5])/i) || msg.match(/G([1-5])/) || [])[1];
+      if(!days.length && !g) return;
+      out.push({ id, watch: isWatch && !inEffect, inEffect, g: g ? parseInt(g, 10) : null, days, year: yr, issued: a.issue_datetime || null });
+    });
+    state.alerts = out;
+    state.alertStatus = 'live';
+    return true;
+  }catch(e){ state.alerts = []; state.alertStatus = 'unavailable'; return false; }
+}
+/* G level to Kp, as SWPC define it. */
+function gToKp(g){ return g == null ? null : Math.min(9, 4 + g); }
+function watchFor(y, m, d){
+  const list = state.alerts || [];
+  for(const a of list){
+    for(const day of a.days){
+      if(day.m === m && day.d === d) return { g: day.g, inEffect: a.inEffect, kp: gToKp(day.g) };
+    }
+  }
+  return null;
+}
+
+async function loadOutlook27(){
+  try{
+    const r = await fetch('https://services.swpc.noaa.gov/text/27-day-outlook.txt');
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const txt = await r.text();
+    const rows = [];
+    txt.split('\n').forEach(line => {
+      const m = line.match(/^(\d{4})\s+([A-Z][a-z]{2})\s+(\d{1,2})\s+(\d+)\s+(\d+)\s+(\d+)/);
+      if(!m) return;
+      const mo = MON3.indexOf(m[2].toLowerCase());
+      if(mo < 0) return;
+      rows.push({ y: +m[1], m: mo, d: +m[3], flux: +m[4], a: +m[5], kp: +m[6] });
+    });
+    state.outlook27 = rows;
+    state.outlookStatus = rows.length ? 'live' : 'unavailable';
+    state.outlookAt = Date.now();
+    return !!rows.length;
+  }catch(e){ state.outlook27 = []; state.outlookStatus = 'unavailable'; return false; }
+}
+function outlookKp(y, m, d){
+  const row = (state.outlook27 || []).find(r => r.y === y && r.m === m && r.d === d);
+  return row ? row.kp : null;
+}
+/* The next elevated stretch beyond the ten-night view: a sentence, never a chart. Coronal holes
+   come back round about every 27 days; CME storms never do. */
+function recurrenceAhead(skipDays){
+  const rows = state.outlook27 || [];
+  if(!rows.length) return null;
+  const cut = new Date(Date.now() + (skipDays || 10) * 86400000);
+  const runs = [];
+  let cur = null;
+  rows.forEach(r => {
+    const dt = new Date(Date.UTC(r.y, r.m, r.d));
+    if(dt < cut || r.kp < 5){ if(cur){ runs.push(cur); cur = null; } return; }
+    if(cur && (dt - cur.end) <= 86400000 * 1.5) cur.end = dt; else { if(cur) runs.push(cur); cur = { start: dt, end: dt, kp: r.kp }; }
+    cur.kp = Math.max(cur.kp, r.kp);
+  });
+  if(cur) runs.push(cur);
+  return runs.length ? runs[0] : null;
+}
+
 window.NoctoEngine = {
   state, STEP, SHOWERS, BORTLE, ANT, SPO,
   loadAtlas, atlasSky, updateSky, nelmFor, bortleFor,
@@ -1214,5 +1656,10 @@ window.NoctoEngine = {
   nightChart, fovFraction, verdictWord, speedWord, sentence,
   tonight, realSky, nightSummary, sunTimes, moonTimes, fogRisk, loadKp, kpForNight, geocode, homeFromTimezone, MW_RA, MW_DEC,
   nightAnchor, sunriseOn, eclipsesFor, lunarEclipse, solarEclipse,
+  nlcSeason, nlcWindows,
+  geomagLat, ovalEdge, arcElevation, destPoint, auroraGeometry,
+  loadSolarWind, windState, loadOvation, ovationAt, ovationScan,
+  polewardGlow, allSkyGlow, COMPASS16, loadPolewardCloud, auroraThresholds,
+  loadAlerts, watchFor, gToKp, loadOutlook27, outlookKp, recurrenceAhead,
 };
 })();

@@ -1,8 +1,9 @@
 # Noctography
 
+> Plan the night, frame the shot.
 > Free browser tools for nightscape and landscape astrophotography, by Paul Haworth.
 > Works worldwide, in either hemisphere, for any location the user chooses.
-> Answers one question: is tonight worth going out for, and if so, when.
+> Answers two questions: is tonight worth going out for, and what should you point at.
 > https://www.noctography.net
 
 Everything runs in the visitor's browser. No account, no tracking, no server-side
@@ -13,15 +14,41 @@ computation. Location stays on the device.
 - **Tonight** (https://www.noctography.net/app/): the best window of the coming night at the
   user's location, plus cloud through the dark hours, air temperature and dew point, wind,
   sunset and sunrise, moon phase and times, the astronomical darkness window, real-world
-  Bortle, meteor rate, aurora (NOAA Kp), Milky Way core altitude, and visible ISS or recent
-  Starlink train passes. Warns about mist and fog risk.
-- **Looking ahead**: the next ten nights compared side by side on cloud, moon, real-world
-  Bortle, meteors, aurora and sun and moon times, with the best night identified.
-- **Meteor outlook**: sixty nights of shower activity, an hour-by-hour rate chart for a chosen
-  night, and a per-shower breakdown.
-- **Panorama calculator**: rotation between frames by focal length, sensor size, orientation
-  and overlap, with shot counts for 180 and 360 degree sweeps.
-- **Night vision mode**: the whole interface in red on black to preserve dark adaptation.
+  Bortle, meteor rate, aurora, Milky Way core altitude, and visible ISS or recent Starlink
+  train passes. Warns about mist and fog risk. Includes an all-sky map of light pollution by
+  compass direction, and noctilucent cloud season windows at the relevant latitudes.
+- **Forecast grid**: fifteen nights ahead and five nights behind, each with a star rating for
+  night quality, so a user can compare nights at a glance and learn what their own site does.
+  Tapping a night opens its detail.
+- **Aurora**: live solar wind from L1 (Bz trend, field strength, field orientation, speed),
+  OVATION probability sampled at the user's coordinates and poleward, camera versus naked-eye
+  thresholds, arc geometry and altitude, light pollution and cloud across the poleward horizon
+  out to 140 km, CME storm watches and 27-day recurrence.
+- **Meteors**: sixty nights of shower activity, an hour-by-hour rate chart for a chosen night
+  with radiant altitude on a second axis, and a per-shower breakdown.
+- **Trails**: three star trail patterns (Circles at the pole, The fan facing east or west,
+  Arches facing away from the pole) with the aim derived from the user's latitude; a session
+  planner checking length against the dark window, moonset, cloud through the session and the
+  dew point; a moon-in-frame test using the real frame geometry; and timelapse planning from
+  the same run of frames (shutter, interval, gap, frame count at 24 fps).
+- **Sky**: sixteen subjects ranked for the night, scored on nightscape framing rather than
+  maximum altitude, plus moon separation, cloud in that direction and light pollution. A night
+  scrubber moves the whole list through time. A framing view draws real star positions, the
+  Milky Way from galactic geometry, the moon in its true place and the subject at its true
+  angular size and position angle, with pan, pitch, time and the user's lens over the top.
+- **AR**: a live overlay on the phone camera, reached from Sky and from Trails. Uses the
+  device compass and tilt to draw the sky over the real scene: subjects at their true position
+  and angular size, the horizon and cardinals, the moon, and the user's lens as a rectangle.
+  From Trails it draws the arcs the planned session would produce over the landscape in front
+  of the user. Runs entirely on the device, offline, and nothing is uploaded.
+- **Pano**: rotation between frames by focal length, sensor size, orientation and overlap,
+  with shot counts for 180 and 360 degree sweeps.
+- **Kit**: the user's sensor, megapixels, lens and aperture, saved to the device and read by
+  every other screen. Gives pixel pitch, field of view and the NPF exposure limit in two
+  readings, pin-sharp and relaxed.
+- **Six colour schemes** (obsidian and gold leaf by default) and a **night vision mode** that
+  turns the whole interface, canvas and charts included, red on black to preserve dark
+  adaptation.
 
 ## Definitions specific to this project
 
@@ -32,16 +59,26 @@ computation. Location stays on the device.
 - **Meteor rate**: meteors per hour an observer could realistically expect to see, not the
   quoted ZHR. Computed as ZHR(t) x sin(radiant altitude) x r^(limiting magnitude - 6.5) x
   clear sky fraction x 0.75, evaluated every 15 minutes.
+- **Framing band**: the altitude range in which a subject is useful for a nightscape. The lower
+  bound is the subject's own minimum, below which haze and town glow dominate; the upper bound
+  is three quarters of the frame's vertical field of view, above which the subject cannot share
+  a frame with a foreground. Both are measured at the subject's lower edge, not its centre, and
+  the upper bound therefore changes with lens and orientation.
 - **Mist and fog risk**: fires when air is near its dew point, wind is under about 10 km/h,
-  and the sky is largely clear — the three conditions for radiation fog.
+  and the sky is largely clear, the three conditions for radiation fog.
+- **Camera and eye thresholds**: two separate aurora brightness marks. A dark-adapted eye runs
+  on rod vision, colour-blind and roughly five to ten times less sensitive than a sensor, so
+  the camera mark sits well below the eye mark. Both move with moonlight, cloud and haze.
 
 ## Data sources
 
 - Open-Meteo forecast and ERA5 archive: cloud, humidity, temperature, dew point, wind, visibility
-- NOAA Space Weather Prediction Center: planetary K index
+- NOAA Space Weather Prediction Center: planetary K index, OVATION aurora model, real-time
+  solar wind from the L1 point
 - David Lorenz 2025 World Atlas of Artificial Night Sky Brightness: light pollution
 - International Meteor Organization: shower dates, ZHR, population index
 - CelesTrak: orbital elements, propagated with SGP4 in the browser
+- Meeus, Astronomical Algorithms: sun, moon and eclipse ephemerides
 - Krisciunas & Schaefer (1991) moonlight sky brightness model; Kasten & Young (1989) airmass
 
 ## Author
