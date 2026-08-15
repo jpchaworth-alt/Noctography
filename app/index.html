@@ -1779,11 +1779,12 @@
           <span style="font-size: 14px; line-height: 1.4; color: rgba(240,236,228,.75); text-wrap: pretty;">{{ arAlignHint }}</span>
           <sc-if value="{{ arHasAnchor }}" hint-placeholder-val="{{ true }}">
             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <sc-for list="{{ arAnchorChips }}" as="a" hint-placeholder-count="3">
+              <sc-for list="{{ arAnchorChips }}" as="a" hint-placeholder-count="2">
                 <button type="button" onClick="{{ a.go }}" data-nv-active="{{ a.on }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 14px; border: 1px solid {{ a.bd }}; border-radius: 999px; background: {{ a.bg }}; color: {{ a.fg }}; font-family: 'Barlow', sans-serif; font-size: 13.5px; white-space: nowrap; cursor: pointer;">{{ a.label }}</button>
               </sc-for>
             </div>
           </sc-if>
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: rgba(240,236,228,.45);">the overlay is showing now, whatever the time slider said</span>
         </div>
       </sc-if>
 
@@ -3666,8 +3667,8 @@ class Component extends DCLogic {
       /* Data is arriving, so say nothing except the one thing that still needs saying. */
       if (!AR.absolute() && AR.nudge() === 0) {
         noticeTitle = 'Align it first';
-        noticeBody = 'This phone has not given me a true compass heading, so the overlay is a guess until you align it. Tap Align, then tap the sun, the moon or a star you can name.';
-        noticeAction = 'Align'; noticeGo = () => this.setState({ arAligning: true });
+        noticeBody = 'This phone has not given me a true compass heading, so the overlay is a guess until you align it. Tap Align, then tap the sun or the moon, whichever is up.';
+        noticeAction = 'Align'; noticeGo = () => this.setState({ arAligning: true, arScrub: null });
       }
     } else if (st.arMotion === 'denied') {
       noticeTitle = 'Motion access declined';
@@ -3687,20 +3688,16 @@ class Component extends DCLogic {
     }
 
     const anchor = 'the moon';
-    /* Alignment needs one thing in the sky you can point at and name. In the daytime that is the
-       sun and nothing else, which is most of when people will be standing in a field working out
-       where to put the tripod tonight. */
+    /* Alignment is done against something you can actually see through the camera right now, so
+       it always works off the real clock rather than the scrubber, and only offers the two things
+       a phone camera will genuinely pick up: the sun and the moon. Stars do not survive a live
+       viewfinder at 1/30th of a second, so offering them would be a lie. */
     const P0 = this.P();
-    const skyNow = P0 ? P0.skyAt(when, E.state.lat, E.state.lon) : null;
+    const skyNow = P0 ? P0.skyAt(new Date(), E.state.lat, E.state.lon) : null;
     const anchors = [];
     if (skyNow) {
       if (skyNow.sun && skyNow.sun.alt > 2) anchors.push({ id: 'sun', label: 'Sun', az: skyNow.sun.az, alt: skyNow.sun.alt });
       if (skyNow.moon.alt > 2) anchors.push({ id: 'moon', label: 'Moon', az: skyNow.moon.az, alt: skyNow.moon.alt });
-      skyNow.stars
-        .filter(s => s.name && s.mag < 1.1 && s.alt > 12)
-        .sort((a, b) => a.mag - b.mag)
-        .slice(0, 3)
-        .forEach(s => anchors.push({ id: s.name, label: s.name, az: s.az, alt: s.alt }));
     }
     const anchorId = st.arAnchor && anchors.some(a => a.id === st.arAnchor) ? st.arAnchor
       : (anchors[0] ? anchors[0].id : null);
@@ -3718,13 +3715,14 @@ class Component extends DCLogic {
       arNotice: !!noticeTitle, arNoticeTitle: noticeTitle, arNoticeBody: noticeBody,
       arNoticeAction: noticeAction, arNoticeGo: noticeGo,
       arAligning: st.arAligning,
-      arAnchorName: anchorObj ? anchorObj.label.toLowerCase() : 'nothing I can name',
+      arAnchorName: anchorObj ? anchorObj.label.toLowerCase() : 'nothing you can see',
       arAnchorChips: anchors.map(a => chip(a.label, a.id === anchorId, () => this.setState({ arAnchor: a.id }))),
       arHasAnchor: !!anchorObj,
       arAlignHint: anchorObj
-        ? 'Tap it where you can actually see it and the whole overlay swings into place. It is '
+        ? 'Tap it where you can actually see it and the whole overlay swings into place. Right now it is '
           + Math.round(anchorObj.alt) + '\u00b0 up in the ' + E.compass(anchorObj.az) + '.'
-        : 'Nothing bright enough is up just now. Wait for the sun, the moon or a first-magnitude star, or set the offset by hand under Tune.',
+        : 'Neither the sun nor the moon is up, and nothing else is bright enough for a phone camera to see. Come back when one of them is, or set the offset by hand under Tune.',
+      arAlignNow: st.arScrub != null,
       arLandscape: !!st.arLandscape,
       arAlignHint: 'Tap where you can actually see it and the whole overlay swings into place. If the moon is down, tap a bright star you can name instead.',
       onArTap: e => {
@@ -3754,7 +3752,7 @@ class Component extends DCLogic {
           if (st.arCam && st.arCamOk) { AR.stopCamera(); this.setState({ arCam: false, arCamOk: false }); }
           else { this.setState({ arCam: true }); this.startArCamera(); }
         }),
-        chip('Align', st.arAligning, () => this.setState({ arAligning: !st.arAligning, arShowTune: false })),
+        chip('Align', st.arAligning, () => this.setState({ arAligning: !st.arAligning, arShowTune: false, arScrub: null })),
         chip('Tune', st.arShowTune, () => this.setState({ arShowTune: !st.arShowTune, arAligning: false })),
       ],
       arShowTune: st.arShowTune,
