@@ -6,6 +6,7 @@
 <title>Noctography: plan the night, frame the shot</title>
 <meta name="description" content="Plan the night, frame the shot. Free browser tools for nightscape photography: tonight's conditions, live aurora, a 60-night meteor outlook, star trail and timelapse planning, a ranked sky subject list with a framing view, and a panorama calculator. By Paul Haworth Nightscapes.">
 <link rel="canonical" href="https://www.noctography.net/">
+<link rel="alternate" type="text/plain" href="https://www.noctography.net/llms.txt" title="Plain-text summary of Noctography for AI tools">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <meta name="author" content="Paul Haworth">
 <meta name="theme-color" content="#0A0A0B">
@@ -15,6 +16,9 @@
 <meta property="og:title" content="Noctography: plan the night, frame the shot">
 <meta property="og:description" content="Plan the night, frame the shot. Tonight, aurora, meteors, star trails, sky subjects, panoramas and your kit, with a live AR overlay on the real sky. Free, in your browser, no account.">
 <meta property="og:url" content="https://www.noctography.net/">
+<meta property="og:locale" content="en_GB">
+<meta property="og:image:secure_url" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -28,12 +32,29 @@
 <link rel="apple-touch-icon" href="assets/noctography-icon.png?v=2026-09-06">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:wght@400&family=JetBrains+Mono:wght@400&display=swap">
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.noctography.net/#website",
+      "url": "https://www.noctography.net/",
+      "name": "Noctography",
+      "alternateName": "Noctography nightscape planner",
+      "description": "Free browser tools for planning nightscape and landscape astrophotography, anywhere in the world.",
+      "inLanguage": "en-GB",
+      "publisher": { "@id": "https://www.noctography.net/#paul" },
+      "about": [
+        { "@type": "Thing", "name": "Astrophotography" },
+        { "@type": "Thing", "name": "Nightscape photography" },
+        { "@type": "Thing", "name": "Aurora forecasting" },
+        { "@type": "Thing", "name": "Light pollution" },
+        { "@type": "Thing", "name": "Meteor showers" }
+      ]
+    },
     {
       "@type": "WebApplication",
       "@id": "https://www.noctography.net/#app",
@@ -41,6 +62,12 @@
       "url": "https://www.noctography.net/app/",
       "description": "Free browser tools for nightscape and landscape astrophotography: tonight's observing conditions, live aurora watch, a sixty-night meteor outlook, star trail and timelapse planning, a ranked list of sky subjects with a framing view, and a panorama rotation calculator.",
       "applicationCategory": "Photography",
+      "applicationSubCategory": "Astrophotography and nightscape planning",
+      "installUrl": "https://www.noctography.net/app/",
+      "availableOnDevice": "Smartphone, tablet or desktop browser",
+      "permissions": "Optional location, camera and motion sensors, used on the device only",
+      "isPartOf": { "@id": "https://www.noctography.net/#website" },
+      "keywords": "nightscape photography, astrophotography planning, Milky Way, aurora forecast, meteor shower rates, star trails, light pollution, Bortle scale, NPF rule, timelapse, panorama overlap",
       "operatingSystem": "Any (web browser)",
       "browserRequirements": "Requires JavaScript",
       "inLanguage": "en-GB",
@@ -87,6 +114,9 @@
     {
       "@type": "FAQPage",
       "@id": "https://www.noctography.net/#faq",
+      "url": "https://www.noctography.net/",
+      "inLanguage": "en-GB",
+      "isPartOf": { "@id": "https://www.noctography.net/#website" },
       "mainEntity": [
         {
           "@type": "Question",
@@ -209,6 +239,7 @@
   footer.site { margin-top: 72px; padding: 28px 0 40px; border-top: 1px solid rgba(240,236,228,.14); color: #ADA79B; font-size: 16px; }
   @media (max-width: 600px) { h1 { font-size: 40px; } h2 { font-size: 28px; } body { font-size: 17px; } }
 </style>
+<script data-goatcounter="https://noctography.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
 
@@ -342,10 +373,10 @@
 
 <footer class="site">
   <div class="wrap">
-    <p>Follow my cinematic nightscape adventures at <a href="https://www.youtube.com/@nightscapejournals" rel="noopener">youtube.com/@nightscapejournals</a>, or see prints, talks and free downloads at <a href="https://www.paulhaworthnightscapes.com" rel="noopener">paulhaworthnightscapes.com</a>.</p>
+    <p>Follow my cinematic nightscape adventures at <a href="https://www.youtube.com/@nightscapejournals" rel="me noopener">youtube.com/@nightscapejournals</a>, or see prints, talks and free downloads at <a href="https://www.paulhaworthnightscapes.com" rel="me noopener">paulhaworthnightscapes.com</a>.</p>
     <p style="margin-top: 22px;"><a class="cta ghost" href="https://buymeacoffee.com/jpchaworthy" rel="noopener" style="min-height: 48px; padding: 0 24px; font-size: 13px;">Say thanks</a></p>
     <p style="display: flex; align-items: center; gap: 10px; margin-top: 20px;">
-      <img src="assets/logo-roundel.png" alt="" width="40" height="40" style="border-radius: 50%; display: block;">
+      <img src="assets/logo-roundel.png" alt="" width="40" height="40" loading="lazy" decoding="async" style="border-radius: 50%; display: block;">
       <span class="eyebrow">Paul Haworth Nightscapes</span>
     </p>
   </div>

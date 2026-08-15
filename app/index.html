@@ -1,26 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-GB">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="../support.js"></script>
-</head>
-<body>
-<x-dc>
-<helmet>
-<title>Noctography</title>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Noctography">
-<meta name="application-name" content="Noctography">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- Search and AI-search tags live in the real <head>, so a crawler sees them in the first
+     kilobyte with no JavaScript run. Do not move these down into <helmet>: anything below
+     <body> is ignored by Google. -->
+<title>Noctography: plan the night, frame the shot</title>
+<meta name="description" content="Free nightscape photography planner. Tonight's conditions at your location, live aurora, the meteor outlook, star trail and timelapse planning, ranked sky subjects, a framing view and a live AR overlay on the real sky.">
+<link rel="canonical" href="https://www.noctography.net/app/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="author" content="Paul Haworth">
 <meta name="theme-color" content="#0A0A0B">
-<meta name="description" content="Plan the night, frame the shot. Tonight's conditions, live aurora, the meteor outlook, star trails and timelapses, ranked sky subjects with a framing view, and a panorama calculator.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Noctography">
 <meta property="og:title" content="Noctography: plan the night, frame the shot">
-<meta property="og:description" content="Plan the night, frame the shot. Tonight's conditions, live aurora, the meteor outlook, star trails and timelapses, ranked sky subjects with a framing view, and a panorama calculator.">
-<meta property="og:url" content="https://www.noctography.net/">
+<meta property="og:description" content="Tonight's conditions, live aurora, the meteor outlook, star trails and timelapses, ranked sky subjects with a framing view, and a live AR overlay on the real sky.">
+<meta property="og:url" content="https://www.noctography.net/app/">
+<meta property="og:locale" content="en_GB">
 <meta property="og:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
 <meta property="og:image:secure_url" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
 <meta property="og:image:type" content="image/png">
@@ -29,12 +26,94 @@
 <meta property="og:image:alt" content="Noctography: plan the night, frame the shot">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Noctography: plan the night, frame the shot">
-<meta name="twitter:description" content="Plan the night, frame the shot. Tonight's conditions, live aurora, the meteor outlook, star trails and timelapses, ranked sky subjects with a framing view, and a panorama calculator.">
+<meta name="twitter:description" content="Tonight's conditions, live aurora, the meteor outlook, star trails and timelapses, ranked sky subjects with a framing view, and a live AR overlay on the real sky.">
 <meta name="twitter:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
-<link rel="canonical" href="https://www.noctography.net/app/">
+<link rel="alternate" type="text/plain" href="https://www.noctography.net/llms.txt" title="Plain-text summary of Noctography for AI tools">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://www.noctography.net/#app",
+      "name": "Noctography",
+      "url": "https://www.noctography.net/app/",
+      "installUrl": "https://www.noctography.net/app/",
+      "applicationCategory": "Photography",
+      "applicationSubCategory": "Astrophotography and nightscape planning",
+      "operatingSystem": "Any (web browser)",
+      "browserRequirements": "Requires JavaScript",
+      "availableOnDevice": "Smartphone, tablet or desktop browser",
+      "permissions": "Optional location, camera and motion sensors, used on the device only",
+      "inLanguage": "en-GB",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+      "isPartOf": { "@id": "https://www.noctography.net/#website" },
+      "description": "Planner for nightscape and landscape astrophotography. Works out tonight's cloud, moon, real darkness, aurora and meteor prospects for the visitor's own location, ranks what is worth photographing, checks it against their lens, and overlays the sky on the phone camera.",
+      "author": { "@id": "https://www.noctography.net/#paul" },
+      "publisher": { "@id": "https://www.noctography.net/#paul" }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://www.noctography.net/#paul",
+      "name": "Paul Haworth",
+      "url": "https://www.paulhaworthnightscapes.com"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Noctography", "item": "https://www.noctography.net/" },
+        { "@type": "ListItem", "position": 2, "name": "The app", "item": "https://www.noctography.net/app/" }
+      ]
+    }
+  ]
+}
+</script>
+<script src="../support.js"></script>
+</head>
+<body>
+<!-- Text for anything that does not run JavaScript: crawlers, and AI fetchers that read HTML
+     without rendering it. The script on the line below deletes it synchronously, before the
+     first paint, so nobody with JavaScript ever sees it. A noscript element cannot do this job
+     here: it is not hidden in this rendering context and its source paints as literal text. -->
+<div id="nojs" style="max-width: 640px; margin: 0 auto; padding: 32px 20px; background: #0A0A0B; color: #F3F0EA; font-family: system-ui, sans-serif; line-height: 1.6;">
+  <h1 style="font-weight: 400;">Noctography</h1>
+  <p>Noctography is a free planner for nightscape and landscape astrophotography. It answers two questions: is tonight worth going out for, and what should you point the camera at.</p>
+  <p>It needs JavaScript, because every calculation happens on your own device rather than on a server: sun and moon positions, the astronomical darkness window, real-world Bortle sky darkness, meteor rates, aurora thresholds, star trail geometry, NPF exposure limits and satellite passes.</p>
+  <p>The tools are Tonight, a fifteen-night forecast grid, Aurora, Meteors, Trails and timelapse planning, Sky with a framing view, a live AR overlay on the phone camera, a panorama calculator, and a saved kit profile.</p>
+  <p><a href="../" style="color: #D6B368;">Read what it does, and the common questions, on the Noctography home page</a>.</p>
+</div>
+<script>(function () { var n = document.getElementById('nojs'); if (n) n.remove(); })();</script><x-dc>
+<helmet>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Noctography">
+<meta name="application-name" content="Noctography">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0A0A0B">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png?v=2026-09-06">
 <link rel="apple-touch-icon" href="../assets/noctography-icon-graded.png?v=2026-09-06">
+<!-- Usage counting. One line to change: the code in the URL below is your GoatCounter site code.
+     Cookieless, no personal data, no consent banner needed. If it fails to load (offline, ad
+     blocker, no signal in a field) nothing else in the app notices. See ANALYTICS.md. -->
+<script data-goatcounter="https://noctography.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>
+window.noctoTrack = function (name) {
+  try {
+    if (!name) return;
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || location.protocol === 'file:') return;
+    window.__noctoSeen = window.__noctoSeen || {};
+    if (window.__noctoSeen[name]) return;          // once per visit is the useful measure
+    window.__noctoSeen[name] = 1;
+    if (!navigator.onLine) return;
+    var g = window.goatcounter;
+    if (!g || typeof g.count !== 'function') return;
+    g.count({ path: name, title: name, event: true });
+  } catch (e) {}
+};
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap">
@@ -1967,7 +2046,14 @@ class Component extends DCLogic {
     return out;
   }
 
+  /* Thin wrapper so nothing in the app has to know or care whether counting is working. */
+  track(name) { if (window.noctoTrack) window.noctoTrack(name); }
+
   componentDidMount() {
+    const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || window.navigator.standalone === true;
+    // count.js loads async, so give it a moment before the first event
+    setTimeout(() => this.track(standalone ? 'launch-installed' : 'launch-browser'), 2500);
     let nv = false;
     try { nv = localStorage.getItem('noctography.nv') === 'on'; } catch (e) {}
     if (nv) this.setState({ nv: true });
@@ -2167,7 +2253,10 @@ class Component extends DCLogic {
     const d = this._deferred;
     if (!d) return;
     d.prompt();
-    try { await d.userChoice; } catch (e) {}
+    try {
+      const res = await d.userChoice;
+      this.track(res && res.outcome === 'accepted' ? 'install-accepted' : 'install-declined');
+    } catch (e) {}
     this._deferred = null;
     this.dismissInstall();
   }
@@ -2181,7 +2270,7 @@ class Component extends DCLogic {
      so the manifest is built at runtime from the icon the page already links. */
   async installShell() {
     try {
-      document.title = 'Noctography';
+      if (!document.querySelector('link[rel="manifest"]')) document.title = 'Noctography';
       if (!document.querySelector('link[rel="icon"]')) {
         const fav = document.createElement('link');
         fav.rel = 'icon'; fav.type = 'image/png'; fav.sizes = '512x512';
@@ -2343,6 +2432,7 @@ class Component extends DCLogic {
   useGps(silent) {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(pos => {
+      this.track('location-gps');
       const site = { lat: pos.coords.latitude, lon: pos.coords.longitude, place: 'My location' };
       this.applySite(site, true);
       this.setState({ showLoc: false });
@@ -2502,7 +2592,7 @@ class Component extends DCLogic {
       doRefresh: () => window.location.reload(),
       placeName: st.place || 'Finding you…',
       navBg1: n1.bg, navFg1: n1.fg, navBgA: nA.bg, navFgA: nA.fg, navOnA: st.tab === 'aurora' ? 'on' : 'off',
-      goAurora: () => { this.loadAurora(); this.setState({ tab: 'aurora' }); },
+      goAurora: () => this.goTab('aurora'),
       navBg2: n2.bg, navFg2: n2.fg,
       navBg3: n3.bg, navFg3: n3.fg, navBg4: n4.bg, navFg4: n4.fg,
       bg15: r15.bg, fg15: r15.fg, bg30: r30.bg, fg30: r30.fg, bg60: r60.bg, fg60: r60.fg,
@@ -2527,10 +2617,10 @@ class Component extends DCLogic {
       palState: st.showPal ? 'on' : 'off',
       palLabel: 'Choose a colour scheme',
       ...this.palVals(),
-      goTonight: () => this.setState({ tab: 'tonight' }),      goMeteors: () => this.setState({ tab: 'meteors' }),
-      goPano: () => { this.loadPano(); this.setState({ tab: 'pano' }); },
-      goMore: () => this.setState({ tab: 'more' }),
-      goData: () => { this.setState({ tab: 'data' }); window.scrollTo(0, 0); },
+      goTonight: () => this.goTab('tonight'),      goMeteors: () => this.goTab('meteors'),
+      goPano: () => this.goTab('pano'),
+      goMore: () => this.goTab('more'),
+      goData: () => { this.goTab('data'); window.scrollTo(0, 0); },
       ribScroll: el => { this.ribBox = el; },
       onRibScroll: e => this.setState({ ribX: e.currentTarget.scrollLeft, ribMax: e.currentTarget.scrollWidth - e.currentTarget.clientWidth }),
       ribFade: (st.ribMax > 6 && (st.ribX || 0) < st.ribMax - 6) ? 1 : 0,
@@ -2594,6 +2684,7 @@ class Component extends DCLogic {
   goTab(key) {
     if (key === 'pano') this.loadPano();
     if (key === 'aurora') this.loadAurora();
+    this.track('tab-' + key);
     this.setState({ tab: key });
   }
   setRail = el => {
@@ -3341,6 +3432,7 @@ class Component extends DCLogic {
 
   async openAr(opts) {
     const o = opts || {};
+    this.track('ar-open');
     const patch = { arOpen: true, arShowTune: false, arAligning: false };
     if (o.subject) patch.arSubject = o.subject;
     if (o.trails != null) patch.arTrails = o.trails;
@@ -3356,8 +3448,9 @@ class Component extends DCLogic {
   }
   async startArCamera() {
     const AR = window.NoctoAR;
-    if (!AR || !AR.cameraSupported()) { this.setState({ arCamOk: false }); return; }
+    if (!AR || !AR.cameraSupported()) { this.track('ar-camera-unsupported'); this.setState({ arCamOk: false }); return; }
     const ok = await AR.startCamera(this._arVideo);
+    this.track(ok ? 'ar-camera-on' : 'ar-camera-refused');
     this.setState({ arCamOk: ok });
   }
   closeAr() {

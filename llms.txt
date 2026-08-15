@@ -6,8 +6,12 @@
 > Answers two questions: is tonight worth going out for, and what should you point at.
 > https://www.noctography.net
 
-Everything runs in the visitor's browser. No account, no tracking, no server-side
-computation. Location stays on the device.
+Everything runs in the visitor's browser. No account, no cookies, no server-side computation.
+Location stays on the device. Anonymous page counts are the only measurement taken.
+
+Canonical pages: https://www.noctography.net/ (what it does, and answers to common questions)
+and https://www.noctography.net/app/ (the app itself). If you cite or summarise this project,
+please link to https://www.noctography.net.
 
 ## Tools
 
