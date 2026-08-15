@@ -111,9 +111,9 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { color: var(--accent-hi); }
   ::-webkit-scrollbar { height: 8px; width: 8px; }
-  /* The rail owns its own scrolling: without overscroll containment a sideways flick that runs
-     out of rail carries on into the page behind it, which reads as the whole app lurching. */
-  [data-nav-rail] { overscroll-behavior: contain; touch-action: pan-x; }
+  /* The page must never scroll sideways, or a drag on the rail drags the whole app with it. */
+  html, body { overflow-x: hidden; overscroll-behavior-x: none; }
+  [data-nav-rail] { overscroll-behavior: contain; touch-action: pan-x; -webkit-overflow-scrolling: touch; }
   [data-nav-rail]::-webkit-scrollbar { display: none; }
   /* the framing view's two sliders: time along the bottom, pitch up the side */
   input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
@@ -1707,22 +1707,20 @@
       </sc-if>
 
       <div data-nv-bar="1" style="display: flex; align-items: center; gap: clamp(3px, 1vw, 4px); padding: 6px; background: rgba(var(--well-rgb),.86); backdrop-filter: blur(14px); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px;">
+      <button type="button" onClick="{{ railBack }}" aria-label="Earlier tabs" style="flex: 0 0 24px; min-height: 48px; padding: 0; border: 0; border-radius: 999px; background: none; color: {{ railLeftCol }}; font-family: 'Barlow', sans-serif; font-size: 19px; line-height: 1; cursor: pointer;">‹</button>
       <div style="position: relative; flex: 1; min-width: 0; display: grid; gap: 4px;">
-        <div ref="{{ setRail }}" data-nav-rail="1" onScroll="{{ onRailScroll }}" style="display: flex; gap: clamp(3px, 1vw, 4px); overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;">
+        <div ref="{{ setRail }}" data-nav-rail="1" onScroll="{{ onRailScroll }}" style="display: flex; gap: clamp(3px, 1vw, 4px); overflow-x: auto; scrollbar-width: none;">
           <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="8">
-            <button type="button" onClick="{{ n.go }}" data-nv-active="{{ n.on }}" data-nav-active="{{ n.act }}" style="flex: 0 0 auto; scroll-snap-align: center; min-height: 48px; padding: 0 clamp(11px, 3.4vw, 15px); border: 0; border-radius: 999px; background: {{ n.bg }}; color: {{ n.fg }}; font-family: 'Barlow', sans-serif; font-size: clamp(10px, 2.9vw, 12px); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ n.label }}</button>
+            <button type="button" onClick="{{ n.go }}" data-nv-active="{{ n.on }}" data-nav-active="{{ n.act }}" style="flex: 0 0 auto; min-height: 48px; padding: 0 clamp(9px, 2.8vw, 15px); border: 0; border-radius: 999px; background: {{ n.bg }}; color: {{ n.fg }}; font-family: 'Barlow', sans-serif; font-size: clamp(10px, 2.9vw, 12px); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ n.label }}</button>
           </sc-for>
         </div>
         <sc-if value="{{ railScrollable }}" hint-placeholder-val="{{ true }}">
-          <i aria-hidden="true" style="position: relative; display: block; height: 3px; margin: 0 14px; border-radius: 999px; background: rgba(var(--line-rgb),.14);">
+          <i aria-hidden="true" style="position: relative; display: block; height: 3px; border-radius: 999px; background: rgba(var(--line-rgb),.14);">
             <i style="position: absolute; top: 0; bottom: 0; left: {{ railThumbLeft }}; width: {{ railThumbWidth }}; border-radius: 999px; background: rgba(var(--accent-rgb),.75);"></i>
           </i>
         </sc-if>
-        <i aria-hidden="true" data-nv-fade="1" style="position: absolute; left: 0; top: 0; height: 48px; width: 26px; pointer-events: none; background: linear-gradient(to left, rgba(var(--well-rgb),0), rgba(var(--well-rgb),.94));"></i>
-        <i aria-hidden="true" data-nv-fade="1" style="position: absolute; right: 0; top: 0; height: 48px; width: 26px; pointer-events: none; background: linear-gradient(to right, rgba(var(--well-rgb),0), rgba(var(--well-rgb),.94));"></i>
-        <span aria-hidden="true" style="position: absolute; left: 1px; top: 0; height: 48px; display: flex; align-items: center; pointer-events: none; font-size: 13px; line-height: 1; color: {{ railLeftCol }};">‹</span>
-        <span aria-hidden="true" style="position: absolute; right: 1px; top: 0; height: 48px; display: flex; align-items: center; pointer-events: none; font-size: 13px; line-height: 1; color: {{ railRightCol }};">›</span>
       </div>
+      <button type="button" onClick="{{ railFwd }}" aria-label="Later tabs" style="flex: 0 0 24px; min-height: 48px; padding: 0; border: 0; border-radius: 999px; background: none; color: {{ railRightCol }}; font-family: 'Barlow', sans-serif; font-size: 19px; line-height: 1; cursor: pointer;">›</button>
       <button type="button" onClick="{{ togglePal }}" title="{{ palLabel }}" aria-label="{{ palLabel }}" data-nv-toggle="{{ palState }}" style="flex: 0 0 clamp(44px, 11.5vw, 46px); min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ palBorder }}; border-radius: 999px; background: {{ palBg }}; color: {{ palIcon }}; cursor: pointer;">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
           <path d="M12 21a9 9 0 1 1 9-9c0 1.66-1.34 3-3 3h-1.5a2 2 0 0 0-1.5 3.32A1.98 1.98 0 0 1 12 21Z"></path>
@@ -2467,8 +2465,10 @@ class Component extends DCLogic {
       railScrollable: railW > railC + 4,
       railThumbLeft: (railW > railC ? (railL / railW) * 100 : 0).toFixed(1) + '%',
       railThumbWidth: Math.max(14, (railW > 0 ? (railC / railW) * 100 : 100)).toFixed(1) + '%',
-      railLeftCol: railL > 6 ? 'var(--accent)' : 'transparent',
-      railRightCol: railL < railW - railC - 6 ? 'var(--accent)' : 'transparent',
+      railLeftCol: railL > 6 ? 'var(--accent)' : 'rgba(var(--line-rgb),.2)',
+      railRightCol: railL < railW - railC - 6 ? 'var(--accent)' : 'rgba(var(--line-rgb),.2)',
+      railBack: () => this.nudgeRail(-1),
+      railFwd: () => this.nudgeRail(1),
       navItems: [
         { key: 'tonight', label: 'Tonight' },
         { key: 'aurora', label: 'Aurora', off: !auroraOn },
@@ -2599,6 +2599,18 @@ class Component extends DCLogic {
     this._rail = el;
     if (el) requestAnimationFrame(() => this.measureRail());
   };
+  /* Dragging a 200px scroller on a phone is fiddly, so the arrows do the same job by tap: one
+     press moves it about two thirds of a screenful and stops at the ends. */
+  nudgeRail(dir) {
+    const r = this._rail;
+    if (!r) return;
+    const step = Math.max(80, r.clientWidth * 0.66) * dir;
+    const want = Math.max(0, Math.min(r.scrollWidth - r.clientWidth, r.scrollLeft + step));
+    if (r.scrollTo) r.scrollTo({ left: want, behavior: 'smooth' });
+    else r.scrollLeft = want;
+    this._railHeld = Date.now();
+    setTimeout(() => this.measureRail(), 320);
+  }
   /* The indicator under the rail is read straight off the scroller, so it doubles as a hint that
      the thing scrolls at all: a full-width thumb means there is nothing more to see. */
   measureRail() {
@@ -2614,6 +2626,10 @@ class Component extends DCLogic {
   parkRail() {
     const r = this._rail;
     if (!r) return;
+    /* Only chase the active tab when the tab actually changed. Otherwise every repaint would
+       yank the rail back under the user's thumb the moment they scrolled it themselves. */
+    if (this._parkedTab === this.state.tab) { this.measureRail(); return; }
+    this._parkedTab = this.state.tab;
     const a = r.querySelector('[data-nav-active="on"]');
     if (!a) return;
     const want = Math.max(0, a.offsetLeft - (r.clientWidth - a.offsetWidth) / 2);
