@@ -585,7 +585,13 @@ function skyAt(date, lat, lon){
     return { id: e.id, name: e.name, short: shortName(e.name), alt: p.alt, az: p.az, ext: e.ext, elong: e.elong || 1,
              pa: galAxisAngle(date, lat, lon, e.ra, e.dec) };
   });
-  return { stars, gal, moon: { alt: mp.alt, az: mp.az, frac: il.frac }, elements: els };
+  const s0 = eng.sunPos(jd);
+  const eps = 23.4393 * D2R, lam = s0.lam * D2R;
+  const sunRa = eng.norm(Math.atan2(Math.sin(lam) * Math.cos(eps), Math.cos(lam)) * R2D);
+  const sunDec = Math.asin(Math.sin(eps) * Math.sin(lam)) * R2D;
+  const sp = eng.eq2horiz(sunRa, sunDec, lat, lst);
+  return { stars, gal, moon: { alt: mp.alt, az: mp.az, frac: il.frac },
+           sun: { alt: sp.alt, az: sp.az }, elements: els };
 }
 
 /* Gnomonic projection about the aim, which is what a rectilinear lens actually does. */

@@ -21,8 +21,8 @@
 <meta property="og:title" content="Noctography: plan the night, frame the shot">
 <meta property="og:description" content="Plan the night, frame the shot. Tonight's conditions, live aurora, the meteor outlook, star trails and timelapses, ranked sky subjects with a framing view, and a panorama calculator.">
 <meta property="og:url" content="https://www.noctography.net/">
-<meta property="og:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-05">
-<meta property="og:image:secure_url" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-05">
+<meta property="og:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
+<meta property="og:image:secure_url" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -30,11 +30,11 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Noctography: plan the night, frame the shot">
 <meta name="twitter:description" content="Plan the night, frame the shot. Tonight's conditions, live aurora, the meteor outlook, star trails and timelapses, ranked sky subjects with a framing view, and a panorama calculator.">
-<meta name="twitter:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-05">
+<meta name="twitter:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
 <link rel="canonical" href="https://www.noctography.net/app/">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="512x512" href="../favicon.png?v=2026-09-05">
-<link rel="apple-touch-icon" href="../assets/noctography-icon-graded.png?v=2026-09-05">
+<link rel="icon" type="image/png" sizes="512x512" href="../favicon.png?v=2026-09-06">
+<link rel="apple-touch-icon" href="../assets/noctography-icon-graded.png?v=2026-09-06">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap">
@@ -111,6 +111,9 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { color: var(--accent-hi); }
   ::-webkit-scrollbar { height: 8px; width: 8px; }
+  /* The rail owns its own scrolling: without overscroll containment a sideways flick that runs
+     out of rail carries on into the page behind it, which reads as the whole app lurching. */
+  [data-nav-rail] { overscroll-behavior: contain; touch-action: pan-x; }
   [data-nav-rail]::-webkit-scrollbar { display: none; }
   /* the framing view's two sliders: time along the bottom, pitch up the side */
   input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
@@ -256,7 +259,7 @@
         <sc-if value="{{ nlcOn }}" hint-placeholder-val="{{ false }}">
           <div style="display: flex; align-items: center; gap: 9px; padding: 8px 11px; background: rgba(var(--line-rgb),.04); border: 1px solid rgba(var(--line-rgb),.1); border-radius: 8px;">
             <i data-nv-dot="on" style="flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--cool);"></i>
-            <span style="flex: 0 0 auto; font-size: 10.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--cool);">NLC season</span>
+            <span style="flex: 0 0 auto; font-size: 10.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--cool);">{{ nlcLabel }}</span>
             <span style="flex: 1; min-width: 0; font-size: 13.5px; line-height: 1.35; color: var(--text2); text-wrap: pretty;">{{ nlcLine }}</span>
             <button type="button" onClick="{{ toggleNlc }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
               <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdNlc }}; border-radius: 50%; background: {{ fillNlc }}; color: {{ fgNlc }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
@@ -1704,14 +1707,21 @@
       </sc-if>
 
       <div data-nv-bar="1" style="display: flex; align-items: center; gap: clamp(3px, 1vw, 4px); padding: 6px; background: rgba(var(--well-rgb),.86); backdrop-filter: blur(14px); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px;">
-      <div style="position: relative; flex: 1; min-width: 0;">
-        <div ref="{{ setRail }}" data-nav-rail="1" style="display: flex; gap: clamp(3px, 1vw, 4px); overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;">
+      <div style="position: relative; flex: 1; min-width: 0; display: grid; gap: 4px;">
+        <div ref="{{ setRail }}" data-nav-rail="1" onScroll="{{ onRailScroll }}" style="display: flex; gap: clamp(3px, 1vw, 4px); overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;">
           <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="8">
             <button type="button" onClick="{{ n.go }}" data-nv-active="{{ n.on }}" data-nav-active="{{ n.act }}" style="flex: 0 0 auto; scroll-snap-align: center; min-height: 48px; padding: 0 clamp(11px, 3.4vw, 15px); border: 0; border-radius: 999px; background: {{ n.bg }}; color: {{ n.fg }}; font-family: 'Barlow', sans-serif; font-size: clamp(10px, 2.9vw, 12px); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ n.label }}</button>
           </sc-for>
         </div>
-        <i aria-hidden="true" data-nv-fade="1" style="position: absolute; left: 0; top: 0; bottom: 0; width: 20px; pointer-events: none; background: linear-gradient(to left, rgba(var(--well-rgb),0), rgba(var(--well-rgb),.92));"></i>
-        <i aria-hidden="true" data-nv-fade="1" style="position: absolute; right: 0; top: 0; bottom: 0; width: 20px; pointer-events: none; background: linear-gradient(to right, rgba(var(--well-rgb),0), rgba(var(--well-rgb),.92));"></i>
+        <sc-if value="{{ railScrollable }}" hint-placeholder-val="{{ true }}">
+          <i aria-hidden="true" style="position: relative; display: block; height: 3px; margin: 0 14px; border-radius: 999px; background: rgba(var(--line-rgb),.14);">
+            <i style="position: absolute; top: 0; bottom: 0; left: {{ railThumbLeft }}; width: {{ railThumbWidth }}; border-radius: 999px; background: rgba(var(--accent-rgb),.75);"></i>
+          </i>
+        </sc-if>
+        <i aria-hidden="true" data-nv-fade="1" style="position: absolute; left: 0; top: 0; height: 48px; width: 26px; pointer-events: none; background: linear-gradient(to left, rgba(var(--well-rgb),0), rgba(var(--well-rgb),.94));"></i>
+        <i aria-hidden="true" data-nv-fade="1" style="position: absolute; right: 0; top: 0; height: 48px; width: 26px; pointer-events: none; background: linear-gradient(to right, rgba(var(--well-rgb),0), rgba(var(--well-rgb),.94));"></i>
+        <span aria-hidden="true" style="position: absolute; left: 1px; top: 0; height: 48px; display: flex; align-items: center; pointer-events: none; font-size: 13px; line-height: 1; color: {{ railLeftCol }};">‹</span>
+        <span aria-hidden="true" style="position: absolute; right: 1px; top: 0; height: 48px; display: flex; align-items: center; pointer-events: none; font-size: 13px; line-height: 1; color: {{ railRightCol }};">›</span>
       </div>
       <button type="button" onClick="{{ togglePal }}" title="{{ palLabel }}" aria-label="{{ palLabel }}" data-nv-toggle="{{ palState }}" style="flex: 0 0 clamp(44px, 11.5vw, 46px); min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ palBorder }}; border-radius: 999px; background: {{ palBg }}; color: {{ palIcon }}; cursor: pointer;">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
@@ -1766,9 +1776,29 @@
       </sc-if>
 
       <sc-if value="{{ arAligning }}" hint-placeholder-val="{{ false }}">
-        <div style="position: absolute; left: 14px; right: 14px; top: 62px; display: grid; gap: 4px; padding: 12px 14px; background: rgba(6,6,7,.88); border: 1px solid var(--accent); border-radius: 10px;">
+        <div style="position: absolute; left: 14px; right: 14px; top: 62px; display: grid; gap: 8px; padding: 12px 14px; background: rgba(6,6,7,.88); border: 1px solid var(--accent); border-radius: 10px;">
           <span style="font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--accent);">Tap {{ arAnchorName }}</span>
           <span style="font-size: 14px; line-height: 1.4; color: rgba(240,236,228,.75); text-wrap: pretty;">{{ arAlignHint }}</span>
+          <sc-if value="{{ arHasAnchor }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <sc-for list="{{ arAnchorChips }}" as="a" hint-placeholder-count="3">
+                <button type="button" onClick="{{ a.go }}" data-nv-active="{{ a.on }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 14px; border: 1px solid {{ a.bd }}; border-radius: 999px; background: {{ a.bg }}; color: {{ a.fg }}; font-family: 'Barlow', sans-serif; font-size: 13.5px; white-space: nowrap; cursor: pointer;">{{ a.label }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ arLandscape }}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 24px; background: rgba(6,6,7,.94); text-align: center;">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="7" y="2" width="10" height="20" rx="2"></rect>
+            <path d="M11 18.5h2"></path>
+            <path d="M3.5 9.5a9 9 0 0 1 2.2-3.4"></path>
+            <path d="M20.5 14.5a9 9 0 0 1-2.2 3.4"></path>
+          </svg>
+          <span style="font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--accent);">Turn the phone upright</span>
+          <span style="max-width: 320px; font-size: 15px; line-height: 1.42; color: rgba(240,236,228,.75); text-wrap: pretty;">AR wants a tall frame: you are looking up, and sideways there is no room for the sky or the controls. Turn it back and it carries on where it was.</span>
         </div>
       </sc-if>
     </div>
@@ -1836,6 +1866,7 @@ class Component extends DCLogic {
     framePitch: 34, frameScrub: 40, frameAz: null, frameThirds: true, frameLabels: true, frameElements: true,
     arOpen: false, arScrub: null, arSubject: 'all', arTrails: 0, arCam: true,
     arMotion: null, arCamOk: null, arAligning: false, arShowTune: false, arNudge: 0, arHfov: 62, arTick: 0,
+    arAnchor: null, arLandscape: false,
     t: null, kp: null, nights: [], sky: null, wx: 'idle', clim: 'idle', tick: 0, nv: false,
     iss: null, issState: 'idle', trains: null, count: 0, trainState: 'idle', focal: '24', favs: [],
     stale: false, staleOff: false,
@@ -2155,7 +2186,7 @@ class Component extends DCLogic {
       if (!document.querySelector('link[rel="icon"]')) {
         const fav = document.createElement('link');
         fav.rel = 'icon'; fav.type = 'image/png'; fav.sizes = '512x512';
-        fav.href = '../favicon.png?v=2026-09-05';        // sits beside the page in the repo
+        fav.href = '../favicon.png?v=2026-09-06';        // sits beside the page in the repo
         document.head.appendChild(fav);
       }
       const icon = document.querySelector('link[rel="apple-touch-icon"]');
@@ -2424,11 +2455,20 @@ class Component extends DCLogic {
     const rangeBtn = v => ({ bg: st.range === v ? amber : 'transparent', fg: st.range === v ? 'var(--ink)' : 'var(--dim)' });
     const r15 = rangeBtn(15), r30 = rangeBtn(30), r60 = rangeBtn(60);
 
+    const rp = st.railPos || { c: 0, w: 0, l: 0 };
+    const railC = rp.c, railW = rp.w, railL = rp.l;
+
     const out = {
       isTonight: st.tab === 'tonight', isMeteors: st.tab === 'meteors', isAurora: st.tab === 'aurora',
       isPano: st.tab === 'pano', isMore: st.tab === 'more', isData: st.tab === 'data',
       isTrails: st.tab === 'trails', isSky: st.tab === 'sky', isKit: st.tab === 'kit',
       setRail: this.setRail,
+      onRailScroll: () => this.measureRail(),
+      railScrollable: railW > railC + 4,
+      railThumbLeft: (railW > railC ? (railL / railW) * 100 : 0).toFixed(1) + '%',
+      railThumbWidth: Math.max(14, (railW > 0 ? (railC / railW) * 100 : 100)).toFixed(1) + '%',
+      railLeftCol: railL > 6 ? 'var(--accent)' : 'transparent',
+      railRightCol: railL < railW - railC - 6 ? 'var(--accent)' : 'transparent',
       navItems: [
         { key: 'tonight', label: 'Tonight' },
         { key: 'aurora', label: 'Aurora', off: !auroraOn },
@@ -2555,7 +2595,20 @@ class Component extends DCLogic {
     if (key === 'aurora') this.loadAurora();
     this.setState({ tab: key });
   }
-  setRail = el => { this._rail = el; };
+  setRail = el => {
+    this._rail = el;
+    if (el) requestAnimationFrame(() => this.measureRail());
+  };
+  /* The indicator under the rail is read straight off the scroller, so it doubles as a hint that
+     the thing scrolls at all: a full-width thumb means there is nothing more to see. */
+  measureRail() {
+    const r = this._rail;
+    if (!r) return;
+    const c = r.clientWidth, w = r.scrollWidth, l = r.scrollLeft;
+    const p = this.state.railPos;
+    if (p && p.c === c && p.w === w && Math.abs(p.l - l) < 1) return;
+    this.setState({ railPos: { c, w, l } });
+  }
   /* Eight destinations do not fit across a phone, so the rail keeps the one you are on centred
      rather than leaving you to hunt for it off the edge. */
   parkRail() {
@@ -2564,10 +2617,11 @@ class Component extends DCLogic {
     const a = r.querySelector('[data-nav-active="on"]');
     if (!a) return;
     const want = Math.max(0, a.offsetLeft - (r.clientWidth - a.offsetWidth) / 2);
-    if (Math.abs(r.scrollLeft - want) < 4) return;
+    if (Math.abs(r.scrollLeft - want) < 4) { this.measureRail(); return; }
     if (this._railReady && r.scrollTo) r.scrollTo({ left: want, behavior: 'smooth' });
     else r.scrollLeft = want;
     this._railReady = true;
+    this.measureRail();
   }
   hoursWordShort(h) {
     const m = Math.round(h * 60);
@@ -3274,6 +3328,7 @@ class Component extends DCLogic {
     if (o.subject) patch.arSubject = o.subject;
     if (o.trails != null) patch.arTrails = o.trails;
     this.setState(patch);
+    this.watchArOrientation(true);
     const AR = window.NoctoAR;
     if (!AR || !AR.supported() || !AR.secure()) { this.setState({ arMotion: false }); return; }
     const ok = await AR.requestMotion();
@@ -3292,7 +3347,26 @@ class Component extends DCLogic {
     if (window.NoctoAR) window.NoctoAR.stop();
     if (this._arRaf) { cancelAnimationFrame(this._arRaf); this._arRaf = null; }
     this._arTrailKey = null;
+    this.watchArOrientation(false);
     this.setState({ arOpen: false });
+  }
+  /* AR is a two-handed, phone-held-up affair, and the whole layout assumes a tall frame. Turned
+     sideways the sky is right but the controls are unusable, so it says so rather than coping. */
+  watchArOrientation(on) {
+    if (on) {
+      if (this._arOrient) return;
+      this._arOrient = () => {
+        const land = window.innerWidth > window.innerHeight;
+        if (land !== this.state.arLandscape) this.setState({ arLandscape: land });
+      };
+      window.addEventListener('resize', this._arOrient);
+      window.addEventListener('orientationchange', this._arOrient);
+      this._arOrient();
+    } else if (this._arOrient) {
+      window.removeEventListener('resize', this._arOrient);
+      window.removeEventListener('orientationchange', this._arOrient);
+      this._arOrient = null;
+    }
   }
   arLoop() {
     if (this._arRaf) return;
@@ -3364,6 +3438,31 @@ class Component extends DCLogic {
     const scale = dpr;
     const inView = p => p && p.x > -80 * scale && p.x < W + 80 * scale && p.y > -80 * scale && p.y < H + 80 * scale;
     const sel = st.arSubject === 'all' ? null : st.arSubject;
+
+    /* Where the ground is. Nothing the app knows about is behind the earth, so nothing below the
+       horizon gets painted: the sky is clipped to the real sky, and the ground takes a light wash
+       so you can see at a glance which half of the screen it is claiming anything about. */
+    const horiz = [];
+    for (let a = 0; a < 360; a += 1.5) { const p = pr(0, a); if (p && p.f > 0.1) horiz.push(p); }
+    horiz.sort((a, b) => a.x - b.x);
+    const haveHorizon = horiz.length > 3;
+    const band = (list, closeY) => {
+      const path = new Path2D();
+      const a = list[0], z = list[list.length - 1];
+      path.moveTo(a.x - W, a.y);
+      list.forEach(q => path.lineTo(q.x, q.y));
+      path.lineTo(z.x + W, z.y);
+      path.lineTo(z.x + W, closeY);
+      path.lineTo(a.x - W, closeY);
+      path.closePath();
+      return path;
+    };
+    const skyClip = haveHorizon ? band(horiz, -H) : null;
+    const groundPath = haveHorizon ? band(horiz, H * 2) : null;
+
+    ctx.save();
+    if (skyClip) ctx.clip(skyClip);
+
     /* Same discipline as the framing view: no text is painted during the geometry passes. Every
        string is queued, then laid out once against one registry, so nothing overprints. */
     const labels = [];
@@ -3376,7 +3475,7 @@ class Component extends DCLogic {
     ctx.lineWidth = 60 * scale; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     let run = false;
     sky.gal.forEach(g => {
-      const p = pr(g.alt, g.az);
+      const p = g.alt < 0 ? null : pr(g.alt, g.az);
       if (!p) { run = false; return; }
       if (!run) { ctx.beginPath(); ctx.moveTo(p.x, p.y); run = true; }
       else ctx.lineTo(p.x, p.y);
@@ -3394,7 +3493,7 @@ class Component extends DCLogic {
         ctx.lineWidth = Math.max(1.4, (3 - tr.mag) * 1.4) * scale;
         let started = false, drew = false;
         tr.pts.forEach(pt => {
-          const p = pt.alt < -3 ? null : pr(pt.alt, pt.az);
+          const p = pt.alt < 0 ? null : pr(pt.alt, pt.az);
           if (!p || !inView(p)) { if (started) { ctx.stroke(); started = false; } return; }
           if (!started) { ctx.beginPath(); ctx.moveTo(p.x, p.y); started = true; }
           else { ctx.lineTo(p.x, p.y); drew = true; }
@@ -3406,7 +3505,7 @@ class Component extends DCLogic {
 
     // stars
     sky.stars.forEach(s => {
-      if (s.alt < -2) return;
+      if (s.alt < 0) return;
       const p = pr(s.alt, s.az);
       if (!inView(p)) return;
       ctx.fillStyle = ink;
@@ -3419,7 +3518,7 @@ class Component extends DCLogic {
     // subjects: all of them, or the one you picked, at their true shape and tilt
     sky.elements.forEach(e => {
       if (sel && e.id !== sel) return;
-      if (e.alt < -6) return;
+      if (e.alt < 0) return;
       const p = pr(e.alt, e.az);
       if (!inView(p)) return;
       const rLong = (e.ext / 2) / pr.hfovDeg * W;
@@ -3437,7 +3536,7 @@ class Component extends DCLogic {
     });
 
     // the moon, which is also the thing you tap to align
-    if (sky.moon.alt > -3) {
+    if (sky.moon.alt > 0) {
       const p = pr(sky.moon.alt, sky.moon.az);
       if (inView(p)) {
         ctx.strokeStyle = nv ? 'rgba(255,59,24,.85)' : pal.moon;
@@ -3445,6 +3544,31 @@ class Component extends DCLogic {
         ctx.beginPath(); ctx.arc(p.x, p.y, 16 * scale, 0, 6.2832); ctx.stroke();
         say('moon ' + Math.round(sky.moon.frac * 100) + '%', p.x + 22 * scale, p.y + 5 * scale, dim, 13, 500, 60);
       }
+    }
+
+    // the sun, up in the daytime and the easiest thing there is to align against
+    if (sky.sun && sky.sun.alt > 0) {
+      const p = pr(sky.sun.alt, sky.sun.az);
+      if (inView(p)) {
+        ctx.save();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 2.4 * scale;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 18 * scale, 0, 6.2832); ctx.stroke();
+        ctx.setLineDash([3 * scale, 5 * scale]);
+        ctx.lineWidth = 1.4 * scale;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 28 * scale, 0, 6.2832); ctx.stroke();
+        ctx.restore();
+        say('sun', p.x + 34 * scale, p.y + 5 * scale, accent, 13, 500, 55);
+      }
+    }
+
+    ctx.restore();
+
+    if (groundPath) {
+      ctx.save();
+      ctx.fillStyle = nv ? 'rgba(9,2,1,.42)' : 'rgba(4,4,6,.4)';
+      ctx.fill(groundPath);
+      ctx.restore();
     }
 
     // horizon and cardinals
@@ -3526,7 +3650,7 @@ class Component extends DCLogic {
       /* Data is arriving, so say nothing except the one thing that still needs saying. */
       if (!AR.absolute() && AR.nudge() === 0) {
         noticeTitle = 'Align it first';
-        noticeBody = 'This phone has not given me a true compass heading, so the overlay is a guess until you align it. Tap Align, then tap the moon or a star you recognise.';
+        noticeBody = 'This phone has not given me a true compass heading, so the overlay is a guess until you align it. Tap Align, then tap the sun, the moon or a star you can name.';
         noticeAction = 'Align'; noticeGo = () => this.setState({ arAligning: true });
       }
     } else if (st.arMotion === 'denied') {
@@ -3547,6 +3671,25 @@ class Component extends DCLogic {
     }
 
     const anchor = 'the moon';
+    /* Alignment needs one thing in the sky you can point at and name. In the daytime that is the
+       sun and nothing else, which is most of when people will be standing in a field working out
+       where to put the tripod tonight. */
+    const P0 = this.P();
+    const skyNow = P0 ? P0.skyAt(when, E.state.lat, E.state.lon) : null;
+    const anchors = [];
+    if (skyNow) {
+      if (skyNow.sun && skyNow.sun.alt > 2) anchors.push({ id: 'sun', label: 'Sun', az: skyNow.sun.az, alt: skyNow.sun.alt });
+      if (skyNow.moon.alt > 2) anchors.push({ id: 'moon', label: 'Moon', az: skyNow.moon.az, alt: skyNow.moon.alt });
+      skyNow.stars
+        .filter(s => s.name && s.mag < 1.1 && s.alt > 12)
+        .sort((a, b) => a.mag - b.mag)
+        .slice(0, 3)
+        .forEach(s => anchors.push({ id: s.name, label: s.name, az: s.az, alt: s.alt }));
+    }
+    const anchorId = st.arAnchor && anchors.some(a => a.id === st.arAnchor) ? st.arAnchor
+      : (anchors[0] ? anchors[0].id : null);
+    const anchorObj = anchors.find(a => a.id === anchorId) || null;
+
     return {
       arOpen: st.arOpen,
       setArStage: this.setArStage, setArVideo: this.setArVideo, setArCanvas: this.setArCanvas,
@@ -3558,16 +3701,22 @@ class Component extends DCLogic {
         : 'waiting for the sensors',
       arNotice: !!noticeTitle, arNoticeTitle: noticeTitle, arNoticeBody: noticeBody,
       arNoticeAction: noticeAction, arNoticeGo: noticeGo,
-      arAligning: st.arAligning, arAnchorName: anchor,
+      arAligning: st.arAligning,
+      arAnchorName: anchorObj ? anchorObj.label.toLowerCase() : 'nothing I can name',
+      arAnchorChips: anchors.map(a => chip(a.label, a.id === anchorId, () => this.setState({ arAnchor: a.id }))),
+      arHasAnchor: !!anchorObj,
+      arAlignHint: anchorObj
+        ? 'Tap it where you can actually see it and the whole overlay swings into place. It is '
+          + Math.round(anchorObj.alt) + '\u00b0 up in the ' + E.compass(anchorObj.az) + '.'
+        : 'Nothing bright enough is up just now. Wait for the sun, the moon or a first-magnitude star, or set the offset by hand under Tune.',
+      arLandscape: !!st.arLandscape,
       arAlignHint: 'Tap where you can actually see it and the whole overlay swings into place. If the moon is down, tap a bright star you can name instead.',
       onArTap: e => {
-        if (!st.arAligning || !this._arStage) return;
+        if (!st.arAligning || !this._arStage || !anchorObj) return;
         const box = this._arStage.getBoundingClientRect();
         const dpr = Math.min(2, window.devicePixelRatio || 1);
         const x = (e.clientX - box.left) * dpr, y = (e.clientY - box.top) * dpr;
-        const P = this.P();
-        const sky = P.skyAt(this.arTime(), E.state.lat, E.state.lon);
-        AR.alignTo(sky.moon.az, x, y, box.width * dpr, box.height * dpr);
+        AR.alignTo(anchorObj.az, x, y, box.width * dpr, box.height * dpr);
         this.setState({ arAligning: false, arNudge: AR.nudge() });
       },
       arScrub: st.arScrub == null ? 50 : st.arScrub,
@@ -3873,7 +4022,7 @@ class Component extends DCLogic {
      year and most of the world this row simply is not there. */
   nlcVals() {
     const E = this.E(), st = this.state;
-    if (!E || !st.t) return { nlcOn: false, nlcLine: '', nlcDetail: '' };
+    if (!E || !st.t) return { nlcOn: false, nlcLabel: 'NLC season', nlcLine: '', nlcDetail: '' };
     const n = st.t.night;
     const se = E.nlcSeason(n.y, n.m, n.d);
     if (!se.inSeason || se.band === 'unlikely' || se.band === 'bright') return { nlcOn: false, nlcLine: '', nlcDetail: '' };
@@ -3890,8 +4039,11 @@ class Component extends DCLogic {
       : '';
     return {
       nlcOn: true,
+      nlcLabel: se.edge ? 'NLC season (just!)' : 'NLC season',
       nlcLine: line,
-      nlcDetail: (se.peak ? 'Peak season, and ' : 'In season, and ') + se.bandWord + '. The window is the stretch when the sun sits between 6° and 16° below your horizon: deep enough for the ground to be dark, shallow enough that the ice 83 km up is still in sunlight.' + cloudNote,
+      nlcDetail: (se.peak ? 'Peak season, and ' : se.edge ? 'The very edge of the season, and ' : 'In season, and ') + se.bandWord + '. '
+        + (se.edge ? 'June and July are when these actually turn up: this early or this late they are rare and faint, so treat a sighting as a bonus. ' : '')
+        + 'The window is the stretch when the sun sits between 6° and 16° below your horizon: deep enough for the ground to be dark, shallow enough that the ice 83 km up is still in sunlight.' + cloudNote,
     };
   }
 

@@ -1227,10 +1227,13 @@ function nlcSeason(y, m, d, lat){
   const md = (m + 1) * 100 + d;
   const north = lat >= 0;
   const inSeason = north ? (md >= 520 && md <= 820) : (md >= 1115 || md <= 215);
+  /* June and July are the season proper. Either side of that it does happen, but rarely and
+     faintly, and the app says so rather than promising the same thing all summer. */
+  const core = north ? (md >= 601 && md <= 731) : (md >= 1201 || md <= 131);
   const peak = north ? (md >= 615 && md <= 715) : (md >= 1210 || md <= 110);
   const a = Math.abs(lat);
   const band = a < 45 ? 'unlikely' : a < 50 ? 'possible' : a <= 58 ? 'prime' : a <= 62 ? 'possible' : 'bright';
-  return { inSeason, peak, band, north,
+  return { inSeason, peak, core, edge: inSeason && !core, band, north,
     bandWord: band === 'prime' ? 'prime latitude for them'
       : band === 'possible' ? 'possible from this latitude'
       : band === 'bright' ? 'this far poleward midsummer twilight is too bright, they return later in the season'
