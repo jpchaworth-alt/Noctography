@@ -18,8 +18,8 @@
 <meta property="og:description" content="Tonight's conditions, live aurora, the meteor outlook, star trails and timelapses, ranked sky subjects with a framing view, and a live AR overlay on the real sky.">
 <meta property="og:url" content="https://www.noctography.net/app/">
 <meta property="og:locale" content="en_GB">
-<meta property="og:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
-<meta property="og:image:secure_url" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
+<meta property="og:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-08-16b">
+<meta property="og:image:secure_url" content="https://www.noctography.net/noctography-link-preview.png?v=2026-08-16b">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -27,7 +27,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Noctography: plan the night, frame the shot">
 <meta name="twitter:description" content="Tonight's conditions, live aurora, the meteor outlook, star trails and timelapses, ranked sky subjects with a framing view, and a live AR overlay on the real sky.">
-<meta name="twitter:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
+<meta name="twitter:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-08-16b">
 <link rel="alternate" type="text/plain" href="https://www.noctography.net/llms.txt" title="Plain-text summary of Noctography for AI tools">
 <script type="application/ld+json">
 {
@@ -92,8 +92,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0A0A0B">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="512x512" href="../favicon.png?v=2026-09-06">
-<link rel="apple-touch-icon" href="../assets/noctography-icon-graded.png?v=2026-09-06">
+<link rel="icon" type="image/png" sizes="512x512" href="../favicon.png?v=2026-08-16b">
+<link rel="apple-touch-icon" href="../assets/noctography-icon-graded.png?v=2026-08-16b">
 <!-- Usage counting. One line to change: the code in the URL below is your GoatCounter site code.
      Cookieless, no personal data, no consent banner needed. If it fails to load (offline, ad
      blocker, no signal in a field) nothing else in the app notices. See ANALYTICS.md. -->
@@ -141,10 +141,10 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=2026-09-06"></script>
-<script src="../noctography-sat.js?v=2026-09-06"></script>
-<script src="../noctography-plan.js?v=2026-09-06"></script>
-<script src="../noctography-ar.js?v=2026-09-06"></script>
+<script src="../noctography-engine.js?v=2026-08-16b"></script>
+<script src="../noctography-sat.js?v=2026-08-16b"></script>
+<script src="../noctography-plan.js?v=2026-08-16b"></script>
+<script src="../noctography-ar.js?v=2026-08-16b"></script>
 <style>
   /* Colour palettes. The whole app is painted from these tokens, so switching one attribute on
      <html> reskins everything: including the canvas ribbon and the SVG chart, which read the
@@ -292,11 +292,23 @@ window.noctoTrack = function (name) {
           <button type="button" onClick="{{ closeLocation }}" style="background: none; border: 0; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; min-height: 44px;">Close</button>
         </div>
         <div style="display: flex; gap: 8px;">
-          <input value="{{ query }}" onInput="{{ onQuery }}" placeholder="Search a place…" style="flex: 1; min-width: 0; min-height: 48px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16px; outline: none;">
+          <input value="{{ query }}" onInput="{{ onQuery }}" placeholder="Place name, or 52.9581, 0.5732" style="flex: 1; min-width: 0; min-height: 48px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16px; outline: none;">
           <button type="button" onClick="{{ useGps }}" style="min-height: 48px; padding: 0 16px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.24); background: transparent; color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; white-space: nowrap;">Use GPS</button>
         </div>
+        <sc-if value="{{ coordOn }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ pickCoord }}" style="display: grid; gap: 2px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(var(--accent-rgb),.45); background: rgba(var(--accent-rgb),.10); color: var(--text); font-family: 'Barlow', sans-serif; cursor: pointer;">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px;">{{ coordLabel }}</span>
+            <span style="font-size: 13px; color: var(--dim);">Go to these coordinates · {{ coordKm }}</span>
+          </button>
+        </sc-if>
         <sc-for list="{{ results }}" as="r" hint-placeholder-count="0">
-          <button type="button" onClick="{{ r.pick }}" style="display: block; width: 100%; text-align: left; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 15px; cursor: pointer;">{{ r.label }}</button>
+          <button type="button" onClick="{{ r.pick }}" style="display: flex; align-items: baseline; gap: 10px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text2); font-family: 'Barlow', sans-serif; cursor: pointer;">
+            <span style="display: grid; gap: 2px; margin-right: auto; min-width: 0;">
+              <span style="font-size: 15px; color: var(--text);">{{ r.label }}</span>
+              <span style="font-size: 13px; color: var(--dim);">{{ r.where }}</span>
+            </span>
+            <span style="flex: 0 0 auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ r.km }}</span>
+          </button>
         </sc-for>
         <div style="display: grid; gap: 8px;">
           <sc-if value="{{ hasFavs }}" hint-placeholder-val="{{ false }}">
@@ -310,7 +322,12 @@ window.noctoTrack = function (name) {
               </select>
             </div>
           </sc-if>
-          <button type="button" onClick="{{ toggleFav }}" style="min-height: 48px; padding: 0 18px; border-radius: 10px; border: 1px solid {{ favBorder }}; background: transparent; color: {{ favColour }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">{{ favLabel }}</button>
+          <div style="display: flex; gap: 8px;">
+            <sc-if value="{{ favNameOn }}" hint-placeholder-val="{{ true }}">
+              <input value="{{ favName }}" onInput="{{ onFavName }}" placeholder="{{ favPlaceholder }}" style="flex: 1; min-width: 0; min-height: 48px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16px; outline: none;">
+            </sc-if>
+            <button type="button" onClick="{{ toggleFav }}" style="flex: 0 0 auto; min-height: 48px; padding: 0 18px; border-radius: 10px; border: 1px solid {{ favBorder }}; background: transparent; color: {{ favColour }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">{{ favLabel }}</button>
+          </div>
         </div>
         <div style="display: grid; gap: 6px;">
           <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Sky darkness</span>
@@ -440,10 +457,33 @@ window.noctoTrack = function (name) {
           <sc-if value="{{ auroraOn }}" hint-placeholder-val="{{ true }}">
             <button type="button" onClick="{{ goAurora }}" style="display: grid; gap: 6px; align-content: start; text-align: left; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text); font-family: 'Barlow', sans-serif; cursor: pointer;">
               <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Aurora tonight</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(21px, 6.3vw, 26px); line-height: 1.05; color: {{ aurTileColour }};">{{ aurTileVal }}</span>
+              <span style="font-weight: 600; font-size: clamp(22px, 6.6vw, 27px); line-height: 1.05; color: {{ aurTileColour }};">{{ aurTileVal }}</span>
               <span style="font-size: 14px; color: var(--text2); line-height: 1.35;">{{ aurTileSub }}</span>
               <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--faint); line-height: 1.35;">{{ aurTileNote }}</span>
             </button>
+          </sc-if>
+
+          <sc-if value="{{ glowOn }}" hint-placeholder-val="{{ true }}">
+            <div style="display: grid; gap: 6px; align-content: start; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid {{ glowBorder }}; border-radius: 10px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Airglow</span>
+                <button type="button" onClick="{{ toggleGlow }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
+                  <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdGlow }}; border-radius: 50%; background: {{ fillGlow }}; color: {{ fgGlow }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
+                </button>
+              </div>
+              <span style="font-weight: 600; font-size: clamp(22px, 6.6vw, 27px); line-height: 1.05; color: {{ glowColour }};">{{ glowVal }}</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--faint); line-height: 1.35;">{{ glowNote }}</span>
+              <span style="font-size: 14px; color: var(--text2); line-height: 1.35;">{{ glowSub }}</span>
+              <sc-if value="{{ glowPrimed }}" hint-placeholder-val="{{ false }}">
+                <span style="padding: 8px 10px; background: rgba(var(--cool-rgb),.10); border: 1px solid rgba(var(--cool-rgb),.5); border-radius: 8px; font-size: 13.5px; line-height: 1.4; color: var(--text2);">{{ glowPrimedLine }}</span>
+              </sc-if>
+              <sc-if value="{{ glowBlockOn }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size: 13.5px; line-height: 1.4; color: var(--faint);">{{ glowBlockLine }}</span>
+              </sc-if>
+              <sc-if value="{{ glowStormOn }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size: 13.5px; line-height: 1.4; color: var(--accent);">{{ glowStormLine }}</span>
+              </sc-if>
+            </div>
           </sc-if>
 
           <button type="button" onClick="{{ goSky }}" style="display: grid; gap: 6px; align-content: start; text-align: left; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text); font-family: 'Barlow', sans-serif; cursor: pointer;">
@@ -465,6 +505,19 @@ window.noctoTrack = function (name) {
           </div>
 
         </div>
+
+        <sc-if value="{{ showGlow }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 9px; padding: clamp(12px, 3.4vw, 15px); background: rgba(var(--line-rgb),.04); border: 1px solid rgba(var(--line-rgb),.1); border-radius: 8px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">What is airglow</span>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Airglow is the atmosphere making its own light, not reflecting anyone else’s. Green comes from oxygen in a thin layer around 95 km up, orange from hydroxyl just below it, and a deeper red from oxygen higher still. It is what the green and orange banding low in a wide nightscape usually is.</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Its brightness follows the solar cycle, roughly 40% brighter around maximum. The number here is F10.7, the sun’s radio output at 10.7 cm, measured daily at Penticton in Canada since 1947 and used as the standard stand-in for the ultraviolet that drives the chemistry. Today’s reading is blended with the average over the last solar rotation, because oxygen up there builds over days rather than hours.</p>
+            <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.5; color: var(--faint);">{{ glowMean }}</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Why look low rather than up: the glowing layer is thin, so straight overhead you see through about 10 km of it, while at 15° above the horizon your line of sight travels obliquely through four times as much. That stacks the light up. Go much lower and the extra air in the way takes it back again, along with the town glow sitting on the horizon, which is why 10 to 20° is the sweet spot.</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Treat the number as a fuel gauge for the spell you are in, not a forecast for tonight. Satellite averages track the flux closely; single nights at a single site are much looser. The ripples and bands people photograph come from gravity waves rolling through the upper atmosphere, thrown up by storms and terrain far below, and no public feed predicts those.</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">It is mostly a camera phenomenon: grey at best to the eye, colour only in long or stacked exposures. Low means faint, never absent. The callout only appears when the flux is high and the night can actually catch it: real darkness, little or no moon, a dark enough site and a reasonable chance of clear sky.</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">The cycle passed its peak in 2025, so High will get rarer between now and the next minimum around 2030. That is also why everyone’s 2024 skies looked so green.</p>
+          </div>
+        </sc-if>
 
         <sc-if value="{{ showRwb }}" hint-placeholder-val="{{ false }}">
           <div style="display: grid; gap: 9px; padding: clamp(12px, 3.4vw, 15px); background: rgba(var(--line-rgb),.04); border: 1px solid rgba(var(--line-rgb),.1); border-radius: 8px;">
@@ -653,180 +706,259 @@ window.noctoTrack = function (name) {
           <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--cool);">Aurora tonight</span>
           <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(28px, 8.5vw, 36px); line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ aurHead }}</h1>
           <p style="margin: 0; font-size: 17px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ aurSub }}</p>
-          <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--faint);">{{ aurKpLine }} · {{ aurDarkLine }}</p>
+          <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--faint);">{{ aurMetaLine }}</p>
         </div>
 
-        <div style="display: grid; gap: 11px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+        <div style="display: grid; gap: 11px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid var(--cool); border-radius: 12px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">What you could actually see</span>
-            <button type="button" onClick="{{ toggleThresh }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
-              <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdThresh }}; border-radius: 50%; background: {{ fillThresh }}; color: {{ fgThresh }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
-            </button>
-          </div>
-          <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(22px, 6.6vw, 27px); line-height: 1.05;">{{ aurGaugeWord }}</span>
-          <div style="display: grid; gap: 5px;">
-            <div style="position: relative; height: 13px; font-size: 10px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; line-height: 13px; color: var(--dim);">
-              <span style="position: absolute; left: {{ aurCam }}; transform: translateX(-50%);">Camera</span>
-              <span style="position: absolute; left: {{ aurEye }}; transform: translateX(-50%);">Eye</span>
-            </div>
-            <div style="position: relative; height: 12px;">
-              <span style="position: absolute; inset: 0; border: 1px solid rgba(var(--line-rgb),.22); border-radius: 999px;"></span>
-              <i data-nv-grad="soft" style="position: absolute; left: 0; top: 0; bottom: 0; width: {{ aurFill }}; border-radius: 999px; background: linear-gradient(to right, rgba(var(--cool-rgb),.35), var(--cool));"></i>
-              <i style="position: absolute; left: {{ aurCam }}; top: -3px; bottom: -3px; width: 2px; background: var(--text);"></i>
-              <i style="position: absolute; left: {{ aurEye }}; top: -3px; bottom: -3px; width: 2px; background: var(--text);"></i>
-            </div>
-            <div style="position: relative; height: 14px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; line-height: 14px; color: var(--faint);">
-              <span style="position: absolute; left: 0;">nothing</span>
-              <span style="position: absolute; left: {{ aurFillLabel }}; transform: translateX(-50%); white-space: nowrap; color: var(--cool);">{{ aurSignal }}</span>
-              <span style="position: absolute; right: 0;">a big display</span>
-            </div>
-          </div>
-          <sc-if value="{{ showThresh }}" hint-placeholder-val="{{ false }}">
-            <div style="display: grid; gap: 7px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
-              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A dark-adapted eye runs on rod vision, which is colour-blind and roughly five to ten times less sensitive than a camera sensor. So your camera will often detect aurora before you do, and sometimes it will never be bright enough for you to see by eye.</p>
-              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Both notches move with conditions: moonlight, cloud and haze push them to the right; a darker site pulls them left. At the camera notch expect a hint of colour low down, {{ threshColourNote }}. These are modelled thresholds, not absolutes, and a particularly strong storm will overrun them either way. Always worth pointing a camera {{ threshPoleWord }} if there is any activity.</p>
-            </div>
-          </sc-if>
-        </div>
-
-        <article style="display: grid; gap: 11px; padding: clamp(12px, 3.4vw, 15px); background: rgba(var(--well-rgb),.45); border: 1px solid var(--cool); border-radius: 12px;">
-          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
-            <span style="display: flex; align-items: center; gap: 7px; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--cool);">
-              <i data-nv-dot="on" style="width: 7px; height: 7px; border-radius: 50%; background: var(--cool);"></i>Solar wind · live
-            </span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ aurStamp }}</span>
-          </div>
-          <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(30px, 9.5vw, 40px); line-height: 1; letter-spacing: -.02em; color: {{ aurBzColour }};">Bz {{ aurBz }}</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; color: var(--dim);">nT</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 9px; flex-wrap: wrap;">
-            <span data-nv-active="{{ aurStateOn }}" style="padding: 4px 9px; border: 1px solid {{ aurStateColour }}; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: {{ aurStateColour }};">{{ aurState }}</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--text2);">{{ aurRun }}</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--faint);">{{ aurTier }}</span>
-          </div>
-          <span style="font-size: 15px; line-height: 1.38; color: var(--text2);">{{ aurTrend }}</span>
-
-          <div style="display: flex; gap: 7px;">
-            <div style="flex: 0 0 13px; display: grid; align-content: space-between; height: 52px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; line-height: 1; text-align: right; color: var(--faint);">
-              <span>N</span>
-              <span>S</span>
-            </div>
-            <div style="flex: 1; min-width: 0; display: grid; gap: 5px;">
-              <div style="position: relative; display: flex; align-items: flex-start; gap: 2px; height: 46px; padding: 3px 4px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
-                <i style="position: absolute; left: 0; right: 0; top: 25px; height: 2px; background: rgba(var(--line-rgb),.6);"></i>
-                <sc-if value="{{ aurEarthOn }}" hint-placeholder-val="{{ false }}">
-                  <i data-nv-grad="1" style="position: absolute; left: {{ aurEarthLeft }}; top: 1px; bottom: 1px; width: 1px; background: repeating-linear-gradient(180deg, rgba(var(--line-rgb),.55) 0 3px, transparent 3px 6px);"></i>
-                </sc-if>
-                <sc-for list="{{ aurBars }}" as="b" hint-placeholder-count="20">
-                  <i style="flex: 1; min-width: 2px; border-radius: 1px; height: {{ b.h }}px; margin-top: {{ b.mt }}px; background: {{ b.bg }}; opacity: {{ b.op }};"></i>
-                </sc-for>
-              </div>
-              <div style="position: relative; height: 14px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; line-height: 14px; color: var(--faint);">
-                <span style="position: absolute; left: 0;">{{ aurWinLabel }}</span>
-                <sc-if value="{{ aurEarthOn }}" hint-placeholder-val="{{ false }}">
-                  <span style="position: absolute; left: {{ aurEarthLeft }}; transform: translateX(-50%); white-space: nowrap; color: var(--text);">at Earth</span>
-                </sc-if>
-                <span style="position: absolute; right: 0;">t0</span>
-              </div>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
-            <span style="display: grid; gap: 2px; padding: 9px 10px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
-              <span style="font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">Speed</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 17px; color: var(--text);">{{ aurSpeed }}</span>
-              <span style="font-size: 12px; color: var(--faint);">km/s</span>
-              <span style="display: flex; gap: 2px; height: 3px; margin-top: 1px;">
-                <sc-for list="{{ aurSpeedSegs }}" as="g" hint-placeholder-count="3">
-                  <i style="flex: 1; border-radius: 1px; background: {{ g.bg }}; border: {{ g.bd }};"></i>
-                </sc-for>
-              </span>
-              <span style="font-size: 12px; line-height: 1.2; color: var(--cool);">{{ aurSpeedWord }}</span>
-            </span>
-            <span style="display: grid; gap: 2px; padding: 9px 10px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
-              <span style="font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">Field strength</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 17px; color: var(--text);">{{ aurBt }}</span>
-              <span style="font-size: 12px; color: var(--faint);">nT total</span>
-              <span style="display: flex; gap: 2px; height: 3px; margin-top: 1px;">
-                <sc-for list="{{ aurBtSegs }}" as="g" hint-placeholder-count="3">
-                  <i style="flex: 1; border-radius: 1px; background: {{ g.bg }}; border: {{ g.bd }};"></i>
-                </sc-for>
-              </span>
-              <span style="font-size: 12px; line-height: 1.2; color: var(--cool);">{{ aurBtWord }}</span>
-            </span>
-            <span style="display: grid; gap: 2px; padding: 9px 10px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
-              <span style="font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">Field orientation</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 17px; color: var(--text);">{{ aurSouth }}</span>
-              <span style="font-size: 12px; color: var(--faint);">of the hour</span>
-              <span style="display: flex; gap: 2px; height: 3px; margin-top: 1px;">
-                <sc-for list="{{ aurSouthSegs }}" as="g" hint-placeholder-count="3">
-                  <i style="flex: 1; border-radius: 1px; background: {{ g.bg }}; border: {{ g.bd }};"></i>
-                </sc-for>
-              </span>
-              <span style="font-size: 12px; line-height: 1.2; color: var(--cool);">{{ aurSouthWord }}</span>
-            </span>
-          </div>
-          <sc-if value="{{ aurStale }}" hint-placeholder-val="{{ false }}">
-            <p style="margin: 0; padding: 9px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px; font-size: 13.5px; line-height: 1.4; color: var(--faint);">The L1 feed has gone quiet. These are the last numbers that arrived, not the current ones.</p>
-          </sc-if>
-        </article>
-
-        <div style="display: grid; gap: 9px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Chance of aurora to the {{ aurPoleWord }}</span>
+            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Chance on camera, through the night</span>
             <button type="button" onClick="{{ toggleProb }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
               <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdProb }}; border-radius: 50%; background: {{ fillProb }}; color: {{ fgProb }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
             </button>
           </div>
-          <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(26px, 8vw, 34px); line-height: 1; color: var(--cool);">{{ aurProb }}</span>
-            <span style="flex: 1; min-width: 140px; font-size: 14px; line-height: 1.3; color: var(--text2);">{{ aurProbLine }}</span>
+
+          <sc-if value="{{ aurCurveOn }}" hint-placeholder-val="{{ true }}">
+            <div style="position: relative;">
+              <svg viewBox="0 0 404 96" style="width: 100%; height: auto; display: block;" role="img" aria-label="Chance of aurora on camera through the night">
+                <rect x="62" y="6" width="{{ aurLightW }}" height="84" fill="rgba(var(--line-rgb),.05)"></rect>
+                <rect x="{{ aurLightX2 }}" y="6" width="{{ aurLightW2 }}" height="84" fill="rgba(var(--line-rgb),.05)"></rect>
+                <sc-for list="{{ aurGrid }}" as="g" hint-placeholder-count="3">
+                  <line x1="62" y1="{{ g.y }}" x2="404" y2="{{ g.y }}" stroke="{{ g.colour }}" stroke-width="1"></line>
+                </sc-for>
+                <path d="{{ aurBandPath }}" fill="rgba(var(--cool-rgb),.14)"></path>
+                <path d="{{ aurMeasPath }}" fill="none" stroke="var(--text)" stroke-width="2.5"></path>
+                <path d="{{ aurDriverPath }}" fill="none" stroke="var(--cool)" stroke-width="2.5"></path>
+                <path d="{{ aurCastPath }}" fill="none" stroke="rgba(var(--cool-rgb),.7)" stroke-width="2" stroke-dasharray="5 3"></path>
+                <sc-if value="{{ aurArrOn }}" hint-placeholder-val="{{ false }}">
+                  <line x1="{{ aurArrX }}" y1="6" x2="{{ aurArrX }}" y2="90" stroke="rgba(var(--cool-rgb),.55)" stroke-width="1" stroke-dasharray="3 3"></line>
+                </sc-if>
+                <line x1="{{ aurNowX }}" y1="6" x2="{{ aurNowX }}" y2="94" stroke="rgba(var(--line-rgb),.55)" stroke-width="1"></line>
+                <line x1="62" y1="90" x2="404" y2="90" stroke="rgba(var(--line-rgb),.28)" stroke-width="1"></line>
+                <sc-for list="{{ aurTicks }}" as="tk" hint-placeholder-count="4">
+                  <line x1="{{ tk.x }}" y1="90" x2="{{ tk.x }}" y2="94" stroke="rgba(var(--line-rgb),.35)" stroke-width="1"></line>
+                </sc-for>
+              </svg>
+              <sc-for list="{{ aurBandLabels }}" as="bl" hint-placeholder-count="4">
+                <span style="position: absolute; left: 0; width: 14%; top: {{ bl.top }}; transform: translateY(-50%); text-align: right; font-size: 10.5px; line-height: 1; color: {{ bl.colour }};">{{ bl.label }}</span>
+              </sc-for>
+              <span style="position: absolute; left: {{ aurNowPct }}; top: 4%; transform: translateX(-50%); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; line-height: 1; color: var(--text);">now</span>
+              <sc-if value="{{ aurArrOn }}" hint-placeholder-val="{{ false }}">
+                <span style="position: absolute; left: {{ aurArrPct }}; top: 4%; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; line-height: 1; color: var(--cool);">arrives</span>
+              </sc-if>
+            </div>
+            <div style="position: relative; height: 14px; margin: 2px 0 0; padding-left: 15.3%; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; line-height: 14px; color: var(--faint);">
+              <div style="position: relative; height: 14px;">
+                <sc-for list="{{ aurTicks }}" as="tk" hint-placeholder-count="4">
+                  <span style="position: absolute; left: {{ tk.left }}; transform: translateX({{ tk.tx }}); white-space: nowrap;">{{ tk.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="display: grid; gap: 5px; font-size: 13px; line-height: 1.3;">
+            <span style="display: flex; align-items: center; gap: 9px;">
+              <i style="flex: 0 0 auto; width: 22px; height: 3px; border-radius: 2px; background: var(--text);"></i>
+              <span style="color: var(--text2);">measured, what the sky is doing now</span>
+            </span>
+            <span style="display: flex; align-items: center; gap: 9px;">
+              <i style="flex: 0 0 auto; width: 22px; height: 3px; border-radius: 2px; background: var(--cool);"></i>
+              <span style="color: var(--text2);">{{ aurArrLegend }}</span>
+            </span>
+            <span style="display: flex; align-items: center; gap: 9px;">
+              <i data-nv-grad="1" style="flex: 0 0 auto; width: 22px; height: 2px; border-radius: 2px; background: repeating-linear-gradient(90deg, rgba(var(--cool-rgb),.7) 0 5px, transparent 5px 8px);"></i>
+              <span style="color: var(--text2);">forecast, and the shading is how unsure it gets</span>
+            </span>
           </div>
+
+          <p style="margin: 0; font-size: 15px; line-height: 1.42; color: var(--text); text-wrap: pretty;">{{ aurBestLine }}</p>
+          <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ aurScaleNote }}</p>
+          <sc-if value="{{ aurEyeBrOn }}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 0; font-size: 14px; line-height: 1.4; color: var(--cool); text-wrap: pretty;">{{ aurEyeLine }}</p>
+          </sc-if>
+
           <sc-if value="{{ showProb }}" hint-placeholder-val="{{ false }}">
-            <div style="display: grid; gap: 8px;">
-              <p style="margin: 0; font-size: 14.5px; line-height: 1.42; color: var(--text2); text-wrap: pretty;">The aurora is not above you: it is a few hundred kilometres away, which is close enough to see the way you can see a tall building from the next town. This is the model's reading for that patch of sky over the next 30 to 90 minutes, and read it as at least, because the model runs shy in big storms.</p>
-              <p style="display: flex; align-items: baseline; gap: 9px; margin: 0; padding: 9px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px; font-size: 13.5px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">
-                <span style="flex: 0 0 auto; font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--dim);">Overhead</span>
-                <span>{{ aurOwn }} directly above you, which at this latitude is a number that stays near nothing until something historic happens. The horizon figure is the one to act on.</span>
-              </p>
+            <div style="display: grid; gap: 8px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">Three different sources influence the outlook at different stages into the future.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Time up to and including now is from GFZ's half-hourly Hp30, which is a measurement of how disturbed the earth's magnetic field actually is. It has no ceiling, which is useful in a big storm where the older Kp scale simply stops at 9. Their server will not hand it to a browser directly, so until this app has something to relay it, the measured end of the line is NOAA's own running estimate, updated every minute and shown here as an estimate.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The next 40 minutes or so comes from spacecraft a million and a half kilometres sunward of us, which sample the wind before it gets here. The most useful number is Bz, the direction the wind's magnetic field points. Pointing south, it latches onto ours and energy pours in.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Beyond that we can't use anything directly measured, so the line hands over gradually to NOAA's Kp forecast, issued in three-hour blocks. Confidence decays rapidly over time. NOAA's own checking shows that forecast tends to over-call moderate nights (i.e. it tends to disappoint), which is why the far end is drawn as a wide band.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The chance itself is worked out for where you are standing or the location you've selected. It folds in how far the band would have to stretch to reach you, how high it would stand above your horizon, and takes into account moonlight interference and the cloud forecast over that part of the sky.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">It's important to note that this isn't a sophisticated aurora-chasing forecast. Hardcore chasers use their own methodology from the underlying data or use dedicated apps like Norlys. The purpose of this forecast is to give generalist nightscape photographers a heads up that their night might be about to get better.</p>
             </div>
           </sc-if>
         </div>
 
-        <div style="display: grid; gap: 10px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+        <article style="display: grid; gap: 11px; padding: clamp(12px, 3.4vw, 15px); background: rgba(var(--well-rgb),.45); border: 1px solid {{ aurCoupleBd }}; border-radius: 12px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">How high, and where</span>
+            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: {{ aurCoupleColour }};">Right now</span>
             <button type="button" onClick="{{ toggleArc }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
               <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdArc }}; border-radius: 50%; background: {{ fillArc }}; color: {{ fgArc }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
             </button>
           </div>
-          <div style="position: relative; height: 104px; padding-left: 38px;">
-            <span style="position: absolute; left: 0; width: 26px; text-align: right; bottom: 81px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; line-height: 14px; color: var(--faint);">30°</span>
-            <span style="position: absolute; left: 0; width: 26px; text-align: right; bottom: 45px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; line-height: 14px; color: var(--faint);">15°</span>
-            <span style="position: absolute; left: 0; width: 26px; text-align: right; bottom: 9px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; line-height: 14px; color: var(--faint);">0°</span>
-            <i style="position: absolute; left: 30px; width: 6px; bottom: 88px; height: 1px; background: rgba(var(--line-rgb),.28);"></i>
-            <i style="position: absolute; left: 30px; width: 6px; bottom: 52px; height: 1px; background: rgba(var(--line-rgb),.28);"></i>
-            <i style="position: absolute; left: 38px; right: 0; bottom: 16px; height: 1px; background: rgba(var(--line-rgb),.28);"></i>
-            <span data-nv-grad="soft" style="position: absolute; left: 38px; right: 0; bottom: 0; height: 16px; background: repeating-linear-gradient(90deg, rgba(var(--line-rgb),.09) 0 3px, transparent 3px 7px);"></span>
-              <sc-if value="{{ aurBandOn }}" hint-placeholder-val="{{ true }}">
-              <span data-nv-grad="soft" style="position: absolute; left: 38px; right: 0; bottom: {{ aurBandBottom }}; height: {{ aurBandHeight }}; border-radius: 4px; background: linear-gradient(to top, rgba(var(--cool-rgb),.42), rgba(var(--cool-rgb),.08));"></span>
-            </sc-if>
+          <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(22px, 6.6vw, 27px); line-height: 1.05;">{{ aurCoupleLabel }}</span>
+          <p style="margin: 0; font-size: 15px; line-height: 1.42; color: var(--text2); text-wrap: pretty;">{{ aurCoupleLine }}</p>
+
+          <div style="display: grid; gap: 8px;">
+            <div style="display: grid; gap: 5px; padding: 11px 12px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
+              <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="margin-right: auto; font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">Measured here</span>
+                <span style="font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: {{ aurHpTagColour }};">{{ aurHpTag }}</span>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ aurHpStamp }}</span>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(22px, 7vw, 26px); line-height: 1; color: var(--text);">{{ aurHpVal }}</span>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px; line-height: 1; color: {{ aurHpTrendColour }};">{{ aurHpArrow }}</span>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{ aurHpTrendColour }};">{{ aurHpTrend }}</span>
+              </div>
+              <span style="font-size: 14px; line-height: 1.35; color: var(--text2);">{{ aurHpLine }}</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">{{ aurHpSource }}</span>
+            </div>
+
+            <div style="display: grid; gap: 5px; padding: 11px 12px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
+              <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="margin-right: auto; font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">On its way</span>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--cool);">{{ aurArrive }}</span>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(22px, 7vw, 26px); line-height: 1; color: {{ aurBzColour }};">Bz {{ aurBz }}</span>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--dim);">nT</span>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--text2);">{{ aurSpeed }} km/s</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 7px;">
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px; line-height: 1; color: {{ aurBzArrowColour }};">{{ aurBzArrow }}</span>
+                <span style="font-size: 13.5px; color: {{ aurBzArrowColour }};">{{ aurBzTrendWord }}</span>
+              </div>
+              <span style="font-size: 14px; line-height: 1.35; color: var(--text2);">{{ aurBzLine }}</span>
+            </div>
           </div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.42; color: var(--text2); text-wrap: pretty;">{{ aurGeomLine }}</p>
+
+          <sc-if value="{{ aurWindOn }}" hint-placeholder-val="{{ true }}">
+            <div style="display: grid; gap: 6px;">
+              <div style="display: flex; gap: 7px;">
+                <div style="flex: 0 0 13px; display: grid; align-content: space-between; height: 76px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; line-height: 1; text-align: right; color: var(--faint);">
+                  <span>N</span>
+                  <span>S</span>
+                </div>
+                <div style="flex: 1; min-width: 0; display: grid; gap: 5px;">
+                  <div style="position: relative; display: flex; align-items: flex-start; gap: 2px; height: 76px; padding: 3px 4px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
+                    <i style="position: absolute; left: 0; right: 0; top: 40px; height: 2px; background: rgba(var(--line-rgb),.6);"></i>
+                    <sc-if value="{{ aurEarthOn }}" hint-placeholder-val="{{ false }}">
+                      <i data-nv-grad="1" style="position: absolute; left: {{ aurEarthLeft }}; top: 1px; bottom: 1px; width: 1px; background: repeating-linear-gradient(180deg, rgba(var(--line-rgb),.55) 0 3px, transparent 3px 6px);"></i>
+                    </sc-if>
+                    <sc-for list="{{ aurBars }}" as="b" hint-placeholder-count="20">
+                      <i style="flex: 1; min-width: 2px; border-radius: 1px; height: {{ b.h }}px; margin-top: {{ b.mt }}px; background: {{ b.bg }}; opacity: {{ b.op }};"></i>
+                    </sc-for>
+                  </div>
+                  <div style="position: relative; height: 14px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; line-height: 14px; color: var(--faint);">
+                    <span style="position: absolute; left: 0;">3 hours ago</span>
+                    <sc-if value="{{ aurEarthOn }}" hint-placeholder-val="{{ false }}">
+                      <span style="position: absolute; left: {{ aurEarthLeft }}; transform: translateX(-50%); white-space: nowrap; color: var(--text);">reached us</span>
+                    </sc-if>
+                    <span style="position: absolute; right: 0;">newest</span>
+                  </div>
+                </div>
+              </div>
+              <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Bars below the line are pointing south, which is the useful direction. The faded ones have left the spacecraft and not yet arrived.</p>
+              <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ aurLoadLine }}</p>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ aurStale }}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 0; padding: 9px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px; font-size: 13.5px; line-height: 1.4; color: var(--faint);">The L1 feed has gone quiet. These are the last numbers that arrived, not the current ones.</p>
+          </sc-if>
+
           <sc-if value="{{ showArc }}" hint-placeholder-val="{{ false }}">
-            <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">An estimate, not a measurement. The geometry is straightforward: the aurora's green light comes from around 110 km up, so a band standing that far away still clears a horizon this far equatorward by a few degrees. What moves is everything feeding it. The edge of the oval for a given Kp wanders a couple of degrees, a substorm can drag it much further for twenty minutes, and the red light that mid latitudes see most of sits higher again. Trust it for "clear your horizon", not for "point the camera at 7°".</p>
+            <div style="display: grid; gap: 8px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">Two things matter here, and it is how they sit together that tells you something.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The first is the wind arriving from the sun, measured by spacecraft out ahead of us. When its magnetic field points south it connects with ours and energy pours in. That is the push.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The second is what the earth is actually doing about it, measured by magnetic observatories on the ground and reported as one number for the whole planet. That is the result.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A hard push with the number climbing means it is happening and getting bigger. A hard push with the number flat means energy is going into the earth’s magnetic tail and has not come back out yet, which usually ends in a sudden brightening. A hard push with the number falling is the lull between two of those. Same two readings, three quite different pieces of advice.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Nothing here can time a brightening. They last twenty minutes to an hour and nobody forecasts them. The honest version is that the conditions for one are in place.</p>
+            </div>
+          </sc-if>
+        </article>
+
+        <div style="display: grid; gap: 10px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">What it takes from here</span>
+            <button type="button" onClick="{{ toggleThresh }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
+              <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdThresh }}; border-radius: 50%; background: {{ fillThresh }}; color: {{ fgThresh }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
+            </button>
+          </div>
+
+          <div style="display: grid; gap: 5px;">
+            <div style="position: relative; height: 13px; font-size: 10px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; line-height: 13px; color: var(--dim);">
+              <span style="position: absolute; left: {{ aurCamLabPct }}; transform: translateX(-50%);">Camera</span>
+              <span style="position: absolute; left: {{ aurEyeLabPct }}; transform: translateX(-50%);">Eye</span>
+              <span style="position: absolute; left: {{ aurOverLabPct }}; transform: translateX(-50%);">Overhead</span>
+            </div>
+            <div style="position: relative; height: 12px;">
+              <span style="position: absolute; inset: 0; border: 1px solid rgba(var(--line-rgb),.22); border-radius: 999px;"></span>
+              <i data-nv-grad="soft" style="position: absolute; left: 0; top: 0; bottom: 0; width: {{ aurLevelPct }}; border-radius: 999px; background: linear-gradient(to right, rgba(var(--cool-rgb),.35), var(--cool));"></i>
+              <i style="position: absolute; left: {{ aurCamPct }}; top: -3px; bottom: -3px; width: 2px; background: var(--text);"></i>
+              <i style="position: absolute; left: {{ aurEyePct }}; top: -3px; bottom: -3px; width: 2px; background: var(--text);"></i>
+              <i style="position: absolute; left: {{ aurOverPct }}; top: -3px; bottom: -3px; width: 2px; background: rgba(var(--line-rgb),.5);"></i>
+            </div>
+            <div style="position: relative; height: 14px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; line-height: 14px; color: var(--faint);">
+              <span style="position: absolute; left: {{ aurLevelLabelPct }}; transform: translateX(-50%); white-space: nowrap; color: var(--cool);">{{ aurLevelLabel }} now</span>
+            </div>
+          </div>
+
+          <div style="display: grid; gap: 6px; font-size: 14.5px; line-height: 1.35;">
+            <span style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="flex: 0 0 88px; color: var(--text2);">On camera</span>
+              <span style="flex: 1; color: {{ aurCamColour }};">{{ aurCamWord }} tonight</span>
+              <span style="flex: 0 0 auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--faint);">{{ aurCamHp }}</span>
+            </span>
+            <span style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="flex: 0 0 88px; color: var(--text2);">To your eye</span>
+              <span style="flex: 1; color: {{ aurEyeColour }};">{{ aurEyeWord }} tonight</span>
+              <span style="flex: 0 0 auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--faint);">{{ aurEyeHp }}</span>
+            </span>
+            <span style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="flex: 0 0 88px; color: var(--text2);">Overhead</span>
+              <span style="flex: 1; color: var(--faint);">{{ aurOverWord }}</span>
+              <span style="flex: 0 0 auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--faint);">{{ aurOverHp }}</span>
+            </span>
+          </div>
+          <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ aurMagLine }}</p>
+
+          <sc-if value="{{ showThresh }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; gap: 8px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Aurora sits in a ring around the magnetic pole, which is not quite the geographic one. The ring swells outward as things get more disturbed, so what matters is not your latitude on a map but your magnetic latitude, and how far the ring has to stretch to reach you.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Those figures are that sum, run for where you are standing.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A camera sees five to ten times fainter than a dark-adapted eye, and the eye cannot see colour at these levels at all. This graph attempts to model when something is only likely to be visible on camera and when it might show up by eye, at your location and in your conditions.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">This is a model, not a strict forecast. Take it with a pinch of salt.</p>
+            </div>
           </sc-if>
         </div>
 
         <div style="display: grid; gap: 10px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid var(--accent); border-radius: 10px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">{{ aurHorizonLabel }}</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">{{ aurHorizonRange }}</span>
-            <button type="button" onClick="{{ toggleHorizon }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
-              <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdHorizon }}; border-radius: 50%; background: {{ fillHorizon }}; color: {{ fgHorizon }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
+            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Your sky tonight</span>
+            <button type="button" onClick="{{ toggleDamp }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
+              <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdDamp }}; border-radius: 50%; background: {{ fillDamp }}; color: {{ fgDamp }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
             </button>
           </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px;">
+            <span style="display: grid; gap: 3px;">
+              <span style="font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">{{ aurSkyLabel }}</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: {{ aurCloudColour }};">{{ aurCloud }}</span>
+              <span style="font-size: 12.5px; color: var(--faint); line-height: 1.3;">{{ aurCloudSub }}</span>
+            </span>
+            <span style="display: grid; gap: 3px;">
+              <span style="font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">Moon</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: var(--moon);">{{ aurMoon }}</span>
+              <span style="font-size: 12.5px; color: var(--faint); line-height: 1.3;">{{ aurMoonSub }}</span>
+            </span>
+            <span style="display: grid; gap: 3px;">
+              <span style="font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">Dark</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: var(--text);">{{ aurDarkAt }}</span>
+              <span style="font-size: 12.5px; color: var(--faint); line-height: 1.3;">{{ aurDarkSub }}</span>
+            </span>
+          </div>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.42; color: var(--text2); text-wrap: pretty;">{{ aurSkyLine }}</p>
+
           <div style="display: grid; gap: 3px;">
             <div style="display: flex; gap: 2px; height: 34px;">
               <sc-for list="{{ aurSectors }}" as="sc" hint-placeholder-count="10">
@@ -840,45 +972,20 @@ window.noctoTrack = function (name) {
               <span style="flex: 1; text-align: right;">{{ aurCompassC }}</span>
             </div>
           </div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.42; color: var(--text2); text-wrap: pretty;">{{ aurHorizonLine }}</p>
-          <sc-if value="{{ showHorizon }}" hint-placeholder-val="{{ false }}">
-            <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Every aurora app tells you the probability. This one also asks what the sky in that direction is like, because the twenty degrees above your horizon is where the arc will be and a town sitting in it will drown a faint one. The band reads the light pollution atlas across that quarter of the sky, out to 140 km. Below the equator it turns round and reads the southern horizon instead.</p>
-          </sc-if>
-        </div>
+          <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ aurHorizonLabel }}: {{ aurHorizonLine }}</p>
 
-        <div style="display: grid; gap: 10px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Sky, tonight</span>
-            <button type="button" onClick="{{ toggleDamp }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
-              <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdDamp }}; border-radius: 50%; background: {{ fillDamp }}; color: {{ fgDamp }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
-            </button>
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px;">
-            <span style="display: grid; gap: 3px;">
-              <span style="font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">{{ aurSkyLabel }}</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: var(--text);">{{ aurCloud }}</span>
-              <span style="font-size: 12.5px; color: var(--faint); line-height: 1.3;">{{ aurCloudSub }}</span>
-            </span>
-            <span style="display: grid; gap: 3px;">
-              <span style="font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">Damp</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: var(--accent);">{{ aurDamp }}</span>
-              <span style="font-size: 12.5px; color: var(--faint); line-height: 1.3;">{{ aurDampSub }}</span>
-            </span>
-            <span style="display: grid; gap: 3px;">
-              <span style="font-size: 10.5px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);">Moon</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 22px; line-height: 1.1; color: var(--moon);">{{ aurMoon }}</span>
-              <span style="font-size: 12.5px; color: var(--faint); line-height: 1.3;">{{ aurMoonSub }}</span>
-            </span>
-          </div>
           <sc-if value="{{ showDamp }}" hint-placeholder-val="{{ false }}">
-            <p style="margin: 0; font-size: 14px; line-height: 1.42; color: var(--text2); text-wrap: pretty;">{{ aurDampLine }}</p>
+            <div style="display: grid; gap: 8px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The cloud figure is taken over the patch of sky where the arc would actually be, half a degree to a degree {{ aurPoleWord }} of you, rather than over your head. Cloud above you is irrelevant if that quarter is clear, and the reverse ruins the night.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">{{ aurDampLine }}</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The band above is the light pollution atlas read across that quarter of the sky, out to 140 km, weighted so nearer towns count for more. It is the twenty degrees above your horizon that decides whether a faint arc survives.</p>
+            </div>
           </sc-if>
         </div>
 
         <div style="display: grid; gap: 8px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Next five nights</span>
-            <span style="font-size: 13px; color: var(--faint);">forecast Kp</span>
+            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">The nights after this one</span>
             <button type="button" onClick="{{ toggleAhead }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
               <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdAhead }}; border-radius: 50%; background: {{ fillAhead }}; color: {{ fgAhead }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
             </button>
@@ -888,7 +995,6 @@ window.noctoTrack = function (name) {
               <span style="display: grid; gap: 6px; padding: 9px 10px; background: {{ ni.bg }}; border: 1px solid {{ ni.bd }}; border-radius: 8px;">
                 <span style="display: flex; align-items: center; gap: 10px;">
                   <span style="flex: 0 0 62px; white-space: nowrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{ ni.dayColour }};">{{ ni.day }}</span>
-                  <span style="flex: 0 0 44px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 15px; color: {{ ni.kpColour }};">{{ ni.kp }}</span>
                   <span style="flex: 1; font-size: 13.5px; line-height: 1.3; color: {{ ni.fg }};">{{ ni.word }}</span>
                 </span>
                 <sc-if value="{{ ni.watchOn }}" hint-placeholder-val="{{ false }}">
@@ -900,6 +1006,7 @@ window.noctoTrack = function (name) {
               </span>
             </sc-for>
           </div>
+          <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Beyond about two days there is no live measurement to lean on, only the forecast, so these read as maybes on purpose.</p>
           <sc-if value="{{ aurRecOn }}" hint-placeholder-val="{{ false }}">
             <p style="display: flex; align-items: baseline; gap: 8px; margin: 0; padding-top: 8px; border-top: 1px solid rgba(var(--line-rgb),.09); font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">
               <span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 5px; border-radius: 50%; border: 1px solid rgba(var(--line-rgb),.34);"></span>
@@ -908,23 +1015,14 @@ window.noctoTrack = function (name) {
           </sc-if>
           <sc-if value="{{ showAhead }}" hint-placeholder-val="{{ false }}">
             <div style="display: grid; gap: 7px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
-              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A watch means forecasters have seen a CME leave the sun and expect it here on that date. Arrival routinely slips six to twelve hours, so a watch shows on both nights it could touch. Magnitude stays unknown until the cloud reaches L1 and its field can be measured: arriving pointing north, the whole thing can fizzle with no aurora at all.</p>
-              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Recurrence is a different mechanism. Coronal holes sit still while the sun turns under them, so their streams come back about every 27 days and can be planned around. CME storms never recur. Recurrence is the weakest signal here and never ranks a night on its own.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">These come from NOAA's Kp forecast, three-hour blocks up to three days out, matched against each night's dark window rather than a rolling average around now. A night only reads as likely when the number, the geometry, the darkness and the cloud all agree.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A watch means forecasters have seen a coronal mass ejection, or CME, leave the sun and expect it here on that date. A CME is a billion tonnes of the sun’s atmosphere thrown outwards, and it takes one to three days to cross to us. Arrival routinely slips six to twelve hours, so a watch shows on both nights it could touch, and its size stays unknown until it reaches the spacecraft and its field can be measured. Arriving pointing north, the whole thing can fizzle.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Recurrence is a different mechanism. Coronal holes sit still while the sun turns under them, so their streams come back about every 27 days and can be planned around. CME storms never recur.</p>
             </div>
           </sc-if>
         </div>
 
-        <div style="display: grid; gap: 6px; padding: 10px 13px; background: rgba(var(--line-rgb),.04); border-radius: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="margin-right: auto; font-size: 13px; color: var(--dim);">Why Kp sits at the bottom of this page</span>
-            <button type="button" onClick="{{ toggleKpWhy }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
-              <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdKpWhy }}; border-radius: 50%; background: {{ fillKpWhy }}; color: {{ fgKpWhy }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
-            </button>
-          </div>
-          <sc-if value="{{ showKpWhy }}" hint-placeholder-val="{{ false }}">
-            <p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">It is a three-hourly planetary average, good for picking a night and useless for the next ten minutes. Solar wind, aurora probability, storm watches and the 27-day outlook all come from NOAA SWPC, sampled on your phone.</p>
-          </sc-if>
-        </div>
+        <p style="margin: 0; padding: 0 2px; font-size: 12.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Everything here is a likelihood for where you are standing tonight, not a promise of aurora. Index, solar wind, hemispheric power and Kp forecast from NOAA SWPC, half-hourly Hp30 from GFZ where it can be reached, cloud from Open-Meteo, worked out on this device.</p>
 
       </section>
     </sc-if>
@@ -1935,7 +2033,7 @@ window.noctoTrack = function (name) {
 <script type="text/x-dc" data-dc-script data-props="{&quot;coffeeUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;https://buymeacoffee.com/jpchaworthy&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Links&quot;},&quot;showAurora&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Home screen&quot;}}">
 class Component extends DCLogic {
   state = {
-    tab: 'tonight', ready: false, showLoc: false, query: '', results: [], pal: 'obsidian', showPal: false,
+    tab: 'tonight', ready: false, showLoc: false, query: '', results: [], coordHit: null, favName: '', pal: 'obsidian', showPal: false,
     place: '', skyMode: 'auto', range: 60, sel: null, open: { 0: true }, past: [], daySel: null, info: {}, aurTick: 0,
     kit: (window.NoctoPlan ? window.NoctoPlan.loadKit() : null),
     trailRecipe: null, trailHours: 2.5, trailStartOff: 30, showTrailLen: false,
@@ -2088,8 +2186,20 @@ class Component extends DCLogic {
     this._windTimer = setInterval(() => {
       const E = this.E();
       if (!E || document.hidden) return;
-      E.loadSolarWind().then(() => this.setState({ aurTick: this.state.aurTick + 1 }));
+      Promise.all([E.loadSolarWind(), this._hpDue() ? E.loadHp30() : null])
+        .then(() => this.setState({ aurTick: this.state.aurTick + 1 }));
     }, 60000);
+  }
+
+  /* Two tiny requests, a few hundred bytes each: the measured index and hemispheric power. Enough
+     for the Tonight tile to speak the same language as the Aurora tab without pulling the heavy
+     L1 history file. Refreshed on the same half-hourly cadence the index publishes on. */
+  loadTileFeeds() {
+    const E = this.E();
+    if (!E || !this._hpDue()) return;
+    Promise.all([E.loadHp30(), E.loadHemiPower()])
+      .then(() => this.setState({ aurTick: this.state.aurTick + 1 }))
+      .catch(() => {});
   }
 
   loadAurora() {
@@ -2100,19 +2210,29 @@ class Component extends DCLogic {
     const win = t && t.darkWin ? t.darkWin : null;
     Promise.all([
       E.loadSolarWind(),
+      E.loadHp30(),
+      E.loadHemiPower(),
       E.loadOvation(),
       E.loadPolewardCloud(win),
       E.loadAlerts(),
       E.loadOutlook27(),
     ]).then(() => {
+      this._hpAt = Date.now();
       this._aurLoading = false;
       this.setState({ aurTick: this.state.aurTick + 1 });
     }).catch(() => { this._aurLoading = false; });
   }
 
+  /* Hp30 publishes twice an hour, so there is no point asking for it every minute. */
+  _hpDue() {
+    if (Date.now() - (this._hpAt || 0) < 5 * 60000) return false;
+    this._hpAt = Date.now();
+    return true;
+  }
+
   infoVals() {
     const out = {};
-    ['Thresh', 'Prob', 'Arc', 'Horizon', 'Damp', 'Ahead', 'Ahead10', 'KpWhy', 'Watch', 'Ring', 'Nlc', 'Numbers', 'Rwb'].forEach(k => {
+    ['Thresh', 'Prob', 'Arc', 'Horizon', 'Damp', 'Ahead', 'Ahead10', 'KpWhy', 'Watch', 'Ring', 'Nlc', 'Numbers', 'Rwb', 'Glow'].forEach(k => {
       const on = !!this.state.info[k];
       out['show' + k] = on;
       out['bd' + k] = on ? 'var(--accent)' : 'rgba(var(--line-rgb),.28)';
@@ -2274,7 +2394,7 @@ class Component extends DCLogic {
       if (!document.querySelector('link[rel="icon"]')) {
         const fav = document.createElement('link');
         fav.rel = 'icon'; fav.type = 'image/png'; fav.sizes = '512x512';
-        fav.href = '../favicon.png?v=2026-09-06';        // sits beside the page in the repo
+        fav.href = '../favicon.png?v=2026-08-16b';        // sits beside the page in the repo
         document.head.appendChild(fav);
       }
       const icon = document.querySelector('link[rel="apple-touch-icon"]');
@@ -2306,7 +2426,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=2026-09-06';
+    s.src = '../pano-calculator.js?v=2026-08-16b';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -2360,11 +2480,13 @@ class Component extends DCLogic {
     const E = this.E(), k = this.currentKey();
     if (!k) return;
     if (this.isFav()) { this.storeFavs(this.state.favs.filter(f => this.favKey(f.lat, f.lon) !== k)); return; }
-    // a GPS fix has no name worth saving, so it is filed under its own coordinates
-    const place = (!this.state.place || this.state.place === 'My location')
+    // your own name for it beats the gazetteer's; a GPS fix falls back to its coordinates
+    const typed = (this.state.favName || '').trim();
+    const place = typed || ((!this.state.place || this.state.place === 'My location')
       ? E.state.lat.toFixed(2) + ', ' + E.state.lon.toFixed(2)
-      : this.state.place;
+      : this.state.place);
     this.storeFavs(this.state.favs.concat([{ lat: E.state.lat, lon: E.state.lon, place }]));
+    this.setState({ favName: '' });
   }
   pickFav(key) {
     const f = this.state.favs.find(x => this.favKey(x.lat, x.lon) === key);
@@ -2388,6 +2510,8 @@ class Component extends DCLogic {
     }
     const kp = await E.loadKp();
     if (kp) this.setState({ kp });
+    this.loadTileFeeds();
+    E.loadF107().then(ok => { if (ok) this.setState({ aurTick: this.state.aurTick + 1 }); });
     // passes are kicked off at the end of refresh(), where the night exists to search
   }
 
@@ -2634,17 +2758,33 @@ class Component extends DCLogic {
       onQuery: e => this.onQuery(e.target.value),
       onSkyMode: e => this.setSkyMode(e.target.value),
       skyMode: String(st.skyMode),
-      results: st.results.map((r, i) => ({
-        label: r.name + (r.admin1 ? ', ' + r.admin1 : '') + (r.country ? ', ' + r.country : ''),
-        pick: () => this.pickPlace(r),
-      })),
+      /* the gazetteer already knows the county and district: showing only the country is what made
+         four Newtons look identical */
+      results: st.results.map(r => {
+        const where = [r.kind, r.admin2, r.admin2 === r.admin1 ? null : r.admin1, r.country].filter(Boolean);
+        return {
+          label: r.name,
+          where: where.slice(0, 2).join(', '),
+          km: r.km == null ? '' : r.km < 1 ? 'here' : r.km < 100 ? Math.round(r.km) + ' km away' : Math.round(r.km / 10) * 10 + ' km away',
+          pick: () => this.pickPlace(r),
+        };
+      }),
+      coordOn: !!st.coordHit,
+      coordLabel: st.coordHit ? st.coordHit.lat.toFixed(4) + ', ' + st.coordHit.lon.toFixed(4) : '',
+      coordKm: st.coordHit && this.E().state.lat != null
+        ? Math.round(this.kmBetween({ lat: this.E().state.lat, lon: this.E().state.lon }, st.coordHit)) + ' km away' : '',
+      pickCoord: () => this.pickCoord(),
+      favName: st.favName,
+      favNameOn: !this.isFav(),
+      favPlaceholder: 'Call it something, e.g. the fen gate',
+      onFavName: ev => this.setState({ favName: ev.target.value }),
       bortleOptions: this.bortleOptions(),
       hasFavs: st.favs.length > 0,
       favOptions: st.favs.map(f => ({ value: this.favKey(f.lat, f.lon), label: f.place })),
       favValue: '',
       onPickFav: e => { const v = e.target.value; if (v) this.pickFav(v); },
       toggleFav: () => this.toggleFav(),
-      favLabel: this.isFav() ? 'Remove from favourites' : 'Add to favourites',
+      favLabel: this.isFav() ? 'Remove' : 'Save',
       favColour: this.isFav() ? 'var(--dim)' : amber,
       favBorder: this.isFav() ? 'rgba(var(--line-rgb),.24)' : 'rgba(var(--accent-rgb),.5)',
       skyLine: st.sky ? 'Bortle ' + st.sky.bortle + ' · ' + st.sky.sqm.toFixed(2) + ' mag/arcsec² · naked-eye limit ' + st.sky.nelm.toFixed(1) : 'Reading the light pollution atlas…',
@@ -3883,14 +4023,64 @@ class Component extends DCLogic {
     return out;
   }
 
+  /* Typed or pasted coordinates beat any gazetteer for a field gate with no name. Handles decimal,
+     degrees-minutes-seconds, and whatever a phone or Google Maps puts on the clipboard. */
+  parseCoords(raw) {
+    const v = String(raw).trim();
+    if (!v) return null;
+    const url = v.match(/[@?=,](-?\d{1,2}\.\d{3,}),\s*(-?\d{1,3}\.\d{3,})/);
+    if (url) return this.coordOk(parseFloat(url[1]), parseFloat(url[2]));
+    const dec = v.match(/^(-?\d{1,2}(?:\.\d+)?)\s*\u00b0?\s*([NSns])?[,\s]+(-?\d{1,3}(?:\.\d+)?)\s*\u00b0?\s*([EWew])?$/);
+    if (dec) {
+      let la = parseFloat(dec[1]), lo = parseFloat(dec[3]);
+      if (/[Ss]/.test(dec[2] || '')) la = -Math.abs(la);
+      if (/[Ww]/.test(dec[4] || '')) lo = -Math.abs(lo);
+      return this.coordOk(la, lo);
+    }
+    const dms = v.match(/^(\d{1,2})[\s\u00b0:]+(\d{1,2})[\s':]+([\d.]+)?\s*["\u2033]?\s*([NSns])[,\s]+(\d{1,3})[\s\u00b0:]+(\d{1,2})[\s':]+([\d.]+)?\s*["\u2033]?\s*([EWew])$/);
+    if (dms) {
+      const la = (+dms[1] + (+dms[2]) / 60 + (parseFloat(dms[3]) || 0) / 3600) * (/[Ss]/.test(dms[4]) ? -1 : 1);
+      const lo = (+dms[5] + (+dms[6]) / 60 + (parseFloat(dms[7]) || 0) / 3600) * (/[Ww]/.test(dms[8]) ? -1 : 1);
+      return this.coordOk(la, lo);
+    }
+    return null;
+  }
+  coordOk(lat, lon) {
+    if (!isFinite(lat) || !isFinite(lon)) return null;
+    if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+    return { lat, lon };
+  }
+  kmBetween(a, b) {
+    const R = 6371, d = Math.PI / 180;
+    const dla = (b.lat - a.lat) * d, dlo = (b.lon - a.lon) * d;
+    const h = Math.sin(dla / 2) ** 2 + Math.cos(a.lat * d) * Math.cos(b.lat * d) * Math.sin(dlo / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+
   onQuery(v) {
     this.setState({ query: v });
     clearTimeout(this._qt);
+    const co = this.parseCoords(v);
+    if (co) { this.setState({ results: [], coordHit: co }); return; }
+    this.setState({ coordHit: null });
     if (v.trim().length < 2) { this.setState({ results: [] }); return; }
     this._qt = setTimeout(async () => {
-      const rs = await this.E().geocode(v.trim());
-      this.setState({ results: rs });
+      const E = this.E();
+      const here = E.state.lat == null ? null : { lat: E.state.lat, lon: E.state.lon };
+      const rs = await E.geocode(v.trim(), here);
+      /* the search already ranks by what kind of place it is, then by distance: re-sorting here
+         would put a street named after a village above the village */
+      const withKm = rs.map(r => ({ ...r, km: r.km != null ? r.km : (here ? this.kmBetween(here, { lat: r.latitude, lon: r.longitude }) : null) }));
+      this.setState({ results: withKm });
     }, 350);
+  }
+
+  pickCoord() {
+    const c = this.state.coordHit;
+    if (!c) return;
+    this.applySite({ lat: c.lat, lon: c.lon, place: c.lat.toFixed(3) + ', ' + c.lon.toFixed(3) }, true);
+    this.setState({ showLoc: false, results: [], coordHit: null, query: '' });
+    this.refresh();
   }
 
   pickPlace(r) {
@@ -3912,6 +4102,7 @@ class Component extends DCLogic {
       rwbVal: '–', rwbSub: '', rwbColour: 'var(--text)', ahead: [], aheadLead: '', aheadHint: '', dayOpen: false, dayStats: [],
       ...this.ringVals(),
       ...this.auroraTileVals(),
+      ...this.airglowVals(),
       ...this.nlcVals(),
       sunVal: '–', sunSub: '', issVal: '–', issSub: '', issColour: 'var(--dim)',
       slVal: '–', slSub: '', slColour: 'var(--dim)', fogOn: false, fogLine: '',
@@ -3996,6 +4187,7 @@ class Component extends DCLogic {
     return {
       ...this.ringVals(),
       ...this.auroraTileVals(),
+      ...this.airglowVals(),
       ...this.nlcVals(),
       ...this.aheadVals(),
       solOn: !!ecl.solar, solLine: this.solarLine(ecl.solar),
@@ -4125,6 +4317,57 @@ class Component extends DCLogic {
       : { bg: 'transparent', bd: '1px solid rgba(var(--line-rgb),.22)' });
   }
 
+  /* Airglow. A fuel gauge for the spell you are in, gated on whether tonight could actually catch
+     it: darkness, moon, site brightness and cloud. */
+  airglowVals() {
+    const E = this.E(), st = this.state;
+    if (!E || !st.t) return { glowOn: false, glowVal: '\u2013', glowSub: '', glowNote: '', glowColour: 'var(--dim)', glowPrimed: false, glowPrimedLine: '' };
+    const t = st.t, n = t.night;
+    const nk = t.darkWin ? E.kpForNight(st.kp, t.darkWin) : null;
+    const atlas = E.atlasSky(E.state.lat, E.state.lon);
+    const cloudPct = t.cloudSeries && t.cloudSeries.length
+      ? t.cloudSeries.reduce((a, b) => a + b.v, 0) / t.cloudSeries.length : null;
+    const a = E.airglowState({
+      kp: nk ? nk.peak : null,
+      mlat: E.geomagLat(E.state.lat, E.state.lon),
+      darkHours: t.darkHours,
+      moonIllum: t.midIllum,
+      moonUp: !!n.moonWin,
+      bortle: atlas ? E.bortleFor(atlas.sqm) : null,
+      clear: cloudPct == null ? null : 1 - cloudPct / 100,
+    });
+    if (!a) return { glowOn: false, glowVal: '\u2013', glowSub: '', glowNote: '', glowColour: 'var(--dim)', glowPrimed: false, glowPrimedLine: '' };
+
+    const flux = 'F10.7 ' + Math.round(a.fEff);
+    const word = a.tier === 'high' ? 'High' : a.tier === 'moderate' ? 'Moderate' : 'Low';
+    const sub = a.tier === 'high'
+      ? 'About as strong as this cycle gets. From a dark site, expect green and orange banding low in the sky.'
+      : a.tier === 'moderate'
+        ? 'Should show in longer exposures from a dark site, strongest 10\u201320\u00b0 above the horizon.'
+        : 'The sky\u2019s own glow is near its quietest: faint green at best, and only in stacked exposures.';
+    const bits = [flux];
+    if (a.stale) { const d = new Date(a.at); bits.push('last reading ' + E.fmtDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())); }
+    if (a.storm) bits.push('Kp ' + Math.floor(nk.peak) + ', deep red possible');
+    return {
+      glowOn: true,
+      glowVal: word,
+      glowSub: sub,
+      glowNote: bits.join(' \u00b7 '),
+      glowColour: a.tier === 'high' ? 'var(--cool)' : a.tier === 'moderate' ? 'var(--accent)' : 'var(--dim)',
+      glowPrimed: a.primed,
+      glowBorder: a.primed ? 'rgba(var(--cool-rgb),.5)' : 'rgba(var(--line-rgb),.14)',
+      glowPrimedLine: a.primed
+        ? 'Conditions primed for airglow tonight. Look 10\u201320\u00b0 above the horizon, away from town glow. Whether it forms ripples is down to waves in the upper atmosphere, and nobody forecasts those.'
+        : '',
+      glowBlockOn: !a.primed && !!a.blocker && a.failed.indexOf('flux') < 0,
+      glowBlockLine: !a.primed && a.blocker && a.failed.indexOf('flux') < 0
+        ? 'The flux is there tonight, but ' + a.blocker + '.' : '',
+      glowStormLine: a.storm ? 'A deep red glow is possible at mid-latitudes tonight, well away from any aurora.' : '',
+      glowStormOn: !!a.storm,
+      glowMean: 'Mean over the last solar rotation: ' + Math.round(a.mean27) + ' sfu. Latest daily reading: ' + Math.round(a.latest) + '.',
+    };
+  }
+
   /* Noctilucent cloud. Only shown when the season and the latitude both work, so for most of the
      year and most of the world this row simply is not there. */
   nlcVals() {
@@ -4159,26 +4402,50 @@ class Component extends DCLogic {
      is any point looking. */
   auroraTileVals() {
     const E = this.E(), st = this.state;
-    if (!E || !st.t) return { aurTileVal: '–', aurTileSub: '', aurTileNote: '', aurTileColour: 'var(--dim)' };
+    if (!E || !st.t) return { aurTileVal: '\u2013', aurTileSub: '', aurTileNote: '', aurTileColour: 'var(--dim)' };
     const t = st.t;
     const nk = t.darkWin ? E.kpForNight(st.kp, t.darkWin) : null;
     const kp = nk ? nk.peak : null;
     const g = E.auroraGeometry(kp == null ? 2 : kp);
     const poleWord = g.poleward === 'north' ? 'north' : 'south';
-    if (kp == null) return { aurTileVal: '–', aurTileSub: 'No Kp forecast for tonight', aurTileNote: '', aurTileColour: 'var(--dim)' };
-    if (t.darkHours < 0.25) return { aurTileVal: '–', aurTileSub: 'Never gets dark enough tonight', aurTileNote: 'Kp ' + Math.floor(kp), aurTileColour: 'var(--dim)' };
-    if (!g.reaches) return {
-      aurTileVal: '–',
-      aurTileSub: 'Too far ' + poleWord + ' to see from here',
-      aurTileNote: 'Kp ' + Math.floor(kp) + ', and it would take Kp ' + Math.min(9, Math.ceil((66.5 - Math.abs(g.mlat)) / 2.07)) + ' to reach you',
-      aurTileColour: 'var(--dim)',
+    if (t.darkHours < 0.25) return { aurTileVal: '\u2013', aurTileSub: 'Never gets dark enough tonight', aurTileNote: '', aurTileColour: 'var(--dim)' };
+
+    /* Same likelihood the Aurora tab uses, so the two cannot contradict each other. The measured
+       index wins when it is above the forecast, which is what a live storm looks like. */
+    const hp = E.hpNow();
+    const bands = E.personalBands();
+    const cloud = t.cloudSeries && t.cloudSeries.length
+      ? t.cloudSeries.reduce((a, b) => a + b.v, 0) / t.cloudSeries.length : null;
+    const level = hp && (kp == null || hp.value > kp) ? hp.value : kp;
+    if (level == null) return { aurTileVal: '\u2013', aurTileSub: 'No forecast for tonight', aurTileNote: '', aurTileColour: 'var(--dim)' };
+    /* atlas brightness, not the modelled sky: the tab's thresholds use light pollution, and
+       bortleFor(null) answers 9, which would quietly bury a dark site */
+    const atlas = E.atlasSky(E.state.lat, E.state.lon);
+    const ch = E.chanceAt(level, { bands, cloud, moonIllum: t.midIllum, moonUp: !!t.night.moonWin, bortle: atlas ? E.bortleFor(atlas.sqm) : null });
+    const word = E.chanceWord(ch.camera);
+    const eyeWord = E.chanceWord(ch.eye);
+
+    const cs = E.state.wind ? E.couplingState() : null;
+    const live = hp ? (hp.estimated ? 'Kp ' : 'Hp ') + hp.value.toFixed(1)
+      + (hp.dir === 'rising' ? ' \u2191' : hp.dir === 'falling' ? ' \u2193' : '') : null;
+    const geomNote = !g.reaches ? 'stays well ' + poleWord + ' of you'
+      : g.overhead ? 'could be overhead' : Math.round(g.low) + '\u2013' + Math.round(g.high) + '\u00b0 above the ' + poleWord;
+    const hemi = E.state.hemiPower;
+    const gw = hemi ? Math.round(g.poleward === 'north' ? hemi.north : hemi.south) : null;
+
+    if (cs && cs.urgent && ch.camera != null && ch.camera >= 0.5) return {
+      aurTileVal: cs.label,
+      aurTileSub: 'Worth looking ' + poleWord + ' now',
+      aurTileNote: [live, geomNote].filter(Boolean).join(' \u00b7 '),
+      aurTileColour: 'var(--cool)',
     };
-    if (g.overhead) return { aurTileVal: 'Overhead', aurTileSub: 'The band is above you, not on the horizon', aurTileNote: 'Kp ' + Math.floor(kp), aurTileColour: 'var(--accent)' };
     return {
-      aurTileVal: Math.round(g.low) + '\u2013' + Math.round(g.high) + '\u00b0',
-      aurTileSub: 'Above your ' + poleWord + 'ern horizon',
-      aurTileNote: 'Kp ' + Math.floor(kp) + ', band about ' + g.km + ' km ' + poleWord,
-      aurTileColour: 'var(--accent)',
+      aurTileVal: word.charAt(0).toUpperCase() + word.slice(1),
+      aurTileSub: word === 'unlikely'
+        ? 'from here tonight'
+        : 'on camera' + (eyeWord === 'unlikely' ? ', not to your eye' : eyeWord === 'possible' ? ', maybe to your eye' : ' and to your eye'),
+      aurTileNote: [live, geomNote, gw != null && gw >= 20 ? gw + ' GW' : null].filter(Boolean).join(' \u00b7 '),
+      aurTileColour: ch.camera >= 0.55 ? 'var(--cool)' : ch.camera >= 0.3 ? 'var(--accent)' : 'var(--dim)',
     };
   }
 
@@ -4193,8 +4460,8 @@ class Component extends DCLogic {
     const g = E.allSkyGlow(null, null, { rh: n.rh, highCloud: hi });
     const R = 114;
     const bars = g.sectors.map(sc => {
-      const h = 14 + sc.level * 64;
-      return { rot: sc.brg.toFixed(1), h: h.toFixed(1), off: (R - h).toFixed(1), op: (0.2 + sc.level * 0.8).toFixed(2) };
+      const h = 4 + sc.level * 74;
+      return { rot: sc.brg.toFixed(1), h: h.toFixed(1), off: (R - h).toFixed(1), op: (0.14 + sc.level * 0.86).toFixed(2) };
     });
     const hazeWord = !g.hazeKnown ? 'unknown' : g.haze >= 1.9 ? 'heavy' : g.haze >= 1.45 ? 'moderate' : g.haze >= 1.15 ? 'slight' : 'none';
     return {
@@ -4228,165 +4495,355 @@ class Component extends DCLogic {
     const nc = E.state.northCloud;
     const cloudPct = nc ? nc.total : (t.cloudSeries && t.cloudSeries.length ? t.cloudSeries.reduce((a, b) => a + b.v, 0) / t.cloudSeries.length : null);
     const moonIll = t.midIllum, moonUp = !!n.moonWin;
-    const th = E.auroraThresholds({ moonIllum: moonIll, moonUp, cloud: cloudPct, bortle: glow.bortle });
-    const w = E.state.wind, ws = E.windState();
     const poleWord = geom.poleward === 'north' ? 'north' : 'south';
-    const absLat = Math.abs(E.state.lat);
-    const Poleward = geom.poleward === 'north' ? 'northern' : 'southern';
+    const Poleward = geom.poleward === 'north' ? 'Northern' : 'Southern';
+    const w = E.state.wind;
 
-    /* the trace: 20 buckets across the last hour, so the shape survives a patchy feed */
+    /* the three feeds, and what they mean from this site */
+    const bands = E.personalBands();
+    const opts = { bands, cloud: cloudPct, moonIllum: moonIll, moonUp, bortle: glow.bortle };
+    const hp = E.hpNow(), wd = E.windDerived(), cs = E.couplingState();
+    const hemi = E.state.hemiPower;
+    const levelNow = hp ? hp.value : null;
+    const chanceNow = E.chanceAt(levelNow, opts);
+
+    /* ---- the one curve: measured, then what has already left L1, then the forecast ---- */
+    const nowMs = Date.now();
+    const arrMs = nowMs + (wd && wd.arrivalMin != null ? wd.arrivalMin : 45) * 60000;
+    const startMs = nowMs - 60 * 60000;
+    const endMs = t.darkWin ? Math.max(t.darkWin.to.getTime(), nowMs + 3 * 3600000) : nowMs + 6 * 3600000;
+    const cWin = { from: startMs, to: endMs };
+    const slots = E.nightCurve(cWin, st.kp && st.kp.rows, opts);
+    const PX0 = 62, PX1 = 404, PY0 = 6, PY1 = 90;
+
+    /* A warped time axis. The next hour is where the detail is and where a decision gets made, so
+       it gets nearly half the width; the far end of the night is a forecast and gets squeezed.
+       Anchors are the handover points, which is why the fade between inks lands on a scale change
+       rather than fighting it. */
+    const darkStart = t.darkWin ? t.darkWin.from.getTime() : null;
+    const waiting = darkStart != null && darkStart > arrMs + 60 * 60000;   // checking in daylight
+    const pivot = Math.max(arrMs, darkStart == null ? arrMs : Math.min(darkStart, endMs));
+    const rawAnchors = waiting
+      /* Daytime visit: the imminent layer will have arrived long before dark, so it keeps only a
+         tenth of the width and the wait for darkness is compressed to a third. The dark hours,
+         which are what the card is about, take the rest. */
+      ? [[startMs, 0], [nowMs, 0.10], [arrMs, 0.22], [darkStart, 0.34], [Math.min(endMs, pivot + 3 * 3600000), 0.72], [endMs, 1]]
+      : [[startMs, 0], [nowMs, 0.24], [arrMs, 0.46], [Math.min(endMs, nowMs + 3 * 3600000), 0.72], [endMs, 1]];
+    const anchors = [];
+    rawAnchors.forEach(a => { if (!anchors.length || a[0] > anchors[anchors.length - 1][0] + 5 * 60000) anchors.push(a.slice()); });
+    if (anchors.length < 2) anchors.push([endMs, 1]);
+    anchors[anchors.length - 1][1] = 1;
+    const warp = ms => {
+      if (ms <= anchors[0][0]) return 0;
+      for (let k = 1; k < anchors.length; k++) {
+        if (ms <= anchors[k][0]) {
+          const [m0, f0] = anchors[k - 1], [m1, f1] = anchors[k];
+          return f0 + (f1 - f0) * (ms - m0) / (m1 - m0);
+        }
+      }
+      return 1;
+    };
+    const xOf = ms => PX0 + warp(ms) * (PX1 - PX0);
+    const yOf = p => PY1 - Math.max(0, Math.min(1, p == null ? 0 : p)) * (PY1 - PY0);
+
+    const runs = { measured: [], driver: [], forecast: [] };
+    let bandPath = '', prevSlot = null;
+    slots.forEach(s => {
+      const pt = xOf(s.t).toFixed(1) + ',' + yOf(s.chance.camera).toFixed(1);
+      const list = runs[s.source] || (runs[s.source] = []);
+      if (!prevSlot) list.push([pt]);
+      else if (prevSlot.source !== s.source) { const pl = runs[prevSlot.source]; pl[pl.length - 1].push(pt); list.push([pt]); }
+      else list[list.length - 1].push(pt);
+      prevSlot = s;
+    });
+    const dOf = arr => (arr || []).filter(a => a.length > 1).map(a => 'M' + a.join(' L')).join(' ');
+    if (slots.length > 1) {
+      const up = slots.map(s => xOf(s.t).toFixed(1) + ',' + yOf(s.hi.camera).toFixed(1));
+      const dn = slots.slice().reverse().map(s => xOf(s.t).toFixed(1) + ',' + yOf(s.lo.camera).toFixed(1));
+      bandPath = 'M' + up.join(' L') + ' L' + dn.join(' L') + ' Z';
+    }
+
+    /* peak, best window, and the stretch where an eye has a chance */
+    let peakCam = null, peakEye = null;
+    slots.forEach(s => {
+      if (s.chance.camera != null && (peakCam == null || s.chance.camera > peakCam)) peakCam = s.chance.camera;
+      if (s.chance.eye != null && (peakEye == null || s.chance.eye > peakEye)) peakEye = s.chance.eye;
+    });
+    const runBetween = (test) => {
+      let best = null, cur = null;
+      slots.forEach(s => {
+        if (test(s)) { if (!cur) cur = { from: s.t, to: s.t }; else cur.to = s.t; }
+        else if (cur) { if (!best || (cur.to - cur.from) > (best.to - best.from)) best = cur; cur = null; }
+      });
+      if (cur && (!best || (cur.to - cur.from) > (best.to - best.from))) best = cur;
+      return best && best.to > best.from ? best : null;
+    };
+    const darkFrom = t.darkWin ? t.darkWin.from.getTime() : null;
+    const darkTo = t.darkWin ? t.darkWin.to.getTime() : null;
+    const inDark = s => darkFrom == null || (s.t >= darkFrom && s.t <= darkTo);
+    const bestWin = peakCam != null && peakCam >= 0.3 ? runBetween(s => inDark(s) && s.chance.camera >= peakCam * 0.85) : null;
+    const eyeWin = peakEye != null && peakEye >= 0.5 ? runBetween(s => inDark(s) && s.chance.eye >= 0.5) : null;
+    const hhmm = ms => this.hhmm(new Date(ms));
+
+    /* the last three hours of Bz, in 20 buckets, faded where the wind has not arrived yet */
     const bars = [];
     const held = (w && w.series.length > 1) ? (w.series[w.series.length - 1].t - w.series[0].t) / 60000 : 60;
-    const winMin = Math.round(Math.min(120, Math.max(45, Math.min(held, (w && w.lag != null ? w.lag + 15 : 60)))));
+    const winMin = Math.round(Math.min(180, Math.max(60, Math.min(held, 180))));
     if (w && w.series.length) {
       const now = w.series[w.series.length - 1].t;
       const span = winMin * 60000, n0 = 20;
       const peak = Math.max(6, ...w.series.map(s => Math.abs(s.bz)));
-      for (let i = 0; i < n0; i++) {
-        const a = now - span + (i * span / n0), b = a + span / n0;
+      for (let i2 = 0; i2 < n0; i2++) {
+        const a = now - span + (i2 * span / n0), b = a + span / n0;
         const inBin = w.series.filter(s => s.t >= a && s.t < b);
-        if (!inBin.length) { bars.push({ h: 0, mt: 22, bg: 'transparent', op: '1', transit: false }); continue; }
+        if (!inBin.length) { bars.push({ h: 0, mt: 38, bg: 'transparent', op: '1' }); continue; }
         const v = inBin.reduce((x, y) => x + y.bz, 0) / inBin.length;
-        const h = Math.max(2, Math.round(Math.abs(v) / peak * 21));
+        const h = Math.max(2, Math.round(Math.abs(v) / peak * 35));
         const south = v < 0;
         const age = (now - (a + b) / 2) / 60000;
         const transit = w.lag != null && age < w.lag;
-        bars.push({
-          h, mt: south ? 23 : 23 - h,
-          bg: south ? 'var(--cool)' : 'rgba(var(--line-rgb),.4)',
-          op: transit ? '.42' : '1',
-          transit,
-        });
+        bars.push({ h, mt: south ? 38 : 38 - h, bg: south ? 'var(--cool)' : 'rgba(var(--line-rgb),.4)', op: transit ? '.42' : '1' });
       }
     }
     const earthPct = (w && w.lag != null) ? Math.max(0, Math.min(100, 100 - (w.lag / winMin) * 100)) : null;
 
-    /* the poleward horizon band */
-    const sectors = glow.sectors.map(sc => ({
-      o: (0.16 + sc.level * 0.84).toFixed(2),
-      h: (18 + sc.level * 82).toFixed(0),
-    }));
+    const sectors = glow.sectors.map(sc => ({ o: (0.12 + sc.level * 0.88).toFixed(2), h: (5 + sc.level * 95).toFixed(0) }));
 
-    /* the next five nights, with watches and the outlook folded in */
+    /* the nights after this one, in the same four words */
     const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const list = (st.nights || []).slice(0, 5).map((nn, i) => {
+    const list = (st.nights || []).slice(0, 5).map((nn, i2) => {
       const s2 = E.nightSummary(nn);
       const k2 = s2.darkWin ? E.kpForNight(st.kp, s2.darkWin) : null;
-      const kpv = k2 ? k2.peak : null;
+      let kpv = k2 ? k2.peak : null;
+      /* nights 4 and 5 fall off the end of the 3-day forecast, but the 27-day outlook carries a
+         daily figure for them: weaker, and labelled as such, but better than a dash */
+      let from27 = false;
+      if (kpv == null) { const o27 = E.outlookKp(s2.y, s2.m, s2.d); if (o27 != null) { kpv = o27; from27 = true; } }
       const g2 = E.auroraGeometry(kpv == null ? 2 : kpv);
       const watch = E.watchFor(s2.y, s2.m, s2.d);
       const cl = s2.cloud == null ? null : Math.round(s2.cloud);
       const dt = new Date(Date.UTC(s2.y, s2.m, s2.d));
+      /* Tonight's row reuses the same peak the headline is built from, cloud, moon and all.
+         Two independent answers to the same question on one screen is worse than none. */
+      const ch2 = i2 === 0 ? { camera: peakCam } : kpv == null ? { camera: null } : E.chanceAt(kpv, { bands, cloud: cl, bortle: glow.bortle });
+      const cw2 = E.chanceWord(ch2.camera);
       let word;
-      if (kpv == null) word = 'no Kp forecast this far out';
-      else if (!g2.reaches) word = 'sits too far ' + poleWord + ' to see from here';
-      else if (s2.darkHours < 0.25) word = 'never gets dark enough';
-      else if (cl != null && cl > 70) word = 'reaches you, but ' + cl + '% cloud';
-      else word = 'possible low in the ' + poleWord;
+      if (i2 === 0 && peakCam != null) word = cw2 === 'unlikely' ? 'unlikely from here tonight' : cw2 + ' on camera' + (nc && nc.total > 70 ? ', but cloud sits in the way' : '');
+      else if (kpv == null) word = 'no forecast reaches this far out';
+      else if (s2.darkHours < 0.25) word = 'never gets properly dark';
+      else if (cw2 === 'unlikely') word = g2.reaches ? 'unlikely, too quiet to reach here' : 'unlikely, the band stays well ' + poleWord;
+      else word = cw2 + ' on camera' + (cl != null && cl > 70 ? ', but the forecast is cloudy' : '');
+      /* a 27-day figure is the weakest signal in the app, so it never earns a strong word */
+      if (from27 && kpv != null) word = (cw2 === 'unlikely' ? word : 'possible at best') + ', from the longer-range outlook';
       return {
-        day: i === 0 ? 'Tonight' : DAYS[dt.getUTCDay()] + ' ' + s2.d,
-        kp: kpv == null ? '–' : 'Kp ' + Math.floor(kpv),
+        day: i2 === 0 ? 'Tonight' : DAYS[dt.getUTCDay()] + ' ' + s2.d,
         word,
         watchOn: !!watch,
         watchLabel: watch ? 'G' + watch.g + (watch.inEffect ? ' now' : ' watch') : '',
-        watchLine: watch ? (watch.inEffect ? 'Storm conditions in progress' : 'A CME is forecast to arrive on this night') : '',
-        bg: i === 0 ? 'rgba(var(--accent-rgb),.10)' : watch ? 'rgba(var(--accent-rgb),.07)' : 'rgba(var(--line-rgb),.04)',
-        bd: i === 0 ? 'rgba(var(--accent-rgb),.4)' : watch ? 'rgba(var(--accent-rgb),.34)' : 'rgba(var(--line-rgb),.11)',
-        fg: (i === 0 || watch) ? 'var(--text2)' : 'var(--faint)',
-        kpColour: kpv != null && kpv >= 5 ? 'var(--accent)' : 'var(--dim)',
-        dayColour: (i === 0 || watch) ? 'var(--text)' : 'var(--dim)',
+        watchLine: watch ? (watch.inEffect ? 'Storm conditions in progress' : 'A coronal mass ejection is forecast to reach us that night') : '',
+        bg: i2 === 0 ? 'rgba(var(--cool-rgb),.10)' : watch ? 'rgba(var(--accent-rgb),.08)' : 'rgba(var(--line-rgb),.04)',
+        bd: i2 === 0 ? 'rgba(var(--cool-rgb),.5)' : watch ? 'rgba(var(--accent-rgb),.34)' : 'rgba(var(--line-rgb),.11)',
+        fg: (i2 === 0 || watch) ? 'var(--text2)' : 'var(--faint)',
+        dayColour: (i2 === 0 || watch) ? 'var(--text)' : 'var(--dim)',
       };
     });
     const rec = E.recurrenceAhead(10);
     const recLine = rec ? ('Further out, the 27-day outlook lifts ' + rec.start.getUTCDate() + (rec.end > rec.start ? '\u2013' + rec.end.getUTCDate() : '') + ' ' + E.MONTHS[rec.end.getUTCMonth()] + ': the sun will have turned once by then, and a coronal hole may come back round. A tendency, not an appointment.') : '';
 
-    /* headline */
-    let head, sub;
-    if (!dark) { head = 'No real darkness tonight.'; sub = 'Nothing to see from here until the nights draw in again.'; }
-    else if (!geom.reaches) { head = 'Nothing from here tonight.'; sub = 'Kp ' + Math.floor(kp) + ' keeps the aurora well ' + poleWord + ' of you. It would take Kp ' + Math.min(9, Math.ceil((66.5 - Math.abs(geom.mlat)) / 2.07)) + ' to reach this latitude at all.'; }
-    else if (th.state === 'eye') { head = 'Worth standing outside.'; sub = 'The signal is past the point where an eye can pick it up, low in the ' + poleWord + '. Give yourself twenty minutes to dark adapt.'; }
-    else if (th.state === 'camera') { head = 'Camera, not eyes.'; sub = 'Enough for a long exposure pointed ' + poleWord + ', probably not enough to see standing there.'; }
-    else if (ws.open) { head = 'Loaded, but nothing yet.'; sub = 'The wind is switched on and the geometry works. Worth a look ' + poleWord + ' now and then.'; }
-    else { head = 'Quiet tonight.'; sub = 'Nothing in the wind or the forecast that puts aurora on your horizon.'; }
+    /* ---- the headline, in likelihood rather than promises ---- */
+    /* The bands ARE chanceWord's cuts: 0.80 very likely, 0.55 likely, 0.30 possible. Drawing them
+       anywhere else would let the curve sit under a line the sentences contradict. */
+    const yFor = q => PY1 - q * (PY1 - PY0);
+    const CUTS = [0.80, 0.55, 0.30];
+    const gridLines = CUTS.map((q, k) => ({ y: yFor(q).toFixed(1), colour: k === 1 ? 'rgba(var(--accent-rgb),.45)' : 'rgba(var(--line-rgb),.12)' }));
+    const edges = [PY0, ...CUTS.map(yFor), PY1];
+    const bandLabels = ['very likely', 'likely', 'possible', 'unlikely'].map((label, k) => ({
+      label,
+      top: ((edges[k] + edges[k + 1]) / 2 / 96 * 100).toFixed(1) + '%',
+      colour: k === 1 ? 'var(--accent)' : 'var(--faint)',
+    }));
 
-    const bandTop = Math.min(30, Math.max(geom.high, 1));
+    /* Clock ticks on the hour, thinned until they stop touching each other on a phone. */
+    const tickCand = [];
+    const h0 = new Date(nowMs); h0.setMinutes(0, 0, 0);
+    for (let k = -1; k <= 14; k++) {
+      const ms = h0.getTime() + k * 3600000;
+      if (ms > startMs && ms < endMs) tickCand.push({ ms });
+    }
+    tickCand.push({ ms: endMs });
+    const ticks = [];
+    tickCand.sort((a, b) => a.ms - b.ms).forEach(c => {
+      const x = xOf(c.ms);
+      if (ticks.length && x - ticks[ticks.length - 1].xv < 44) return;
+      if (Math.abs(x - xOf(nowMs)) < 26) return;
+      const pct = (x - PX0) / (PX1 - PX0) * 100;
+      ticks.push({
+        xv: x, x: x.toFixed(1), label: hhmm(c.ms),
+        left: Math.max(0, Math.min(100, pct)).toFixed(1) + '%',
+        tx: pct < 6 ? '0' : pct > 94 ? '-100%' : '-50%',
+      });
+    });
+
+    const camWord = E.chanceWord(peakCam), eyeWord = E.chanceWord(peakEye);
+    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+    let head, sub;
+    if (!dark) {
+      head = 'No real darkness tonight.';
+      sub = 'Nothing to see from here until the nights draw in again.';
+    } else if (peakCam == null) {
+      head = 'Waiting for the feeds.';
+      sub = 'No measurement and no forecast has arrived yet. Nothing here is worth reading until one does.';
+    } else if (cs.urgent && chanceNow.camera != null && chanceNow.camera >= 0.5) {
+      head = cs.key === 'climbing' ? 'Go outside.' : 'Loaded, and nothing has let go yet.';
+      sub = cs.line;
+    } else if (camWord === 'unlikely') {
+      head = 'Unlikely tonight.';
+      sub = 'Nothing in the measurements or the forecast puts aurora within reach of ' + poleWord + ' from here. It would take about Hp ' + bands.camera.likely.toFixed(1) + ' for a camera to stand a chance.';
+    } else {
+      head = cap(camWord) + ' on camera. ' + (eyeWord === 'unlikely' ? 'Probably not to your eye.' : eyeWord === 'possible' ? 'Possible to your eye at the peak.' : 'Likely to your eye as well.');
+      const wide = bestWin && (bestWin.to - bestWin.from) > 4 * 3600000;
+      sub = 'A long exposure pointed ' + poleWord + ' has a ' + camWord + ' chance of picking up colour low in the sky'
+        + (wide ? ', fairly evenly through the dark hours' : bestWin ? ', best between ' + hhmm(bestWin.from) + ' and ' + hhmm(bestWin.to) : '')
+        + '. ' + (eyeWord === 'unlikely' ? 'Standing there looking at it, you would most likely see a pale grey haze rather than colour.' : 'At the peak it may be bright enough to see standing there.');
+    }
+
+    /* Ticks sit at their true level; the labels are spread so they stay readable on a phone, and
+       far enough north all three thresholds collapse onto the same point. */
+    const pctOf = v => Math.max(0, Math.min(96, v / 9 * 100));
+    const camPct = pctOf(bands.camera.likely), eyePct = pctOf(bands.eye.likely), overPct = pctOf(bands.overhead.likely);
+    let camLab = Math.max(12, Math.min(88, camPct));
+    let eyeLab = Math.max(camLab + 17, Math.min(88, eyePct));
+    let overLab = Math.max(eyeLab + 17, overPct);
+    if (overLab > 88) { const sh = overLab - 88; overLab = 88; eyeLab = Math.max(29, eyeLab - sh); camLab = Math.min(camLab, eyeLab - 17); }
+
+    const hpTrendLine = !hp ? '' : hp.dir === 'rising'
+      ? 'up from ' + (hp.prev2 != null ? hp.prev2.toFixed(1) + ', ' : '') + (hp.prev != null ? hp.prev.toFixed(1) : '')
+      : hp.dir === 'falling'
+        ? 'down from ' + (hp.prev != null ? hp.prev.toFixed(1) : '')
+        : 'steady';
+    const hpiVal = hemi ? Math.round(geom.poleward === 'north' ? hemi.north : hemi.south) : null;
+
     return {
       aurReady: true,
       aurHead: head, aurSub: sub,
-      aurLive: E.state.windStatus === 'live' && w && !w.stale,
-      aurStamp: w ? this.hhmm(new Date(w.at)) : '–',
-      aurBz: w && w.bz != null ? (w.bz > 0 ? '+' : '') + w.bz.toFixed(1) : '–',
-      aurBzColour: w && w.bz != null && w.bz < -2 ? 'var(--cool)' : 'var(--text)',
-      aurState: ws.label, aurStateOn: ws.open ? 'on' : 'off',
-      aurStateColour: ws.open ? 'var(--cool)' : 'var(--dim)',
-      aurRun: w && w.run ? 'south ' + w.run + ' min' : '',
-      aurTier: ws.tier,
-      aurTrend: w && w.mean30 != null
-        ? 'Mean ' + w.mean30.toFixed(1) + ' nT over the last half hour, below zero for ' + Math.round((w.southFrac || 0) * 100) + '% of it.'
-        : 'Waiting for the spacecraft.',
-      aurSpeed: w && w.speed ? String(Math.round(w.speed)) : '–',
-      aurSpeedWord: w && w.speed ? (w.speed >= 600 ? 'fast' : w.speed >= 450 ? 'brisk' : 'slow') : '',
-      aurSpeedFill: w && w.speed ? (w.speed >= 600 ? 3 : w.speed >= 450 ? 2 : 1) : 0,
-      aurBt: w && w.bt != null ? w.bt.toFixed(1) : '–',
-      aurBtWord: w && w.bt != null ? (w.bt >= 15 ? 'strong' : w.bt >= 8 ? 'moderate' : 'weak') : '',
-      aurBtFill: w && w.bt != null ? (w.bt >= 15 ? 3 : w.bt >= 8 ? 2 : 1) : 0,
-      aurSouth: w && w.southFrac != null ? Math.round(w.southFrac * 100) + '%' : '–',
-      aurSouthWord: w && w.southFrac != null ? (w.southFrac >= 0.75 ? 'mostly south' : w.southFrac >= 0.4 ? 'mixed' : 'mostly north') : '',
-      aurSouthFill: w && w.southFrac != null ? (w.southFrac >= 0.75 ? 3 : w.southFrac >= 0.4 ? 2 : 1) : 0,
+      aurMetaLine: (t.darkWin ? 'Dark ' + this.hhmm(t.darkWin.from) + '\u2013' + this.hhmm(t.darkWin.to) : 'No astronomical darkness tonight')
+        + (hp ? ' \u00b7 ' + (hp.estimated ? 'Kp ' : 'Hp ') + hp.value.toFixed(1) + ' now' : ''),
+
+      /* chance through the night */
+      aurCurveOn: slots.length > 1,
+      aurBandPath: bandPath,
+      aurMeasPath: dOf(runs.measured),
+      aurDriverPath: dOf(runs.driver),
+      aurCastPath: dOf(runs.forecast),
+      aurNowX: xOf(nowMs).toFixed(1),
+      aurArrOn: !!(wd && wd.arrivalMin != null && xOf(arrMs) - xOf(nowMs) > 30),
+      aurArrX: xOf(arrMs).toFixed(1),
+      aurArrLabelX: (xOf(arrMs) + 3).toFixed(1),
+      aurLightOn: !!(darkFrom && darkFrom > startMs),
+      aurLightW: darkFrom ? Math.max(0, xOf(darkFrom) - PX0).toFixed(1) : '0',
+      aurLightX2: darkTo ? xOf(darkTo).toFixed(1) : String(PX1),
+      aurLightW2: darkTo ? Math.max(0, PX1 - xOf(darkTo)).toFixed(1) : '0',
+      aurEyeLine: eyeWin ? 'Your eyes have a chance between ' + hhmm(eyeWin.from) + ' and ' + hhmm(eyeWin.to) + '.' : '',
+      aurEyeBrOn: !!eyeWin,
+      aurEyeBrX1: eyeWin ? xOf(eyeWin.from).toFixed(1) : '0',
+      aurEyeBrX2: eyeWin ? xOf(eyeWin.to).toFixed(1) : '0',
+      aurEyeBrMid: eyeWin ? ((xOf(eyeWin.from) + xOf(eyeWin.to)) / 2).toFixed(1) : '0',
+      aurTicks: ticks,
+      aurGrid: gridLines,
+      aurBandLabels: bandLabels,
+      aurNowPct: (xOf(nowMs) / 404 * 100).toFixed(1) + '%',
+      aurArrPct: ((xOf(arrMs) + 4) / 404 * 100).toFixed(1) + '%',
+      aurScaleNote: waiting
+        ? 'The dark hours take two thirds of the width, because that is what you are planning for. The wait until then is squeezed, and the next hour keeps just enough room to read.'
+        : 'The next hour takes up half the width, because that is the part worth acting on. The rest of the night is squeezed in behind it.',
+      aurBestLine: bestWin && (bestWin.to - bestWin.from) > 4 * 3600000
+        ? 'Fairly flat across the night, with no single best window. One line, three sources: it fades from measurement into forecast as the night goes on, and the band widens as the inherent uncertainty increases.'
+        : bestWin
+        ? 'Best window looks like ' + hhmm(bestWin.from) + ' to ' + hhmm(bestWin.to) + '. One line, three sources: it fades from measurement into forecast as the night goes on, and the band widens as the inherent uncertainty increases.'
+        : 'One line, three sources: it fades from measurement into forecast as the night goes on, and the band widens as the inherent uncertainty increases.',
+      aurArrLegend: wd && wd.arrivalMin != null ? 'already on its way, arrives about ' + hhmm(nowMs + wd.arrivalMin * 60000) : 'already on its way',
+
+      /* right now */
+      aurCoupleLabel: cs.label, aurCoupleLine: cs.line,
+      aurCoupleColour: cs.urgent ? 'var(--cool)' : 'var(--dim)',
+      aurCoupleBd: cs.urgent ? 'var(--cool)' : 'rgba(var(--line-rgb),.14)',
+      aurHpOn: !!hp,
+      aurHpVal: hp ? (hp.estimated ? 'Kp ' : 'Hp ') + hp.value.toFixed(1) : '\u2013',
+      aurHpTag: hp ? (hp.estimated ? 'estimated' : 'measured') : 'no reading',
+      aurHpTagColour: hp && hp.estimated ? 'var(--accent)' : 'var(--dim)',
+      aurHpStamp: hp ? this.hhmm(new Date(hp.at)) : '\u2013',
+      aurHpTrend: hpTrendLine,
+      aurHpArrow: !hp ? '' : hp.dir === 'rising' ? '\u2191' : hp.dir === 'falling' ? '\u2193' : '\u2192',
+      aurHpSource: !hp ? '' : hp.estimated ? 'NOAA estimate, standing in for Hp30' : 'GFZ Hp30, half-hourly',
+      aurBzArrow: !wd || wd.trend == null ? '' : wd.trend <= -2 ? '\u2193' : wd.trend >= 2 ? '\u2191' : '\u2192',
+      aurBzArrowColour: !wd || wd.trend == null ? 'var(--faint)' : wd.trend <= -2 ? 'var(--cool)' : 'var(--faint)',
+      aurBzTrendWord: !wd || wd.trend == null ? '' : wd.trend <= -2 ? 'swinging further south' : wd.trend >= 2 ? 'swinging back north' : 'holding steady',
+      aurHpTrendColour: hp && hp.dir === 'rising' ? 'var(--cool)' : 'var(--faint)',
+      aurHpLine: !hp ? 'The index feed has not answered. The forecast below still works.'
+        : hp.estimated ? 'The half-hourly measurement cannot be fetched straight into a browser, so this is NOAA\u2019s own minute estimate instead.'
+        : chanceNow.camera != null && chanceNow.camera >= 0.55 ? 'Past your camera mark' + (chanceNow.eye >= 0.5 ? ', and past your eye mark too.' : ', short of your eye mark.')
+        : 'Below what it would take to show from here.',
+      aurWindOn: !!wd,
+      aurBz: wd && wd.bzSus != null ? (wd.bzSus > 0 ? '+' : '') + wd.bzSus.toFixed(1) : '\u2013',
+      aurBzColour: wd && wd.bzSus != null && wd.bzSus <= -5 ? 'var(--cool)' : 'var(--text)',
+      aurSpeed: wd ? String(Math.round(wd.speed)) : '\u2013',
+      aurArrive: wd ? 'arrives ~' + hhmm(nowMs + wd.arrivalMin * 60000) : '',
+      aurBzLine: !wd ? 'The L1 magnetometer feed is down, so there is no early warning tonight, only the measurement and the forecast.'
+        : wd.bzSus != null && wd.bzSus <= -5
+          ? 'Pointing south for ' + wd.southRun + ' minutes, which is the direction that lets energy in.'
+          : 'Pointing north, which is the direction that keeps the door shut.',
       aurBars: bars,
-      aurSpeedSegs: this.segs(w && w.speed ? (w.speed >= 600 ? 3 : w.speed >= 450 ? 2 : 1) : 0),
-      aurBtSegs: this.segs(w && w.bt != null ? (w.bt >= 15 ? 3 : w.bt >= 8 ? 2 : 1) : 0),
-      aurSouthSegs: this.segs(w && w.southFrac != null ? (w.southFrac >= 0.75 ? 3 : w.southFrac >= 0.4 ? 2 : 1) : 0),
       aurEarthOn: earthPct != null, aurEarthLeft: earthPct == null ? 0 : earthPct.toFixed(1) + '%',
-      aurWinLabel: 't\u2212' + winMin,
-      aurLagLine: w && w.lag != null ? 'At ' + Math.round(w.speed) + ' km/s the wind takes ' + w.lag + ' min to reach us' : '',
+      aurLoadLine: !wd ? '' : 'Banked so far tonight: ' + wd.sbzh.toFixed(1) + ' nT\u00b7h'
+        + (hpiVal != null ? ', and ' + hpiVal + ' GW going into the ' + poleWord + 'ern sky' : '')
+        + (wd.heavy ? '. Enough behind it to run for hours.' : wd.loaded ? '. Some fuel behind it.' : '.'),
       aurStale: !!(w && w.stale),
-      aurSignal: th.signal == null ? '–' : Math.round(th.signal) + '%',
-      aurFill: th.signal == null ? '0%' : Math.round(Math.min(100, th.signal)) + '%',
-      aurFillLabel: th.signal == null ? '50%' : Math.max(16, Math.min(84, Math.round(th.signal))) + '%',
-      aurCam: Math.round(th.camera) + '%', aurEye: Math.round(th.eye) + '%',
-      aurGaugeWord: th.state === 'eye' ? 'Eye and camera' : th.state === 'camera' ? 'Camera, not eyes' : th.state === 'quiet' ? 'Below both notches' : 'No model reading',
-      threshPoleWord: poleWord,
-      /* What colour to expect depends entirely on how far up the arc you are standing: green
-         overhead near the oval, red at the bottom of it from further away. */
-      threshColourNote: absLat >= 62
-        ? 'and this far ' + poleWord + ' it is usually green, high enough to be overhead rather than a glow on the horizon'
-        : absLat >= 48
-          ? 'often pink or red at mid-latitude rather than the green everyone expects'
-          : 'and from this latitude it is almost always a deep red glow rather than green',
-      aurProb: th.pole == null ? '–' : Math.round(th.pole) + '%',
-      aurProbLine: 'that aurora is out there, low to the ' + poleWord + '. Whether it is bright enough to see is the gauge above.',
-      aurOwn: th.own == null ? '–' : Math.round(th.own) + '%',
-      aurGeomLine: 'Your geomagnetic latitude is ' + geom.mlat.toFixed(1) + '\u00b0' + (geom.poleward === 'north' ? 'N' : 'S') + ', and tonight’s Kp puts the band about ' + geom.km + ' km ' + poleWord + ' of you.'
-        + (!geom.reaches ? ' That is beyond where it can be seen from here at all, so the band above is empty: the aurora would have to come several hundred kilometres closer first.'
-          : geom.overhead ? ' That is close enough to be overhead.'
-          : ' From here it would stand ' + geom.low.toFixed(0) + ' to ' + geom.high.toFixed(0) + '\u00b0 above the horizon, about the width of your hand held out at arm’s length.'),
-      aurBandOn: geom.reaches,
-      aurBandBottom: (16 + Math.max(0, geom.low) * 2.4).toFixed(1) + 'px',
-      aurPoleWord: poleWord,
-      aurBandHeight: Math.max(4, (bandTop - Math.max(0, geom.low)) * 2.4).toFixed(1) + 'px',
+
+      /* what it takes from here */
+      aurCamPct: camPct.toFixed(1) + '%',
+      aurEyePct: eyePct.toFixed(1) + '%',
+      aurOverPct: overPct.toFixed(1) + '%',
+      aurCamLabPct: camLab.toFixed(1) + '%',
+      aurEyeLabPct: eyeLab.toFixed(1) + '%',
+      aurOverLabPct: overLab.toFixed(1) + '%',
+      aurLevelPct: levelNow == null ? '0%' : Math.min(100, levelNow / 9 * 100).toFixed(1) + '%',
+      aurLevelLabelPct: levelNow == null ? '50%' : Math.max(11, Math.min(89, levelNow / 9 * 100)).toFixed(1) + '%',
+      aurLevelLabel: levelNow == null ? '\u2013' : (hp && hp.estimated ? 'Kp ' : 'Hp ') + levelNow.toFixed(1),
+      aurCamWord: E.chanceWord(peakCam), aurCamHp: 'Hp ' + bands.camera.likely.toFixed(1),
+      aurEyeWord: E.chanceWord(peakEye), aurEyeHp: 'Hp ' + bands.eye.likely.toFixed(1),
+      aurOverWord: bands.overhead.likely >= 9 ? 'not from this latitude' : 'unlikely, but not impossible',
+      aurOverHp: 'Hp ' + bands.overhead.likely.toFixed(1),
+      aurCamColour: peakCam != null && peakCam >= 0.55 ? 'var(--cool)' : 'var(--faint)',
+      aurEyeColour: peakEye != null && peakEye >= 0.55 ? 'var(--cool)' : peakEye != null && peakEye >= 0.3 ? 'var(--accent)' : 'var(--faint)',
+      aurMagLine: 'Magnetic latitude ' + Math.abs(bands.mlat).toFixed(1) + '\u00b0' + (geom.poleward === 'north' ? 'N' : 'S')
+        + ', so the band has to stretch ' + Math.round(Math.max(0, geom.gap)) + '\u00b0 to reach you, about ' + geom.km + ' km ' + poleWord + '.',
+
+      /* your sky */
+      aurSkyLabel: 'Cloud ' + poleWord,
+      aurCloud: nc ? Math.round(nc.total) + '%' : '\u2013',
+      aurCloudSub: nc ? Math.round(nc.low) + '% of it low' : 'no reading for that sky',
+      aurCloudColour: nc && nc.total <= 35 ? 'var(--cool)' : nc && nc.total >= 70 ? 'var(--accent)' : 'var(--text)',
+      aurMoon: Math.round(moonIll * 100) + '%',
+      aurMoonSub: moonUp ? (n.moonWin ? 'up until ' + this.hhmm(n.moonWin.to) : 'up tonight') : 'down all night',
+      aurDarkAt: t.darkWin ? this.hhmm(t.darkWin.from) : '\u2013',
+      aurDarkSub: t.darkWin ? 'until ' + this.hhmm(t.darkWin.to) : 'no darkness',
+      aurSkyLine: (nc && nc.total <= 35 ? 'Little cloud over the ' + poleWord + 'ern sky tonight' : nc && nc.total >= 70 ? 'Cloud sits over the part of the sky the arc would be in' : 'Mixed cloud over the ' + poleWord + 'ern sky')
+        + (moonUp && moonIll > 0.4 ? ', and a bright moon up for part of it, which will wash out a faint arc.' : moonUp ? ', and a thin moon up for part of it.' : ', and no moon up.'),
       aurSectors: sectors,
-      aurSkyLabel: (geom.poleward === 'north' ? 'Northern' : 'Southern') + ' sky',
       aurCompassA: geom.poleward === 'north' ? 'NW' : 'SE',
       aurCompassB: geom.poleward === 'north' ? 'N' : 'S',
       aurCompassC: geom.poleward === 'north' ? 'NE' : 'SW',
-      aurHorizonLabel: 'Your ' + Poleward + ' horizon',
-      aurHorizonRange: glow.label,
+      aurHorizonLabel: 'Your ' + Poleward.toLowerCase() + ' horizon',
       aurHorizonLine: glow.bortle == null ? 'The atlas does not cover this site.'
         : 'Bortle ' + glow.bortle + ' looking ' + poleWord + ' against ' + (glow.zenithBortle == null ? '\u2013' : glow.zenithBortle) + ' overhead'
-          + (glow.worst ? ', with the worst of the glow ' + E.compass(glow.worst.brg) + '.' : ', with nothing much in the way.'),
-      aurCloud: nc ? Math.round(nc.total) + '%' : '–',
-      aurCloudSub: nc ? 'cloud, ' + Math.round(nc.low) + '% of it low' : 'no reading for that sky',
-      aurDamp: n.rh != null ? Math.round(n.rh) + '%' : '–',
-      aurDampSub: n.dewGap != null ? n.dewGap.toFixed(1) + '\u00b0 off dew' : 'humidity only',
-      aurMoon: Math.round(moonIll * 100) + '%',
-      aurMoonSub: moonUp ? (n.moonWin ? 'up ' + this.hhmm(n.moonWin.to) : 'up tonight') : 'down all night',
-      aurDampLine: 'Damp air is the quiet killer of a low arc: it takes whatever light is about and smears it across exactly the part of the sky you need.'
-        + (moonUp && moonIll > 0.4 ? ' With the moon this bright in air this wet, expect the ' + poleWord + 'ern horizon to be washed out whatever the wind does.' : ' Tonight the moon is not the problem.'),
+          + (glow.worst ? ', with the worst of the glow ' + E.compass(glow.worst.brg) + '.' : ', with nothing much in the way.')
+          + ' The bars are on a fixed scale, so full height is a town-lit horizon and a dark one is nearly flat.',
+      aurDampLine: 'Damp air is the quiet killer of a low arc: it takes whatever light is about and smears it across exactly the part of the sky you need. Humidity is '
+        + (n.rh != null ? Math.round(n.rh) + '%' : 'unknown') + ' tonight'
+        + (moonUp && moonIll > 0.4 ? ', which under a moon this bright is a problem.' : ', which under a moon this thin is not.'),
+      aurPoleWord: poleWord,
       aurNights: list,
       aurRecOn: !!rec, aurRecLine: recLine,
-      aurDarkLine: t.darkWin ? 'Dark ' + this.hhmm(t.darkWin.from) + '\u2013' + this.hhmm(t.darkWin.to) : 'No astronomical darkness tonight',
-      aurKpLine: 'Kp ' + Math.floor(kp) + ' forecast for the dark hours',
     };
   }
 

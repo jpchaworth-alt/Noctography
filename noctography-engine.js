@@ -1183,12 +1183,89 @@ function kpForNight(kp, win){
   return { peak: peak.kp, at: peak.t, series: s, first: s[0].kp, last: s[s.length - 1].kp };
 }
 
-async function geocode(q){
+/* Place search. Photon (Komoot, on OpenStreetMap) is the primary because it takes a proximity bias
+   and knows the places people actually drive to at night: fens, reserves, viewpoints, car parks.
+   Open-Meteo only indexes populated places ranked by population, which is why searching "Newton"
+   from Cambridgeshire returned eight American towns and no English villages. It stays as the
+   fallback. Both are free, keyless and CORS-open.
+
+   OSM answers a place name with everything that carries it: the village, its parish boundary, a
+   signpost, and a suburban street named after it two counties away. So results are ranked by what
+   kind of thing they are before how far away they are, and the raw tag is never shown to anyone. */
+const GEO_DROP_KEYS = ['highway', 'building', 'information', 'barrier', 'man_made', 'power', 'railway',
+  'office', 'shop', 'craft', 'healthcare', 'emergency', 'advertising', 'entrance', 'traffic_sign'];
+const GEO_PLACE = ['city', 'town', 'village', 'hamlet', 'suburb', 'locality', 'isolated_dwelling', 'farm', 'island', 'islet'];
+/* what a person would call it, or nothing at all */
+const GEO_KIND = {
+  administrative: 'parish', nature_reserve: 'nature reserve', camp_site: 'campsite',
+  caravan_site: 'caravan site', parking: 'car park', viewpoint: 'viewpoint', attraction: 'attraction',
+  picnic_site: 'picnic site', beach: 'beach', water: 'lake', wetland: 'wetland', wood: 'wood',
+  heath: 'heath', moor: 'moor', peak: 'hill', bay: 'bay', cape: 'headland', cliff: 'cliff',
+  common: 'common', park: 'park', forest: 'forest', meadow: 'meadow', reservoir: 'reservoir',
+};
+function geoRank(key, val){
+  if(key === 'place' && GEO_PLACE.indexOf(val) >= 0) return 0;      // the village itself
+  if(key === 'boundary' && val === 'administrative') return 1;      // its parish, near enough
+  if(key === 'leisure' && val === 'nature_reserve') return 1;
+  if(key === 'natural' || key === 'landuse' || key === 'historic') return 2;
+  if(key === 'tourism') return val === 'viewpoint' ? 1 : 3;
+  if(key === 'amenity') return (val === 'parking' || val === 'picnic_site') ? 3 : 5;
+  if(key === 'leisure' || key === 'place') return 3;
+  return 4;
+}
+function geoNorm(s){ return String(s).toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim(); }
+async function geocode(q, near){
+  const want = geoNorm(q);
+  const bias = near && near.lat != null ? '&lat=' + near.lat.toFixed(3) + '&lon=' + near.lon.toFixed(3) : '';
+  const kmTo = (la, lo) => {
+    if(!near || near.lat == null) return null;
+    const R = 6371, d = Math.PI / 180;
+    const dla = (la - near.lat) * d, dlo = (lo - near.lon) * d;
+    const h = Math.sin(dla / 2) ** 2 + Math.cos(near.lat * d) * Math.cos(la * d) * Math.sin(dlo / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  };
   try{
-    const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?count=5&language=en&format=json&name=' + encodeURIComponent(q));
+    const r = await fetch('https://photon.komoot.io/api/?limit=20&lang=en&q=' + encodeURIComponent(q) + bias);
+    if(!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
-    return j.results || [];
-  }catch(e){ return []; }
+    const out = [];
+    (j.features || []).forEach(f => {
+      const pr = f.properties || {}, c = (f.geometry && f.geometry.coordinates) || [];
+      if(!isFinite(c[0]) || !isFinite(c[1]) || !pr.name) return;
+      const key = pr.osm_key, val = pr.osm_value;
+      if(GEO_DROP_KEYS.indexOf(key) >= 0) return;
+      const rank = geoRank(key, val);
+      if(rank >= 4) return;
+      const row = {
+        name: pr.name,
+        admin1: pr.state || null,
+        admin2: pr.county || pr.district || pr.city || null,
+        country: pr.country || null,
+        country_code: pr.countrycode || null,
+        kind: GEO_KIND[val] || (GEO_PLACE.indexOf(val) >= 0 ? val : null),
+        rank,
+        /* what you typed beats what is nearest: an exact name is the strongest signal there is */
+        tier: geoNorm(pr.name) === want ? 0 : geoNorm(pr.name).indexOf(want) === 0 ? 1 : 2,
+        latitude: c[1], longitude: c[0],
+        km: kmTo(c[1], c[0]),
+      };
+      /* the village and its parish boundary are the same answer: keep the better-named one */
+      const near2 = out.findIndex(x => x.name === row.name
+        && Math.abs(x.latitude - row.latitude) < 0.05 && Math.abs(x.longitude - row.longitude) < 0.05);
+      if(near2 >= 0){ if(row.tier < out[near2].tier || (row.tier === out[near2].tier && row.rank < out[near2].rank)) out[near2] = row; return; }
+      out.push(row);
+    });
+    /* kind of thing first, distance second: a street named after a village is not the village */
+    out.sort((a, b) => (a.tier - b.tier) || (a.rank - b.rank) || ((a.km == null ? 0 : a.km) - (b.km == null ? 0 : b.km)));
+    if(out.length) return out.slice(0, 8);
+    throw new Error('no usable hits');
+  }catch(err){
+    try{
+      const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&format=json&name=' + encodeURIComponent(q));
+      const j = await r.json();
+      return (j.results || []).map(x => ({ ...x, kind: null, rank: 0, tier: 0, km: kmTo(x.latitude, x.longitude) }));
+    }catch(e2){ return []; }
+  }
 }
 
 /* Rough home location from the browser timezone, for when GPS is refused. */
@@ -1337,7 +1414,8 @@ async function loadSolarWind(){
   const get = async u => { const r = await fetch(u); if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); };
   const parse = t => Date.parse(/[zZ]$/.test(String(t)) ? String(t) : String(t).replace(' ', 'T') + 'Z');
   try{
-    const keepMin = Math.max(90, ((state.wind && state.wind.lag) || 60) + 30);
+    /* 195 minutes because the coupling integrals below want a full three hours behind them */
+    const keepMin = Math.max(195, ((state.wind && state.wind.lag) || 60) + 30);
     let series = (state.wind && state.wind.series) || [];
     const seedAge = Date.now() - (state.windSeedAt || 0);
     if(!series.length || seedAge > 15 * 60000){
@@ -1347,7 +1425,7 @@ async function loadSolarWind(){
         const t = parse(r.time_tag), bz = parseFloat(r.bz_gsm);
         if(!isFinite(t) || !isFinite(bz)) continue;
         if(Date.now() - t > keepMin * 60000) break;
-        seeded.push({ t, bz, bt: isFinite(parseFloat(r.bt)) ? parseFloat(r.bt) : null });
+        seeded.push({ t, bz, bt: isFinite(parseFloat(r.bt)) ? parseFloat(r.bt) : null, by: isFinite(parseFloat(r.by_gsm)) ? parseFloat(r.by_gsm) : null });
       }
       seeded.reverse();
       if(seeded.length){ series = seeded; state.windSeedAt = Date.now(); state.windSource = rows[0] && rows[0].source || null; }
@@ -1356,7 +1434,7 @@ async function loadSolarWind(){
     const m = nowMag && nowMag[0], sp = nowSpeed && nowSpeed[0];
     if(m && isFinite(parseFloat(m.bz_gsm))){
       const t = parse(m.time_tag);
-      if(!series.length || t > series[series.length - 1].t) series = series.concat([{ t, bz: parseFloat(m.bz_gsm), bt: isFinite(parseFloat(m.bt)) ? parseFloat(m.bt) : null }]);
+      if(!series.length || t > series[series.length - 1].t) series = series.concat([{ t, bz: parseFloat(m.bz_gsm), bt: isFinite(parseFloat(m.bt)) ? parseFloat(m.bt) : null, by: isFinite(parseFloat(m.by_gsm)) ? parseFloat(m.by_gsm) : null }]);
     }
     series = series.filter(s => Date.now() - s.t <= keepMin * 60000);
     if(!series.length) throw new Error('no mag samples');
@@ -1436,6 +1514,18 @@ function ovationScan(lat, lon){
 }
 
 /* ---- what the sky in that direction is actually like ---- */
+/* Horizon glow is drawn on an ABSOLUTE scale, not against the worst sector in view: a pristine
+   horizon has to look pristine. The quantity is artificial brightness as a multiple of the natural
+   sky, distance-weighted, and full height is GLOW_FULL, about what a town-lit Bortle 7 horizon
+   reads. Logarithmic, because brightness is, and because the eye is.
+     ratio 0.1 (Bortle 1) -> 3%     0.9 (Bortle 3) -> 19%
+     2.7  (Bortle 4)      -> 38%    10.5 (Bortle 5) -> 71%    30 (Bortle 7) -> 100% */
+const GLOW_FULL = 30;
+function glowLevel(meanRatio){
+  if(meanRatio == null || !(meanRatio > 0)) return 0;
+  return clamp(Math.log10(1 + meanRatio) / Math.log10(1 + GLOW_FULL), 0, 1);
+}
+
 /* The atlas sampled across the poleward quarter, out to where a low arc sits. Near glow dominates
    a horizon, so each sample is weighted by distance. */
 function polewardGlow(lat, lon){
@@ -1446,7 +1536,7 @@ function polewardGlow(lat, lon){
   let sqmSum = 0, sqmWt = 0;
   for(let i = 0; i < 10; i++){
     const brg = (centre - 45 + i * 10 + 360) % 360;
-    let art = 0, got = 0, sqm = null;
+    let art = 0, wsum = 0, got = 0, sqm = null;
     [15, 40, 80, 140].forEach(km => {
       const p = destPoint(lat, lon, brg, km);
       const a = atlasSky(p.lat, p.lon);
@@ -1455,14 +1545,14 @@ function polewardGlow(lat, lon){
       if(sqm == null || a.sqm < sqm) sqm = a.sqm;
       const ratio = Math.max(0, Math.pow(10, (22.0 - a.sqm) / 2.5) - 1);
       const w = 1 / (1 + km / 40);
-      art += ratio * w;
+      art += ratio * w; wsum += w;
       sqmSum += a.sqm * w; sqmWt += w;
     });
-    sectors.push({ brg, art: got ? art : null, sqm });
+    sectors.push({ brg, art: got && wsum ? art / wsum : null, sqm });
   }
-  const arts = sectors.map(s => s.art).filter(v => v != null);
-  const peak = arts.length ? Math.max(...arts) : 0;
-  sectors.forEach(s => { s.level = (s.art == null || peak <= 0) ? 0 : clamp(s.art / peak, 0, 1); });
+  sectors.forEach(s => { s.level = glowLevel(s.art); });
+  const arts = sectors.map(s => s.art).filter(v => v != null).sort((x, y) => x - y);
+  const median = arts.length ? arts[Math.floor(arts.length / 2)] : 0;
   const meanSqm = sqmWt ? sqmSum / sqmWt : null;
   const worst = sectors.reduce((a, b) => (b.art != null && (!a || b.art > a.art)) ? b : a, null);
   return {
@@ -1470,7 +1560,7 @@ function polewardGlow(lat, lon){
     bortle: meanSqm == null ? null : bortleFor(meanSqm),
     zenithSqm: zen ? zen.sqm : null,
     zenithBortle: zen ? bortleFor(zen.sqm) : null,
-    worst: worst && worst.art > 0.15 ? worst : null,
+    worst: worst && worst.art > 0.3 && worst.art > median * 1.5 ? worst : null,
     label: lat >= 0 ? 'NW to NE' : 'SE to SW',
   };
 }
@@ -1500,13 +1590,12 @@ function allSkyGlow(lat, lon, opts){
       const w = 1 / (1 + km / 35);
       art += ratio * w; wsum += w;
     });
-    return { name, brg, art: wsum ? art * haze : null, sqm };
+    return { name, brg, art: wsum ? (art / wsum) * haze : null, sqm };
   });
   const arts = sectors.map(s => s.art).filter(v => v != null);
   const peak = arts.length ? Math.max(...arts) : 0;
   const low = arts.length ? Math.min(...arts) : 0;
-  /* square root, because the eye reads a horizon glow far more gently than the photometry does */
-  sectors.forEach(s => { s.level = (s.art == null || peak <= 0) ? 0 : clamp(Math.sqrt(s.art / peak), 0, 1); });
+  sectors.forEach(s => { s.level = glowLevel(s.art); });
   const worst = sectors.reduce((a, b) => (b.art != null && (!a || b.art > a.art)) ? b : a, null);
   const best = sectors.reduce((a, b) => (b.art != null && (!a || b.art < a.art)) ? b : a, null);
   return {
@@ -1649,6 +1738,378 @@ function recurrenceAhead(skipDays){
   return runs.length ? runs[0] : null;
 }
 
+/* ============================ aurora v2: measured now, driven next, forecast later ============================
+   Three sources answer the same question over different stretches of the night, and the job of
+   everything below is to turn them into one likelihood for this site rather than three indices.
+
+     up to now      Hp30, a half-hourly measurement of how disturbed the field actually is
+     next 15-90 min the solar wind at L1, which has left the spacecraft and not yet arrived
+     after that     NOAA's three-hourly Kp forecast, faded in as the live picture decays
+
+   Kp is capped at 9 and averaged over three hours; Hp30 is neither, which is why it can carry a
+   slope worth reading. That slope, crossed with the driving, is the whole of couplingState(). */
+
+const AURORA_CAL = {
+  A: 66.5, B: 2.07,                       // oval edge: boundaryLat = A - B x level
+  OFFSET: { overhead: 0, eye: 3, camera: 6 },  // degrees equatorward the band is still reachable
+  LIKELY: 1.0,                            // index units between "possible" and "likely"
+  TAU_PERSIST_MIN: 90,                    // half life of confidence in the live picture
+  HP_FRESH_MIN: 45,
+  V_DEFAULT: 450,
+  NEWELL_TO_G: [[0, 0], [1500, 2], [4000, 3.5], [8000, 5], [15000, 7], [25000, 8.5], [40000, 10]],
+};
+
+/* ---- Hp30: the measured half-hourly index, with estimated Kp as the understudy ---- */
+const HP30_URL = 'https://kp.gfz.de/app/json/';
+const KP_EST_URL = 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json';
+async function loadHp30(){
+  const iso = t => new Date(t).toISOString().slice(0, 19) + 'Z';
+  try{
+    const url = HP30_URL + '?start=' + iso(Date.now() - 6 * 3600000) + '&end=' + iso(Date.now()) + '&index=Hp30';
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const times = j.datetime || [], vals = j.Hp30 || [];
+    const series = [];
+    for(let i = 0; i < times.length; i++){
+      const t = Date.parse(times[i]), v = Number(vals[i]);
+      if(isFinite(t) && isFinite(v) && v >= 0) series.push({ t, v });
+    }
+    if(!series.length) throw new Error('no Hp30 rows');
+    const last = series[series.length - 1];
+    const age = (Date.now() - (last.t + 30 * 60000)) / 60000;
+    if(age > AURORA_CAL.HP_FRESH_MIN) throw new Error('stale');
+    state.hp30 = { series, source: 'hp30', at: last.t, age };
+    state.hp30Status = 'live';
+    return true;
+  }catch(e){
+    /* NOAA's minute estimate of the running 3-hour Kp: blunter, always there */
+    try{
+      const r = await fetch(KP_EST_URL);
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const rows = await r.json();
+      const raw = [];
+      (Array.isArray(rows) ? rows : []).forEach(row => {
+        const tag = String(row.time_tag);
+        const t = Date.parse(tag + (/[zZ]$/.test(tag) ? '' : 'Z'));
+        const v = Number(row.estimated_kp != null ? row.estimated_kp : row.kp_index);
+        if(isFinite(t) && isFinite(v)) raw.push({ t, v });
+      });
+      if(!raw.length) throw new Error('no estimate rows');
+      /* Bucketed to half hours so the slope means the same thing it would from Hp30: the estimate
+         is a running 3-hour figure, so minute-to-minute differences are noise, not trend. */
+      const buckets = new Map();
+      raw.forEach(p => buckets.set(Math.floor(p.t / 1800000), p));
+      const series = [...buckets.keys()].sort((a, b) => a - b).slice(-8).map(k => buckets.get(k));
+      state.hp30 = { series, source: 'kpEst', at: series[series.length - 1].t, age: (Date.now() - series[series.length - 1].t) / 60000 };
+      state.hp30Status = 'estimated';
+      return true;
+    }catch(e2){ state.hp30 = null; state.hp30Status = 'unavailable'; return false; }
+  }
+}
+
+/* Level now, and which way it is going. The direction is the half of this the old model threw
+   away: the same number rising and falling mean opposite things to somebody deciding to drive. */
+function hpNow(){
+  const h = state.hp30;
+  if(!h || !h.series.length) return null;
+  const s = h.series;
+  const v = s[s.length - 1].v;
+  const prev = s.length > 1 ? s[s.length - 2].v : null;
+  const prev2 = s.length > 2 ? s[s.length - 3].v : null;
+  const d1 = prev == null ? null : v - prev;
+  const d2 = prev2 == null ? null : prev - prev2;
+  let dir = 'flat';
+  if(d1 != null){
+    const avg = d2 == null ? d1 : (d1 + d2) / 2;
+    dir = avg >= 0.5 ? 'rising' : avg <= -0.5 ? 'falling' : 'flat';
+  }
+  return {
+    value: v, prev, prev2, delta: d1, dir,
+    source: h.source, at: h.at, age: h.age,
+    estimated: h.source !== 'hp30',
+    recent: s.slice(-6),
+  };
+}
+
+/* ---- what the wind is doing, as numbers rather than a label ---- */
+function newell(v, by, bz){
+  const bp = Math.hypot(by == null ? 0 : by, bz);
+  const theta = Math.abs(Math.atan2(by == null ? 0 : by, bz));
+  return Math.pow(v, 4 / 3) * Math.pow(bp, 2 / 3) * Math.pow(Math.sin(theta / 2), 8 / 3);
+}
+function interp(pairs, x){
+  if(x <= pairs[0][0]) return pairs[0][1];
+  for(let i = 1; i < pairs.length; i++){
+    if(x <= pairs[i][0]){
+      const [x0, y0] = pairs[i - 1], [x1, y1] = pairs[i];
+      return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+    }
+  }
+  return pairs[pairs.length - 1][1];
+}
+/* Driving, banked energy and how long the front of it still has to run. */
+function windDerived(){
+  const w = state.wind;
+  if(!w || !w.series || !w.series.length) return null;
+  const now = w.series[w.series.length - 1].t;
+  const win = m => w.series.filter(s => now - s.t <= m * 60000);
+  const mean = (a, f) => a.length ? a.reduce((x, y) => x + f(y), 0) / a.length : null;
+  const m10 = win(10), m20 = win(20), m45 = win(45), m180 = win(180);
+  const speed = w.speed || AURORA_CAL.V_DEFAULT;
+  const bzSus = mean(m20, s => s.bz);
+  /* least squares slope, nT per hour: negative is diving further south */
+  let trend = null;
+  if(m45.length > 4){
+    const t0 = m45[0].t;
+    const xs = m45.map(s => (s.t - t0) / 3600000), ys = m45.map(s => s.bz);
+    const mx = mean(xs, x => x), my = mean(ys, y => y);
+    let num = 0, den = 0;
+    xs.forEach((x, i) => { num += (x - mx) * (ys[i] - my); den += (x - mx) * (x - mx); });
+    trend = den ? num / den : null;
+  }
+  let southRun = 0;
+  for(let i = w.series.length - 1; i >= 0; i--){ if(w.series[i].bz < -3) southRun = (now - w.series[i].t) / 60000 + 1; else break; }
+  const nw20 = mean(m20, s => newell(speed, s.by, s.bz));
+  const nw180 = mean(m180, s => newell(speed, s.by, s.bz));
+  const sbzh = m180.reduce((a, s) => a + Math.max(0, -s.bz), 0) / 60;
+  return {
+    bzNow: mean(m10, s => s.bz), bzSus, trend, southRun: Math.round(southRun),
+    nw20, nw180, sbzh,
+    speed, speedAssumed: !w.speed,
+    arrivalMin: Math.round(1.45e6 / speed / 60),
+    gDriver: nw20 == null ? null : clamp(interp(AURORA_CAL.NEWELL_TO_G, nw20), 0, 11),
+    strong: bzSus != null && bzSus <= -10,
+    moderate: bzSus != null && bzSus <= -5,
+    turningNorth: trend != null && trend >= 4 && (mean(m10, s => s.bz) || 0) > -5,
+    loaded: sbzh >= 6, heavy: sbzh >= 15,
+    stale: !!w.stale,
+  };
+}
+
+/* ---- hemispheric power: the one number for how much energy is going into the sky ---- */
+async function loadHemiPower(){
+  try{
+    const r = await fetch('https://services.swpc.noaa.gov/text/aurora-nowcast-hemi-power.txt');
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const txt = await r.text();
+    const rows = txt.split('\n').filter(l => l.trim() && !l.trim().startsWith('#'));
+    if(!rows.length) throw new Error('empty');
+    const p = rows[rows.length - 1].trim().split(/\s+/);
+    const north = parseFloat(p[p.length - 2]), south = parseFloat(p[p.length - 1]);
+    if(!isFinite(north) || !isFinite(south)) throw new Error('unparsed');
+    state.hemiPower = { north, south, at: Date.now() };
+    state.hemiStatus = 'live';
+    return true;
+  }catch(e){ state.hemiPower = null; state.hemiStatus = 'unavailable'; return false; }
+}
+
+/* ---- what any given level would mean from THIS site ----
+   The oval swells equatorward as the index climbs, so the question is never "what is Kp" but
+   "how far does it have to stretch to reach me". Three bands, each a level rather than a yes. */
+function personalBands(lat, lon){
+  const mlat = geomagLat(lat == null ? state.lat : lat, lon == null ? state.lon : lon);
+  const abs = Math.abs(mlat);
+  const band = off => {
+    const possible = clamp((AURORA_CAL.A - (abs + off)) / AURORA_CAL.B, 0, 11);
+    return { possible, likely: clamp(possible + AURORA_CAL.LIKELY, 0, 11) };
+  };
+  return {
+    mlat, abs,
+    camera: band(AURORA_CAL.OFFSET.camera),
+    eye: band(AURORA_CAL.OFFSET.eye),
+    overhead: band(AURORA_CAL.OFFSET.overhead),
+    poleward: (lat == null ? state.lat : lat) >= 0 ? 'north' : 'south',
+  };
+}
+
+/* Likelihood, not a verdict. A logistic across the possible-to-likely span, then knocked down by
+   the sky actually in the way: cloud over that patch, the moon, the town glow behind it. */
+function chanceAt(level, opts){
+  opts = opts || {};
+  const bands = opts.bands || personalBands();
+  const cloud = opts.cloud == null ? 0.25 : clamp(opts.cloud / 100, 0, 1);
+  const moon = (opts.moonUp ? 1 : 0) * (opts.moonIllum == null ? 0 : opts.moonIllum);
+  const bortle = opts.bortle == null ? 4 : opts.bortle;
+  const sky = Math.max(0, 1 - 0.9 * cloud);
+  const one = (band, moonHit, glowHit) => {
+    if(level == null) return null;
+    const mid = (band.possible + band.likely) / 2;
+    const raw = 1 / (1 + Math.exp(-(level - mid) / 0.42));
+    return clamp(raw * sky * (1 - moonHit * moon) * (1 - glowHit * Math.max(0, bortle - 3)), 0, 0.97);
+  };
+  return { camera: one(bands.camera, 0.18, 0.025), eye: one(bands.eye, 0.5, 0.06) };
+}
+function chanceWord(p){
+  if(p == null) return 'no reading';
+  if(p >= 0.8) return 'very likely';
+  if(p >= 0.55) return 'likely';
+  if(p >= 0.3) return 'possible';
+  return 'unlikely';
+}
+
+/* ---- the handover, as one curve ----
+   Measured owns the present, the wind that has already left L1 owns the next hour or so, and past
+   that the NOAA forecast fades in with a 90-minute half life. Nothing switches: it blends, which
+   is why the line can be drawn continuously and the doubt drawn as a widening band. */
+function nightCurve(win, kpSeries, opts){
+  if(!win) return [];
+  const hp = hpNow(), wd = windDerived();
+  const eNow = hp ? hp.value : null;
+  const now = Date.now();
+  const arrival = now + (wd && wd.arrivalMin != null ? wd.arrivalMin : 45) * 60000;
+  const kpAt = t => {
+    if(!kpSeries || !kpSeries.length) return null;
+    let best = null;
+    kpSeries.forEach(k => { const kt = k.t || k.time; if(kt != null && kt <= t && (!best || kt > (best.t || best.time))) best = k; });
+    return best ? (best.v != null ? best.v : best.kp) : null;
+  };
+  const from = Math.min(win.from, now), to = win.to;
+  const slots = [];
+  for(let t = from; t <= to; t += 15 * 60000){
+    let level, source;
+    if(t <= now){
+      level = eNow; source = 'measured';
+    } else if(t <= arrival){
+      level = Math.max(eNow == null ? 0 : eNow, wd && wd.gDriver != null ? wd.gDriver : 0) || eNow;
+      source = 'driver';
+    } else {
+      const base = Math.max(eNow == null ? 0 : eNow, wd && wd.gDriver != null ? wd.gDriver : 0) || eNow;
+      const w = Math.exp(-(t - arrival) / (AURORA_CAL.TAU_PERSIST_MIN * 60000));
+      const f = kpAt(t);
+      level = f == null ? base : (base == null ? f : w * base + (1 - w) * f);
+      source = w > 0.5 ? 'driver' : 'forecast';
+    }
+    if(level == null) continue;
+    /* doubt grows with how far past measurement we are: a fifth of an index unit now, a unit and
+       a half by the far end of the night */
+    const hoursOut = Math.max(0, (t - now) / 3600000);
+    const spread = t <= now ? 0.2 : Math.min(1.6, 0.25 + hoursOut * 0.28);
+    slots.push({
+      t, level, source, spread,
+      chance: chanceAt(level, opts),
+      lo: chanceAt(Math.max(0, level - spread), opts),
+      hi: chanceAt(level + spread, opts),
+    });
+  }
+  return slots;
+}
+
+/* ---- driving against response ----
+   The pair, not either alone. Hard south with the ground index climbing is a display growing;
+   hard south with it flat is energy going into the tail and not yet coming out; hard south with
+   it falling is the gap between two of those. Same two readings, three different nights. */
+function couplingState(){
+  const hp = hpNow(), wd = windDerived();
+  if(!hp && !wd) return { key: 'none', label: 'No live data', urgent: false, line: 'Waiting for the feeds.' };
+  const dir = hp ? hp.dir : 'flat';
+  const driving = !wd ? 'unknown' : wd.strong ? 'hard' : wd.moderate ? 'weak' : (wd.bzSus != null && wd.bzSus > 0 ? 'north' : 'weak');
+  if(driving === 'hard' && dir === 'rising') return {
+    key: 'climbing', label: 'Building', urgent: true,
+    line: 'The wind has been pushing the right way and the disturbance measured here has climbed with it. Something is happening, and it is still growing.',
+  };
+  if(driving === 'hard' && dir === 'flat') return {
+    key: 'loaded', label: 'Loaded', urgent: true,
+    line: 'The wind has been pushing hard for hours, but the disturbance measured here has not moved with it. Energy is going in and not coming back out yet. When it does, it tends to arrive all at once.',
+  };
+  if(driving === 'hard' && dir === 'falling') return {
+    key: 'between', label: 'Between bursts', urgent: false,
+    line: 'The wind is still pushing, but the last burst here has passed its peak. Another is likely while the wind keeps up.',
+  };
+  if(driving === 'weak' && dir === 'rising') return {
+    key: 'efficient', label: 'Responding', urgent: false,
+    line: 'Only a modest push from the wind, but the sky here is reacting more than it usually would. Worth keeping an eye on.',
+  };
+  if(dir === 'falling' || (wd && wd.turningNorth)) return {
+    key: 'easing', label: 'Easing', urgent: false,
+    line: 'The wind has turned back north. What has built up already may still show, but nothing more is being added.',
+  };
+  if(driving === 'north') return { key: 'closed', label: 'Quiet', urgent: false, line: 'The wind is pointing the wrong way, which is the usual state of things.' };
+  return { key: 'unsettled', label: 'Unsettled', urgent: false, line: 'Nothing much in the wind, and nothing much measured here.' };
+}
+
+
+/* ============================ airglow ============================
+   The atmosphere's own light: green oxygen from a layer near 95 km, orange hydroxyl just below it,
+   deep red oxygen higher up. Its brightness follows the solar cycle, and the standard proxy for the
+   extreme-ultraviolet that drives the chemistry is the 10.7 cm radio flux, measured daily at
+   Penticton since 1947. This is a fuel gauge for the spell you are in, never a per-night promise:
+   the ripples and bands people photograph come from gravity waves in the weather below, and nobody
+   forecasts those. */
+const AIRGLOW_CAL = {
+  LOW_MAX: 100, HIGH_MIN: 150,      // sfu, deliberately round and tunable
+  FLARE_GUARD: 1.3,                 // a single reading this far above the running mean is a radio burst
+  KP_STORM: 5, KP_AURORA_WINS: 7, MAGLAT_AURORA_WINS: 55,
+  MIN_DARK_H: 1, MOON_ILLUM_MAX: 0.25, BORTLE_MAX: 4, CLEAR_MIN: 0.4,
+  STALE_DAYS: 5,
+};
+const F107_URL = 'https://services.swpc.noaa.gov/json/f107_cm_flux.json';
+async function loadF107(){
+  try{
+    const r = await fetch(F107_URL);
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const rows = await r.json();
+    /* three readings a day; the 20:00 UT one is the official daily value and the only one that
+       carries the running mean, so it is the series worth keeping */
+    const noon = [];
+    (Array.isArray(rows) ? rows : []).forEach(x => {
+      const sched = String(x.reporting_schedule || '');
+      const tag = String(x.time_tag || '');
+      const isNoon = sched === 'Noon' || /T20:00/.test(tag);
+      const flux = Number(x.flux);
+      const t = Date.parse(tag + (/[zZ]$/.test(tag) ? '' : 'Z'));
+      if(isNoon && isFinite(flux) && flux > 0 && isFinite(t)) noon.push({ t, flux, mean90: Number(x.ninety_day_mean) || null });
+    });
+    if(!noon.length) throw new Error('no daily values');
+    noon.sort((a, b) => a.t - b.t);
+    state.f107 = { noon, at: Date.now() };
+    state.f107Status = 'live';
+    return true;
+  }catch(err){ if(!state.f107) state.f107 = null; state.f107Status = 'unavailable'; return false; }
+}
+
+/* Atomic oxygen at 95 km builds up over days, so the running level matters more than today's
+   wobble: the effective flux is the daily value blended with the 27-day mean, one solar rotation. */
+function airglowState(opts){
+  const f = state.f107;
+  if(!f || !f.noon.length) return null;
+  opts = opts || {};
+  const C = AIRGLOW_CAL;
+  const now = Date.now();
+  const win = f.noon.filter(r => now - r.t <= 27 * 86400000);
+  const use = win.length ? win : f.noon;
+  const mean27 = use.reduce((a, b) => a + b.flux, 0) / use.length;
+  const latest = f.noon[f.noon.length - 1];
+  const ageDays = (now - latest.t) / 86400000;
+  const flare = latest.flux > C.FLARE_GUARD * mean27;
+  const stale = ageDays > C.STALE_DAYS;
+  const fEff = (flare || stale) ? mean27 : (latest.flux + mean27) / 2;
+  const tier = fEff < C.LOW_MAX ? 'low' : fEff < C.HIGH_MIN ? 'moderate' : 'high';
+
+  /* A storm reddens the sky at mid-latitudes independently of the flux, but where aurora is the
+     likelier show it should be the aurora tile's story, not this one. */
+  const kp = opts.kp == null ? null : opts.kp;
+  const mlat = opts.mlat == null ? null : Math.abs(opts.mlat);
+  const auroraWins = kp != null && (kp >= C.KP_AURORA_WINS || (kp >= C.KP_STORM && mlat != null && mlat > C.MAGLAT_AURORA_WINS));
+  const storm = kp != null && kp >= C.KP_STORM && !auroraWins;
+
+  const gates = [
+    { key: 'flux', ok: tier === 'high' || (tier === 'moderate' && storm), why: 'the solar flux is only moderate' },
+    { key: 'dark', ok: (opts.darkHours == null ? 0 : opts.darkHours) >= C.MIN_DARK_H, why: 'it never gets properly dark tonight' },
+    { key: 'moon', ok: !opts.moonUp || (opts.moonIllum == null ? 0 : opts.moonIllum) <= C.MOON_ILLUM_MAX, why: 'the moon is up and bright enough to wash it out' },
+    { key: 'sky', ok: (opts.bortle == null ? 9 : opts.bortle) <= C.BORTLE_MAX, why: 'this site is too light polluted for it to show' },
+    { key: 'cloud', ok: (opts.clear == null ? 0 : opts.clear) >= C.CLEAR_MIN, why: 'there is too much cloud forecast' },
+  ];
+  const failed = gates.filter(x => !x.ok);
+  return {
+    fEff, tier, storm, mean27, latest: latest.flux, at: latest.t, ageDays, flare, stale,
+    primed: failed.length === 0,
+    failed: failed.map(x => x.key),
+    /* naming the one thing in the way is useful; naming four is nagging */
+    blocker: failed.length === 1 ? failed[0].why : null,
+  };
+}
+
 window.NoctoEngine = {
   state, STEP, SHOWERS, BORTLE, ANT, SPO,
   loadAtlas, atlasSky, updateSky, nelmFor, bortleFor,
@@ -1664,5 +2125,8 @@ window.NoctoEngine = {
   loadSolarWind, windState, loadOvation, ovationAt, ovationScan,
   polewardGlow, allSkyGlow, COMPASS16, loadPolewardCloud, auroraThresholds,
   loadAlerts, watchFor, gToKp, loadOutlook27, outlookKp, recurrenceAhead,
+  AURORA_CAL, loadHp30, hpNow, loadHemiPower, windDerived, newell,
+  personalBands, chanceAt, chanceWord, nightCurve, couplingState,
+  AIRGLOW_CAL, loadF107, airglowState,
 };
 })();
