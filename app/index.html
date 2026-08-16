@@ -4317,6 +4317,15 @@ class Component extends DCLogic {
       : { bg: 'transparent', bd: '1px solid rgba(var(--line-rgb),.22)' });
   }
 
+  /* NOAA's 3-hour Kp block covering this moment, observed or estimated. */
+  blockKp() {
+    const rows = (this.state.kp && this.state.kp.rows) || [];
+    const now = Date.now(), SPAN = 3 * 3600000;
+    let best = null;
+    rows.forEach(r => { const t = r.t.getTime(); if (t <= now && now < t + SPAN && (!best || t > best.t.getTime())) best = r; });
+    return best ? best.kp : null;
+  }
+
   /* Airglow. A fuel gauge for the spell you are in, gated on whether tonight could actually catch
      it: darkness, moon, site brightness and cloud. */
   airglowVals() {
@@ -4412,6 +4421,7 @@ class Component extends DCLogic {
 
     /* Same likelihood the Aurora tab uses, so the two cannot contradict each other. The measured
        index wins when it is above the forecast, which is what a live storm looks like. */
+    E.setBlockKp(this.blockKp());
     const hp = E.hpNow();
     const bands = E.personalBands();
     const cloud = t.cloudSeries && t.cloudSeries.length
@@ -4502,6 +4512,7 @@ class Component extends DCLogic {
     /* the three feeds, and what they mean from this site */
     const bands = E.personalBands();
     const opts = { bands, cloud: cloudPct, moonIllum: moonIll, moonUp, bortle: glow.bortle };
+    E.setBlockKp(this.blockKp());          // one "now" for the whole screen
     const hp = E.hpNow(), wd = E.windDerived(), cs = E.couplingState();
     const hemi = E.state.hemiPower;
     const levelNow = hp ? hp.value : null;
@@ -4716,11 +4727,14 @@ class Component extends DCLogic {
     let overLab = Math.max(eyeLab + 17, overPct);
     if (overLab > 88) { const sh = overLab - 88; overLab = 88; eyeLab = Math.max(29, eyeLab - sh); camLab = Math.min(camLab, eyeLab - 17); }
 
-    const hpTrendLine = !hp ? '' : hp.dir === 'rising'
-      ? 'up from ' + (hp.prev2 != null ? hp.prev2.toFixed(1) + ', ' : '') + (hp.prev != null ? hp.prev.toFixed(1) : '')
-      : hp.dir === 'falling'
-        ? 'down from ' + (hp.prev != null ? hp.prev.toFixed(1) : '')
-        : 'steady';
+    const hpTrendLine = !hp ? ''
+      : hp.fromBlock
+        ? (hp.dir === 'rising' ? 'and climbing' : hp.dir === 'falling' ? 'and easing' : 'steady')
+        : hp.dir === 'rising'
+          ? 'up from ' + (hp.prev2 != null ? hp.prev2.toFixed(1) + ', ' : '') + (hp.prev != null ? hp.prev.toFixed(1) : '')
+          : hp.dir === 'falling'
+            ? 'down from ' + (hp.prev != null ? hp.prev.toFixed(1) : '')
+            : 'steady';
     const hpiVal = hemi ? Math.round(geom.poleward === 'north' ? hemi.north : hemi.south) : null;
 
     return {
@@ -4774,12 +4788,14 @@ class Component extends DCLogic {
       aurHpStamp: hp ? this.hhmm(new Date(hp.at)) : '\u2013',
       aurHpTrend: hpTrendLine,
       aurHpArrow: !hp ? '' : hp.dir === 'rising' ? '\u2191' : hp.dir === 'falling' ? '\u2193' : '\u2192',
-      aurHpSource: !hp ? '' : hp.estimated ? 'NOAA estimate, standing in for Hp30' : 'GFZ Hp30, half-hourly',
+      aurHpSource: !hp ? '' : hp.fromBlock ? 'NOAA 3-hour estimate, standing in for Hp30'
+        : hp.estimated ? 'NOAA minute estimate, standing in for Hp30' : 'GFZ Hp30, half-hourly',
       aurBzArrow: !wd || wd.trend == null ? '' : wd.trend <= -2 ? '\u2193' : wd.trend >= 2 ? '\u2191' : '\u2192',
       aurBzArrowColour: !wd || wd.trend == null ? 'var(--faint)' : wd.trend <= -2 ? 'var(--cool)' : 'var(--faint)',
       aurBzTrendWord: !wd || wd.trend == null ? '' : wd.trend <= -2 ? 'swinging further south' : wd.trend >= 2 ? 'swinging back north' : 'holding steady',
       aurHpTrendColour: hp && hp.dir === 'rising' ? 'var(--cool)' : 'var(--faint)',
       aurHpLine: !hp ? 'The index feed has not answered. The forecast below still works.'
+        : hp.fromBlock ? 'The half-hourly measurement cannot be fetched straight into a browser, so this is NOAA\u2019s three-hourly figure instead, with the direction taken from their minute-by-minute one.'
         : hp.estimated ? 'The half-hourly measurement cannot be fetched straight into a browser, so this is NOAA\u2019s own minute estimate instead.'
         : chanceNow.camera != null && chanceNow.camera >= 0.55 ? 'Past your camera mark' + (chanceNow.eye >= 0.5 ? ', and past your eye mark too.' : ', short of your eye mark.')
         : 'Below what it would take to show from here.',
