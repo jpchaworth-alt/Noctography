@@ -1810,11 +1810,21 @@ async function loadHp30(){
 
 /* Level now, and which way it is going. The direction is the half of this the old model threw
    away: the same number rising and falling mean opposite things to somebody deciding to drive. */
-function hpNow(){
+/* blockKp is NOAA's value for the 3-hour block we are in. It matters because the two NOAA products
+   disagree: the minute feed is a running estimate from a subset of observatories and can sit at
+   0.00 while the 3-hour product for the same moment reads 1.33. The 3-hour figure is the more
+   authoritative level, so it wins; the minute series is still the only thing with a usable slope,
+   so it keeps the trend. Hp30, when we can reach it, does both jobs properly and ignores this. */
+function setBlockKp(v){ state.blockKp = (v == null || !isFinite(v)) ? null : v; }
+function hpNow(blockKp){
   const h = state.hp30;
   if(!h || !h.series.length) return null;
   const s = h.series;
-  const v = s[s.length - 1].v;
+  const est = h.source !== 'hp30';
+  /* callers may pass it, but the stored value is the default so nightCurve, couplingState and
+     anything added later cannot quietly read a different "now" from the rest of the screen */
+  const bk = blockKp == null ? state.blockKp : blockKp;
+  const v = (est && bk != null && isFinite(bk)) ? bk : s[s.length - 1].v;
   const prev = s.length > 1 ? s[s.length - 2].v : null;
   const prev2 = s.length > 2 ? s[s.length - 3].v : null;
   const d1 = prev == null ? null : v - prev;
@@ -1827,7 +1837,8 @@ function hpNow(){
   return {
     value: v, prev, prev2, delta: d1, dir,
     source: h.source, at: h.at, age: h.age,
-    estimated: h.source !== 'hp30',
+    estimated: est,
+    fromBlock: est && blockKp != null && isFinite(blockKp),
     recent: s.slice(-6),
   };
 }
@@ -2127,6 +2138,6 @@ window.NoctoEngine = {
   loadAlerts, watchFor, gToKp, loadOutlook27, outlookKp, recurrenceAhead,
   AURORA_CAL, loadHp30, hpNow, loadHemiPower, windDerived, newell,
   personalBands, chanceAt, chanceWord, nightCurve, couplingState,
-  AIRGLOW_CAL, loadF107, airglowState,
+  AIRGLOW_CAL, loadF107, airglowState, setBlockKp,
 };
 })();
