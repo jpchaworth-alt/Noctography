@@ -539,7 +539,14 @@ function cloudAt(dateUTC){
 
 /* ============================ night computation ============================ */
 function computeNight(y,m,d){
-  const startL=toUTC(y,m,d,16,0), endL=toUTC(y,m,d+1,8,0);
+  /* Noon to noon, local clock time: a full 24 hours, so every sunrise, sunset, moonrise and
+     moonset for the night gets computed, not just the ones that happen to fall inside some
+     narrower clock window. A plain evening-to-morning window missed sunrise and moonrise/set
+     wherever the clock runs well ahead of the sun, e.g. Big Bend, Texas, which sits on Central
+     time but close to two hours of solar longitude west of it. Noon to noon has no such edge:
+     the sun crosses the horizon exactly twice in any 24 hours outside the polar circles, and
+     both crossings land inside this window regardless of timezone quirks. */
+  const startL=toUTC(y,m,d,12,0), endL=toUTC(y,m,d+1,12,0);
   const slots=[];
   let peak=null,total=0,darkMin=0,moonMin=0,cloudSum=0,cloudN=0,forecast=false;
   let rhSum=0,rhN=0,dewGap=null,dewAt=null,typical=false;
