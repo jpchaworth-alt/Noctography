@@ -141,10 +141,10 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=2026-08-18q"></script>
-<script src="../noctography-sat.js?v=2026-08-18q"></script>
-<script src="../noctography-plan.js?v=2026-08-18q"></script>
-<script src="../noctography-ar.js?v=2026-08-18q"></script>
+<script src="../noctography-engine.js?v=2026-08-19a"></script>
+<script src="../noctography-sat.js?v=2026-08-19a"></script>
+<script src="../noctography-plan.js?v=2026-08-19a"></script>
+<script src="../noctography-ar.js?v=2026-08-19a"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -358,6 +358,13 @@ window.noctoTrack = function (name) {
           </button>
           <p style="grid-column: 1 / -1; grid-row: 2; margin: 0; font-size: 19px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ greetLine }}</p>
         </div>
+
+        <sc-if value="{{ tonCloudOn }}" hint-placeholder-val="{{ false }}">
+          <p style="display: flex; align-items: baseline; gap: 10px; margin: 0; padding: 10px 12px; background: rgba(var(--well-rgb),.5); border-left: 2px solid var(--cool); border-radius: 4px; font-size: 15px; line-height: 1.45; color: var(--text); text-wrap: pretty;">
+            <span style="flex: 0 0 auto; font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--cool);">Cloud</span>
+            <span>{{ tonCloudNote }}</span>
+          </p>
+        </sc-if>
 
         <sc-if value="{{ nlcOn }}" hint-placeholder-val="{{ false }}">
           <div style="display: flex; align-items: center; gap: 9px; padding: 8px 11px; background: rgba(var(--line-rgb),.04); border: 1px solid rgba(var(--line-rgb),.1); border-radius: 8px;">
@@ -854,6 +861,12 @@ window.noctoTrack = function (name) {
           <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--cool);">Aurora tonight</span>
           <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(28px, 8.5vw, 36px); line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ aurHead }}</h1>
           <p style="margin: 0; font-size: 17px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ aurSub }}</p>
+          <sc-if value="{{ aurCloudOn }}" hint-placeholder-val="{{ false }}">
+            <p style="display: flex; align-items: baseline; gap: 10px; margin: 2px 0 0; padding: 10px 12px; background: rgba(var(--well-rgb),.5); border-left: 2px solid var(--cool); border-radius: 4px; font-size: 15px; line-height: 1.45; color: var(--text); text-wrap: pretty;">
+              <span style="flex: 0 0 auto; font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--cool);">Cloud</span>
+              <span>{{ aurCloudNote }}</span>
+            </p>
+          </sc-if>
           <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--faint);">{{ aurMetaLine }}</p>
         </div>
 
@@ -867,9 +880,9 @@ window.noctoTrack = function (name) {
 
           <sc-if value="{{ aurCurveOn }}" hint-placeholder-val="{{ true }}">
             <div style="position: relative;">
-              <svg viewBox="0 0 404 96" style="width: 100%; height: auto; display: block;" role="img" aria-label="Chance of aurora on camera through the night">
-                <rect x="62" y="6" width="{{ aurLightW }}" height="84" fill="rgba(var(--line-rgb),.05)"></rect>
-                <rect x="{{ aurLightX2 }}" y="6" width="{{ aurLightW2 }}" height="84" fill="rgba(var(--line-rgb),.05)"></rect>
+              <svg viewBox="0 0 404 320" style="width: 100%; height: auto; display: block;" role="img" aria-label="Chance of aurora on camera through the night">
+                <rect x="62" y="6" width="{{ aurLightW }}" height="308" fill="rgba(var(--line-rgb),.05)"></rect>
+                <rect x="{{ aurLightX2 }}" y="6" width="{{ aurLightW2 }}" height="308" fill="rgba(var(--line-rgb),.05)"></rect>
                 <sc-for list="{{ aurGrid }}" as="g" hint-placeholder-count="3">
                   <line x1="62" y1="{{ g.y }}" x2="404" y2="{{ g.y }}" stroke="{{ g.colour }}" stroke-width="1"></line>
                 </sc-for>
@@ -878,16 +891,16 @@ window.noctoTrack = function (name) {
                 <path d="{{ aurDriverPath }}" fill="none" stroke="var(--cool)" stroke-width="2.5"></path>
                 <path d="{{ aurCastPath }}" fill="none" stroke="rgba(var(--cool-rgb),.7)" stroke-width="2" stroke-dasharray="5 3"></path>
                 <sc-if value="{{ aurArrOn }}" hint-placeholder-val="{{ false }}">
-                  <line x1="{{ aurArrX }}" y1="6" x2="{{ aurArrX }}" y2="90" stroke="rgba(var(--cool-rgb),.55)" stroke-width="1" stroke-dasharray="3 3"></line>
+                  <line x1="{{ aurArrX }}" y1="6" x2="{{ aurArrX }}" y2="314" stroke="rgba(var(--cool-rgb),.55)" stroke-width="1" stroke-dasharray="3 3"></line>
                 </sc-if>
-                <line x1="{{ aurNowX }}" y1="6" x2="{{ aurNowX }}" y2="94" stroke="rgba(var(--line-rgb),.55)" stroke-width="1"></line>
-                <line x1="62" y1="90" x2="404" y2="90" stroke="rgba(var(--line-rgb),.28)" stroke-width="1"></line>
+                <line x1="{{ aurNowX }}" y1="6" x2="{{ aurNowX }}" y2="318" stroke="rgba(var(--line-rgb),.55)" stroke-width="1"></line>
+                <line x1="62" y1="314" x2="404" y2="314" stroke="rgba(var(--line-rgb),.28)" stroke-width="1"></line>
                 <sc-for list="{{ aurTicks }}" as="tk" hint-placeholder-count="4">
-                  <line x1="{{ tk.x }}" y1="90" x2="{{ tk.x }}" y2="94" stroke="rgba(var(--line-rgb),.35)" stroke-width="1"></line>
+                  <line x1="{{ tk.x }}" y1="314" x2="{{ tk.x }}" y2="318" stroke="rgba(var(--line-rgb),.35)" stroke-width="1"></line>
                 </sc-for>
               </svg>
               <sc-for list="{{ aurBandLabels }}" as="bl" hint-placeholder-count="5">
-                <span style="position: absolute; left: 0; width: 14%; top: {{ bl.top }}; transform: translateY(-50%); text-align: right; font-size: 10.5px; line-height: 1; color: {{ bl.colour }};">{{ bl.label }}</span>
+                <span style="position: absolute; left: 0; width: 14%; top: {{ bl.top }}; transform: translateY(-50%); text-align: right; font-size: 12px; line-height: 1.15; color: {{ bl.colour }};">{{ bl.label }}</span>
               </sc-for>
               <span style="position: absolute; left: {{ aurNowPct }}; top: 4%; transform: translateX(-50%); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; line-height: 1; color: var(--text);">now</span>
               <sc-if value="{{ aurArrOn }}" hint-placeholder-val="{{ false }}">
@@ -1313,6 +1326,13 @@ window.noctoTrack = function (name) {
           </div>
           <span style="font-size: 14px; color: var(--dim);">{{ nightSub }}</span>
         </div>
+
+        <sc-if value="{{ metCloudOn }}" hint-placeholder-val="{{ false }}">
+          <p style="display: flex; align-items: baseline; gap: 10px; margin: 0; padding: 10px 12px; background: rgba(var(--well-rgb),.5); border-left: 2px solid var(--cool); border-radius: 4px; font-size: 15px; line-height: 1.45; color: var(--text); text-wrap: pretty;">
+            <span style="flex: 0 0 auto; font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--cool);">Cloud</span>
+            <span>{{ metCloudNote }}</span>
+          </p>
+        </sc-if>
 
         <sc-if value="{{ showNumbers }}" hint-placeholder-val="{{ false }}">
           <div style="display: grid; gap: 9px; padding: clamp(12px, 3.4vw, 15px); background: rgba(var(--line-rgb),.04); border: 1px solid rgba(var(--line-rgb),.1); border-radius: 8px;">
@@ -2121,7 +2141,7 @@ window.noctoTrack = function (name) {
       </sc-if>
 
       <div data-nv-bar="1" style="display: flex; align-items: center; gap: clamp(3px, 1vw, 4px); padding: 6px; background: rgba(var(--well-rgb),.86); backdrop-filter: blur(14px); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px;">
-      <button type="button" onClick="{{ railBack }}" aria-label="Earlier tabs" style="flex: 0 0 24px; min-height: 48px; padding: 0; border: 0; border-radius: 999px; background: none; color: {{ railLeftCol }}; font-family: 'Barlow', sans-serif; font-size: 19px; line-height: 1; cursor: pointer;">‹</button>
+      <button type="button" onClick="{{ railBack }}" aria-label="Earlier tabs" style="flex: 0 0 32px; min-height: 48px; padding: 0; border: 0; border-radius: 999px; background: none; color: {{ railLeftCol }}; font-family: 'Barlow', sans-serif; font-size: 28px; font-weight: 700; line-height: 1; cursor: pointer;">‹</button>
       <div style="position: relative; flex: 1; min-width: 0; display: grid; gap: 4px;">
         <div ref="{{ setRail }}" data-nav-rail="1" onScroll="{{ onRailScroll }}" style="display: flex; gap: clamp(3px, 1vw, 4px); overflow-x: auto; scrollbar-width: none;">
           <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="8">
@@ -2134,7 +2154,7 @@ window.noctoTrack = function (name) {
           </i>
         </sc-if>
       </div>
-      <button type="button" onClick="{{ railFwd }}" aria-label="Later tabs" style="flex: 0 0 24px; min-height: 48px; padding: 0; border: 0; border-radius: 999px; background: none; color: {{ railRightCol }}; font-family: 'Barlow', sans-serif; font-size: 19px; line-height: 1; cursor: pointer;">›</button>
+      <button type="button" onClick="{{ railFwd }}" aria-label="Later tabs" style="flex: 0 0 32px; min-height: 48px; padding: 0; border: 0; border-radius: 999px; background: none; color: {{ railRightCol }}; font-family: 'Barlow', sans-serif; font-size: 28px; font-weight: 700; line-height: 1; cursor: pointer;">›</button>
       <button type="button" onClick="{{ togglePal }}" title="{{ palLabel }}" aria-label="{{ palLabel }}" data-nv-toggle="{{ palState }}" style="flex: 0 0 clamp(44px, 11.5vw, 46px); min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ palBorder }}; border-radius: 999px; background: {{ palBg }}; color: {{ palIcon }}; cursor: pointer;">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
           <path d="M12 21a9 9 0 1 1 9-9c0 1.66-1.34 3-3 3h-1.5a2 2 0 0 0-1.5 3.32A1.98 1.98 0 0 1 12 21Z"></path>
@@ -2654,7 +2674,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=2026-08-18q';
+    s.src = '../pano-calculator.js?v=2026-08-19a';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -3459,20 +3479,20 @@ class Component extends DCLogic {
     const lat = E.state.lat, lon = E.state.lon;
     let wins = [];
     try { wins = P.archWindows(t.night, lat, lon); } catch (e) { return { archOn: false }; }
-    const kit = this.kit(), d = P.kitDerived(kit);
-    const frames = Math.max(3, Math.ceil(180 / (d.across * 0.6)) + 1);
+    const kit = this.kit();
     if (wins.length >= 2) {
       return { archOn: true, archBadge: 'Rare', archTitle: 'Double arch, tonight',
         archLine: 'The band is framable twice: ' + this.hhmm(wins[0].from) + '\u2013' + this.hhmm(wins[0].to)
           + ' and again ' + this.hhmm(wins[1].from) + '\u2013' + this.hhmm(wins[1].to) + '. One spot, one night, two panoramas.',
-        archMono: 'both 20\u00b0\u201360\u00b0 up \u00b7 ' + frames + ' frames at ' + kit.focal + 'mm portrait' };
+        archMono: 'both 20\u00b0\u201360\u00b0 up \u00b7 ' + kit.focal + 'mm portrait, stitched' };
     }
     if (wins.length === 1) {
       const w = wins[0];
       return { archOn: true, archBadge: 'Tonight', archTitle: 'The arch stands up tonight',
         archLine: 'The galactic band bridges the sky from ' + this.hhmm(w.from) + ' to ' + this.hhmm(w.to)
           + ', ' + Math.round(w.alt) + '\u00b0 at its highest. That is the panorama window.',
-        archMono: frames + ' frames at ' + kit.focal + 'mm portrait \u00b7 40% overlap' };
+        // frame count left off deliberately: it depends on your composition, not just the focal length
+        archMono: kit.focal + 'mm portrait \u00b7 40% overlap, stitched' };
     }
     // nothing tonight: look through the nights the outlook has already computed
     const nights = (this.state.nights || []).slice(0, 30);
@@ -4372,6 +4392,11 @@ class Component extends DCLogic {
       ? 'Tonight never gets properly dark' + place + ': one for the noctilucent clouds instead.'
       : 'Tonight’s looking ' + this.verdictPhrase(t.verdict, n) + ' for some astro' + place
         + (t.qualifier ? ', ' + t.qualifier + '.' : '.');
+    /* The greeting still grades the night as it will actually be, cloud and all: that is the
+       go-or-stay call. The tiles under it answer a different question, what the sky is doing, so
+       the change of question gets said rather than left for the reader to trip over. */
+    const tonCloudNote = t.darkHours < 0.25 ? '' : this.cloudCaveat(this.lowMidOf(n),
+      'the tiles below read the sky as if it cleared: moonlight, haze and high cloud counted, the deck itself not');
 
     const bars = t.cloudSeries.length ? t.cloudSeries : [];
     const step = Math.max(1, Math.ceil(bars.length / 22));
@@ -4475,6 +4500,7 @@ class Component extends DCLogic {
       rwbColour,
       greeting: partOfDay + '.',
       greetLine,
+      tonCloudOn: !!tonCloudNote, tonCloudNote,
       bestRange: t.win ? this.hhmm(t.win.from) + ' – ' + this.hhmm(t.win.to) : 'No clear window',
       bestPct: Math.round((t.peakQuality || 0) * 100),
       bestSub: this.bestSentence(t),
@@ -4502,10 +4528,10 @@ class Component extends DCLogic {
       airVal: minTemp != null ? minTemp.toFixed(0) + '°C' : '–',
       airSub: dewNote,
       windVal, windSub,
-      metVal: n.peak ? n.peak.rate.toFixed(0) + '/hr' : '0/hr',
+      metVal: n.peakClear ? n.peakClear.rate.toFixed(0) + '/hr' : '0/hr',
       metName: head ? head.name : 'Sporadics only',
-      metSub: n.win
-        ? 'best around ' + this.hhmm(n.peak.t) + ' · ' + this.E().verdictWord(n.score, this.lowMidOf(n))
+      metSub: n.winClear
+        ? 'best around ' + this.hhmm(n.peakClear.t) + ' · ' + this.E().verdictWord(n.scoreClear || 0, this.lowMidOf(n))
         : 'no dark hours for meteors tonight',
     };
   }
@@ -4606,7 +4632,9 @@ class Component extends DCLogic {
       moonIllum: t.midIllum,
       moonUp: !!n.moonWin,
       bortle: atlas ? E.bortleFor(atlas.sqm) : null,
-      clear: cloudPct == null ? null : 1 - cloudPct / 100,
+      /* High cloud and haze gate airglow; the low deck does not, because the question here is
+         whether the sky is producing any, not whether tonight's cloud will let you photograph it. */
+      clear: this.veilOf(n).clear,
     });
     if (!a) return { glowOn: false, glowVal: '\u2013', glowSub: '', glowNote: '', glowColour: 'var(--dim)', glowPrimed: false, glowPrimedLine: '' };
 
@@ -4694,14 +4722,15 @@ class Component extends DCLogic {
     E.setBlockKp(this.blockKp());
     const hp = E.hpNow();
     const bands = E.personalBands();
-    const cloud = t.cloudSeries && t.cloudSeries.length
-      ? t.cloudSeries.reduce((a, b) => a + b.v, 0) / t.cloudSeries.length : null;
+    /* High cloud and haze only. The deck is not in here: the tile answers what the sky is doing,
+       and the Tonight page says in one line above it what is in the way. */
+    const veil = this.veilOf(t.night);
     const level = hp && (kp == null || hp.value > kp) ? hp.value : kp;
     if (level == null) return { aurTileVal: '\u2013', aurTileSub: 'No forecast for tonight', aurTileNote: '', aurTileColour: 'var(--dim)' };
     /* Light pollution towards the arc is the engine's business now, and the moon comes from the
        published model rather than a multiplier, so this passes the sampled sky instead of a
        Bortle number read at the zenith. */
-    const ch = E.chanceAt(level, { bands, cloud, env: this.darkEnv(t) });
+    const ch = E.chanceAt(level, { bands, highCloud: veil.high, rh: veil.rh, env: this.darkEnv(t) });
     const word = E.chanceWord(ch.camera);
     const eyeWord = E.chanceWord(ch.eye);
 
@@ -5380,6 +5409,16 @@ class Component extends DCLogic {
     const glow = E.polewardGlow();
     const nc = E.state.northCloud;
     const cloudPct = nc ? nc.total : (t.cloudSeries && t.cloudSeries.length ? t.cloudSeries.reduce((a, b) => a + b.v, 0) / t.cloudSeries.length : null);
+    /* Two cloud numbers, kept apart deliberately. The veil, high cirrus and humid haze, dims the
+       arc and so belongs in the likelihood. The deck, low and mid cloud, only decides whether you
+       can see out of your own back garden: it moves within the hour, it is the one thing here that
+       can be wrong by lunchtime, and folding it in was what made an Hp 6 storm read as "unlikely"
+       from a cloudy Fen while the same storm read as "possible" from a clearer Gdansk. It is said
+       in words at the top of the page instead. */
+    const veil = this.veilOf(n);
+    const highPct = nc && nc.high != null ? nc.high : veil.high;
+    const rhPct = nc && nc.rh != null ? nc.rh : veil.rh;
+    const blockPct = nc && nc.blocking != null ? nc.blocking : this.lowMidOf(n);
     /* The moon only counts while it is both up and the sky is dark enough for an arc to show. A
        moon that has set before astronomical darkness begins is irrelevant, and mentioning it as
        harmless is worse than not mentioning it. */
@@ -5391,7 +5430,7 @@ class Component extends DCLogic {
 
     /* the three feeds, and what they mean from this site */
     const bands = E.personalBands();
-    const opts = { bands, cloud: cloudPct, moonIllum: moonIll, moonUp, bortle: glow.bortle };
+    const opts = { bands, highCloud: highPct, rh: rhPct, moonIllum: moonIll, moonUp, bortle: glow.bortle };
     E.setBlockKp(this.blockKp());          // one "now" for the whole screen
     const hp = E.hpNow(), wd = E.windDerived(), cs = E.couplingState();
     const hemi = E.state.hemiPower;
@@ -5405,7 +5444,10 @@ class Component extends DCLogic {
     const endMs = t.darkWin ? Math.max(t.darkWin.to.getTime(), nowMs + 3 * 3600000) : nowMs + 6 * 3600000;
     const cWin = { from: startMs, to: endMs };
     const slots = E.nightCurve(cWin, st.kp && st.kp.rows, opts);
-    const PX0 = 62, PX1 = 404, PY0 = 6, PY1 = 90;
+    /* Plot geometry. The SVG scales to the card width, so its aspect ratio IS its height on a
+       phone: at 404x192 a Pro Max rendered the whole ladder in about 170px and the five bands sat
+       34px apart, which is not a chart you can read. 404x320 gives each band roughly 60px. */
+    const PX0 = 62, PX1 = 404, PY0 = 6, PY1 = 314, PVB = 320;
 
     /* A warped time axis. The next hour is where the detail is and where a decision gets made, so
        it gets nearly half the width; the far end of the night is a forecast and gets squeezed.
@@ -5513,17 +5555,18 @@ class Component extends DCLogic {
       const g2 = E.auroraGeometry(kpv == null ? 2 : kpv);
       const watch = E.watchFor(s2.y, s2.m, s2.d);
       const cl = s2.cloud == null ? null : Math.round(s2.cloud);
+      const v2 = this.veilOf(nn);
       const dt = new Date(Date.UTC(s2.y, s2.m, s2.d));
       /* Tonight's row reuses the same peak the headline is built from, cloud, moon and all.
          Two independent answers to the same question on one screen is worse than none. */
-      const ch2 = i2 === 0 ? { camera: peakCam } : kpv == null ? { camera: null } : E.chanceAt(kpv, { bands, cloud: cl });
+      const ch2 = i2 === 0 ? { camera: peakCam } : kpv == null ? { camera: null } : E.chanceAt(kpv, { bands, highCloud: v2.high, rh: v2.rh });
       /* Beyond tonight the uncertainty is in the forecast rather than in the sky, so these rows
          cannot reach the strong end of the ladder however good the numbers look. Tomorrow and
          after cap at "very possible"; anything from the 27-day outlook caps at "possible". */
       const cw2 = i2 === 0 ? E.chanceWord(ch2.camera)
         : E.capWord(E.chanceWord(ch2.camera), from27 ? 1 : 2);
       let word;
-      if (i2 === 0 && peakCam != null) word = cw2 === 'unlikely' ? 'unlikely from here tonight' : cw2 + ' on camera' + (nc && nc.total > 70 ? ', but cloud sits in the way' : '');
+      if (i2 === 0 && peakCam != null) word = cw2 === 'unlikely' ? 'unlikely from here tonight' : cw2 + ' on camera' + (blockPct != null && blockPct >= 60 ? ', though low cloud is in the way' : '');
       else if (kpv == null) word = 'no forecast reaches this far out';
       else if (s2.darkHours < 0.25) word = 'never gets properly dark';
       else if (cw2 === 'unlikely') word = g2.reaches ? 'unlikely, too quiet to reach here' : 'unlikely, the band stays well ' + poleWord;
@@ -5555,7 +5598,7 @@ class Component extends DCLogic {
     const edges = [PY0, ...CUTS.map(yFor), PY1];
     const bandLabels = ['very likely', 'likely', 'very possible', 'possible', 'unlikely'].map((label, k) => ({
       label,
-      top: ((edges[k] + edges[k + 1]) / 2 / 96 * 100).toFixed(1) + '%',
+      top: ((edges[k] + edges[k + 1]) / 2 / PVB * 100).toFixed(1) + '%',
       colour: k === 1 ? 'var(--accent)' : 'var(--faint)',
     }));
 
@@ -5621,6 +5664,15 @@ class Component extends DCLogic {
     }
     if (mapLine && dark && peakCam != null) sub += mapLine;
 
+    /* The cloud, said once, up here. Everything below it is a clear-sky reading, so this is the
+       line that stops the page contradicting the sky you are standing under. */
+    const aurCloudNote = (!dark || peakCam == null) ? '' : this.cloudCaveat(blockPct,
+      camWord === 'unlikely'
+        ? 'there would be little to see from here even under a clear sky'
+        : 'the aurora would otherwise be ' + camWord + ' on camera'
+          + (eyeWord === 'unlikely' ? '' : ' and ' + eyeWord + ' to your eye')
+          + ': everything below reads the sky as if it cleared');
+
     /* Ticks sit at their true level; the labels are spread so they stay readable on a phone, and
        far enough north all three thresholds collapse onto the same point. */
     const pctOf = v => Math.max(0, Math.min(96, v / 9 * 100));
@@ -5643,6 +5695,7 @@ class Component extends DCLogic {
     return {
       aurReady: true,
       aurHead: head, aurSub: sub,
+      aurCloudOn: !!aurCloudNote, aurCloudNote,
       aurMetaLine: (t.darkWin ? 'Dark ' + this.hhmm(t.darkWin.from) + '\u2013' + this.hhmm(t.darkWin.to) : 'No astronomical darkness tonight')
         + (hp ? ' \u00b7 ' + (hp.estimated ? 'Kp ' : 'Hp ') + hp.value.toFixed(1) + ' now' : ''),
 
@@ -5742,7 +5795,8 @@ class Component extends DCLogic {
       /* your sky */
       aurSkyLabel: 'Cloud ' + poleWord,
       aurCloud: nc ? Math.round(nc.total) + '%' : '\u2013',
-      aurCloudSub: nc ? Math.round(nc.low) + '% of it low' : 'no reading for that sky',
+      aurCloudSub: nc ? Math.round(nc.blocking != null ? nc.blocking : nc.low) + '% low or mid, '
+        + (nc.high != null ? Math.round(nc.high) + '% cirrus' : 'cirrus unknown') : 'no reading for that sky',
       aurCloudColour: nc && nc.total <= 35 ? 'var(--cool)' : nc && nc.total >= 70 ? 'var(--accent)' : 'var(--text)',
       aurMoon: Math.round(moonIll * 100) + '%',
       aurMoonSub: moonUp ? (n.moonWin ? 'up until ' + this.hhmm(n.moonWin.to) : 'up tonight') : 'down all night',
@@ -6066,6 +6120,32 @@ class Component extends DCLogic {
     return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
   }
 
+  /* The other half of that split: high cirrus and humidity through the dark hours, which dim what
+     is up there without hiding it. These are the only cloud figures allowed into a likelihood. */
+  veilOf(n) {
+    const E = this.E();
+    const out = { high: null, rh: null, clear: null };
+    if (!E || !n || !n.slots) return out;
+    const dark = n.slots.filter(s => s.sunAlt < -6 && s.cloud);
+    const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+    out.high = mean(dark.filter(s => s.cloud.high != null).map(s => s.cloud.high));
+    out.rh = mean(dark.filter(s => s.cloud.rh != null).map(s => s.cloud.rh));
+    out.clear = mean(dark.map(s => E.veilFraction(s.cloud)));
+    return out;
+  }
+
+  /* Cloud never gets folded into a number on these pages. Low and mid cloud decides whether you can
+     see out, not what the sky is doing, and it is the one input that can be wrong within the hour,
+     so the app answers "if it cleared, what is there" and states the deck in words instead. This is
+     that sentence, in one shape wherever it appears. */
+  cloudCaveat(cover, worth) {
+    if (cover == null || cover < 40) return '';
+    const sky = cover >= 85 ? 'It\u2019s overcast tonight'
+      : cover >= 62 ? 'It\u2019s mostly clouded over tonight'
+      : 'There\u2019s a good deal of low cloud about tonight';
+    return sky + (worth ? ', but ' + worth : '') + '.';
+  }
+
   bestSentence(t) {
     if (!t.darkHours || t.darkHours < 0.25) return 'The sky never gets dark enough tonight.';
     /* No window at all means the best stretch was still half covered in low or mid cloud. Saying
@@ -6114,6 +6194,7 @@ class Component extends DCLogic {
     if (!n) return {
       chips: [], ribbonRead: 'Calculating…', nightTitle: 'Night detail', nightSub: '',
       nightStats: [], chartEl: null, camLine: '', airLine: '', showers: [], focalOptions: [],
+      metCloudOn: false, metCloudNote: '',
     };
     const sky = st.sky || E.state.sky;
     const chips = [
@@ -6124,7 +6205,7 @@ class Component extends DCLogic {
     ];
     const next = new Date(Date.UTC(n.y, n.m, n.d + 1));
     const dateStr = n.d + '/' + next.getUTCDate() + ' ' + E.MONTHS[next.getUTCMonth()];
-    const peakRate = n.peak ? n.peak.rate : 0;
+    const peakRate = n.peakClear ? n.peakClear.rate : 0;
     const head = n.headline;
     const fv = E.fovFraction(st.focal);
     const inFrame = peakRate * fv.frac * 0.55;
@@ -6138,18 +6219,22 @@ class Component extends DCLogic {
 
     const stats = [
       { k: 'Best rate', v: peakRate.toFixed(0), s: 'meteors per hour, all sources', c: 'var(--accent)' },
-      { k: 'Best window', v: n.win ? E.fmtTime(n.win.from) + '–' + E.fmtTime(n.win.to) : '–', s: n.peak ? 'peak around ' + E.fmtTime(n.peak.t) : 'no dark hours', c: 'var(--text)' },
-      { k: 'Night total', v: String(Math.round(n.total)), s: 'meteors across the dark hours', c: 'var(--text)' },
-      { k: 'Score', v: String(Math.round(n.score)), s: E.verdictWord(n.score, this.lowMidOf(n)), c: 'var(--text)' },
+      { k: 'Best window', v: n.winClear ? E.fmtTime(n.winClear.from) + '\u2013' + E.fmtTime(n.winClear.to) : '\u2013', s: n.peakClear ? 'peak around ' + E.fmtTime(n.peakClear.t) : 'no dark hours', c: 'var(--text)' },
+      { k: 'Night total', v: String(Math.round(n.totalClear || 0)), s: 'meteors across the dark hours', c: 'var(--text)' },
+      { k: 'Score', v: String(Math.round(n.scoreClear || 0)), s: E.verdictWord(n.scoreClear || 0, this.lowMidOf(n)), c: 'var(--text)' },
       { k: 'Moon', v: n.moonWin ? Math.round(n.moonWin.maxIllum * 100) + '%' : '–', s: n.moonWin ? 'lit, up ' + E.fmtTime(n.moonWin.from) + '–' + E.fmtTime(n.moonWin.to) : 'below the horizon all night', c: 'var(--moon)' },
     ];
 
     const airBits = [];
+    /* The cloud, said once, up here, so every number underneath can stay a clear-sky number. */
+    const metCloudNote = isPast ? '' : this.cloudCaveat(this.lowMidOf(n), (n.scoreClear || 0) >= 20
+      ? 'these are clear-sky rates: what the shower would give you if it broke'
+      : 'the rates below ignore it, and there is not a great deal on offer even under a clear sky');
     if (n.rh != null) airBits.push('Humidity averages ' + Math.round(n.rh) + '% through the dark hours' + (n.rh > 85 ? ', which will haze the sky and soften faint meteors' : n.rh > 70 ? ', enough to take the edge off transparency' : ', so transparency should hold up'));
     if (n.dewGap != null && n.dewGap < 2.5) airBits.push('Air comes within ' + n.dewGap.toFixed(1) + '°C of the dew point around ' + E.fmtTime(n.dewAt) + ', so pack the dew straps');
 
     const showers = n.showers.map((sw, i) => {
-      const d = sw.det, meta = sw.sh;
+      const d = sw.detClear || sw.det, meta = sw.sh;
       const bars = [
         { k: 'Shower activity', pct: Math.round(E.clamp(d.activityFrac, 0, 1) * 100), note: Math.round(d.zhr) + ' ZHR', c: 'var(--accent)' },
       ];
@@ -6157,17 +6242,20 @@ class Component extends DCLogic {
       bars.push({ k: 'Moonlight', pct: Math.round(E.clamp(d.moonFactor, 0, 1) * 100), note: d.moonLoss > 0.05 ? '−' + d.moonLoss.toFixed(1) + ' mag' : 'none', c: 'var(--moon)' });
       bars.push({ k: 'Sky darkness', pct: Math.round(E.clamp(d.darkFactor, 0, 1) * 100), note: sky ? sky.sqm.toFixed(1) + ' mag, Bortle ' + sky.bortle : '–', c: 'var(--accent)' });
       bars.push({ k: 'Transparency', pct: Math.round(E.clamp(d.transFactor, 0, 1) * 100), note: (d.glowLoss + d.humLoss) > 0.05 ? '−' + (d.glowLoss + d.humLoss).toFixed(1) + ' mag' : 'clean air', c: 'var(--moon)' });
-      bars.push({ k: 'Clear sky', pct: Math.round(E.clamp(d.clear, 0, 1) * 100), note: !d.assumed ? Math.round(d.clear * 100) + '%' : d.typical ? 'typical ' + Math.round(d.clear * 100) + '%' : 'assumed clear', c: 'var(--moon-dim)' });
+      bars.push({ k: 'High cloud', pct: Math.round(E.clamp(d.veilFrac == null ? 1 : d.veilFrac, 0, 1) * 100), note: (d.veilFrac == null || d.veilFrac > 0.99) ? 'none in the way' : Math.round((1 - d.veilFrac) * 100) + '% dimmed', c: 'var(--moon-dim)' });
       const metaRows = [];
       if (meta.active) metaRows.push({ k: 'Active', v: meta.active });
       if (meta.parent) metaRows.push({ k: 'Parent', v: meta.parent });
       const hi = this.radiantHigh(n, sw.code);
       if (hi) metaRows.push({ k: 'Radiant highest', v: this.hhmm(hi.t) + ', ' + Math.round(hi.alt) + '° in the ' + E.compass(hi.az) });
       metaRows.push({ k: 'Naked-eye limit now', v: d.nelm.toFixed(1) });
-      metaRows.push({ k: 'Night total', v: sw.total.toFixed(0) });
+      /* Not one of the bars above: the bars are what the rate has been multiplied by, and low and
+         mid cloud deliberately is not. */
+      if (d.cf != null) metaRows.push({ k: 'Low and mid cloud', v: Math.round((1 - d.clear) * 100) + '% of the sky, not taken off these rates' });
+      metaRows.push({ k: 'Night total', v: (sw.totalClear != null ? sw.totalClear : sw.total).toFixed(0) });
       return {
-        code: sw.code, name: sw.name, rate: sw.peak.toFixed(1) + '/hr',
-        pct: Math.round(E.scoreOf(sw.peak)), open: !!this.state.open[i],
+        code: sw.code, name: sw.name, rate: (sw.peakClear != null ? sw.peakClear : sw.peak).toFixed(1) + '/hr',
+        pct: Math.round(E.scoreOf(sw.peakClear != null ? sw.peakClear : sw.peak)), open: !!this.state.open[i],
         verdict: E.sentence(sw, n), bars, meta: metaRows, facts: meta.facts || '',
         toggle: () => this.setState(s => ({ open: Object.assign({}, s.open, { [i]: !s.open[i] }) })),
       };
@@ -6175,9 +6263,9 @@ class Component extends DCLogic {
 
     return {
       chips,
-      ribbonRead: (isPast ? 'Already gone · ' : '') + E.fmtDate(n.y, n.m, n.d) + ' · peak ' + peakRate.toFixed(0) + '/hr · ' + (head ? head.name : 'no shower'),
+      ribbonRead: (isPast ? 'Already gone \u00b7 ' : '') + E.fmtDate(n.y, n.m, n.d) + ' \u00b7 peak ' + peakRate.toFixed(0) + '/hr \u00b7 ' + (head ? head.name : 'no shower'),
       nightTitle: (isPast ? 'Night of ' : 'Night of ') + dateStr + ' ' + n.y,
-      nightSub: isPast ? 'A night that has been: cloud as it was recorded, rates as they were'
+      nightSub: isPast ? 'A night that has been: cloud as it was recorded, rates as a clear sky would have given them'
         : n.forecast ? 'Cloud from live forecast'
         : n.typical ? 'Beyond the forecast: typical cloud for this time of year'
         : 'No forecast for this night, rates assume clear sky',
@@ -6188,6 +6276,7 @@ class Component extends DCLogic {
         dangerouslySetInnerHTML: { __html: this.recolourSvg(E.nightChart(n)) },
       }),
       focalOptions,
+      metCloudOn: !!metCloudNote, metCloudNote,
       camLine: 'A ' + st.focal + 'mm on full frame covers ' + Math.round(fv.frac * 100) + '% of the sky, so at the best hour expect roughly ' + inFrame.toFixed(1) + ' meteors in frame per hour'
         + (head && head.det ? ', with the radiant ' + Math.round(head.det.radAlt) + '° up in the ' + E.compass(head.det.radAz) + ': point 40 to 60° away from it for longer trails' : '') + '.',
       airLine: airBits.length ? airBits.join('. ') + '.' : '',

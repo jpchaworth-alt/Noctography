@@ -379,6 +379,18 @@ function lowMidCover(c){
   if(c.low==null) return c.total==null?null:c.total;
   return Math.max(c.low||0,c.mid||0);
 }
+/* The clear-sky question, which is a different question from clearFraction's.
+   Two things get muddled by one cloud number: whether the sky is going to produce the thing at
+   all, and whether you happen to be standing under a hole in the deck when it does. Low and mid
+   cloud only answer the second, and it changes within the hour, so anything that reports what is
+   in the sky reads this instead: the transmission of the layers that dim rather than block. High
+   cirrus stays in, because it is still there when the deck breaks, and it genuinely costs you the
+   fainter end of everything. The deck itself is then reported in words rather than folded into a
+   number nobody can unpick. */
+function veilFraction(c){
+  if(!c||c.high==null) return 1;
+  return clamp(1-0.55*(c.high||0)/100,0,1);
+}
 function rateFor(sh,s,lat,lon){
   const lam=s.sun.lam2000;
   let zhr,pop,rad,zmax;
@@ -403,13 +415,19 @@ function rateFor(sh,s,lat,lon){
   const twFactor=Math.pow(pop,-lm.twLoss);
   const transFactor=Math.pow(pop,-(lm.glowLoss+lm.humLoss));
   const cf=clearFraction(s.cloud), clear=cf==null?1:cf;
+  const vf=veilFraction(s.cloud);
   return {code:sh.code,name:sh.name,sh,zhr,zmax,radAlt,radAz,nelm:lm.nelm,sky:lm.sky,
           moonLoss:lm.moonLoss,twLoss:lm.twLoss,glowLoss:lm.glowLoss,humLoss:lm.humLoss,
           veil:lm.veil,hum:lm.hum,altFactor,skyFactor,moonFactor,twFactor,transFactor,
           darkFactor:Math.pow(pop,(s.b.nelm-6.5)),clear,cf,assumed:!!(s.cloud&&s.cloud.assumed),
           typical:!!(s.cloud&&s.cloud.typical),
           activityFrac:zmax>0?zhr/zmax:1,
-          rate:zhr*altFactor*skyFactor*clear*PERCEPTION};
+          veilFrac:vf,
+          rate:zhr*altFactor*skyFactor*clear*PERCEPTION,
+          /* The same rate with the low and mid deck taken out: what the shower would actually give
+             you if the sky cleared. Everything the app shows a reader reads this; the planner and
+             the night grades still read rate, because there the cloud is the whole point. */
+          rateClear:zhr*altFactor*skyFactor*vf*PERCEPTION};
 }
 const LO=Math.log10(4), HI=Math.log10(91);
 const alphaOf=r=>clamp((Math.log10(1+r)-LO)/(HI-LO),0,1);
@@ -549,6 +567,7 @@ function computeNight(y,m,d){
   const startL=toUTC(y,m,d,12,0), endL=toUTC(y,m,d+1,12,0);
   const slots=[];
   let peak=null,total=0,darkMin=0,moonMin=0,cloudSum=0,cloudN=0,forecast=false;
+  let peakClear=null,totalClear=0;
   let rhSum=0,rhN=0,dewGap=null,dewAt=null,typical=false;
   const byShower={};
   for(let t=startL.getTime();t<=endL.getTime();t+=STEP*60000){
@@ -561,18 +580,23 @@ function computeNight(y,m,d){
     }
     const fallback=(state.assumedCloud==='typical')?0:state.assumedCloud;
     const s=sampleSky(jd,state.lat,state.lon,state.sky,cl||{total:fallback,assumed:true});
-    const slot={t:dt,sunAlt:s.sunAlt,moonAlt:s.moonAlt,illum:s.illum,cloud:cl,rate:0,best:null,sources:[],env:s};
+    const slot={t:dt,sunAlt:s.sunAlt,moonAlt:s.moonAlt,illum:s.illum,cloud:cl,rate:0,rateClear:0,best:null,sources:[],env:s};
     if(s.sunAlt<-6){
       const cands=SHOWERS.concat([ANT,SPO]);
       for(const sh of cands){
         const r=rateFor(sh,s,state.lat,state.lon);
-        if(!r||r.rate<0.02) continue;
+        /* A shower that cloud has flattened to nothing still has a clear-sky rate worth showing,
+           so it takes both being negligible to drop it from the night. */
+        if(!r||(r.rate<0.02&&r.rateClear<0.02)) continue;
         slot.sources.push(r);
         slot.rate+=r.rate;
+        slot.rateClear+=r.rateClear;
         if(sh.code!=='SPO'&&sh.code!=='ANT'&&(!slot.best||r.rate>slot.best.rate)) slot.best=r;
-        const acc=byShower[sh.code]||(byShower[sh.code]={code:sh.code,name:sh.name,sh,peak:0,at:null,total:0,det:null});
+        const acc=byShower[sh.code]||(byShower[sh.code]={code:sh.code,name:sh.name,sh,peak:0,at:null,total:0,det:null,peakClear:0,atClear:null,totalClear:0,detClear:null});
         acc.total+=r.rate*STEP/60;
         if(r.rate>acc.peak){acc.peak=r.rate;acc.at=dt;acc.det=r;}
+        acc.totalClear+=r.rateClear*STEP/60;
+        if(r.rateClear>acc.peakClear){acc.peakClear=r.rateClear;acc.atClear=dt;acc.detClear=r;}
       }
       if(s.sunAlt<-15) darkMin+=STEP;
       if(s.moonAlt>0) moonMin+=STEP;
@@ -583,6 +607,8 @@ function computeNight(y,m,d){
       }
       total+=slot.rate*STEP/60;
       if(!peak||slot.rate>peak.rate) peak={rate:slot.rate,t:dt,slot};
+      totalClear+=slot.rateClear*STEP/60;
+      if(!peakClear||slot.rateClear>peakClear.rate) peakClear={rate:slot.rateClear,t:dt,slot};
     }
     slots.push(slot);
   }
@@ -619,6 +645,19 @@ function computeNight(y,m,d){
       win={from:dark[a].t,to:dark[b].t};
     }
   }
+  // the same window on the clear-sky rate, so the time to be out does not move with the cloud
+  let winClear=null;
+  if(peakClear){
+    const dark=slots.filter(x=>x.sunAlt<-6);
+    const pi=dark.indexOf(peakClear.slot);
+    if(pi>=0){
+      const thr=peakClear.rate*0.7;
+      let a=pi,b=pi;
+      while(a>0&&dark[a-1].rateClear>=thr) a--;
+      while(b<dark.length-1&&dark[b+1].rateClear>=thr) b++;
+      winClear={from:dark[a].t,to:dark[b].t};
+    }
+  }
   // moon above the horizon during darkness
   let moonWin=null;
   slots.filter(x=>x.sunAlt<-6&&x.moonAlt>0).forEach(x=>{
@@ -630,7 +669,8 @@ function computeNight(y,m,d){
   return {y,m,d,slots,peak,total,darkMin,moonMin,forecast,typical,win,moonWin,
           rh:rhN?rhSum/rhN:null,dewGap,dewAt,
           cloud:cloudN?cloudSum/cloudN:null,showers:list,headline,
-          score:peak?scoreOf(peak.rate):0};
+          score:peak?scoreOf(peak.rate):0,
+          peakClear,totalClear,winClear,scoreClear:peakClear?scoreOf(peakClear.rate):0};
 }
 /* Recent history. Open-Meteo returns the same hourly fields for past days, so these nights are
    computed exactly like the forecast ones: the difference is only that they already happened. */
@@ -675,7 +715,9 @@ function nightChart(n){
   const t0=dark[0].t.getTime(), t1=dark[dark.length-1].t.getTime();
   const PH=H-T-B;
   const X=t=>L+(t-t0)/(t1-t0)*(W-L-R);
-  const maxRate=Math.max(6,...dark.map(s=>s.rate));
+  /* The rate curve is the clear-sky rate. The cloud lane above it says what is in the way, so
+     drawing the two multiplied together said the same thing twice and hid the shower. */
+  const maxRate=Math.max(6,...dark.map(s=>s.rateClear));
   const Y=r=>T+PH*(1-r/maxRate);
   const YA=a=>T+PH*(1-clamp(a,0,90)/90);
   const F='JetBrains Mono,monospace';
@@ -725,7 +767,7 @@ function nightChart(n){
   g+=txt(L-3,CY+12,'CLOUD',{s:9,a:'end',f:'#A9A8C4',ls:'0.06em'});
 
   // ---- meteors per hour ----
-  const rpts=dark.map(s=>[X(s.t.getTime()),Y(s.rate)]);
+  const rpts=dark.map(s=>[X(s.t.getTime()),Y(s.rateClear)]);
   const rline=smoothPath(rpts);
   const path=rline+' L'+X(t1).toFixed(1)+','+Y(0).toFixed(1)+' L'+X(t0).toFixed(1)+','+Y(0).toFixed(1)+' Z';
   g+='<path d="'+path+'" fill="#FAA338" opacity="0.26"/>';
@@ -795,9 +837,9 @@ function nightChart(n){
              {s:11,f:'#9FB6D8',a:lead?'start':'end'});
     }
   }
-  if(n.peak){
-    const x=X(n.peak.t.getTime());
-    g+='<line x1="'+x+'" y1="'+Y(n.peak.rate)+'" x2="'+x+'" y2="'+(H-B)+'" stroke="#FAA338" stroke-width="1" stroke-dasharray="2 3" opacity="0.65"/>';
+  if(n.peakClear){
+    const x=X(n.peakClear.t.getTime());
+    g+='<line x1="'+x+'" y1="'+Y(n.peakClear.rate)+'" x2="'+x+'" y2="'+(H-B)+'" stroke="#FAA338" stroke-width="1" stroke-dasharray="2 3" opacity="0.65"/>';
   }
   g+='</svg>';
   return g;
@@ -811,35 +853,38 @@ function fovFraction(focal){
 }
 
 
-/* The second argument is low and mid cloud cover across the dark hours. It matters because a low
-   rate under a clear sky means a weak shower, and "background only" is then the right phrase: the
-   sporadics really will be all you get. The same low rate under cloud means something completely
-   different, and saying background only would promise meteors that the cloud has taken as well. */
+/* The second argument is low and mid cloud cover across the dark hours. It no longer moves the
+   verdict, because the score it grades is now a clear-sky score: "clouded out" would be describing
+   a different number from the one on the screen beside it. The cloud gets said in words instead,
+   once, at the top of the page. */
 function verdictWord(s,cover){
   if(s>=82) return 'exceptional';
   if(s>=60) return 'very good';
   if(s>=40) return 'worth going out';
   if(s>=20) return 'quiet but shootable';
-  if(cover!=null&&cover>=50) return s>=6?'cloud is the limiting factor':'clouded out';
   if(s>=6)  return 'thin';
   return 'background only';
 }
 function speedWord(v){return v<25?'slow':v<45?'medium':v<60?'fast':'very fast';}
 
 function sentence(sw,n){
-  const d=sw.det;
+  /* Clear-sky throughout: the rates quoted here are the ones on the page, and the cloud in the way
+     is stated as cloud rather than silently subtracted from the numbers. */
+  const d=sw.detClear||sw.det;
+  const peak=sw.peakClear!=null?sw.peakClear:sw.peak;
+  const at=sw.atClear||sw.at;
   const parts=[];
   if(sw.code==='SPO'){
-    parts.push('Background meteors with no parent stream, running at about '+sw.peak.toFixed(1)+' an hour at best and rising towards dawn.');
+    parts.push('Background meteors with no parent stream, running at about '+peak.toFixed(1)+' an hour at best and rising towards dawn.');
   }else{
-    const when=sw.at?fmtTime(sw.at):'–';
-    parts.push('Peaks for you around '+when+' at roughly '+sw.peak.toFixed(1)+' an hour, with the radiant '+Math.round(d.radAlt)+'° above the horizon in the '+compass(d.radAz)+'.');
+    const when=at?fmtTime(at):'–';
+    parts.push('Peaks for you around '+when+' at roughly '+peak.toFixed(1)+' an hour, with the radiant '+Math.round(d.radAlt)+'° above the horizon in the '+compass(d.radAz)+'.');
     if(d.activityFrac<0.25) parts.push('The shower itself is well off its maximum, at about '+Math.round(d.activityFrac*100)+'% of peak strength.');
   }
   if(d.moonLoss>1.2) parts.push('Moonlight is the limiting factor tonight, costing around '+d.moonLoss.toFixed(1)+' magnitudes of sky darkness.');
   else if(d.moonLoss>0.3) parts.push('Some moon interference, costing about '+d.moonLoss.toFixed(1)+' magnitudes.');
-  if(d.cf!=null&&d.cf<0.35) parts.push('Cloud is the limiting factor tonight rather than the shower: the forecast leaves only about '+Math.round(d.clear*100)+'% of the sky usable, and it hides the sporadic background along with everything else.');
-  if(d.glowLoss>0.35) parts.push('Thin cloud is scattering ground light and moonlight back down, costing a further '+d.glowLoss.toFixed(1)+' magnitudes on top of the blocking.');
+  if(d.cf!=null&&d.cf<0.65) parts.push('Low and mid cloud covers about '+Math.round((1-d.clear)*100)+'% of the sky tonight, and these rates ignore it deliberately: this is what you would see through a gap in it, or if the forecast is wrong.');
+  if(d.glowLoss>0.35) parts.push('High cloud is scattering ground light and moonlight back down, costing a further '+d.glowLoss.toFixed(1)+' magnitudes.');
   if(d.humLoss>0.25) parts.push('Humid air is hazing the sky as well, worth about '+d.humLoss.toFixed(1)+' magnitudes of transparency.');
   if(state.sky&&state.sky.bortle>=6) parts.push('At Bortle '+state.sky.bortle+' you are losing most of the fainter meteors before anything else gets a say.');
   return parts.join(' ');
@@ -1272,6 +1317,7 @@ function nightSummary(n){
     moonPct: mid ? mid.illum * 100 : 0, moonUp,
     sky: realSky(n), sun: sunTimes(n), mt: moonTimes(n), fog: fogRisk(n),
     peakRate: n.peak ? n.peak.rate : 0,
+    peakRateClear: n.peakClear ? n.peakClear.rate : 0,
     headline: n.headline ? n.headline.code : null,
     headlineName: n.headline ? n.headline.name : null,
     win: n.win, score: n.score,
@@ -1756,19 +1802,21 @@ function allSkyGlow(lat, lon, opts){
   };
 }
 
-/* Cloud over the sky the arc would occupy, rather than over the user's head. */
+/* Cloud over the sky the arc would occupy, rather than over the user's head. Layers are kept
+   apart: high cirrus dims the arc and belongs in the likelihood, while the low and mid deck only
+   decides whether you can see out, which the page says in words. */
 async function loadPolewardCloud(win){
   const sign = state.lat >= 0 ? 1 : -1;
   const las = [clamp(state.lat + sign * 0.5, -89, 89), clamp(state.lat + sign * 1.0, -89, 89)];
   const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + las.map(v => v.toFixed(3)).join(',') +
     '&longitude=' + las.map(() => state.lon.toFixed(3)).join(',') +
-    '&hourly=cloud_cover,cloud_cover_low&forecast_days=3&timezone=UTC';
+    '&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m&forecast_days=3&timezone=UTC';
   try{
     const r = await fetch(url);
     if(!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
     const rows = Array.isArray(j) ? j : [j];
-    let tot = 0, low = 0, n = 0;
+    let tot = 0, low = 0, mid = 0, high = 0, rh = 0, rhN = 0, n = 0;
     rows.forEach(p => {
       const h = p.hourly; if(!h || !h.time) return;
       h.time.forEach((t, i) => {
@@ -1776,10 +1824,15 @@ async function loadPolewardCloud(win){
         if(win && (ms < win.from.getTime() - 1800000 || ms > win.to.getTime() + 1800000)) return;
         const c = h.cloud_cover[i], l = h.cloud_cover_low[i];
         if(c == null) return;
-        tot += c; low += (l == null ? 0 : l); n++;
+        const m = h.cloud_cover_mid ? h.cloud_cover_mid[i] : null;
+        const hi = h.cloud_cover_high ? h.cloud_cover_high[i] : null;
+        const rhv = h.relative_humidity_2m ? h.relative_humidity_2m[i] : null;
+        tot += c; low += (l == null ? 0 : l); mid += (m == null ? 0 : m); high += (hi == null ? 0 : hi); n++;
+        if(rhv != null){ rh += rhv; rhN++; }
       });
     });
-    state.northCloud = n ? { total: tot / n, low: low / n, hours: n } : null;
+    state.northCloud = n ? { total: tot / n, low: low / n, mid: mid / n, high: high / n,
+                             blocking: Math.max(low / n, mid / n), rh: rhN ? rh / rhN : null, hours: n } : null;
     state.northCloudStatus = n ? 'live' : 'unavailable';
     return !!n;
   }catch(e){ state.northCloud = null; state.northCloudStatus = 'unavailable'; return false; }
@@ -2258,8 +2311,20 @@ function moonHitAurora(env, poleward){
 function chanceAt(level, opts){
   opts = opts || {};
   const bands = opts.bands || personalBands();
-  const cloud = opts.cloud == null ? 0.25 : clamp(opts.cloud / 100, 0, 1);
-  const sky = Math.max(0, 1 - 0.9 * cloud);
+  /* Clear-sky likelihood, deliberately. Low and mid cloud used to be in here as a flat 0.9 knock
+     on the whole answer, which meant a real storm overhead read as "unlikely tonight" to anyone
+     standing under a deck, while a clearer site at the same latitude and the same Hp read as
+     "possible": the app was answering "will you see it through this cloud" when the question worth
+     answering is "is it there". What stays is everything still against you the moment the deck
+     breaks: high cirrus, humid haze, moonlight, and the town glow towards the arc. The deck itself
+     is reported in words at the top of the page, never folded into this number.
+     A plain number in opts.cloud is ignored on purpose rather than reinterpreted. */
+  const cl = (opts.cloud && typeof opts.cloud === 'object') ? opts.cloud : null;
+  const highPct = opts.highCloud != null ? opts.highCloud : (cl && cl.high != null ? cl.high : null);
+  const rhPct = opts.rh != null ? opts.rh : (cl && cl.rh != null ? cl.rh : null);
+  const high = highPct == null ? 0 : clamp(highPct / 100, 0, 1);
+  const hum = rhPct == null ? 0 : clamp((rhPct - 72) / 28, 0, 1);
+  const sky = clamp(1 - 0.4 * high - 0.12 * hum, 0.45, 1);
   /* Light pollution towards the arc, not overhead. A dark site with a city to the north was being
      scored as though the northern sky were dark too. */
   let bortle = opts.bortle;
@@ -2480,7 +2545,7 @@ window.NoctoEngine = {
   loadAtlas, atlasSky, updateSky, nelmFor, bortleFor,
   loadWeather, loadClimatology, computeNight, computeAll,
   sunPos, moonPos, moonIllum, lstOf, eq2horiz, jdFrom, clamp, norm,
-  clearFraction, rateFor, sampleSky, scoreOf, alphaOf,
+  clearFraction, veilFraction, rateFor, sampleSky, scoreOf, alphaOf,
   localParts, fmtTime, fmtDate, toUTC, pad, MONTHS, compass, tzOffset: () => state.tzOffset,
   nightChart, fovFraction, verdictWord, speedWord, sentence,
   tonight, realSky, nightSummary, sunTimes, moonTimes, fogRisk, loadKp, kpForNight, geocode, homeFromTimezone, MW_RA, MW_DEC,
