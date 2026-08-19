@@ -141,10 +141,10 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=2026-08-19a"></script>
-<script src="../noctography-sat.js?v=2026-08-19a"></script>
-<script src="../noctography-plan.js?v=2026-08-19a"></script>
-<script src="../noctography-ar.js?v=2026-08-19a"></script>
+<script src="../noctography-engine.js?v=2026-08-19b"></script>
+<script src="../noctography-sat.js?v=2026-08-19b"></script>
+<script src="../noctography-plan.js?v=2026-08-19b"></script>
+<script src="../noctography-ar.js?v=2026-08-19b"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -1982,12 +1982,12 @@ window.noctoTrack = function (name) {
           <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Two-line elements for the International Space Station and for launches in the last thirty days. Dr T.S. Kelso's service, free for public use. The orbits themselves are propagated on your device, not fetched as a list of passes.</span>
         </div>
 
-        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Baked into the app, no network</span>
+        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Sky brightness</span>
         <div style="display: grid; gap: 8px;">
           <a href="https://djlorenz.github.io/astronomy/" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">David Lorenz. World Atlas of Artificial Night Sky Brightness</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">djlorenz.github.io</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The 2025 VIIRS-derived light pollution atlas, encoded into the app as two images. Your sky brightness, naked-eye limiting magnitude and Bortle class are read from it.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The 2025 VIIRS-derived light pollution atlas, converted to 1.5 arcmin tiles and served from this app. Your sky brightness, naked-eye limiting magnitude and Bortle class are read from it. A coarse world grid is baked into the app as well, for anywhere you have never been online.</span>
           </a>
           <a href="https://www.imo.net" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">International Meteor Organization</span>
@@ -2039,7 +2039,7 @@ window.noctoTrack = function (name) {
 
         <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
           <span style="font-size: 16px; font-weight: 600; color: var(--text);">Real life light pollution map</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Not a published product. The Lorenz atlas is sampled on sixteen bearings out to 150 km, each sample weighted so a near town counts for more than a far one, and the whole ring is then scaled by tonight’s humidity and high cloud, because haze is what puts town light back in your eyes. Bar length and opacity carry the strength. The scaling factors are my own judgement, not anyone’s published model, and the map is a guide to which way to point rather than a photometric measurement.</span>
+          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Not a published product. The Lorenz atlas is sampled on sixteen bearings out to 150 km, each sample weighted so a near town counts for more than a far one, and the whole ring is then scaled by tonight’s humidity and high cloud, because haze is what puts town light back in your eyes. Bar length and opacity carry the strength. The scaling factors are my own judgement, not anyone’s published model, and the map is a guide to which way to point rather than a photometric measurement. It reads the atlas at 1.5 arcmin, about 2 km, wherever you have been online at least once; somewhere new with no signal it falls back to a coarse world grid and the ring flattens out.</span>
         </div>
         <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
           <span style="font-size: 16px; font-weight: 600; color: var(--text);">Aurora geometry</span>
@@ -2674,7 +2674,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=2026-08-19a';
+    s.src = '../pano-calculator.js?v=2026-08-19b';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -2775,6 +2775,12 @@ class Component extends DCLogic {
     E.state.range = this.state.range;
     E.state.skyMode = this.state.skyMode === 'auto' ? 'auto' : +this.state.skyMode;
     await E.loadAtlas();
+    /* Sky brightness at 1.5 arcmin comes from tiles fetched for the ring around this site, so it
+       has to be in memory before computeAll reads it. Cache-first, so this is only a wait the
+       first time you visit a region; anything still in flight after seven seconds arrives through
+       onTilesReady below. */
+    E.onTilesReady = () => { E.updateSky(); E.computeAll(); this.setState({ sky: E.state.sky, nights: E.state.nights.slice(), t: E.tonight(), tick: this.state.tick + 1 }); };
+    await E.loadTiles();
     E.updateSky();
     this.setState({ sky: E.state.sky, wx: 'pending' });
     await E.loadWeather();
