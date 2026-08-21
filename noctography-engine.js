@@ -2383,7 +2383,13 @@ function nearestTideStation(lat, lon){
    same shape as HP30_RELAY. null until it is set up, which is the honest default: nobody publishes
    a free forecast of UK tide times, so until then this reads the last measured level instead of a
    time ahead of it, which is real and useful on its own even though it isn't a forecast. */
-const TIDE_RELAY = 'https://tide.jpchaworth.workers.dev';
+/* Deliberately null. The Worker exists at https://tide.jpchaworth.workers.dev but has never
+   answered with a live Admiralty key, so leaving the address here meant every tide tap made a
+   request that was always going to fail and then fell silently back to the measured level. The
+   code now says what is true. Restore the address the day the key is in place and verified, and
+   not before: a constant that describes an intention rather than a fact is worse than no
+   constant, because it hides a broken path behind a working-looking one. */
+const TIDE_RELAY = null;
 async function loadTide(lat, lon, darkWin){
   const st = nearestTideStation(lat, lon);
   if(!st) { state.tide = null; state.tideStatus = 'unavailable'; return false; }
@@ -2495,14 +2501,55 @@ function chanceAt(level, opts){
     ? moonHitAurora(opts.env, bands.poleward)
     : { eye: 0.5 * (opts.moonUp ? 1 : 0) * (opts.moonIllum || 0),
         camera: 0.18 * (opts.moonUp ? 1 : 0) * (opts.moonIllum || 0) };
-  const one = (band, moonHit, glowHit) => {
+  const one = (band, moonHit, glowHit, midAt) => {
     if(level == null) return null;
-    const mid = (band.possible + band.likely) / 2;
+    const mid = midAt == null ? (band.possible + band.likely) / 2 : midAt;
     const raw = 1 / (1 + Math.exp(-(level - mid) / 0.42));
     return clamp(raw * sky * (1 - moonHit) * (1 - glowHit * Math.max(0, bortle - 3)), 0, 0.97);
   };
+  /* faint is the same curve read at the possible edge rather than the middle of the band: the
+     chance of anything at all on a long exposure, as against the chance of colour worth keeping.
+     It exists so the ten-nights count can separate a wasted drive from a marginal one. */
   return { camera: one(bands.camera, mh.camera, 0.025), eye: one(bands.eye, mh.eye, 0.06),
+           faint: one(bands.camera, mh.camera, 0.025, bands.camera.possible),
            moonLoss: mh.loss, bortle };
+}
+/* ---- the answer with the forecast's own doubt inside it ----
+   Reading the ladder once at the central estimate and drawing the spread as a band put two
+   different kinds of doubt on one axis: the axis was already a probability, so the band was a
+   probability of a probability, and near the steep part of the logistic it covered most of the
+   ladder. The words then contradicted the picture on any decent night.
+   So the visibility probability is averaged across the levels the forecast actually allows,
+   five-point Gauss-Hermite over a normal of width spread. Above even odds the logistic is concave,
+   so a confident central estimate comes down on its own and a hopeless one comes up. The hedge is
+   arithmetic rather than editorial, and there is nothing left for a band to contradict. */
+const MARG_Z = [-1.732, -0.866, 0, 0.866, 1.732];
+const MARG_W = [0.09, 0.24, 0.34, 0.24, 0.09];
+function chanceMarginal(level, spread, opts){
+  if(level == null) return { camera: null, eye: null, faint: null };
+  if(!spread) return chanceAt(level, opts);
+  let cam = 0, eye = 0, faint = 0, wsum = 0;
+  MARG_Z.forEach((z, i) => {
+    const c = chanceAt(Math.max(0, level + z * spread), opts);
+    if(!c || c.camera == null) return;
+    cam += MARG_W[i] * c.camera;
+    eye += MARG_W[i] * (c.eye || 0);
+    faint += MARG_W[i] * (c.faint == null ? c.camera : c.faint);
+    wsum += MARG_W[i];
+  });
+  if(!wsum) return chanceAt(level, opts);
+  return { camera: cam / wsum, eye: eye / wsum, faint: faint / wsum };
+}
+/* Ten nights like this one. Frequencies are read far more reliably than probability words, and a
+   count carries the doubt without a second sentence: the nights that come home with nothing are
+   visible rather than implied. Colour is the marginal camera chance, anything at all is the same
+   figure read at the possible edge, and the gap between them is the argument you would have with
+   yourself about whether that grey smudge counts. */
+function tenNights(marg){
+  if(!marg || marg.camera == null) return null;
+  const colour = Math.max(0, Math.min(10, Math.round(marg.camera * 10)));
+  const any = Math.max(colour, Math.min(10, Math.round((marg.faint == null ? marg.camera : marg.faint) * 10)));
+  return { colour, faint: any - colour, none: 10 - any };
 }
 /* The likelihood ladder. Five rungs rather than four, so an error in any one constant moves the
    answer by one narrow step instead of one wide one. The order is not self-evident in ordinary
@@ -2571,6 +2618,8 @@ function nightCurve(win, kpSeries, opts){
     slots.push({
       t, level, source, spread,
       chance: chanceAt(level, opts),
+      /* what the page speaks from: the doubt is inside the figure, not drawn beside it */
+      marg: chanceMarginal(level, spread, opts),
       lo: chanceAt(Math.max(0, level - spread), opts),
       hi: chanceAt(level + spread, opts),
     });
@@ -2698,6 +2747,176 @@ function airglowState(opts){
   };
 }
 
+
+/* ============================ the planets, and when they gather ============================
+   Nothing else in the app needed a planet before now: the moon drives the sky brightness and the
+   sun draws the dark window, and both come from their own series. A conjunction is different. It
+   is the one thing in a nightscape that is worth driving out for on an otherwise ordinary night,
+   and it is invisible to a forecast: you have to compute it.
+
+   Elements are the JPL/Standish Keplerian approximations for the major planets, good for 1800 to
+   2050. They land a planet within an arcminute or two, which is nowhere near enough for an
+   occultation and far more than enough to say two objects will sit inside five degrees of each
+   other: the pairing is degrees wide and the answer never turns on the third decimal.
+
+   a AU, angles degrees; the second row of each is the rate per Julian century. */
+const PLANETS = {
+  Mercury: { el: [0.38709927, 0.20563593, 7.00497902, 252.25032350, 77.45779628, 48.33076593],
+             rt: [0.00000037, 0.00001906, -0.00594749, 149472.67411175, 0.16047689, -0.12534081],
+             mag: [-0.42, 0.0380, -0.000273, 0.000002] },
+  Venus:   { el: [0.72333566, 0.00677672, 3.39467605, 181.97909950, 131.60246718, 76.67984255],
+             rt: [0.00000390, -0.00004107, -0.00078890, 58517.81538729, 0.00268329, -0.27769418],
+             mag: [-4.40, 0.0009, 0.000239, -0.00000065] },
+  Earth:   { el: [1.00000261, 0.01671123, -0.00001531, 100.46457166, 102.93768193, 0.0],
+             rt: [0.00000562, -0.00004392, -0.01294668, 35999.37244981, 0.32327364, 0.0] },
+  Mars:    { el: [1.52371034, 0.09339410, 1.84969142, -4.55343205, -23.94362959, 49.55953891],
+             rt: [0.00001847, 0.00007882, -0.00813131, 19140.30268499, 0.44441088, -0.29257343],
+             mag: [-1.52, 0.016, 0, 0] },
+  Jupiter: { el: [5.20288700, 0.04838624, 1.30439695, 34.39644051, 14.72847983, 100.47390909],
+             rt: [-0.00011607, -0.00013253, -0.00183714, 3034.74612775, 0.21252668, 0.20469106],
+             mag: [-9.40, 0.005, 0, 0] },
+  Saturn:  { el: [9.53667594, 0.05386179, 2.48599187, 49.95424423, 92.59887831, 113.66242448],
+             rt: [-0.00125060, -0.00050991, 0.00193609, 1222.49362201, -0.41897216, -0.28867794],
+             mag: [-8.88, 0.044, 0, 0] },
+};
+const PLANET_ORDER = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'];
+
+/* Heliocentric rectangular ecliptic coordinates. Kepler's equation is solved by Newton, which on
+   these eccentricities converges in three passes; six is paranoia that costs nothing. */
+function helio(name, T){
+  const p = PLANETS[name];
+  const a = p.el[0] + p.rt[0] * T;
+  const e = p.el[1] + p.rt[1] * T;
+  const I = p.el[2] + p.rt[2] * T;
+  const L = p.el[3] + p.rt[3] * T;
+  const wBar = p.el[4] + p.rt[4] * T;
+  const O = p.el[5] + p.rt[5] * T;
+  const w = wBar - O;
+  const M = norm(L - wBar);
+  const Mr = M * D2R;
+  let E = Mr;
+  for (let i = 0; i < 6; i++) E -= (E - e * Math.sin(E) - Mr) / (1 - e * Math.cos(E));
+  const xv = a * (Math.cos(E) - e);
+  const yv = a * Math.sqrt(1 - e * e) * Math.sin(E);
+  const nu = Math.atan2(yv, xv) * R2D;
+  const r = Math.sqrt(xv * xv + yv * yv);
+  const u = (nu + w) * D2R;
+  const Or = O * D2R, Ir = I * D2R;
+  return {
+    x: r * (Math.cos(Or) * Math.cos(u) - Math.sin(Or) * Math.sin(u) * Math.cos(Ir)),
+    y: r * (Math.sin(Or) * Math.cos(u) + Math.cos(Or) * Math.sin(u) * Math.cos(Ir)),
+    z: r * Math.sin(u) * Math.sin(Ir),
+    r,
+  };
+}
+
+/* Geocentric apparent place, plus the brightness, since "Mars near the moon" means something
+   different at magnitude 1.8 than at −1.5. Phase angle comes from the sun–planet–earth triangle. */
+function planetPos(jd, name){
+  const T = centuries(jd);
+  const p = helio(name, T), E = helio('Earth', T);
+  const x = p.x - E.x, y = p.y - E.y, z = p.z - E.z;
+  const d = Math.sqrt(x * x + y * y + z * z);
+  const eps = 23.439291 - 0.0130042 * T;
+  const ce = cos(eps), se = sin(eps);
+  const ra = norm(Math.atan2(y * ce - z * se, x) * R2D);
+  const dec = Math.asin(clamp((y * se + z * ce) / d, -1, 1)) * R2D;
+  const m = PLANETS[name].mag;
+  let mag = null;
+  if (m){
+    const cosA = clamp((p.r * p.r + d * d - E.r * E.r) / (2 * p.r * d), -1, 1);
+    const A = Math.acos(cosA) * R2D;
+    mag = m[0] + 5 * Math.log10(p.r * d) + m[1] * A + m[2] * A * A + m[3] * A * A * A;
+  }
+  return { name, ra, dec, dist: d, sunDist: p.r, mag };
+}
+
+/* Every naked-eye planet plus the moon, at one instant. The moon is included because it is the
+   most common half of any conjunction worth photographing: a thin crescent beside Venus is the
+   picture everyone recognises, and it is the one pairing that moves fast enough to miss. */
+function skyBodies(jd){
+  const out = PLANET_ORDER.map(n => planetPos(jd, n));
+  const m = moonPos(jd);
+  out.push({ name: 'Moon', ra: m.ra, dec: m.dec, dist: m.distKm / 149597870.7, mag: null, isMoon: true });
+  return out;
+}
+
+/* How wide a gathering reads. Under a degree the pair sits inside a telephoto frame and looks
+   deliberate; five degrees is about a fist at arm's length, which is where a grouping stops being
+   obvious to the eye and starts needing pointing out. */
+function pairLabel(sep){
+  if (sep < 0.5) return 'touching';
+  if (sep < 1.5) return 'very close';
+  if (sep < 3) return 'close';
+  return 'nearby';
+}
+
+/* The conjunctions visible from here, over the nights given.
+
+   Two things make this harder than a separation calculation. A pairing is only worth telling
+   someone about if both objects are actually up in a dark sky at the same moment, which rules out
+   most Mercury events and anything sitting behind the sun. And a pairing tightens and loosens over
+   days, so the answer for one night is a minimum over that night rather than a single reading:
+   sampled through the usable window and kept at its closest.
+
+   Twilight is judged on the sun rather than the app's astronomical dark window, because a low
+   western conjunction in late twilight is a real photograph and often the only time Mercury is
+   ever available. The threshold is nautical dark for a properly dark sky, relaxed to civil for a
+   bright pairing low down, which is exactly the case the stricter test would throw away. */
+function conjunctions(nights, lat, lon, opts){
+  opts = opts || {};
+  const maxSep = opts.maxSep == null ? 5 : opts.maxSep;
+  const minAlt = opts.minAlt == null ? 5 : opts.minAlt;
+  const out = [];
+  (nights || []).forEach(n => {
+    if (!n || !n.slots || !n.slots.length) return;
+    const t0 = n.slots[0].t.getTime(), t1 = n.slots[n.slots.length - 1].t.getTime();
+    const STEP_MS = 20 * 60000;
+    const best = new Map();
+    for (let t = t0; t <= t1; t += STEP_MS){
+      const jd = 2440587.5 + t / 86400000;
+      const sun = sunPos(jd);
+      const lst = lstOf(jd, lon);
+      const sunAlt = eq2horiz(sun.ra, sun.dec, lat, lst).alt;
+      if (sunAlt > -6) continue;                       // daylight or bright civil twilight
+      const bodies = skyBodies(jd).map(b => {
+        const h = eq2horiz(b.ra, b.dec, lat, lst);
+        return Object.assign({}, b, { alt: h.alt, az: h.az });
+      });
+      for (let i = 0; i < bodies.length; i++){
+        for (let j = i + 1; j < bodies.length; j++){
+          const A = bodies[i], B = bodies[j];
+          if (A.alt < minAlt || B.alt < minAlt) continue;
+          /* A dark sky is the general rule; late twilight is allowed only when the pair is bright
+             enough to hold up in it, which is how Mercury and Venus ever get a mention. */
+          const bright = (A.mag == null || A.mag < 1) && (B.mag == null || B.mag < 1);
+          if (sunAlt > -12 && !bright) continue;
+          const sep = angSep(A.dec, A.ra, B.dec, B.ra);
+          if (sep > maxSep) continue;
+          const key = A.name + '|' + B.name;
+          const prev = best.get(key);
+          if (!prev || sep < prev.sep){
+            best.set(key, { sep, t: new Date(t), altA: A.alt, altB: B.alt, az: (A.az + B.az) / 2,
+                            magA: A.mag, magB: B.mag, twilight: sunAlt > -12 });
+          }
+        }
+      }
+    }
+    best.forEach((v, key) => {
+      const names = key.split('|');
+      out.push({
+        night: n, date: n.slots[0].t, a: names[0], b: names[1],
+        pair: names.join(' and '), sep: v.sep, sepText: v.sep.toFixed(1) + '\u00b0',
+        closeness: pairLabel(v.sep), at: v.t, alt: Math.min(v.altA, v.altB), az: v.az,
+        magA: v.magA, magB: v.magB, twilight: v.twilight,
+        hasMoon: names.indexOf('Moon') >= 0,
+      });
+    });
+  });
+  /* Tightest first within a night, since that is the one worth the long lens. */
+  return out.sort((x, y) => (x.date - y.date) || (x.sep - y.sep));
+}
+
 window.NoctoEngine = {
   state, STEP, SHOWERS, BORTLE, ANT, SPO,
   loadAtlas, atlasSky, updateSky, nelmFor, bortleFor,
@@ -2718,7 +2937,8 @@ window.NoctoEngine = {
   TIDE_STATIONS, nearestTideStation, loadTide,
   loadAlerts, watchFor, gToKp, loadOutlook27, outlookKp, recurrenceAhead,
   AURORA_CAL, loadHp30, hpNow, loadHemiPower, windDerived, newell,
-  personalBands, chanceAt, chanceWord, CHANCE_LADDER, capWord, liftWord, wordRung,
+  PLANETS, PLANET_ORDER, planetPos, skyBodies, conjunctions, pairLabel,
+  personalBands, chanceAt, chanceMarginal, tenNights, chanceWord, CHANCE_LADDER, capWord, liftWord, wordRung,
   auroraGlowBortle, moonHitAurora, lowMidCover, nightCurve, couplingState,
   AIRGLOW_CAL, loadF107, airglowState, setBlockKp,
 };

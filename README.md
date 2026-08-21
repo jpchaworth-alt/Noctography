@@ -108,8 +108,8 @@ rate = ZHR(t) × sin(h) × r^(lm − 6.5) × clear × 0.75
 
 Shower parameters are hand-encoded from the International Meteor Organization's calendar and
 working list, with no outburst or dust-trail predictions. Sky darkness comes from David Lorenz's
-2025 light pollution atlas (VIIRS), baked in as two encoded PNGs and used as a continuous
-measurement. Bortle class is shown for familiarity only.
+2025 light pollution atlas (VIIRS), converted to 1.5 arcmin tiles and served from the app, with a
+coarse world grid baked in for offline use, and read as a continuous measurement. Bortle class is shown for familiarity only.
 
 **Real-world Bortle** applies the same limiting-magnitude model to the whole sky rather than to a
 radiant: atlas brightness, plus moonlight, plus humidity haze, plus town glow scattered back down
@@ -127,8 +127,8 @@ Every source is also listed in the app itself, under "Data sources and credits" 
 | Cloud, humidity, temperature, dew point, wind | Open-Meteo forecast | Live, 16 days, hourly, smoothed between samples |
 | Historical cloud | Open-Meteo ERA5 archive | 3 previous years, ±3 day window: typical, never a forecast |
 | Aurora | NOAA SWPC planetary K index | 3-hourly forecast |
-| Place search | Open-Meteo geocoding | |
-| Light pollution | Lorenz 2025 atlas | Baked in, static |
+| Place search | Photon (Komoot, OpenStreetMap) | Primary, proximity-biased; Open-Meteo geocoding as fallback |
+| Light pollution | Lorenz 2025 atlas | 1.5 arcmin tiles served from the app, plus a coarse world grid baked in for offline |
 | Satellite orbits | CelesTrak TLEs | ISS and last-30-days launches; SGP4 propagated in the browser |
 | Sun, moon, radiants | Computed in browser | No library dependency |
 

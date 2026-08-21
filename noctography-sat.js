@@ -310,8 +310,61 @@
     }));
   }
 
-  async function fetchTle(url) {
-    const r = await fetch(url);
+  /* CelesTrak asks clients not to re-fetch elements they already hold, and enforces it: a repeat
+     request from the same address can sit unanswered for twenty seconds or come back refused.
+     Measured in this app, the station fetch took 21 s and the Starlink one was queued behind it,
+     so both cards sat on an ellipsis for half a minute. Two things follow. A request needs a
+     deadline, because without one a throttled fetch leaves the card spinning for as long as the
+     browser is willing to wait. And elements need to be kept on the device: they are only
+     refreshed a few times a day at source, so re-fetching them every time the place or the night
+     changes is asking to be throttled for no new information. */
+  const TLE_TIMEOUT_MS = 12000;
+  /* A ceiling on how old a fallback may be. Elements a day or two old still place the station
+     within a couple of minutes; a month old they are fiction dressed as a pass time, and a wrong
+     time sends someone outside for nothing. Past this the card says it has no answer, which is
+     the honest reply. */
+  const TLE_MAX_STALE_MS = 3 * 86400000;
+  function tleKey(url){ return 'nocto.tle.' + url.replace(/^https?:\/\/[^/]+\//, '').replace(/[^a-z0-9]+/gi, '_'); }
+  function readTleCache(url){
+    try {
+      const raw = localStorage.getItem(tleKey(url));
+      if (!raw) return null;
+      const o = JSON.parse(raw);
+      return (o && o.at && Array.isArray(o.tles) && o.tles.length) ? { tles: o.tles, at: o.at } : null;
+    } catch (e) { return null; }
+  }
+  function writeTleCache(url, tles){
+    try { localStorage.setItem(tleKey(url), JSON.stringify({ at: Date.now(), tles })); } catch (e) {}
+  }
+  /* Elements from earlier today still put the station within a couple of minutes of where it will
+     be, which is a far better answer than an empty card. So a stale copy is used whenever the
+     network will not oblige, and its age is handed back so the caller can say so if it matters. */
+  async function fetchTleCached(url, opts) {
+    opts = opts || {};
+    const ttl = opts.ttl || 6 * 3600000;
+    const hit = readTleCache(url);
+    if (hit && Date.now() - hit.at < ttl) return hit.tles;
+    try {
+      const tles = await fetchTle(url, opts.timeoutMs);
+      if (tles.length) writeTleCache(url, tles);
+      return tles;
+    } catch (e) {
+      if (hit && Date.now() - hit.at < (opts.maxStale || TLE_MAX_STALE_MS)) return hit.tles;
+      throw e;
+    }
+  }
+  /* When the elements in play are not today's, the card should say so rather than quietly present
+     a pass time computed from them as though it were fresh. */
+  function tleAge(url){
+    const hit = readTleCache(url);
+    return hit ? Date.now() - hit.at : null;
+  }
+  async function fetchTle(url, timeoutMs) {
+    const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs || TLE_TIMEOUT_MS) : null;
+    let r;
+    try { r = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined); }
+    finally { if (timer) clearTimeout(timer); }
     if (!r.ok) throw new Error('tle ' + r.status);
     const lines = (await r.text()).split(/\r?\n/).filter(l => l.trim().length);
     const out = [];
@@ -323,5 +376,5 @@
     return out;
   }
 
-  window.NoctoSat = { parseTle, sgp4init, sgp4, findPasses, fetchTle, lookAngles, observerEci, sunEci, sunElevation, magnitude };
+  window.NoctoSat = { parseTle, sgp4init, sgp4, findPasses, fetchTle, fetchTleCached, tleAge, lookAngles, observerEci, sunEci, sunElevation, magnitude };
 })();

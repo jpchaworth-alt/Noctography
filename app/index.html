@@ -145,6 +145,7 @@ window.noctoTrack = function (name) {
 <script src="../noctography-sat.js?v=2026-08-19b"></script>
 <script src="../noctography-plan.js?v=2026-08-19b"></script>
 <script src="../noctography-ar.js?v=2026-08-19b"></script>
+<script src="../noctography-log.js?v=2026-08-21a"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -200,6 +201,7 @@ window.noctoTrack = function (name) {
   /* The page must never scroll sideways, or a drag on the rail drags the whole app with it. */
   html, body { overflow-x: hidden; overscroll-behavior-x: none; }
   [data-nav-rail] { overscroll-behavior: contain; touch-action: pan-x; -webkit-overflow-scrolling: touch; }
+  @media (max-width: 400px) { [data-rail-arrow] { display: none; } }
   [data-nav-rail]::-webkit-scrollbar { display: none; }
   /* the framing view's two sliders: time along the bottom, pitch up the side */
   input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
@@ -358,6 +360,35 @@ window.noctoTrack = function (name) {
           </button>
           <p style="grid-column: 1 / -1; grid-row: 2; margin: 0; font-size: 19px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ greetLine }}</p>
         </div>
+
+        <sc-if value="{{ conjOn }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 9px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--accent-rgb),.45); border-radius: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Together tonight</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">{{ conjCount }}</span>
+            </div>
+            <sc-for list="{{ conjList }}" as="cj" hint-placeholder-count="1">
+              <div style="display: grid; gap: 3px;">
+                <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                  <span style="font-size: 16.5px; font-weight: 600; color: var(--text);">{{ cj.pair }}</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--accent);">{{ cj.sepText }}</span>
+                  <span style="font-size: 14px; color: var(--cool);">{{ cj.closeness }}</span>
+                </div>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--text2);">{{ cj.when }}</span>
+                <span style="font-size: 14px; line-height: 1.42; color: var(--dim); text-wrap: pretty;">{{ cj.note }}</span>
+              </div>
+            </sc-for>
+            <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">{{ conjFoot }}</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ logNudgeOn }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ logNudgeGo }}" style="display: flex; align-items: center; gap: 11px; padding: 11px 13px; text-align: left; background: rgba(var(--line-rgb),.04); border: 1px solid rgba(var(--line-rgb),.1); border-radius: 8px; cursor: pointer;">
+            <i data-nv-dot="on" style="flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--accent);"></i>
+            <span style="flex: 1; min-width: 0; font-size: 14.5px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ logNudgeLine }}</span>
+            <span style="flex: 0 0 auto; font-size: 14px; color: var(--accent);">Log</span>
+          </button>
+        </sc-if>
 
         <sc-if value="{{ tonCloudOn }}" hint-placeholder-val="{{ false }}">
           <p style="display: flex; align-items: baseline; gap: 10px; margin: 0; padding: 10px 12px; background: rgba(var(--well-rgb),.5); border-left: 2px solid var(--cool); border-radius: 4px; font-size: 15px; line-height: 1.45; color: var(--text); text-wrap: pretty;">
@@ -683,44 +714,7 @@ window.noctoTrack = function (name) {
         </sc-if>
 
 
-        <div style="display: grid; gap: 10px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Real life light pollution map</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ ringHaze }}</span>
-            <button type="button" onClick="{{ toggleRing }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
-              <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdRing }}; border-radius: 50%; background: {{ fillRing }}; color: {{ fgRing }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
-            </button>
-          </div>
-
-          <div style="justify-self: center; position: relative; width: 268px; height: 268px;">
-            <span style="position: absolute; inset: 22px; border: 1px solid rgba(var(--line-rgb),.2); border-radius: 50%;"></span>
-            <span style="position: absolute; inset: 76px; border: 1px dashed rgba(var(--line-rgb),.12); border-radius: 50%;"></span>
-            <sc-for list="{{ ringBars }}" as="r" hint-placeholder-count="16">
-              <i style="position: absolute; left: 50%; bottom: 50%; width: 9px; margin-left: -4.5px; height: {{ r.h }}px; border-radius: 4px 4px 2px 2px; transform-origin: 50% 100%; transform: rotate({{ r.rot }}deg) translateY(-{{ r.off }}px); background: var(--accent); opacity: {{ r.op }};"></i>
-            </sc-for>
-            <i data-nv-dot="on" style="position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--text);"></i>
-            <span style="position: absolute; left: 50%; top: 0; transform: translateX(-50%); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--text);">N</span>
-            <span style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--text);">E</span>
-            <span style="position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--text);">S</span>
-            <span style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--text);">W</span>
-          </div>
-
-          <div style="display: flex; align-items: baseline; gap: 10px; justify-content: center; padding-top: 2px;">
-            <i data-nv-dot="on" style="width: 7px; height: 7px; border-radius: 50%; background: var(--text);"></i>
-            <span style="font-size: 14px; color: var(--dim);">The dot is straight up, where your sky reads</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px; font-weight: 700; color: var(--text);">{{ ringZenith }}</span>
-          </div>
-
-          <p style="margin: 0; font-size: 15px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ ringLine }}</p>
-          <sc-if value="{{ showRing }}" hint-placeholder-val="{{ false }}">
-            <div style="display: grid; gap: 7px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
-              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A flattened map of your sky: straight up at the centre, the horizon at the rim. Each bar grows inwards from the direction its glow comes from, so a long bar towards the south means the southern horizon is the one to keep out of frame.</p>
-              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Read from the light pollution atlas out to 150 km, weighted so a near town counts for more than a far one. {{ ringHazeLine }}</p>
-            </div>
-          </sc-if>
-        </div>
-
-        <div style="display: grid; gap: 10px; padding-top: 10px;">
+        <div style="display: grid; gap: 10px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Looking ahead</span>
             <button type="button" onClick="{{ toggleAhead10 }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
@@ -774,6 +768,14 @@ window.noctoTrack = function (name) {
             <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; padding-right: 6px; background: rgb(var(--card-rgb)); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Kp</span>
             <sc-for list="{{ ahead }}" as="a" hint-placeholder-count="15">
               <span data-nv-active="{{ a.best }}" style="display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 6px; border-left: {{ a.edge }}; border-right: {{ a.edge2 }}; background: {{ a.bg }}; opacity: {{ a.dim }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; color: {{ a.kpColour }};">{{ a.kp }}</span>
+            </sc-for>
+
+            <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; padding-right: 6px; background: rgb(var(--card-rgb)); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Conj</span>
+            <sc-for list="{{ ahead }}" as="a" hint-placeholder-count="15">
+              <span data-nv-active="{{ a.best }}" title="{{ a.conjTitle }}" style="display: grid; justify-items: center; align-content: center; gap: 0; box-sizing: border-box; height: 34px; border-radius: 6px; border-left: {{ a.edge }}; border-right: {{ a.edge2 }}; background: {{ a.bg }}; opacity: {{ a.dim }}; line-height: 1.05;">
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{ a.conjColour }};">{{ a.conjSep }}</span>
+                <span style="font-size: 9.5px; letter-spacing: .04em; color: {{ a.conjColour }};">{{ a.conjWho }}</span>
+              </span>
             </sc-for>
 
             <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; padding-right: 6px; background: rgb(var(--card-rgb)); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Sun</span>
@@ -836,6 +838,7 @@ window.noctoTrack = function (name) {
               <span><b style="color: var(--dim); font-weight: 500;">Cloud</b>: share of the sky covered through the dark hours. Green is clear, amber is patchy, grey is covered.</span>
               <span><b style="color: var(--dim); font-weight: 500;">Sky</b>: real-world Bortle, your site with that night's moon and haze counted in.</span>
               <span><b style="color: var(--dim); font-weight: 500;">Met</b>: meteors an hour at their best. <b style="color: var(--dim); font-weight: 500;">Kp</b>: aurora strength, 5 and up is worth watching.</span>
+              <span><b style="color: var(--dim); font-weight: 500;">Conj</b>: the closest two of Mercury, Venus, Mars, Jupiter, Saturn and the moon, when they come within 5° of each other and both stand at least 5° up in a dark or nearly dark sky. Initials name the pair, and a + means another pairing that night. Amber is inside 2°, which is where it starts looking deliberate through a long lens.</span>
               <span><b style="color: var(--dim); font-weight: 500;">Sun</b> and <b style="color: var(--dim); font-weight: 500;">Moon</b>: rise on the top line, marked ↑, and set below it, marked ↓.</span>
             </div>
             </sc-if>
@@ -848,6 +851,43 @@ window.noctoTrack = function (name) {
               </div>
             </sc-if>
           </div>
+        </div>
+
+        <div style="display: grid; gap: 10px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Real life light pollution map</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ ringHaze }}</span>
+            <button type="button" onClick="{{ toggleRing }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
+              <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdRing }}; border-radius: 50%; background: {{ fillRing }}; color: {{ fgRing }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
+            </button>
+          </div>
+
+          <div style="justify-self: center; position: relative; width: 268px; height: 268px;">
+            <span style="position: absolute; inset: 22px; border: 1px solid rgba(var(--line-rgb),.2); border-radius: 50%;"></span>
+            <span style="position: absolute; inset: 76px; border: 1px dashed rgba(var(--line-rgb),.12); border-radius: 50%;"></span>
+            <sc-for list="{{ ringBars }}" as="r" hint-placeholder-count="16">
+              <i style="position: absolute; left: 50%; bottom: 50%; width: 9px; margin-left: -4.5px; height: {{ r.h }}px; border-radius: 4px 4px 2px 2px; transform-origin: 50% 100%; transform: rotate({{ r.rot }}deg) translateY(-{{ r.off }}px); background: var(--accent); opacity: {{ r.op }};"></i>
+            </sc-for>
+            <i data-nv-dot="on" style="position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--text);"></i>
+            <span style="position: absolute; left: 50%; top: 0; transform: translateX(-50%); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--text);">N</span>
+            <span style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--text);">E</span>
+            <span style="position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--text);">S</span>
+            <span style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--text);">W</span>
+          </div>
+
+          <div style="display: flex; align-items: baseline; gap: 10px; justify-content: center; padding-top: 2px;">
+            <i data-nv-dot="on" style="width: 7px; height: 7px; border-radius: 50%; background: var(--text);"></i>
+            <span style="font-size: 14px; color: var(--dim);">The dot is straight up, where your sky reads</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px; font-weight: 700; color: var(--text);">{{ ringZenith }}</span>
+          </div>
+
+          <p style="margin: 0; font-size: 15px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ ringLine }}</p>
+          <sc-if value="{{ showRing }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; gap: 7px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A flattened map of your sky: straight up at the centre, the horizon at the rim. Each bar grows inwards from the direction its glow comes from, so a long bar towards the south means the southern horizon is the one to keep out of frame.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Read from the light pollution atlas out to 150 km, weighted so a near town counts for more than a far one. {{ ringHazeLine }}</p>
+            </div>
+          </sc-if>
         </div>
 
       </section>
@@ -870,9 +910,38 @@ window.noctoTrack = function (name) {
           <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--faint);">{{ aurMetaLine }}</p>
         </div>
 
+        <sc-if value="{{ aurTenOn }}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; gap: 11px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 12px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Ten nights like tonight</span>
+            <div style="display: flex; gap: 6px;">
+              <sc-for list="{{ aurTenList }}" as="tn" hint-placeholder-count="10">
+                <span style="flex: 1; height: 40px; border-radius: 5px; background: {{ tn.fill }}; border: 1px solid {{ tn.bd }}; box-sizing: border-box;"></span>
+              </sc-for>
+            </div>
+            <div style="display: grid; gap: 6px; font-size: 13.5px; line-height: 1.3;">
+              <span style="display: flex; align-items: center; gap: 9px;">
+                <i style="flex: 0 0 auto; width: 12px; height: 12px; border-radius: 3px; background: rgba(var(--cool-rgb),.85);"></i>
+                <span style="color: var(--text2);">{{ aurTenColour }}: colour on a long exposure</span>
+              </span>
+              <sc-if value="{{ aurTenFaintOn }}" hint-placeholder-val="{{ true }}">
+                <span style="display: flex; align-items: center; gap: 9px;">
+                  <i style="flex: 0 0 auto; width: 12px; height: 12px; border-radius: 3px; background: rgba(var(--accent-rgb),.5);"></i>
+                  <span style="color: var(--text2);">{{ aurTenFaint }}: a grey smudge you would have to argue for</span>
+                </span>
+              </sc-if>
+              <sc-if value="{{ aurTenNoneOn }}" hint-placeholder-val="{{ true }}">
+                <span style="display: flex; align-items: center; gap: 9px;">
+                  <i style="flex: 0 0 auto; width: 12px; height: 12px; border-radius: 3px; background: rgba(var(--line-rgb),.08); border: 1px solid rgba(var(--line-rgb),.16); box-sizing: border-box;"></i>
+                  <span style="color: var(--text2);">{{ aurTenNone }}: nothing at all</span>
+                </span>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
         <div style="display: grid; gap: 11px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid var(--cool); border-radius: 12px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Chance on camera, through the night</span>
+            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Disturbance against what you need</span>
             <button type="button" onClick="{{ toggleProb }}" title="What this means" aria-label="What this means" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; margin: -11px -8px -11px 0; border: 0; background: none; cursor: pointer;">
               <span style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ bdProb }}; border-radius: 50%; background: {{ fillProb }}; color: {{ fgProb }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1;">i</span>
             </button>
@@ -880,11 +949,11 @@ window.noctoTrack = function (name) {
 
           <sc-if value="{{ aurCurveOn }}" hint-placeholder-val="{{ true }}">
             <div style="position: relative;">
-              <svg viewBox="0 0 404 320" style="width: 100%; height: auto; display: block;" role="img" aria-label="Chance of aurora on camera through the night">
+              <svg viewBox="0 0 404 320" style="width: 100%; height: auto; display: block;" role="img" aria-label="Forecast disturbance through the night against the levels this site needs for camera, eye and overhead">
                 <rect x="62" y="6" width="{{ aurLightW }}" height="308" fill="rgba(var(--line-rgb),.05)"></rect>
                 <rect x="{{ aurLightX2 }}" y="6" width="{{ aurLightW2 }}" height="308" fill="rgba(var(--line-rgb),.05)"></rect>
                 <sc-for list="{{ aurGrid }}" as="g" hint-placeholder-count="3">
-                  <line x1="62" y1="{{ g.y }}" x2="404" y2="{{ g.y }}" stroke="{{ g.colour }}" stroke-width="1"></line>
+                  <line x1="62" y1="{{ g.y }}" x2="404" y2="{{ g.y }}" stroke="{{ g.colour }}" stroke-width="1" stroke-dasharray="{{ g.dash }}"></line>
                 </sc-for>
                 <path d="{{ aurBandPath }}" fill="rgba(var(--cool-rgb),.14)"></path>
                 <path d="{{ aurMeasPath }}" fill="none" stroke="var(--text)" stroke-width="2.5"></path>
@@ -927,10 +996,11 @@ window.noctoTrack = function (name) {
             </span>
             <span style="display: flex; align-items: center; gap: 9px;">
               <i data-nv-grad="1" style="flex: 0 0 auto; width: 22px; height: 2px; border-radius: 2px; background: repeating-linear-gradient(90deg, rgba(var(--cool-rgb),.7) 0 5px, transparent 5px 8px);"></i>
-              <span style="color: var(--text2);">forecast, and the shading is how unsure it gets</span>
+              <span style="color: var(--text2);">forecast, and the shading is where it could land instead</span>
             </span>
           </div>
 
+          <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.4; color: var(--faint);">{{ aurThreshNote }}</p>
           <p style="margin: 0; font-size: 15px; line-height: 1.42; color: var(--text); text-wrap: pretty;">{{ aurBestLine }}</p>
           <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ aurScaleNote }}</p>
           <sc-if value="{{ aurEyeBrOn }}" hint-placeholder-val="{{ false }}">
@@ -947,6 +1017,8 @@ window.noctoTrack = function (name) {
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Beyond that we can't use anything directly measured, so the line hands over gradually to NOAA's Kp forecast, issued in three-hour blocks. Confidence decays rapidly over time. NOAA's own checking shows that forecast tends to over-call moderate nights (i.e. it tends to disappoint), which is why the far end is drawn as a wide band.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The chance itself is worked out for where you are standing or the location you've selected. It folds in how far the band would have to stretch to reach you, how high it would stand above your horizon, moonlight from the published sky-brightness model, the cloud forecast over that part of the sky, and the light pollution towards the poleward horizon rather than overhead.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The answer is always one of five words, in this order: unlikely, possible, very possible, likely, very likely. Nights after tonight stop at very possible, and anything from the 27-day outlook stops at possible, because past tonight the uncertainty is in the forecast rather than in the sky.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">That word is not read off the middle of the forecast. It is averaged across the whole spread of levels the forecast allows, so the doubt is inside the figure rather than drawn beside it. Because the curve from level to chance bends over at the top, a confident-looking night comes down a little and a hopeless one comes up: the hedging is arithmetic, not editorial. It is also taken from the best continuous ninety minutes rather than the single best quarter of an hour, since the best of sixty noisy estimates runs high on its own and is not a period you could stand outside for anyway.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The chart plots the disturbance itself rather than the chance, with the levels you personally need drawn across it. Drawing the doubt on the chance meant drawing an uncertainty about a probability on an axis that was already a probability, which made the shading wide enough to contradict the words above it on almost any good night. On the index the shading is simply how far either side the forecast could land, and you can watch it cross your own thresholds.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The geometry is a tilted-dipole model of the magnetic pole and a standard oval-edge relation. Both are tuned for the UK and northern Europe and get looser the further you go from it, particularly in the southern hemisphere. The height of the arc is described in words rather than degrees, because the offset behind those degrees comes from my own observing rather than from a published archive.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">It's important to note that this isn't a sophisticated aurora-chasing forecast. Hardcore chasers use their own methodology from the underlying data or use dedicated apps like Norlys. The purpose of this forecast is to give generalist nightscape photographers a heads up that their night might be about to get better.</p>
             </div>
@@ -1791,6 +1863,241 @@ window.noctoTrack = function (name) {
       </section>
     </sc-if>
 
+    <sc-if value="{{ isLog }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Log" style="display: grid; gap: 13px;">
+
+        <div style="display: grid; gap: 7px; padding: 4px 0 2px;">
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Log</span>
+          <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(28px, 8.5vw, 36px); line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ logTitle }}</h1>
+          <p style="margin: 0; font-size: 16.5px; line-height: 1.42; color: var(--text2); text-wrap: pretty;">{{ logSub }}</p>
+        </div>
+
+        <div style="display: flex; gap: 6px;">
+          <button type="button" onClick="{{ logShowNight }}" style="flex: 1; min-height: 48px; border: 1px solid {{ logTabNightBd }}; border-radius: 8px; background: {{ logTabNightBg }}; color: {{ logTabNightFg }}; font-family: 'Barlow', sans-serif; font-size: 15.5px; font-weight: 600; cursor: pointer;">This night</button>
+          <button type="button" onClick="{{ logShowCal }}" style="flex: 1; min-height: 48px; border: 1px solid {{ logTabCalBd }}; border-radius: 8px; background: {{ logTabCalBg }}; color: {{ logTabCalFg }}; font-family: 'Barlow', sans-serif; font-size: 15.5px; font-weight: 600; cursor: pointer;">Calendar</button>
+        </div>
+
+        <sc-if value="{{ logSaveFailed }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; padding: 11px 12px; background: rgba(var(--well-rgb),.6); border-left: 2px solid var(--accent); border-radius: 4px; font-size: 14.5px; line-height: 1.45; color: var(--text); text-wrap: pretty;">The last thing you wrote could not be saved: this browser is out of room, or it is refusing to store anything. Copy the log out now, before you lose it.</p>
+        </sc-if>
+
+        <sc-if value="{{ logIsNight }}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; gap: 13px;">
+
+            <sc-if value="{{ logCondOn }}" hint-placeholder-val="{{ true }}">
+              <div style="display: grid; gap: 9px; padding: clamp(11px, 3.2vw, 14px); background: rgba(var(--well-rgb),.45); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">The night, as it was</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">{{ logCondStamp }}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px; line-height: 1.35;">
+                  <sc-for list="{{ logCondRows }}" as="c" hint-placeholder-count="6">
+                    <span style="color: var(--faint);">{{ c.label }}</span>
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--text2);">{{ c.value }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="display: grid; gap: 10px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid var(--accent); border-radius: 12px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Say something about tonight</span>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">{{ logNoteSaved }}</span>
+              </div>
+              <textarea rows="3" value="{{ logNote }}" onInput="{{ logNoteChange }}" placeholder="{{ logNotePlaceholder }}" style="width: 100%; box-sizing: border-box; padding: 12px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16.5px; line-height: 1.42; resize: vertical;"></textarea>
+              <button type="button" onClick="{{ logAddShot }}" style="min-height: 56px; background: var(--accent); border: 0; border-radius: 8px; color: var(--ink); font-family: 'Barlow', sans-serif; font-size: 17px; font-weight: 600; cursor: pointer;">Log a shot, now</button>
+            </div>
+
+            <sc-if value="{{ logShotsOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; gap: 9px;">
+                <div style="display: flex; align-items: baseline; gap: 8px;">
+                  <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">This night, so far</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">{{ logShotCount }}</span>
+                </div>
+                <sc-for list="{{ logShots }}" as="sh" hint-placeholder-count="2">
+                  <div style="display: grid; gap: 8px; padding: 12px 13px; background: {{ sh.bg }}; border: 1px solid {{ sh.bd }}; border-radius: 10px;">
+                    <div style="display: flex; align-items: baseline; gap: 9px;">
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14.5px; font-weight: 700; color: var(--accent);">{{ sh.time }}</span>
+                      <span style="margin-right: auto; font-size: 13.5px; color: var(--cool);">{{ sh.typeLine }}</span>
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: {{ sh.stateColour }};">{{ sh.stateLabel }}</span>
+                    </div>
+                    <p style="margin: 0; font-size: 15.5px; line-height: 1.4; color: {{ sh.descColour }}; text-wrap: pretty;">{{ sh.desc }}</p>
+                    <sc-if value="{{ sh.skyOn }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; line-height: 1.5; color: var(--text2);">{{ sh.skyLine }}</span>
+                    </sc-if>
+                    <sc-if value="{{ sh.foreOn }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; line-height: 1.5; color: var(--text2);">{{ sh.foreLine }}</span>
+                    </sc-if>
+                    <sc-if value="{{ sh.extraOn }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; line-height: 1.5; color: var(--text2);">{{ sh.extraLine }}</span>
+                    </sc-if>
+                    <div style="display: flex; flex-wrap: wrap; gap: 7px;">
+                      <button type="button" onClick="{{ sh.edit }}" style="min-height: 44px; padding: 0 14px; background: none; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 999px; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 14.5px; cursor: pointer;">{{ sh.editLabel }}</button>
+                      <button type="button" onClick="{{ sh.remove }}" style="min-height: 44px; padding: 0 14px; background: none; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; color: var(--faint); font-family: 'Barlow', sans-serif; font-size: 14.5px; cursor: pointer;">Delete</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ logEmptyOn }}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Nothing written for this night yet. A shot with a time on it is already a record: tap the button, and fill the settings in when you are warm.</p>
+            </sc-if>
+
+            <sc-if value="{{ logNightDeleteOn }}" hint-placeholder-val="{{ false }}">
+              <button type="button" onPointerDown="{{ logHoldStart }}" onPointerUp="{{ logHoldEnd }}" onPointerLeave="{{ logHoldEnd }}" style="min-height: 48px; background: none; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px; color: var(--faint); font-family: 'Barlow', sans-serif; font-size: 14.5px; cursor: pointer;">{{ logHoldLabel }}</button>
+            </sc-if>
+
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ logIsCal }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 13px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button type="button" onClick="{{ logCalPrev }}" aria-label="Earlier month" style="flex: 0 0 auto; width: 48px; height: 48px; background: none; border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text2); font-size: 20px; line-height: 1; cursor: pointer;">‹</button>
+              <span style="flex: 1; text-align: center; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; color: var(--text);">{{ logCalMonth }}</span>
+              <button type="button" onClick="{{ logCalNext }}" aria-label="Later month" style="flex: 0 0 auto; width: 48px; height: 48px; background: none; border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text2); font-size: 20px; line-height: 1; cursor: pointer;">›</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
+              <sc-for list="{{ logCalDows }}" as="w" hint-placeholder-count="7">
+                <span style="text-align: center; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">{{ w.label }}</span>
+              </sc-for>
+              <sc-for list="{{ logCalCells }}" as="c" hint-placeholder-count="35">
+                <button type="button" onClick="{{ c.go }}" disabled="{{ c.dis }}" style="aspect-ratio: 1; min-height: 44px; display: grid; place-content: center; gap: 3px; padding: 0; background: {{ c.bg }}; border: 1px solid {{ c.bd }}; border-radius: 6px; color: {{ c.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; cursor: {{ c.cursor }};">
+                  <span>{{ c.d }}</span>
+                  <span style="height: 4px; width: {{ c.dotW }}; border-radius: 999px; background: {{ c.dot }}; justify-self: center;"></span>
+                </button>
+              </sc-for>
+            </div>
+            <sc-if value="{{ logCalListOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; gap: 8px;">
+                <sc-for list="{{ logCalList }}" as="n" hint-placeholder-count="3">
+                  <button type="button" onClick="{{ n.go }}" style="display: grid; gap: 4px; padding: 12px 13px; text-align: left; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; cursor: pointer;">
+                    <span style="font-size: 16px; font-weight: 600; color: var(--text);">{{ n.date }}</span>
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--faint);">{{ n.line }}</span>
+                    <span style="font-size: 14.5px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ n.preview }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ logCalEmptyOn }}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Nothing written this month. Nights only appear here once you have said something about them.</p>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <div style="display: grid; gap: 10px; padding: clamp(11px, 3.2vw, 14px); background: rgba(var(--well-rgb),.45); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Getting a copy out</span>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ logExportLine }}</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 7px;">
+            <button type="button" onClick="{{ logCopy }}" style="min-height: 48px; padding: 0 15px; background: none; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 999px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 15px; cursor: pointer;">Copy</button>
+            <button type="button" onClick="{{ logCopyRows }}" style="min-height: 48px; padding: 0 15px; background: none; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 999px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 15px; cursor: pointer;">Copy one line per shot</button>
+            <button type="button" onClick="{{ logEmail }}" style="min-height: 48px; padding: 0 15px; background: none; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 999px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 15px; cursor: pointer;">Email it to me</button>
+            <button type="button" onClick="{{ logPrint }}" style="min-height: 48px; padding: 0 15px; background: none; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 999px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 15px; cursor: pointer;">Print or PDF</button>
+          </div>
+          <sc-if value="{{ logToastOn }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 14px; color: var(--cool);">{{ logToast }}</span>
+          </sc-if>
+          <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The log is held on this device only. Nothing is sent anywhere, which also means nothing is backed up: clearing your browser data, or the phone reclaiming space, will take it with them.</p>
+          <sc-if value="{{ logBackupOn }}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 0; padding: 10px 12px; background: rgba(var(--accent-rgb),.1); border-radius: 6px; font-size: 14.5px; line-height: 1.45; color: var(--text); text-wrap: pretty;">{{ logBackupLine }}</p>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ logStepOn }}" hint-placeholder-val="{{ false }}">
+          <div style="position: fixed; inset: 0; z-index: 60; overflow-y: auto; background: var(--bg); padding: 16px 14px 32px;">
+            <div style="max-width: 520px; margin: 0 auto; display: grid; gap: 0;">
+
+              <div style="display: flex; align-items: center; gap: 12px; padding-bottom: 14px;">
+                <button type="button" onClick="{{ logStepClose }}" aria-label="Close" style="flex: 0 0 auto; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid rgba(var(--line-rgb),.16); border-radius: 10px; color: var(--text2); font-size: 22px; line-height: 1; cursor: pointer;">✕</button>
+                <div style="display: grid; gap: 2px; margin-right: auto; min-width: 0;">
+                  <span style="font-size: 11.5px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">{{ logStepKicker }}</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--faint);">{{ logStepStamp }}</span>
+                </div>
+                <button type="button" onClick="{{ logStepClose }}" style="flex: 0 0 auto; min-height: 48px; padding: 0 14px; background: none; border: 0; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 15.5px; cursor: pointer;">Done</button>
+              </div>
+
+              <div style="display: flex; gap: 5px; padding-bottom: 22px;">
+                <sc-for list="{{ logStepBars }}" as="b" hint-placeholder-count="5">
+                  <span style="flex: 1; height: 4px; border-radius: 999px; background: {{ b.fill }};"></span>
+                </sc-for>
+              </div>
+
+              <div style="display: grid; gap: 8px; padding-bottom: 22px;">
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--faint);">{{ logStepCount }}</span>
+                <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(30px, 9vw, 38px); line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ logStepTitle }}</h2>
+                <p style="margin: 0; font-size: 16px; line-height: 1.42; color: var(--text2); text-wrap: pretty;">{{ logStepSub }}</p>
+              </div>
+
+              <sc-if value="{{ logStepIsText }}" hint-placeholder-val="{{ false }}">
+                <textarea rows="5" value="{{ logStepText }}" onInput="{{ logStepTextChange }}" placeholder="{{ logStepPlaceholder }}" style="width: 100%; box-sizing: border-box; padding: 13px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 17px; line-height: 1.42; resize: vertical;"></textarea>
+              </sc-if>
+
+              <sc-if value="{{ logStepIsType }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; gap: 10px;">
+                  <sc-for list="{{ logStepTypes }}" as="ty" hint-placeholder-count="5">
+                    <button type="button" onClick="{{ ty.pick }}" style="min-height: 64px; padding: 0 18px; text-align: left; background: {{ ty.bg }}; border: 1px solid {{ ty.bd }}; border-radius: 10px; color: {{ ty.fg }}; font-family: 'Barlow', sans-serif; font-size: 18px; font-weight: {{ ty.weight }}; cursor: pointer;">{{ ty.label }}</button>
+                  </sc-for>
+                  <sc-if value="{{ logStepOtherTypeOn }}" hint-placeholder-val="{{ false }}">
+                    <input value="{{ logStepOtherType }}" onInput="{{ logStepOtherTypeChange }}" placeholder="What would you call it?" style="width: 100%; box-sizing: border-box; min-height: 56px; padding: 0 14px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 10px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 17px;">
+                  </sc-if>
+                  <button type="button" onClick="{{ logStepPanoToggle }}" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 18px; text-align: left; background: {{ logStepPanoBg }}; border: 1px solid {{ logStepPanoBd }}; border-radius: 10px; color: {{ logStepPanoFg }}; font-family: 'Barlow', sans-serif; font-size: 18px; cursor: pointer;">
+                    <span style="flex: 0 0 auto; width: 22px; height: 22px; display: grid; place-content: center; border: 1px solid {{ logStepPanoBd }}; border-radius: 5px; font-size: 15px; line-height: 1;">{{ logStepPanoTick }}</span>
+                    Part of a panorama
+                  </button>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ logStepIsFields }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; gap: 22px;">
+                  <sc-if value="{{ logStepCopyOn }}" hint-placeholder-val="{{ false }}">
+                    <button type="button" onClick="{{ logStepCopySky }}" style="min-height: 52px; background: none; border: 1px dashed rgba(var(--line-rgb),.26); border-radius: 10px; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 16px; cursor: pointer;">Same as the sky pass</button>
+                  </sc-if>
+                  <sc-for list="{{ logStepFields }}" as="fd" hint-placeholder-count="4">
+                    <div style="display: grid; gap: 10px;">
+                      <span style="font-size: 12px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--cool);">{{ fd.label }}</span>
+                      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <sc-for list="{{ fd.chips }}" as="ch" hint-placeholder-count="5">
+                          <button type="button" onClick="{{ ch.pick }}" style="min-height: 56px; min-width: 76px; padding: 0 16px; background: {{ ch.bg }}; border: 1px solid {{ ch.bd }}; border-radius: 10px; color: {{ ch.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 18px; font-weight: {{ ch.weight }}; cursor: pointer;">{{ ch.v }}</button>
+                        </sc-for>
+                      </div>
+                      <input value="{{ fd.value }}" onInput="{{ fd.onType }}" placeholder="{{ fd.placeholder }}" style="width: 100%; box-sizing: border-box; min-height: 56px; padding: 0 14px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 10px; color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px;">
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ logStepIsReview }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; gap: 9px; padding: 14px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+                  <sc-for list="{{ logReviewLines }}" as="r" hint-placeholder-count="4">
+                    <div style="display: flex; gap: 12px;">
+                      <span style="flex: 0 0 68px; font-size: 11.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); padding-top: 2px;">{{ r.label }}</span>
+                      <span style="font-family: {{ r.font }}; font-size: 15px; line-height: 1.45; color: {{ r.colour }}; text-wrap: pretty;">{{ r.value }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display: grid; gap: 10px; padding-top: 16px;">
+                  <span style="font-size: 12px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--cool);">Anything else about this shot</span>
+                  <textarea rows="3" value="{{ logStepFree }}" onInput="{{ logStepFreeChange }}" placeholder="The bit you will have forgotten by Tuesday." style="width: 100%; box-sizing: border-box; padding: 13px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16.5px; line-height: 1.42; resize: vertical;"></textarea>
+                </div>
+              </sc-if>
+
+              <div style="display: flex; gap: 10px; padding-top: 26px;">
+                <sc-if value="{{ logStepBackOn }}" hint-placeholder-val="{{ false }}">
+                  <button type="button" onClick="{{ logStepBack }}" style="flex: 0 0 auto; min-height: 60px; padding: 0 20px; background: none; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 10px; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 17px; cursor: pointer;">Back</button>
+                </sc-if>
+                <button type="button" onClick="{{ logStepNext }}" style="flex: 1; min-height: 60px; background: var(--accent); border: 0; border-radius: 10px; color: var(--ink); font-family: 'Barlow', sans-serif; font-size: 18px; font-weight: 600; cursor: pointer;">{{ logStepNextLabel }}</button>
+              </div>
+
+              <p style="margin: 14px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-align: center; text-wrap: pretty;">Saved as you go. Walk away at any point and the shot keeps its time.</p>
+
+            </div>
+          </div>
+        </sc-if>
+
+      </section>
+    </sc-if>
+
     <sc-if value="{{ isKit }}" hint-placeholder-val="{{ false }}">
       <section data-screen-label="Kit" style="display: grid; gap: 14px;">
 
@@ -1939,10 +2246,20 @@ window.noctoTrack = function (name) {
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">archive-api.open-meteo.com</span>
             <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Typical cloud beyond the 16 day forecast: three previous years, a three day window either side of the date. Describes a time of year, never a night.</span>
           </a>
+          <a href="https://photon.komoot.io" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">Photon, by Komoot</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">photon.komoot.io</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Place search, the one tried first. It takes a proximity bias, so it offers the fen, the reserve, the viewpoint or the car park nearest you rather than the biggest town of that name. Built on OpenStreetMap data, &copy; OpenStreetMap contributors, available under the Open Database Licence.</span>
+          </a>
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">OpenStreetMap</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">openstreetmap.org/copyright</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The place names and geometry behind the search above. &copy; OpenStreetMap contributors, ODbL 1.0.</span>
+          </a>
           <a href="https://open-meteo.com/en/docs/geocoding-api" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">Open-Meteo geocoding</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">geocoding-api.open-meteo.com</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Place search, so you can plan for somewhere other than where you are standing.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The fallback for place search, used when Photon does not answer. It indexes populated places by population only, so it is broader on towns and blind to everywhere else.</span>
           </a>
           <a href="https://www.swpc.noaa.gov/products/planetary-k-index" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">NOAA Space Weather Prediction Center</span>
@@ -1982,12 +2299,23 @@ window.noctoTrack = function (name) {
           <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Two-line elements for the International Space Station and for launches in the last thirty days. Dr T.S. Kelso's service, free for public use. The orbits themselves are propagated on your device, not fetched as a list of passes.</span>
         </div>
 
+        <a href="https://environment.data.gov.uk/apiportal" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+          <span style="font-size: 16px; font-weight: 600;">Environment Agency real-time tide gauges</span>
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">environment.data.gov.uk</span>
+          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Measured water level at the nearest of 607 gauges around the UK and Ireland, which is what the tide tile shows when no forecast is available. &copy; Environment Agency copyright and database right, under the Open Government Licence.</span>
+        </a>
+        <a href="https://admiraltyapi.portal.azure-api.net" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+          <span style="font-size: 16px; font-weight: 600;">UK Hydrographic Office, Admiralty Tidal API</span>
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">admiraltyapi.portal.azure-api.net</span>
+          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Predicted high and low water, where a forecast is available rather than a measurement. Contains ADMIRALTY&reg; tidal data: &copy; Crown copyright and database right. Not currently in use: see the note below.</span>
+        </a>
+
         <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Sky brightness</span>
         <div style="display: grid; gap: 8px;">
           <a href="https://djlorenz.github.io/astronomy/" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">David Lorenz. World Atlas of Artificial Night Sky Brightness</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">djlorenz.github.io</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The 2025 VIIRS-derived light pollution atlas, converted to 1.5 arcmin tiles and served from this app. Your sky brightness, naked-eye limiting magnitude and Bortle class are read from it. A coarse world grid is baked into the app as well, for anywhere you have never been online.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The 2025 VIIRS-derived light pollution atlas, converted to 1.5 arcmin tiles and served from this app. Your sky brightness, naked-eye limiting magnitude and Bortle class are read from it. A coarse world grid is baked into the app as well, for anywhere you have never been online. Reproduced and redistributed here with credit to David Lorenz, whose work this is; the original carries no formal licence, so if he would rather it were not served this way it comes out.</span>
           </a>
           <a href="https://www.imo.net" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">International Meteor Organization</span>
@@ -2141,7 +2469,11 @@ window.noctoTrack = function (name) {
       </sc-if>
 
       <div data-nv-bar="1" style="display: flex; align-items: center; gap: clamp(3px, 1vw, 4px); padding: 6px; background: rgba(var(--well-rgb),.86); backdrop-filter: blur(14px); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px;">
-      <button type="button" onClick="{{ railBack }}" aria-label="Earlier tabs" style="flex: 0 0 32px; min-height: 48px; padding: 0; border: 0; border-radius: 999px; background: none; color: {{ railLeftCol }}; font-family: 'Barlow', sans-serif; font-size: 28px; font-weight: 700; line-height: 1; cursor: pointer;">‹</button>
+      <button type="button" onClick="{{ railBack }}" aria-label="Earlier tabs" data-rail-arrow="1" style="flex: 0 0 clamp(32px, 8.5vw, 34px); min-height: 48px; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid {{ railLeftBd }}; border-radius: 999px; background: {{ railLeftBg }}; color: {{ railLeftCol }}; cursor: pointer;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
+          <path d="m14.5 6-6 6 6 6"></path>
+        </svg>
+      </button>
       <div style="position: relative; flex: 1; min-width: 0; display: grid; gap: 4px;">
         <div ref="{{ setRail }}" data-nav-rail="1" onScroll="{{ onRailScroll }}" style="display: flex; gap: clamp(3px, 1vw, 4px); overflow-x: auto; scrollbar-width: none;">
           <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="8">
@@ -2154,7 +2486,22 @@ window.noctoTrack = function (name) {
           </i>
         </sc-if>
       </div>
-      <button type="button" onClick="{{ railFwd }}" aria-label="Later tabs" style="flex: 0 0 32px; min-height: 48px; padding: 0; border: 0; border-radius: 999px; background: none; color: {{ railRightCol }}; font-family: 'Barlow', sans-serif; font-size: 28px; font-weight: 700; line-height: 1; cursor: pointer;">›</button>
+      <button type="button" onClick="{{ railFwd }}" aria-label="Later tabs" data-rail-arrow="1" style="flex: 0 0 clamp(32px, 8.5vw, 34px); min-height: 48px; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid {{ railRightBd }}; border-radius: 999px; background: {{ railRightBg }}; color: {{ railRightCol }}; cursor: pointer;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
+          <path d="m9.5 6 6 6-6 6"></path>
+        </svg>
+      </button>
+      <button type="button" onClick="{{ goLog }}" title="{{ logBtnLabel }}" aria-label="{{ logBtnLabel }}" data-nv-toggle="{{ logBtnState }}" style="position: relative; flex: 0 0 clamp(44px, 11.5vw, 46px); min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ logBtnBorder }}; border-radius: 999px; background: {{ logBtnBg }}; color: {{ logBtnIcon }}; cursor: pointer;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
+          <path d="M15.5 3.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h6.6"></path>
+          <path d="M9 3.5V2m3 1.5V2"></path>
+          <path d="M8.5 8h6M8.5 11.5h6M8.5 15h3"></path>
+          <path d="m20.6 12.6-4.9 4.9-2.4.6.6-2.4 4.9-4.9a1.3 1.3 0 0 1 1.8 1.8Z"></path>
+        </svg>
+        <sc-if value="{{ logBtnDotOn }}" hint-placeholder-val="{{ false }}">
+          <i data-nv-dot="on" aria-hidden="true" style="position: absolute; top: 7px; right: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent);"></i>
+        </sc-if>
+      </button>
       <button type="button" onClick="{{ togglePal }}" title="{{ palLabel }}" aria-label="{{ palLabel }}" data-nv-toggle="{{ palState }}" style="flex: 0 0 clamp(44px, 11.5vw, 46px); min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ palBorder }}; border-radius: 999px; background: {{ palBg }}; color: {{ palIcon }}; cursor: pointer;">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
           <path d="M12 21a9 9 0 1 1 9-9c0 1.66-1.34 3-3 3h-1.5a2 2 0 0 0-1.5 3.32A1.98 1.98 0 0 1 12 21Z"></path>
@@ -2291,7 +2638,9 @@ class Component extends DCLogic {
     arMotion: null, arCamOk: null, arAligning: false, arShowTune: false, arNudge: 0, arHfov: 62, arTick: 0,
     arAnchor: null, arLandscape: false,
     t: null, kp: null, nights: [], sky: null, wx: 'idle', clim: 'idle', tick: 0, nv: false,
-    iss: null, issState: 'idle', trains: null, count: 0, trainState: 'idle', focal: '24', favs: [],
+    iss: null, issState: 'idle', issTleAge: null, trains: null, count: 0, trainState: 'idle', focal: '24', favs: [],
+    logView: 'auto', logMonth: null, logKey: null, logStep: -1, logShotId: null, logToast: '',
+    logSaveFailed: false, logHold: false, logTick: 0,
     stale: false, staleOff: false,
   };
 
@@ -2507,6 +2856,380 @@ class Component extends DCLogic {
     }
   }
 
+
+  /* ============================ the night log ============================
+     The tab lands on the night while you could plausibly be out in it, and on the calendar the rest
+     of the time: an hour either side of the sun, so setting up in the last of the light counts and
+     so it still works through a Fen summer, when there is no astronomical darkness at all for two
+     months and a stricter test would silently switch the feature off for the whole short-night
+     season. Writing happens on the night page; looking back happens on the calendar. */
+  logL() { return window.NoctoLog || null; }
+  logData() {
+    const L = this.logL();
+    if (!L) return null;
+    if (!this._logDb) this._logDb = L.load();
+    return this._logDb;
+  }
+  logWrite() {
+    const L = this.logL();
+    if (!L || !this._logDb) return;
+    const ok = L.save(this._logDb);
+    this.setState({ logSaveFailed: !ok, logTick: this.state.logTick + 1 });
+  }
+  /* Which night we are writing into. The app already decides what "tonight" means either side of
+     midnight, so the log borrows that rather than inventing a second answer. */
+  /* The night the app itself is showing. Its rollover is the one the rest of the screen already
+     obeys, so the log borrows it rather than answering the same question twice and disagreeing at
+     four in the morning. t.night.m is a JavaScript month, counted from zero; the key is a human
+     date, so it is not. */
+  logAppNightKey() {
+    const t = this.state.t;
+    if (t && t.night) return t.night.y + '-' + String(t.night.m + 1).padStart(2, '0') + '-' + String(t.night.d).padStart(2, '0');
+    const L = this.logL();
+    return L ? L.nightKey(new Date()) : '';
+  }
+  logNightKey() { return this.state.logKey || this.logAppNightKey(); }
+  /* True while you could be out with a camera: an hour before sunset to an hour after sunrise. */
+  logInTheField() {
+    const t = this.state.t;
+    if (!t || !t.sun || !t.sun.set || !t.sun.rise) return false;
+    const now = Date.now();
+    const set = new Date(t.sun.set).getTime() - 3600000;
+    const rise = new Date(t.sun.rise).getTime() + 3600000;
+    return rise > set ? (now >= set && now <= rise) : (now >= set || now <= rise);
+  }
+  /* Everything the app already knows, frozen at the moment of writing so the entry stays true when
+     the forecast moves on. Location is asked for rather than assumed: without it the rest is
+     meaningless, so the note says so instead of stamping a place you were not at. */
+  logCond() {
+    const E = this.E(), t = this.state.t;
+    if (!E) return null;
+    const hp = E.state.hp30 || E.state.kpNow ? E.hpNow() : null;
+    const nc = E.state.northCloud;
+    let bortle = null;
+    try { const g = E.polewardGlow(); bortle = g && g.bortle != null ? g.bortle : null; } catch (e) {}
+    const two = v => v == null ? null : v.toFixed(3);
+    /* When no name has resolved, the app shows the coordinates as the place. Stamping both would
+       print them twice, so a coordinate-shaped name is dropped and the formatted pair stands. */
+    const named = this.state.place && !/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(this.state.place.trim());
+    return {
+      place: named ? this.state.place : null,
+      coords: E.state.lat == null ? null : two(Math.abs(E.state.lat)) + '\u00b0' + (E.state.lat >= 0 ? 'N' : 'S') + ' ' + two(Math.abs(E.state.lon)) + '\u00b0' + (E.state.lon >= 0 ? 'E' : 'W'),
+      dark: t && t.darkWin ? this.hhmm(t.darkWin.from) + '\u2013' + this.hhmm(t.darkWin.to) : 'none tonight',
+      moon: t && t.midIllum != null ? Math.round(t.midIllum * 100) + '%' + (t.moonAlt != null ? ', ' + Math.round(t.moonAlt) + '\u00b0 up' : '') : null,
+      level: hp ? (hp.estimated ? 'Kp ' : 'Hp ') + hp.value.toFixed(1) : null,
+      cloud: nc && nc.total != null ? Math.round(nc.total) + '% cloud' + (nc.high != null ? ', ' + Math.round(nc.high) + '% high' : '') : null,
+      bortle: bortle == null ? null : String(bortle),
+    };
+  }
+  logToast(msg) {
+    this.setState({ logToast: msg });
+    clearTimeout(this._logToastT);
+    this._logToastT = setTimeout(() => this.setState({ logToast: '' }), 3200);
+  }
+
+  /* ---- the stepper ----
+     Five screens, one decision each, because the alternative is a wall of boxes read by torchlight
+     with cold hands. A single exposure has no separate foreground pass, so that screen is skipped
+     rather than shown empty. */
+  logSteps(shot) {
+    const single = (shot && shot.type) === 'Single exposure';
+    return ['desc', 'type', 'sky'].concat(single ? [] : ['fore']).concat(['review']);
+  }
+  logCurShot() {
+    const db = this.logData();
+    if (!db) return null;
+    const n = db.nights[this.logNightKey()];
+    if (!n) return null;
+    return n.shots.find(x => x.id === this.state.logShotId) || null;
+  }
+  logPatch(patch) {
+    const L = this.logL(), db = this.logData();
+    if (!L || !db) return;
+    L.updateShot(db, this.logNightKey(), this.state.logShotId, patch);
+    this.logWrite();
+  }
+
+  logVals() {
+    const L = this.logL(), db = this.logData();
+    const st = this.state;
+    if (!L || !db) return { isLog: st.tab === 'log', logTitle: 'Log', logSub: 'The log needs a moment.' };
+    const key = this.logNightKey();
+    const night = db.nights[key] || null;
+    const view = st.logView === 'auto' ? (this.logInTheField() ? 'night' : 'calendar') : st.logView;
+    const isNight = view === 'night';
+    const cnt = L.counts(db);
+    const acc = (on) => on
+      ? { bg: 'rgba(var(--accent-rgb),.14)', bd: 'var(--accent)', fg: 'var(--accent)' }
+      : { bg: 'transparent', bd: 'rgba(var(--line-rgb),.16)', fg: 'var(--text2)' };
+    const nT = acc(isNight), cT = acc(!isNight);
+
+    /* ---- the night page ---- */
+    const cond = night && night.cond ? night.cond : null;
+    const condRows = [];
+    if (cond) {
+      /* Either may be missing: a named site with no fix, or a fix whose name never resolved. */
+      if (cond.place || cond.coords) condRows.push({ label: 'Place', value: [cond.place, cond.coords].filter(Boolean).join('  ') });
+      if (cond.dark) condRows.push({ label: 'Dark', value: cond.dark });
+      if (cond.moon) condRows.push({ label: 'Moon', value: cond.moon });
+      if (cond.level) condRows.push({ label: 'Level', value: cond.level });
+      if (cond.cloud) condRows.push({ label: 'Cloud', value: cond.cloud });
+      if (cond.bortle) condRows.push({ label: 'Bortle', value: cond.bortle });
+    }
+    const shots = ((night && night.shots) || []).slice().sort((a, b) => b.at - a.at).map(sh => {
+      const miss = L.missing(sh), words = L.needsWords(sh);
+      const settings = f => L.SKY_FIELDS.map(k => (sh[f] || {})[k]).filter(v => v && String(v).trim()).join(' \u00b7 ');
+      const sky = settings('sky'), fore = settings('fore');
+      const ex = Object.keys(sh.extra || {}).filter(k => sh.extra[k]).map(k => k + ' ' + sh.extra[k]).join(' \u00b7 ');
+      const both = sky && fore;
+      return {
+        time: L.clock(sh.at, night.tz),
+        typeLine: [sh.type || 'Not said yet', sh.pano ? 'panorama' : ''].filter(Boolean).join(' \u00b7 '),
+        desc: words ? 'Nothing said about this one yet.' : sh.desc,
+        descColour: words ? 'var(--faint)' : 'var(--text)',
+        skyOn: !!sky, skyLine: (both ? 'Sky  ' : '') + sky,
+        foreOn: !!fore, foreLine: 'Fore ' + fore,
+        extraOn: !!ex, extraLine: ex,
+        stateLabel: words ? 'time kept' : miss ? miss + ' to fill' : 'complete',
+        stateColour: words ? 'var(--faint)' : miss ? 'var(--dim)' : 'var(--cool)',
+        bg: words ? 'rgba(var(--well-rgb),.5)' : 'rgb(var(--card-rgb))',
+        bd: words ? 'rgba(var(--line-rgb),.12)' : 'rgba(var(--line-rgb),.14)',
+        editLabel: words ? 'Fill it in' : 'Edit',
+        edit: () => this.setState({ logShotId: sh.id, logStep: 0 }),
+        remove: () => { L.deleteShot(db, key, sh.id); this.logWrite(); },
+      };
+    });
+
+    /* ---- the calendar ---- */
+    const now = new Date();
+    const mk = st.logMonth || { y: now.getFullYear(), m: now.getMonth() };
+    const cells = L.monthGrid(db, mk.y, mk.m).map(c => {
+      if (!c) return { d: '', dis: true, bg: 'transparent', bd: 'transparent', fg: 'transparent', dot: 'transparent', dotW: '0', cursor: 'default', go: () => {} };
+      return {
+        d: String(c.d), dis: !c.has,
+        bg: c.has ? 'rgba(var(--accent-rgb),.12)' : 'transparent',
+        bd: c.has ? 'rgba(var(--accent-rgb),.4)' : 'rgba(var(--line-rgb),.08)',
+        fg: c.has ? 'var(--text)' : 'var(--faint)',
+        dot: c.has ? 'var(--accent)' : 'transparent',
+        dotW: c.has ? Math.min(18, 4 + c.shots * 4) + 'px' : '0',
+        cursor: c.has ? 'pointer' : 'default',
+        go: () => { if (c.has) this.setState({ logKey: c.key, logView: 'night' }); },
+      };
+    });
+    const monthKeys = Object.keys(db.nights)
+      .filter(k => { const p = k.split('-'); return Number(p[0]) === mk.y && Number(p[1]) === mk.m + 1; })
+      .sort().reverse();
+    const calList = monthKeys.map(k => {
+      const n = db.nights[k];
+      const c = n.cond || {};
+      return {
+        date: L.longDate(k),
+        line: [c.place, (n.shots || []).length + ((n.shots || []).length === 1 ? ' shot' : ' shots'), c.level].filter(Boolean).join(' \u00b7 '),
+        preview: n.note ? n.note.slice(0, 110) + (n.note.length > 110 ? '\u2026' : '') : ((n.shots || [])[0] || {}).desc || '',
+        go: () => this.setState({ logKey: k, logView: 'night' }),
+      };
+    });
+    const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    /* ---- the stepper ---- */
+    const shot = this.logCurShot();
+    const steps = this.logSteps(shot);
+    const si = st.logStep;
+    const stepOn = si >= 0 && !!shot;
+    const kind = stepOn ? steps[Math.min(si, steps.length - 1)] : '';
+    const chipOf = (v, on, pick) => ({ v, bg: on ? 'rgba(var(--accent-rgb),.16)' : 'transparent', bd: on ? 'var(--accent)' : 'rgba(var(--line-rgb),.18)', fg: on ? 'var(--accent)' : 'var(--text2)', weight: on ? '700' : '400', pick });
+    const group = kind === 'fore' ? 'fore' : 'sky';
+    const fieldDefs = [
+      { key: 'camera', label: 'Camera' },
+      { key: 'focal', label: 'Focal length' },
+      { key: 'aperture', label: 'Aperture' },
+      { key: 'exposure', label: 'Exposure' },
+      { key: 'iso', label: 'ISO' },
+      { key: 'shots', label: 'Number of shots' },
+    ];
+    if (shot && shot.type === 'Timelapse' && group === 'sky') fieldDefs.push({ key: 'interval', label: 'Interval', extra: true });
+    if (shot && shot.pano && group === 'sky') fieldDefs.push({ key: 'frames', label: 'Frames in the pan', extra: true });
+    const stepFields = !shot ? [] : fieldDefs.map(fd => {
+      const bag = fd.extra ? 'extra' : group;
+      const cur = String((shot[bag] || {})[fd.key] || '');
+      /* The Kit tab already holds a body and a lens, and the trail recipes and framing view read
+         it. Seeding the camera and focal chips from it means the log knows your kit on the first
+         night rather than the fifth, without ever having asked you to set one up twice. */
+      const kit = this.state.kit || {};
+      const kitSeed = fd.key === 'camera' ? [kit.bodyName, kit.body, kit.camera].filter(v => typeof v === 'string' && v.trim())
+        : fd.key === 'focal' ? [kit.focal != null ? kit.focal + 'mm' : null].filter(Boolean) : [];
+      const opts = fd.key === 'shots'
+        ? ['1', '3', '5', '10', '20', '50']
+        : kitSeed.concat(L.seen(db, fd.key, 5)).filter((v, i, a) => a.indexOf(v) === i).slice(0, 5);
+      const anyChips = opts.length > 0;
+      return {
+        label: fd.label,
+        /* "Or type it" only makes sense under something to choose from. With no chips yet, the
+           field is the only way in, so it says so. */
+        placeholder: anyChips ? 'Or type it' : (fd.key === 'camera' ? 'Which body?' : 'Type it'),
+        value: cur,
+        chips: opts.map(v => chipOf(v, cur === v, () => this.logPatch({ [bag]: { [fd.key]: cur === v ? '' : v } }))),
+        onType: e => this.logPatch({ [bag]: { [fd.key]: e.target.value } }),
+      };
+    });
+    const TYPES = ['Single exposure', 'Static stacked', 'Tracked', 'Timelapse', 'Other'];
+    const isOther = !!(shot && shot.type && TYPES.indexOf(shot.type) < 0);
+    const stepTitles = {
+      desc: ['What were you pointing at?', 'A sentence is plenty. This is the one thing you will not remember.'],
+      type: ['How was it shot?', 'This decides what gets asked for next.'],
+      sky: ['What was the sky exposed at?', 'Tap what you used. Anything not here, type it once and it is here next time.'],
+      fore: ['And the foreground pass?', 'If it was the same, one tap copies it across.'],
+      review: ['That is the shot.', 'Change anything that is wrong, or leave the gaps: they are not compulsory.'],
+    };
+    const review = !shot ? [] : (() => {
+      const settings = f => L.SKY_FIELDS.map(k => (shot[f] || {})[k]).filter(v => v && String(v).trim()).join(' \u00b7 ');
+      const ex = Object.keys(shot.extra || {}).filter(k => shot.extra[k]).map(k => k + ' ' + shot.extra[k]).join(' \u00b7 ');
+      const rows = [
+        { label: 'Time', value: L.clock(shot.at, (night || {}).tz), font: "'JetBrains Mono', ui-monospace, monospace", colour: 'var(--accent)' },
+        { label: 'What', value: shot.desc || 'Not said', font: "'Barlow', sans-serif", colour: shot.desc ? 'var(--text)' : 'var(--faint)' },
+        { label: 'Type', value: [shot.type || 'Not said', shot.pano ? 'panorama' : ''].filter(Boolean).join(', '), font: "'Barlow', sans-serif", colour: shot.type ? 'var(--text)' : 'var(--faint)' },
+        { label: 'Sky', value: settings('sky') || 'Not said', font: "'JetBrains Mono', ui-monospace, monospace", colour: settings('sky') ? 'var(--text2)' : 'var(--faint)' },
+      ];
+      if (shot.type !== 'Single exposure') rows.push({ label: 'Fore', value: settings('fore') || 'Not said', font: "'JetBrains Mono', ui-monospace, monospace", colour: settings('fore') ? 'var(--text2)' : 'var(--faint)' });
+      if (ex) rows.push({ label: 'Also', value: ex, font: "'JetBrains Mono', ui-monospace, monospace", colour: 'var(--text2)' });
+      return rows;
+    })();
+
+    const exportText = () => L.toText(db, null);
+    const done = () => { L.markExported(db); this.logWrite(); };
+
+    return {
+      logTitle: isNight ? (key === this.logAppNightKey() ? 'Tonight' : L.longDate(key)) : 'Every night so far',
+      logSub: isNight
+        ? (night ? [(night.shots || []).length + ((night.shots || []).length === 1 ? ' shot' : ' shots'), night.note ? 'and a note' : ''].filter(Boolean).join(' ') : 'Nothing written yet.')
+        : cnt.nights + (cnt.nights === 1 ? ' night' : ' nights') + ', ' + cnt.shots + (cnt.shots === 1 ? ' shot' : ' shots') + '. Only nights you wrote on appear here.',
+      logIsNight: isNight, logIsCal: !isNight,
+      logShowNight: () => this.setState({ logView: 'night' }),
+      logShowCal: () => this.setState({ logView: 'calendar', logKey: null }),
+      logTabNightBg: nT.bg, logTabNightBd: nT.bd, logTabNightFg: nT.fg,
+      logTabCalBg: cT.bg, logTabCalBd: cT.bd, logTabCalFg: cT.fg,
+      logSaveFailed: st.logSaveFailed,
+
+      logCondOn: condRows.length > 0, logCondRows: condRows,
+      logCondStamp: night ? 'stamped ' + L.clock(night.at, night.tz) : '',
+      logNote: night ? night.note : '',
+      logNotePlaceholder: 'The wind dropped after midnight and the reeds finally went still.',
+      logNoteSaved: night && night.note ? 'saved' : '',
+      logNoteChange: e => { L.setNote(db, key, e.target.value, this.logCond()); this.logWrite(); },
+      logAddShot: () => {
+        const sh = L.addShot(db, key, this.logCond());
+        this.logWrite();
+        this.setState({ logShotId: sh.id, logStep: 0, logView: 'night' });
+      },
+      logShotsOn: shots.length > 0, logShots: shots,
+      logShotCount: shots.length + (shots.length === 1 ? ' shot' : ' shots'),
+      logEmptyOn: !night || (!shots.length && !night.note),
+      logNightDeleteOn: !!night,
+      logHoldLabel: st.logHold ? 'Keep holding to delete this night\u2026' : 'Delete this whole night',
+      logHoldStart: () => {
+        this.setState({ logHold: true });
+        clearTimeout(this._logHoldT);
+        this._logHoldT = setTimeout(() => {
+          L.deleteNight(db, key);
+          this.logWrite();
+          this.setState({ logHold: false, logKey: null, logView: 'calendar' });
+        }, 1000);
+      },
+      logHoldEnd: () => { clearTimeout(this._logHoldT); this.setState({ logHold: false }); },
+
+      logCalMonth: MON[mk.m] + ' ' + mk.y,
+      logCalPrev: () => this.setState({ logMonth: mk.m === 0 ? { y: mk.y - 1, m: 11 } : { y: mk.y, m: mk.m - 1 } }),
+      logCalNext: () => this.setState({ logMonth: mk.m === 11 ? { y: mk.y + 1, m: 0 } : { y: mk.y, m: mk.m + 1 } }),
+      logCalDows: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(l => ({ label: l })),
+      logCalCells: cells,
+      logCalListOn: calList.length > 0, logCalList: calList,
+      logCalEmptyOn: calList.length === 0,
+
+      logExportLine: cnt.shots
+        ? 'Readable by default. The second button gives one line per shot, for a spreadsheet.'
+        : 'Nothing to copy out yet.',
+      logCopy: () => L.copy(exportText()).then(ok => { if (ok) done(); this.logToast(ok ? 'Copied. Paste it somewhere safe.' : 'This browser would not let me copy.'); }),
+      logCopyRows: () => L.copy(L.toRows(db, null)).then(ok => { if (ok) done(); this.logToast(ok ? 'Copied, one line per shot.' : 'This browser would not let me copy.'); }),
+      logEmail: () => {
+        const m = L.mailto(db, null);
+        if (m.attach) {
+          L.download(m.body, 'noctography-log.txt');
+          this.logToast('The log is long, so it has downloaded as a file to attach.');
+        }
+        done();
+        window.location.href = m.href;
+      },
+      logPrint: () => {
+        const w = window.open('', '_blank');
+        if (!w) { this.logToast('Your browser blocked the print window.'); return; }
+        const esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+        w.document.write('<!doctype html><meta charset="utf-8"><title>Night log</title><style>@page{margin:18mm}body{font:12pt/1.5 Georgia,serif;color:#111;white-space:pre-wrap}</style>' + esc(exportText()));
+        w.document.close();
+        done();
+        setTimeout(() => w.print(), 300);
+      },
+      logToastOn: !!st.logToast, logToast: st.logToast,
+      logBackupOn: L.dueBackup(db),
+      logBackupLine: cnt.sinceExport + ' entries since you last took a copy off the phone. Now would be a good moment.',
+
+      logStepOn: stepOn,
+      logStepKicker: shot && shot.desc ? 'Editing a shot' : 'New shot',
+      logStepStamp: shot ? L.clock(shot.at, (night || {}).tz) + (cond && (cond.place || cond.coords) ? ' \u00b7 ' + (cond.place || cond.coords) : '') : '',
+      logStepBars: steps.map((k2, i) => ({ fill: i <= si ? 'var(--accent)' : 'rgba(var(--line-rgb),.14)' })),
+      logStepCount: 'Step ' + (Math.min(si, steps.length - 1) + 1) + ' of ' + steps.length,
+      logStepTitle: (stepTitles[kind] || ['', ''])[0],
+      logStepSub: (stepTitles[kind] || ['', ''])[1],
+      logStepClose: () => this.setState({ logStep: -1, logShotId: null }),
+      logStepBackOn: si > 0,
+      logStepBack: () => this.setState({ logStep: Math.max(0, si - 1) }),
+      logStepNext: () => {
+        if (si >= steps.length - 1) this.setState({ logStep: -1, logShotId: null });
+        else this.setState({ logStep: si + 1 });
+      },
+      logStepNextLabel: si >= steps.length - 1 ? 'Done' : 'Next: ' + ({ desc: 'how it was shot', type: 'the sky', sky: shot && shot.type === 'Single exposure' ? 'a last look' : 'the foreground', fore: 'a last look' }[kind] || 'on'),
+
+      logStepIsText: kind === 'desc',
+      logStepText: shot ? shot.desc : '',
+      logStepPlaceholder: 'Milky Way core standing over the reedbeds, hide roof clipping the corner.',
+      logStepTextChange: e => this.logPatch({ desc: e.target.value }),
+
+      logStepIsType: kind === 'type',
+      logStepTypes: TYPES.map(ty => {
+        const on = shot && (shot.type === ty || (ty === 'Other' && isOther));
+        return { label: ty, bg: on ? 'rgba(var(--accent-rgb),.16)' : 'transparent', bd: on ? 'var(--accent)' : 'rgba(var(--line-rgb),.18)', fg: on ? 'var(--accent)' : 'var(--text2)', weight: on ? '600' : '400',
+          pick: () => this.logPatch({ type: ty === 'Other' ? (isOther ? shot.type : 'Other') : ty }) };
+      }),
+      logStepOtherTypeOn: !!(shot && (isOther || shot.type === 'Other')),
+      logStepOtherType: shot && isOther ? shot.type : '',
+      logStepOtherTypeChange: e => this.logPatch({ type: e.target.value || 'Other' }),
+      logStepPanoTick: shot && shot.pano ? '\u2713' : '',
+      logStepPanoBg: shot && shot.pano ? 'rgba(var(--accent-rgb),.16)' : 'transparent',
+      logStepPanoBd: shot && shot.pano ? 'var(--accent)' : 'rgba(var(--line-rgb),.18)',
+      logStepPanoFg: shot && shot.pano ? 'var(--accent)' : 'var(--text2)',
+      logStepPanoToggle: () => this.logPatch({ pano: !(shot && shot.pano) }),
+
+      logStepIsFields: kind === 'sky' || kind === 'fore',
+      logStepFields: stepFields,
+      logStepCopyOn: kind === 'fore',
+      logStepCopySky: () => this.logPatch({ fore: Object.assign({}, shot ? shot.sky : {}) }),
+
+      /* The nudge appears once you could be out in it and goes quiet the moment you write
+         anything that night. A prompt that fires every single night becomes furniture inside a
+         fortnight, and furniture is not read. */
+      logNudgeOn: st.tab === 'tonight' && this.logInTheField() && !night,
+      /* Same condition, on the bar: a quiet mark while you could be out and have written nothing.
+         It goes as soon as the night has anything in it. */
+      logBtnDotOn: st.tab !== 'log' && this.logInTheField() && !night,
+      logNudgeLine: 'Out tonight? Anything you write now will keep its time.',
+      logNudgeGo: () => this.goTab('log'),
+
+      logStepIsReview: kind === 'review',
+      logReviewLines: review,
+      logStepFree: shot ? shot.free : '',
+      logStepFreeChange: e => this.logPatch({ free: e.target.value }),
+    };
+  }
+
   /* Orbits are propagated here, on the device. The station first, because it is the one
      everybody looks for; the recent Starlink launches afterwards, so a slow answer there
      never holds up the rest of the screen. */
@@ -2526,27 +3249,32 @@ class Component extends DCLogic {
     const dw = t && t.darkWin;
     const from = dw ? new Date(dw.from.getTime() - 3 * 3600000) : new Date(Date.now() - 2 * 3600000);
     const to = dw ? new Date(dw.to.getTime() + 27 * 3600000) : new Date(Date.now() + 34 * 3600000);
-    this.setState({ issState: 'loading' });
+    /* Both feeds start together. Starlink used to be chained behind the station's await, so a
+       throttled CelesTrak made the second card wait out the first one's timeout before it began. */
+    this.setState({ issState: 'loading', trainState: 'loading' });
+    const trains = this.loadTrains(lat, lon, from, to);
     try {
-      const tles = await S.fetchTle('https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle');
+      const tles = await S.fetchTleCached('https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle', { ttl: 6 * 3600000 });
       if (!tles.length) throw new Error('no tle');
       const rec = S.sgp4init(S.parseTle(tles[0].l1, tles[0].l2));
       const passes = S.findPasses(rec, lat, lon, from, to, { stepSec: 20, minEl: 10, intrinsic: -1.8 });
-      this.setState({ iss: passes, issState: 'ready' });
+      const age = S.tleAge ? S.tleAge('https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle') : null;
+      this.setState({ iss: passes, issState: 'ready', issTleAge: age });
     } catch (e) {
       this.setState({ issState: 'failed' });
     }
-    this.loadTrains(lat, lon, from, to);
+    await trains;
   }
 
   /* Freshly launched Starlink batches are still strung out in a line and are the thing people
      actually notice. Anything older has spread around the orbit and is just background traffic. */
   async loadTrains(lat, lon, from, to) {
     const S = window.NoctoSat;
+    this.setState({ trainState: 'loading' });
     try {
       // tle-new is CelesTrak's "last 30 days' launches": 40 KB. The full starlink group is
       // 1.8 MB and would undo the payload work this app needed for Android.
-      const all = await S.fetchTle('https://celestrak.org/NORAD/elements/gp.php?GROUP=tle-new&FORMAT=tle');
+      const all = await S.fetchTleCached('https://celestrak.org/NORAD/elements/gp.php?GROUP=tle-new&FORMAT=tle', { ttl: 12 * 3600000 });
       const cutoff = Date.now() - 8 * 86400000;
       const fresh = all.filter(t => /starlink/i.test(t.name))
         .map(t => { try { return { name: t.name, rec: S.sgp4init(S.parseTle(t.l1, t.l2)) }; } catch (e) { return null; } })
@@ -2929,13 +3657,20 @@ class Component extends DCLogic {
       isTonight: st.tab === 'tonight', isMeteors: st.tab === 'meteors', isAurora: st.tab === 'aurora',
       isPano: st.tab === 'pano', isMore: st.tab === 'more', isData: st.tab === 'data',
       isTrails: st.tab === 'trails', isSky: st.tab === 'sky', isKit: st.tab === 'kit',
+      isLog: st.tab === 'log',
+      ...this.logVals(),
+      ...this.conjVals(),
       setRail: this.setRail,
       onRailScroll: () => this.measureRail(),
       railScrollable: railW > railC + 4,
       railThumbLeft: (railW > railC ? (railL / railW) * 100 : 0).toFixed(1) + '%',
       railThumbWidth: Math.max(14, (railW > 0 ? (railC / railW) * 100 : 100)).toFixed(1) + '%',
-      railLeftCol: railL > 6 ? 'var(--accent)' : 'rgba(var(--line-rgb),.2)',
-      railRightCol: railL < railW - railC - 6 ? 'var(--accent)' : 'rgba(var(--line-rgb),.2)',
+      railLeftCol: railL > 6 ? 'var(--accent)' : 'rgba(var(--line-rgb),.28)',
+      railLeftBd: railL > 6 ? 'rgba(var(--accent-rgb),.5)' : 'rgba(var(--line-rgb),.16)',
+      railLeftBg: railL > 6 ? 'rgba(var(--accent-rgb),.12)' : 'transparent',
+      railRightCol: railL < railW - railC - 6 ? 'var(--accent)' : 'rgba(var(--line-rgb),.28)',
+      railRightBd: railL < railW - railC - 6 ? 'rgba(var(--accent-rgb),.5)' : 'rgba(var(--line-rgb),.16)',
+      railRightBg: railL < railW - railC - 6 ? 'rgba(var(--accent-rgb),.12)' : 'transparent',
       railBack: () => this.nudgeRail(-1),
       railFwd: () => this.nudgeRail(1),
       navItems: [
@@ -2993,6 +3728,16 @@ class Component extends DCLogic {
       palBorder: st.showPal ? amber : 'rgba(var(--line-rgb),.2)',
       palIcon: st.showPal ? amber : 'var(--dim)',
       palState: st.showPal ? 'on' : 'off',
+      /* The log lives on the bar rather than the rail: it was the tenth chip on a row that already
+         needed arrows to reach the end, and the whole point of a log is that you reach it the
+         moment you have something to write. The dot appears when you could be out in it and
+         nothing has been written yet, which is the same condition as the Tonight nudge. */
+      logBtnLabel: st.tab === 'log' ? 'The night log' : 'Open the night log',
+      logBtnState: st.tab === 'log' ? 'on' : 'off',
+      logBtnBg: st.tab === 'log' ? 'rgba(var(--accent-rgb),.16)' : 'transparent',
+      logBtnBorder: st.tab === 'log' ? amber : 'rgba(var(--line-rgb),.2)',
+      logBtnIcon: st.tab === 'log' ? amber : 'var(--dim)',
+      goLog: () => this.goTab('log'),
       palLabel: 'Choose a colour scheme',
       ...this.palVals(),
       goTonight: () => this.goTab('tonight'),      goMeteors: () => this.goTab('meteors'),
@@ -3080,6 +3825,60 @@ class Component extends DCLogic {
       fg: active ? 'var(--accent)' : 'var(--dim)',
       bd: active ? 'var(--accent)' : 'rgba(var(--line-rgb),.18)',
       font: mono ? "'JetBrains Mono', ui-monospace, monospace" : "'Barlow', sans-serif" };
+  }
+  /* Conjunctions for the nights in hand. Computing them is a few thousand Kepler solutions, which
+     is nothing, but it is also pointless to redo on every keystroke: the answer only changes when
+     the night list or the place does. Two initials per name keep the ribbon cell narrow, since the
+     column is 54px and "Jupiter and Saturn" is not going in it. */
+  conjData() {
+    const E = this.E(), st = this.state;
+    if (!E || !E.conjunctions || !st.nights || !st.nights.length || E.state.lat == null) return { byKey: {}, tonight: [] };
+    const nights = (st.past || []).concat(st.nights);
+    const sig = nights.length + '|' + (nights[0] ? +nights[0].slots[0].t : 0) + '|' + E.state.lat.toFixed(3) + '|' + E.state.lon.toFixed(3);
+    if (this._conjSig === sig) return this._conjCache;
+    const all = E.conjunctions(nights, E.state.lat, E.state.lon, { maxSep: 5, minAlt: 5 });
+    const byKey = {};
+    all.forEach(c => {
+      const d = c.date;
+      const k = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+      (byKey[k] = byKey[k] || []).push(c);
+    });
+    this._conjSig = sig;
+    this._conjCache = { byKey, all };
+    return this._conjCache;
+  }
+  conjKeyFor(summary) { return summary.y + '-' + (summary.m + 1) + '-' + summary.d; }
+  /* Tonight's gatherings, in plain words. The direction and the altitude matter more than the
+     separation: a pairing you cannot see over the hedge is not an event, and a Fen horizon is the
+     one thing this app can be certain about. */
+  conjVals() {
+    const E = this.E(), t = this.state.t;
+    const key = t && t.night ? this.conjKeyFor({ y: t.night.y, m: t.night.m, d: t.night.d }) : '';
+    const list = (this.conjData().byKey || {})[key] || [];
+    return {
+      conjOn: list.length > 0,
+      conjCount: list.length > 1 ? list.length + ' pairings' : '',
+      conjList: list.slice(0, 3).map(c => ({
+        pair: c.pair, sepText: c.sepText, closeness: c.closeness,
+        when: 'Closest ' + this.hhmm(c.at) + ' \u00b7 ' + Math.round(c.alt) + '\u00b0 up, ' + (E ? E.compass(c.az) : ''),
+        note: c.alt < 10
+          ? 'Low enough that a hedge or a tree line will take it, so this one needs an open horizon in that direction.'
+          : c.twilight
+          ? 'Low in the twilight, so it is a short window and worth being set up early for.'
+          : c.hasMoon
+          ? 'The moon makes it easy to find, and easy to frame with something on the ground.'
+          : 'Both bright enough to hold up against a lit horizon.',
+      })),
+      conjFoot: 'Within 5\u00b0 of each other and at least 5\u00b0 up, in a dark or nearly dark sky. Positions are computed on the device, not fetched.',
+    };
+  }
+  /* Two letters each. One was ambiguous where it mattered most: Mars, Mercury and the Moon all
+     start with M, so a single initial rendered Mars and the moon as "Mm", which is the collision it
+     was meant to avoid and unreadable at 9.5px. The column is 54px and the longest pair here needs
+     31px, so there is no reason to economise. */
+  conjShort(c) {
+    const TWO = { Mercury: 'Me', Venus: 'Ve', Mars: 'Ma', Jupiter: 'Ju', Saturn: 'Sa', Moon: 'Mo' };
+    return (TWO[c.a] || c.a.slice(0, 2)) + (TWO[c.b] || c.b.slice(0, 2));
   }
   goTab(key) {
     if (key === 'pano') this.loadPano();
@@ -5483,12 +6282,23 @@ class Component extends DCLogic {
       return 1;
     };
     const xOf = ms => PX0 + warp(ms) * (PX1 - PX0);
-    const yOf = p => PY1 - Math.max(0, Math.min(1, p == null ? 0 : p)) * (PY1 - PY0);
+    /* The chart moved off the ladder and onto the measurement. The doubt belongs to the index, so
+       drawing it there means it is not squeezed through the logistic twice, and the three levels
+       this site personally needs are drawn across it. A threshold you can watch the band cross is
+       something a reader can check for themselves, which a probability band never was. */
+    const thrLv = [bands.camera.likely, bands.eye.likely]
+      .concat(bands.overhead.likely <= 9 ? [bands.overhead.likely] : []);
+    const lvls = thrLv.slice();
+    slots.forEach(s => { if (s.level != null) lvls.push(s.level + s.spread, Math.max(0, s.level - s.spread)); });
+    const loL = Math.max(0, Math.floor(Math.min.apply(null, lvls) * 2) / 2 - 0.5);
+    const hiL = Math.min(9.5, Math.ceil(Math.max.apply(null, lvls) * 2) / 2 + 0.5);
+    const lSpan = Math.max(1.5, hiL - loL);
+    const yOf = v => PY1 - Math.max(0, Math.min(1, ((v == null ? loL : v) - loL) / lSpan)) * (PY1 - PY0);
 
     const runs = { measured: [], live: [], forecast: [] };
     let bandPath = '', prevSlot = null;
     slots.forEach(s => {
-      const pt = xOf(s.t).toFixed(1) + ',' + yOf(s.chance.camera).toFixed(1);
+      const pt = xOf(s.t).toFixed(1) + ',' + yOf(s.level).toFixed(1);
       const list = runs[s.source] || (runs[s.source] = []);
       if (!prevSlot) list.push([pt]);
       else if (prevSlot.source !== s.source) { const pl = runs[prevSlot.source]; pl[pl.length - 1].push(pt); list.push([pt]); }
@@ -5497,17 +6307,12 @@ class Component extends DCLogic {
     });
     const dOf = arr => (arr || []).filter(a => a.length > 1).map(a => 'M' + a.join(' L')).join(' ');
     if (slots.length > 1) {
-      const up = slots.map(s => xOf(s.t).toFixed(1) + ',' + yOf(s.hi.camera).toFixed(1));
-      const dn = slots.slice().reverse().map(s => xOf(s.t).toFixed(1) + ',' + yOf(s.lo.camera).toFixed(1));
+      const up = slots.map(s => xOf(s.t).toFixed(1) + ',' + yOf(s.level + s.spread).toFixed(1));
+      const dn = slots.slice().reverse().map(s => xOf(s.t).toFixed(1) + ',' + yOf(Math.max(0, s.level - s.spread)).toFixed(1));
       bandPath = 'M' + up.join(' L') + ' L' + dn.join(' L') + ' Z';
     }
 
     /* peak, best window, and the stretch where an eye has a chance */
-    let peakCam = null, peakEye = null;
-    slots.forEach(s => {
-      if (s.chance.camera != null && (peakCam == null || s.chance.camera > peakCam)) peakCam = s.chance.camera;
-      if (s.chance.eye != null && (peakEye == null || s.chance.eye > peakEye)) peakEye = s.chance.eye;
-    });
     const runBetween = (test) => {
       let best = null, cur = null;
       slots.forEach(s => {
@@ -5520,8 +6325,33 @@ class Component extends DCLogic {
     const darkFrom = t.darkWin ? t.darkWin.from.getTime() : null;
     const darkTo = t.darkWin ? t.darkWin.to.getTime() : null;
     const inDark = s => darkFrom == null || (s.t >= darkFrom && s.t <= darkTo);
-    const bestWin = peakCam != null && peakCam >= 0.3 ? runBetween(s => inDark(s) && s.chance.camera >= peakCam * 0.85) : null;
-    const eyeWin = peakEye != null && peakEye >= 0.5 ? runBetween(s => inDark(s) && s.chance.eye >= 0.5) : null;
+    /* Everything the page says is read off the marginal figure, which already carries the
+       forecast's spread inside it, rather than off the central line with a band beside it.
+       And the headline describes a stretch you could stand outside for, not the highest
+       fifteen-minute slot: the best of sixty noisy slots runs high on its own, so the figure is
+       the best continuous ninety minutes taken at its weakest point. */
+    const mOf = s => s.marg || s.chance;
+    const SUS = 6;
+    const inPool = slots.filter(inDark);
+    const pool = inPool.length >= SUS ? inPool : slots;
+    let peakCam = null, peakEye = null, peakSlot = null;
+    for (let i = 0; i + SUS - 1 < pool.length; i++) {
+      let m = 1, me = 1, ok = true, worst = null;
+      for (let j = i; j < i + SUS; j++) {
+        const c = mOf(pool[j]);
+        if (c.camera == null) { ok = false; break; }
+        if (c.camera < m) { m = c.camera; worst = pool[j]; }
+        me = Math.min(me, c.eye == null ? 0 : c.eye);
+      }
+      if (ok && (peakCam == null || m > peakCam)) { peakCam = m; peakEye = me; peakSlot = worst; }
+    }
+    if (peakCam == null) pool.forEach(s => {
+      const c = mOf(s);
+      if (c.camera != null && (peakCam == null || c.camera > peakCam)) { peakCam = c.camera; peakEye = c.eye; peakSlot = s; }
+    });
+    const tenN = peakSlot && E.tenNights ? E.tenNights(mOf(peakSlot)) : null;
+    const bestWin = peakCam != null && peakCam >= 0.3 ? runBetween(s => inDark(s) && mOf(s).camera >= peakCam * 0.85) : null;
+    const eyeWin = peakEye != null && peakEye >= 0.5 ? runBetween(s => inDark(s) && mOf(s).eye >= 0.5) : null;
     const hhmm = ms => this.hhmm(new Date(ms));
 
     /* the last three hours of Bz, in 20 buckets, faded where the wind has not arrived yet */
@@ -5598,15 +6428,31 @@ class Component extends DCLogic {
     /* The bands ARE chanceWord's cuts: 0.80 very likely, 0.62 likely, 0.44 very possible,
        0.28 possible. Drawing them anywhere else would let the curve sit under a line the
        sentences contradict. */
-    const yFor = q => PY1 - q * (PY1 - PY0);
-    const CUTS = [0.80, 0.62, 0.44, 0.28];
-    const gridLines = CUTS.map((q, k) => ({ y: yFor(q).toFixed(1), colour: k === 1 ? 'rgba(var(--accent-rgb),.45)' : 'rgba(var(--line-rgb),.12)' }));
-    const edges = [PY0, ...CUTS.map(yFor), PY1];
-    const bandLabels = ['very likely', 'likely', 'very possible', 'possible', 'unlikely'].map((label, k) => ({
-      label,
-      top: ((edges[k] + edges[k + 1]) / 2 / PVB * 100).toFixed(1) + '%',
-      colour: k === 1 ? 'var(--accent)' : 'var(--faint)',
-    }));
+    /* Three levels, drawn where the band can be seen crossing them. Labels are spread to a minimum
+       gap so that far enough north, where all three thresholds collapse together, they stay
+       readable rather than printing on top of one another. */
+    const thresh = [
+      { v: bands.camera.likely, label: 'your camera', line: 'var(--accent)', dash: '0', tone: 'var(--accent)' },
+      { v: bands.eye.likely, label: 'your eye', line: 'rgba(var(--line-rgb),.26)', dash: '4 3', tone: 'var(--faint)' },
+    ];
+    if (bands.overhead.likely <= 9) thresh.push({ v: bands.overhead.likely, label: 'overhead', line: 'rgba(var(--line-rgb),.16)', dash: '4 3', tone: 'var(--faint)' });
+    const gridLines = thresh.map(x => ({ y: yOf(x.v).toFixed(1), colour: x.line, dash: x.dash }));
+    let prevTop = -99;
+    const bandLabels = thresh.slice().sort((a, b) => yOf(a.v) - yOf(b.v)).map(x => {
+      let top = yOf(x.v) / PVB * 100;
+      if (top - prevTop < 5.5) top = prevTop + 5.5;
+      prevTop = top;
+      return { label: x.label, top: top.toFixed(1) + '%', colour: x.tone };
+    });
+    const threshNote = 'camera Hp ' + bands.camera.likely.toFixed(1) + ' \u00b7 eye Hp ' + bands.eye.likely.toFixed(1)
+      + (bands.overhead.likely <= 9 ? ' \u00b7 overhead Hp ' + bands.overhead.likely.toFixed(1) : '');
+    const NUMWORD = ['none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+    const tenList = [];
+    if (tenN) {
+      for (let i = 0; i < tenN.colour; i++) tenList.push({ fill: 'rgba(var(--cool-rgb),.85)', bd: 'transparent' });
+      for (let i = 0; i < tenN.faint; i++) tenList.push({ fill: 'rgba(var(--accent-rgb),.5)', bd: 'transparent' });
+      for (let i = 0; i < tenN.none; i++) tenList.push({ fill: 'rgba(var(--line-rgb),.08)', bd: 'rgba(var(--line-rgb),.16)' });
+    }
 
     /* Clock ticks on the hour, thinned until they stop touching each other on a phone. */
     const tickCand = [];
@@ -5664,7 +6510,9 @@ class Component extends DCLogic {
     } else {
       head = cap(camWord) + ' on camera. ' + (eyeWord === 'unlikely' ? 'Probably not to your eye.' : eyeWord === 'possible' ? 'Possible to your eye at the peak.' : 'Likely to your eye as well.');
       const wide = bestWin && (bestWin.to - bestWin.from) > 4 * 3600000;
-      sub = 'A long exposure pointed ' + poleWord + ' has a ' + camWord + ' chance of picking up colour low in the sky'
+      sub = (tenN
+          ? 'On ten nights that look like this one, a camera pointed ' + poleWord + ' picks up colour on about ' + NUMWORD[tenN.colour]
+          : 'A long exposure pointed ' + poleWord + ' has a ' + camWord + ' chance of picking up colour low in the sky')
         + (wide ? ', fairly evenly through the dark hours' : bestWin ? ', best between ' + hhmm(bestWin.from) + ' and ' + hhmm(bestWin.to) : '')
         + '. ' + (eyeWord === 'unlikely' ? 'Standing there looking at it, you would most likely see a pale grey haze rather than colour.' : 'At the peak it may be bright enough to see standing there.');
     }
@@ -5707,6 +6555,14 @@ class Component extends DCLogic {
 
       /* chance through the night */
       aurCurveOn: slots.length > 1,
+      aurTenOn: !!tenN,
+      aurTenList: tenList,
+      aurTenColour: tenN ? NUMWORD[tenN.colour] : '',
+      aurTenFaintOn: !!(tenN && tenN.faint),
+      aurTenFaint: tenN ? NUMWORD[tenN.faint] : '',
+      aurTenNoneOn: !!(tenN && tenN.none),
+      aurTenNone: tenN ? NUMWORD[tenN.none] : '',
+      aurThreshNote: threshNote,
       aurBandPath: bandPath,
       aurMeasPath: dOf(runs.measured),
       aurDriverPath: dOf(runs.live),
@@ -5733,10 +6589,10 @@ class Component extends DCLogic {
         ? 'The dark hours take two thirds of the width, because that is what you are planning for. The wait until then is squeezed, and the next hour keeps just enough room to read.'
         : 'The next hour takes up half the width, because that is the part worth acting on. The rest of the night is squeezed in behind it.',
       aurBestLine: bestWin && (bestWin.to - bestWin.from) > 4 * 3600000
-        ? 'Fairly flat across the night, with no single best window. One line, three sources: it fades from measurement into forecast as the night goes on, and the band widens as the inherent uncertainty increases.'
+        ? 'Fairly flat across the night, with no single best window. One line, three sources: it fades from measurement into forecast as the night goes on, and the shading is how far either side of it the forecast could land.'
         : bestWin
-        ? 'Best window looks like ' + hhmm(bestWin.from) + ' to ' + hhmm(bestWin.to) + '. One line, three sources: it fades from measurement into forecast as the night goes on, and the band widens as the inherent uncertainty increases.'
-        : 'One line, three sources: it fades from measurement into forecast as the night goes on, and the band widens as the inherent uncertainty increases.',
+        ? 'Best window looks like ' + hhmm(bestWin.from) + ' to ' + hhmm(bestWin.to) + '. One line, three sources: it fades from measurement into forecast as the night goes on, and the shading is how far either side of it the forecast could land.'
+        : 'One line, three sources: it fades from measurement into forecast as the night goes on, and the shading is how far either side of it the forecast could land.',
       aurArrLegend: wd && wd.arrivalMin != null ? 'already on its way, arrives about ' + hhmm(nowMs + wd.arrivalMin * 60000) : 'already on its way',
 
       /* right now */
@@ -5852,6 +6708,7 @@ class Component extends DCLogic {
     const kp = st.kp;
     const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+    const conj = this.conjData();
     const rows = nights.map((n, idx) => {
       const i = idx - hist.length;   // 0 is tonight, negatives already happened
       const s = E.nightSummary(n);
@@ -5892,6 +6749,10 @@ class Component extends DCLogic {
         starColour: isBest || now ? 'var(--accent)' : past ? 'var(--moon-dim)' : 'var(--dim)',
         pick: () => this.setState({ daySel: r.idx }),
         dim: past ? '.82' : '1',
+        conjSep: (() => { const l = conj.byKey[this.conjKeyFor(s)]; return l && l.length ? l[0].sep.toFixed(1) + '°' : '–'; })(),
+        conjWho: (() => { const l = conj.byKey[this.conjKeyFor(s)]; return l && l.length ? (l.length > 1 ? this.conjShort(l[0]) + '+' : this.conjShort(l[0])) : ''; })(),
+        conjColour: (() => { const l = conj.byKey[this.conjKeyFor(s)]; if (!l || !l.length) return 'var(--faint)'; return l[0].sep < 2 ? 'var(--accent)' : 'var(--cool)'; })(),
+        conjTitle: (() => { const l = conj.byKey[this.conjKeyFor(s)]; return l && l.length ? l.map(c => c.pair + ' ' + c.sepText).join(', ') : 'No planets within 5° that night'; })(),
         cloudLabel: cloudPct == null ? '–' : cloudPct + '%',
         cloudColour: cloudPct == null ? 'var(--faint)'
           : cloudPct < 35 ? 'var(--cool)' : cloudPct < 70 ? 'var(--accent)' : 'var(--moon-dim)',
@@ -5975,6 +6836,9 @@ class Component extends DCLogic {
       { k: 'Sky', v: s.sky ? 'B' + s.sky.bortle : '–', s: s.sky ? s.sky.sqm.toFixed(2) + ' mag/arcsec²' : 'no reading', c: 'var(--text)' },
       { k: 'Aurora', v: r.nk ? 'Kp ' + Math.floor(r.nk.peak) : '–', s: r.nk ? 'peak through the dark hours' : 'no forecast this far out', c: r.nk && r.nk.peak >= 5 ? 'var(--accent)' : 'var(--dim)' },
     ];
+    const dayConj = (this.conjData().byKey || {})[this.conjKeyFor(s)] || [];
+    if (dayConj.length) stats.push({ k: 'Conj', v: dayConj[0].sepText,
+      s: dayConj[0].pair + (dayConj.length > 1 ? ', and ' + (dayConj.length - 1) + ' more' : ''), c: 'var(--accent)' });
     const tq = rows.find(q => q.i === 0);
     let compare = 'This is tonight.';
     if (r.i !== 0 && tq) {
@@ -6083,12 +6947,18 @@ class Component extends DCLogic {
   issSentence(best, all) {
     if (this.state.issState === 'loading') return 'Working out tonight’s passes…';
     if (this.state.issState === 'failed') return 'Orbit data unavailable';
-    if (!best) return 'Nothing bright enough to bother with tonight';
+    /* Elements drift. Inside a day the timing is good to a minute or two, so it is not worth
+       mentioning; beyond that the reader should know the answer is built on old numbers. */
+    const age = this.state.issTleAge;
+    const oldEls = age != null && age > 36 * 3600000
+      ? ' Orbit data is ' + Math.round(age / 86400000) + ' days old, so treat the timing loosely.'
+      : '';
+    if (!best) return 'Nothing bright enough to bother with tonight' + oldEls;
     const E = this.E();
     const dir = E.compass(best.startAz) + ' to ' + E.compass(best.endAz);
     const more = all.length > 1 ? ' · ' + (all.length - 1) + ' more' : '';
     return this.hhmm(best.start) + ', ' + Math.round(best.maxEl) + '\u00b0 up, ' + dir
-      + ' · mag ' + best.mag.toFixed(1) + more;
+      + ' · mag ' + best.mag.toFixed(1) + more + oldEls;
   }
 
   fogSentence(fog) {

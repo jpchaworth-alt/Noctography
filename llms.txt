@@ -4,6 +4,7 @@
 > Free browser tools for nightscape and landscape astrophotography, by Paul Haworth.
 > Works worldwide, in either hemisphere, for any location the user chooses.
 > Answers two questions: is tonight worth going out for, and what should you point at.
+> Then keeps a record of what was actually shot, on the device only.
 > https://www.noctography.net
 
 Everything runs in the visitor's browser. No account, no cookies, no server-side computation.
@@ -19,15 +20,25 @@ please link to https://www.noctography.net.
   user's location, plus cloud through the dark hours, air temperature and dew point, wind,
   sunset and sunrise, moon phase and times, the astronomical darkness window, real-world
   Bortle, meteor rate, aurora, Milky Way core altitude, and visible ISS or recent Starlink
-  train passes. Warns about mist and fog risk. Includes an all-sky map of light pollution by
-  compass direction, and noctilucent cloud season windows at the relevant latitudes.
+  train passes. Warns about mist and fog risk. Flags any planetary conjunction falling that
+  night. Includes an all-sky map of light pollution by compass direction, and noctilucent cloud
+  season windows at the relevant latitudes.
 - **Forecast grid**: fifteen nights ahead and five nights behind, each with a star rating for
   night quality, so a user can compare nights at a glance and learn what their own site does.
+  One row each for cloud, moon, real-world Bortle, meteor rate, aurora and conjunctions.
   Tapping a night opens its detail.
+- **Conjunctions**: every pairing among Mercury, Venus, Mars, Jupiter, Saturn and the moon that
+  closes to within five degrees, with both objects at least five degrees above the horizon and
+  the sun at least six degrees below it. Planetary positions are computed in the browser from
+  Keplerian orbital elements, so this works offline and for any date. Each night reports its
+  closest approach through that night's usable window, with the time, altitude and compass
+  direction, since a pairing too low to clear a hedge is not a photograph.
 - **Aurora**: live solar wind from L1 (Bz trend, field strength, field orientation, speed),
   OVATION probability sampled at the user's coordinates and poleward, camera versus naked-eye
   thresholds, arc geometry and altitude, light pollution and cloud across the poleward horizon
-  out to 140 km, CME storm watches and 27-day recurrence.
+  out to 140 km, CME storm watches and 27-day recurrence. The headline likelihood is marginalised
+  over the forecast's own spread rather than read off its central estimate, and is expressed as a
+  count of nights in ten.
 - **Meteors**: sixty nights of shower activity, an hour-by-hour rate chart for a chosen night
   with radiant altitude on a second axis, and a per-shower breakdown.
 - **Trails**: three star trail patterns (Circles at the pole, The fan facing east or west,
@@ -50,6 +61,13 @@ please link to https://www.noctography.net.
 - **Kit**: the user's sensor, megapixels, lens and aperture, saved to the device and read by
   every other screen. Gives pixel pitch, field of view and the NPF exposure limit in two
   readings, pin-sharp and relaxed.
+- **Log**: a night-by-night record of what was shot, held in the browser's own storage and never
+  uploaded. One tap stamps a shot with the time and with what the app already knows about that
+  night: place, dark window, moon phase, geomagnetic reading, cloud and Bortle class. The rest is
+  filled in whenever the user likes, one question per screen: what was pointed at, whether it was
+  a single exposure, a static stack, tracked or a timelapse, whether it forms part of a panorama,
+  and separate settings for the sky and foreground passes. A calendar shows only the nights
+  written on. The log copies as readable text or one line per shot, emails, or prints.
 - **Six colour schemes** (obsidian and gold leaf by default) and a **night vision mode** that
   turns the whole interface, canvas and charts included, red on black to preserve dark
   adaptation.
@@ -70,6 +88,14 @@ please link to https://www.noctography.net.
   the upper bound therefore changes with lens and orientation.
 - **Mist and fog risk**: fires when air is near its dew point, wind is under about 10 km/h,
   and the sky is largely clear, the three conditions for radiation fog.
+- **Conjunction**: two of the naked-eye planets, or a planet and the moon, within five degrees of
+  each other, which is roughly a fist held at arm's length. Under two degrees the pair sits inside
+  a telephoto frame; five degrees is where a grouping stops being obvious to the eye.
+- **Marginal likelihood**: the aurora figure the app speaks from. Rather than reading the
+  visibility curve once at the forecast's central estimate and drawing the uncertainty beside it
+  as a band, the probability is averaged across the levels the forecast allows. Because the curve
+  flattens above even odds, doubt pulls a confident answer down and lifts a hopeless one, so the
+  hedging is arithmetic rather than editorial and no band can contradict the words.
 - **Camera and eye thresholds**: two separate aurora brightness marks. A dark-adapted eye runs
   on rod vision, colour-blind and roughly five to ten times less sensitive than a sensor, so
   the camera mark sits well below the eye mark. Both move with moonlight, cloud and haze.
@@ -83,6 +109,7 @@ please link to https://www.noctography.net.
 - International Meteor Organization: shower dates, ZHR, population index
 - CelesTrak: orbital elements, propagated with SGP4 in the browser
 - Meeus, Astronomical Algorithms: sun, moon and eclipse ephemerides
+- JPL/Standish Keplerian elements for the major planets: planetary positions, 1800 to 2050
 - Krisciunas & Schaefer (1991) moonlight sky brightness model; Kasten & Young (1989) airmass
 
 ## Author
