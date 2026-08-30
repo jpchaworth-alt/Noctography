@@ -1,0 +1,11 @@
+Bortle 4 does not mean tonight is Bortle 4.
+
+The maps grade a place on a perfect moonless night. It has nothing to say about the night you are actually driving out into, and that is the night you have to shoot.
+
+So I built the sum into the app. It takes the atlas value for your coordinates, then counts what tonight costs you: moonlight, haze and humidity, and town glow bouncing back off thin high cloud. Each one in magnitudes per square arcsecond, added up, turned back into a Bortle grade and quoted as the median across the dark hours, so one bright half-hour does not define the night.
+
+Tonight my field is a Bortle 4 site reading Bortle 6. Two whole grades, and the only reason is a 95% moon. Across the next nine nights the same field runs from B4 to B8 without moving an inch.
+
+Free, in your browser, no account, everything worked out on your own device. Link in bio, or type noctography.net.
+
+#astrophotography #nightscape #bortlescale #darkskies #lightpollution #milkyway #nightphotography #stargazing #astrophotographytips #ukastrophotography

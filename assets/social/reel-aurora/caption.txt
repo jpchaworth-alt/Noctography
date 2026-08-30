@@ -1,0 +1,9 @@
+10 May 2024. The biggest geomagnetic storm in twenty years, and half the country found out about it the next morning.
+
+That is the problem with a night like this. It comes round once or twice a decade, so nobody sensible sits up watching for it. And on almost every other night the honest answer is no, which is exactly why you stop checking.
+
+So I built something that checks for me. Noctography watches the numbers, tells me the night the odds actually change, and shows me where the cloud is not, so I am not driving an hour to stand under an overcast sky. It runs in your browser, there is no account, and it works everything out on your own device.
+
+Free, link in bio, or type noctography.net.
+
+#aurora #northernlights #auroraborealis #astrophotography #nightscape #spaceweather #geomagneticstorm #darkskies #nightphotography #ukastrophotography

@@ -1,0 +1,9 @@
+Racing a panorama before the whole west went down.
+
+Venus and Jupiter low over the fen, the Pleiades and Orion setting behind them, and about twenty minutes to catch the lot before the horizon took it. A pano is the way to hold a sky that wide in one frame, but in the dark, with the planets dropping, the sums are the enemy: how far to turn between frames so it stitches, and how long you have before your subject is gone.
+
+That is the kind of thing I built Noctography to answer. It gives you the rotation for your own lens and sensor, ranks what is actually worth pointing at tonight, flags when planets gather close in a dark sky, and tells you plainly how much darkness you have left. It runs in your browser, there is no account, and everything is worked out on your own device. Link in bio, or type noctography.net.
+
+14mm · f/2.8 · ISO 3200 · 15s frames · 8-frame pano at 40% overlap
+
+#astrophotography #nightscape #panorama #astropano #orion #pleiades #nightphotography #darkskies #stargazing #ukastrophotography

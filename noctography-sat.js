@@ -376,5 +376,114 @@
     return out;
   }
 
-  window.NoctoSat = { parseTle, sgp4init, sgp4, findPasses, fetchTle, fetchTleCached, tleAge, lookAngles, observerEci, sunEci, sunElevation, magnitude };
+  /* ---------------- where elements come from ----------------
+     CelesTrak is the authoritative source and does not want to be read by thousands of browsers:
+     it asks clients not to re-fetch elements they hold and enforces it. Measured from a browser
+     on 30 August 2026, the station feed failed in two seconds and a repeat request never answered
+     inside fourteen, even with mode 'no-cors', which means the request is refused rather than the
+     CORS header merely being absent. So a feed is a list of sources tried in order, not a URL.
+
+     Set TLE_RELAY once the Worker in worker/tle.js is deployed: see worker/tle-README.md. It is
+     the only source that fixes both cards, because the last-thirty-days launch list the Starlink
+     train needs is published by CelesTrak alone. The public TLE API in the middle sends CORS
+     headers and answered in 440 ms on the same connection, so the station card works without any
+     of this; the train card does not. */
+  /* The relay address, resolved rather than hard-coded, so deploying the Worker does not mean
+     editing this file and shipping a release. Three sources, most specific first:
+
+       ?tle-relay=https://tle.example.workers.dev   in the address bar, once: it is remembered
+       localStorage noctography.tleRelay             what that wrote
+       RELAY_BUILT_IN                               a value baked in here, if one ever is
+
+     ?tle-relay=off clears it again. The point is that the Worker can be deployed and proved from a
+     phone in the field, in the ten minutes it takes, with no build step in between. */
+  const RELAY_BUILT_IN = null;
+  const RELAY_KEY = 'noctography.tleRelay';
+  const TLE_RELAY = (function () {
+    let stored = null;
+    try { stored = localStorage.getItem(RELAY_KEY); } catch (e) {}
+    try {
+      const q = new URLSearchParams(location.search).get('tle-relay');
+      if (q === 'off' || q === 'none') { localStorage.removeItem(RELAY_KEY); stored = null; }
+      else if (q && /^https:\/\//.test(q)) { stored = q.replace(/\/+$/, ''); localStorage.setItem(RELAY_KEY, stored); }
+    } catch (e) {}
+    return stored || RELAY_BUILT_IN;
+  })();
+
+  const FEEDS = {
+    iss: {
+      ttl: 6 * 3600000,
+      sources: [
+        relay => relay && { label: 'relay', kind: 'tle', timeoutMs: 7000, url: relay + '?feed=iss' },
+        () => ({ label: 'TLE API', kind: 'json', timeoutMs: 7000, url: 'https://tle.ivanstanojevic.me/api/tle/25544' }),
+        () => ({ label: 'CelesTrak', kind: 'tle', timeoutMs: 8000, url: 'https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle' }),
+      ],
+    },
+    'tle-new': {
+      ttl: 12 * 3600000,
+      sources: [
+        relay => relay && { label: 'relay', kind: 'tle', timeoutMs: 9000, url: relay + '?feed=tle-new' },
+        () => ({ label: 'CelesTrak', kind: 'tle', timeoutMs: 9000, url: 'https://celestrak.org/NORAD/elements/gp.php?GROUP=tle-new&FORMAT=tle' }),
+      ],
+    },
+  };
+
+  function feedKey(name){ return 'nocto.tle.feed.' + name; }
+  function readFeed(name){
+    try {
+      const o = JSON.parse(localStorage.getItem(feedKey(name)) || 'null');
+      return (o && o.at && Array.isArray(o.tles) && o.tles.length) ? o : null;
+    } catch (e) { return null; }
+  }
+  function writeFeed(name, tles, label){
+    try { localStorage.setItem(feedKey(name), JSON.stringify({ at: Date.now(), tles, label })); } catch (e) {}
+  }
+  function feedAge(name){ const h = readFeed(name); return h ? Date.now() - h.at : null; }
+  function feedSource(name){ const h = readFeed(name); return h ? (h.label || null) : null; }
+
+  /* The single-satellite API returns one object with line1 and line2 rather than a TLE file. */
+  async function fetchTleJson(url, timeoutMs){
+    const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs || TLE_TIMEOUT_MS) : null;
+    let r;
+    try { r = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined); }
+    finally { if (timer) clearTimeout(timer); }
+    if (!r.ok) throw new Error('tle json ' + r.status);
+    const j = await r.json();
+    const rows = Array.isArray(j.member) ? j.member : [j];
+    return rows.map(o => ({
+      name: (o.name || '').trim(),
+      l1: o.line1 || o.tle_line1 || o.TLE_LINE1,
+      l2: o.line2 || o.tle_line2 || o.TLE_LINE2,
+    })).filter(t => t.l1 && t.l2 && t.l1[0] === '1' && t.l2[0] === '2');
+  }
+
+  /* One feed, every source in turn, and a copy kept on the device. A stale copy is a far better
+     answer than an empty card: elements from earlier today put the station within a couple of
+     minutes of where it will be. Past TLE_MAX_STALE_MS they are fiction dressed as a pass time
+     and the caller is told nothing was found. */
+  async function fetchFeed(name, opts) {
+    opts = opts || {};
+    const feed = FEEDS[name];
+    if (!feed) throw new Error('unknown feed ' + name);
+    const hit = readFeed(name);
+    const ttl = opts.ttl || feed.ttl;
+    if (hit && Date.now() - hit.at < ttl) return hit.tles;
+
+    const sources = feed.sources.map(f => f(TLE_RELAY)).filter(Boolean);
+    let last = null;
+    for (const src of sources) {
+      try {
+        const tles = src.kind === 'json'
+          ? await fetchTleJson(src.url, src.timeoutMs)
+          : await fetchTle(src.url, src.timeoutMs);
+        if (tles.length) { writeFeed(name, tles, src.label); return tles; }
+        last = new Error('empty from ' + src.label);
+      } catch (e) { last = e; }
+    }
+    if (hit && Date.now() - hit.at < (opts.maxStale || TLE_MAX_STALE_MS)) return hit.tles;
+    throw last || new Error('no elements for ' + name);
+  }
+
+  window.NoctoSat = { relay: () => TLE_RELAY, parseTle, sgp4init, sgp4, findPasses, fetchTle, fetchTleCached, fetchFeed, feedAge, feedSource, tleAge, lookAngles, observerEci, sunEci, sunElevation, magnitude };
 })();

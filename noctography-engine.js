@@ -2390,6 +2390,57 @@ function nearestTideStation(lat, lon){
    not before: a constant that describes an intention rather than a fact is worse than no
    constant, because it hides a broken path behind a working-looking one. */
 const TIDE_RELAY = null;
+/* The free reading, from the Environment Agency's flood-monitoring API. Two changes after
+   watching this fail in the field. It reads the station's last few readings rather than the
+   station record: the same size of response, but it carries the trend as well as the level, and
+   "rising" or "falling" is the part you can act on. And it has a deadline, one retry and a copy
+   kept on the device, because the endpoint's time to first byte was six seconds from a fast
+   connection on 30 August 2026, and a fetch with no deadline on a weak signal in a field is how
+   the tile ended up saying "unavailable" so often. Readings are 15 minutes apart, newest first. */
+const TIDE_TIMEOUT_MS = 8000;
+const TIDE_STALE_MS = 2 * 3600000;   // a tide cycle is 12.4 hours: past two, "now" is a fiction
+function tideCacheKey(ref){ return 'nocto.tide.' + ref; }
+function readTideCache(ref){
+  try {
+    const o = JSON.parse(localStorage.getItem(tideCacheKey(ref)) || 'null');
+    return (o && o.at && isFinite(o.value)) ? o : null;
+  } catch (e) { return null; }
+}
+function writeTideCache(ref, o){
+  try { localStorage.setItem(tideCacheKey(ref), JSON.stringify(o)); } catch (e) {}
+}
+async function eaReadings(ref){
+  const url = 'https://environment.data.gov.uk/flood-monitoring/id/stations/' +
+    encodeURIComponent(ref) + '/readings?_sorted&_limit=6';
+  const attempt = async () => {
+    const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), TIDE_TIMEOUT_MS) : null;
+    let r;
+    try { r = await fetch(url, ctrl ? { cache: 'no-store', signal: ctrl.signal } : { cache: 'no-store' }); }
+    finally { if (timer) clearTimeout(timer); }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const rows = (j.items || []).map(it => ({ t: Date.parse(it.dateTime), v: it.value }))
+      .filter(x => isFinite(x.t) && isFinite(x.v)).sort((a, b) => b.t - a.t);
+    if (!rows.length) throw new Error('no readings');
+    return rows;
+  };
+  try { return await attempt(); }
+  catch (e) { return await attempt(); }   // one retry: the failure is nearly always a slow first byte
+}
+/* Rising or falling, from the readings themselves rather than from a prediction. The threshold is
+   deliberately generous: a gauge wobbles by a centimetre or two in a swell, and at slack water
+   the honest answer is that it has stopped. */
+function tideTrend(rows){
+  if (!rows || rows.length < 2) return null;
+  const newest = rows[0], oldest = rows[rows.length - 1];
+  const hours = (newest.t - oldest.t) / 3600000;
+  if (!(hours > 0)) return null;
+  const change = newest.v - oldest.v;
+  const rate = change / hours;
+  const dir = change > 0.04 ? 'rising' : change < -0.04 ? 'falling' : 'slack';
+  return { dir, change, rate, spanHours: hours };
+}
 async function loadTide(lat, lon, darkWin){
   const st = nearestTideStation(lat, lon);
   if(!st) { state.tide = null; state.tideStatus = 'unavailable'; return false; }
@@ -2398,9 +2449,12 @@ async function loadTide(lat, lon, darkWin){
       const r = await fetch(TIDE_RELAY + '?lat=' + st.lat.toFixed(4) + '&lon=' + st.lon.toFixed(4), { cache: 'no-store' });
       if(!r.ok) throw new Error('HTTP ' + r.status);
       const j = await r.json();
-      const events = (j.events || []).map(e => ({ t: Date.parse(e.time), type: e.type, height: e.height })).filter(e => isFinite(e.t));
+      const events = (j.events || []).map(ev => ({ t: Date.parse(ev.time), type: ev.type, height: ev.height })).filter(ev => isFinite(ev.t));
       if(events.length){
+        const next = events.filter(ev => ev.t > Date.now()).sort((a, b) => a.t - b.t)[0];
         state.tide = { mode: 'forecast', station: j.station || st.name, distanceKm: st.km, events,
+          // a tide on its way to high water is rising, and that needs no measurement to know
+          trend: next ? { dir: next.type === 'high' ? 'rising' : 'falling' } : null,
           credit: j.credit || 'Contains ADMIRALTY\u00ae tidal data: \u00a9 Crown copyright and database right' };
         state.tideStatus = 'live';
         return true;
@@ -2408,18 +2462,30 @@ async function loadTide(lat, lon, darkWin){
     }catch(e){ /* falls through to the free reading below */ }
   }
   try{
-    const r = await fetch('https://environment.data.gov.uk/flood-monitoring/id/stations/' + encodeURIComponent(st.ref) + '.json', { cache: 'no-store' });
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    const j = await r.json();
-    const m = j.items && j.items.measures, lr = m && m.latestReading;
-    if(!lr) throw new Error('no reading');
+    const rows = await eaReadings(st.ref);
+    const newest = rows[0];
+    const trend = tideTrend(rows);
     state.tide = { mode: 'level', station: st.name, distanceKm: st.km,
-      value: lr.value, at: Date.parse(lr.dateTime),
+      value: newest.v, at: newest.t, trend, stale: false,
       credit: 'Environment Agency, Open Government Licence' };
+    writeTideCache(st.ref, { at: newest.t, value: newest.v, trend, station: st.name });
     state.tideStatus = 'live';
     return true;
-  }catch(e){ state.tide = null; state.tideStatus = 'unavailable'; return false; }
+  }catch(e){
+    /* Nothing from the gauge. A reading from the last couple of hours, clearly dated, beats a
+       tile that says only that something went wrong. */
+    const hit = readTideCache(st.ref);
+    if (hit && Date.now() - hit.at < TIDE_STALE_MS) {
+      state.tide = { mode: 'level', station: st.name, distanceKm: st.km,
+        value: hit.value, at: hit.at, trend: hit.trend || null, stale: true,
+        credit: 'Environment Agency, Open Government Licence' };
+      state.tideStatus = 'cached';
+      return true;
+    }
+    state.tide = null; state.tideStatus = 'unavailable'; return false;
+  }
 }
+
 
 /* ---- hemispheric power: the one number for how much energy is going into the sky ---- */
 async function loadHemiPower(){
@@ -2924,7 +2990,7 @@ window.NoctoEngine = {
   set onTilesReady(fn){TILES.onready=fn;}, get onTilesReady(){return TILES.onready;},
   loadWeather, loadClimatology, computeNight, computeAll,
   sunPos, moonPos, moonIllum, lstOf, eq2horiz, jdFrom, clamp, norm,
-  clearFraction, veilFraction, rateFor, sampleSky, scoreOf, alphaOf,
+  clearFraction, veilFraction, rateFor, sampleSky, scoreOf, alphaOf, limitingMag,
   localParts, fmtTime, fmtDate, toUTC, pad, MONTHS, compass, tzOffset: () => state.tzOffset,
   nightChart, fovFraction, verdictWord, speedWord, sentence,
   tonight, realSky, nightSummary, sunTimes, moonTimes, fogRisk, loadKp, kpForNight, geocode, homeFromTimezone, MW_RA, MW_DEC,
@@ -2934,7 +3000,7 @@ window.NoctoEngine = {
   loadSolarWind, windState, loadOvation, ovationAt, ovationScan,
   polewardGlow, allSkyGlow, COMPASS16, loadPolewardCloud, auroraThresholds,
   loadNearbyScan, DRIVE_RADIUS_KM,
-  TIDE_STATIONS, nearestTideStation, loadTide,
+  TIDE_STATIONS, nearestTideStation, loadTide, tideTrend,
   loadAlerts, watchFor, gToKp, loadOutlook27, outlookKp, recurrenceAhead,
   AURORA_CAL, loadHp30, hpNow, loadHemiPower, windDerived, newell,
   PLANETS, PLANET_ORDER, planetPos, skyBodies, conjunctions, pairLabel,
