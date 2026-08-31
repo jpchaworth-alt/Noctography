@@ -150,12 +150,12 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=1.1"></script>
-<script src="../noctography-sat.js?v=1.1"></script>
-<script src="../noctography-plan.js?v=1.1"></script>
-<script src="../noctography-ar.js?v=1.1"></script>
-<script src="../noctography-log.js?v=1.1"></script>
-<script src="../noctography-terrain.js?v=1.1"></script>
+<script src="../noctography-engine.js?v=1.1.2"></script>
+<script src="../noctography-sat.js?v=1.1.2"></script>
+<script src="../noctography-plan.js?v=1.1.2"></script>
+<script src="../noctography-ar.js?v=1.1.2"></script>
+<script src="../noctography-log.js?v=1.1.2"></script>
+<script src="../noctography-terrain.js?v=1.1.2"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -405,7 +405,7 @@ window.noctoTrack = function (name) {
         </sc-if>
 
         <sc-if value="{{ hzOn }}" hint-placeholder-val="{{ false }}">
-          <div style="display: grid; gap: 8px; padding-top: 4px; border-top: 1px solid rgba(var(--line-rgb),.12);">
+          <div data-hz-panel="1" style="display: grid; gap: 8px; padding-top: 4px; border-top: 1px solid rgba(var(--line-rgb),.12);">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Your skyline</span>
               <button type="button" onClick="{{ toggleHzOpen }}" style="min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ hzToggleLabel }}</button>
@@ -418,7 +418,7 @@ window.noctoTrack = function (name) {
             </sc-if>
             <sc-if value="{{ hzOpen }}" hint-placeholder-val="{{ false }}">
               <div style="display: grid; gap: 10px;">
-                <div style="display: grid; gap: 5px; padding: 9px 10px 7px; background: rgba(var(--well-rgb),.5); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
+                <div data-hz-panorama="1" style="display: grid; gap: 5px; padding: 9px 10px 7px; background: rgba(var(--well-rgb),.5); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
                   <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
                     <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--faint);">{{ hzScaleLine }}</span>
                     <button type="button" onClick="{{ hzGlowToggle }}" style="flex: 0 0 auto; min-height: 34px; padding: 0 11px; border: 1px solid rgba(var(--line-rgb),.2); border-radius: 999px; background: {{ hzGlowBg }}; color: {{ hzGlowFg }}; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">{{ hzGlowLabel }}</button>
@@ -432,7 +432,7 @@ window.noctoTrack = function (name) {
                 <sc-if value="{{ hzGlowLineOn }}" hint-placeholder-val="{{ true }}">
                   <span style="font-size: 14px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ hzGlowLine }}</span>
                 </sc-if>
-                <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Grey is the ground itself. Amber is anything standing on it that you have told me about. The warm wash above is the town glow this place has on a clear moonless night, brightest where it meets the horizon.</span>
+                <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Grey is the ground itself. Amber is anything standing on it that you have told me about. The warm wash above is the light pollution this place has on a clear moonless night, brightest where it meets the horizon.</span>
                 <sc-if value="{{ hzEmptyOn }}" hint-placeholder-val="{{ true }}">
                   <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Nothing to draw here yet.</span>
                 </sc-if>
@@ -450,8 +450,7 @@ window.noctoTrack = function (name) {
                   </div>
                   <span style="font-size: 13.5px; line-height: 1.4; color: var(--text2);">{{ hzSliderLabel }}</span>
                   <input type="range" min="0" max="30" step="1" value="{{ hzSliderVal }}" onInput="{{ onHzSlider }}" style="width: 100%; min-height: 44px;">
-                  <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Hold a fist at arm's length: that is about ten degrees. A mature hedge at fifty metres is eight to twelve; a barn at thirty metres is twenty and up.</span>
-                  <button type="button" onClick="{{ hzRead }}" style="justify-self: start; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">{{ hzReadLabel }}</button>
+                  <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Hold a fist at arm's length: that is about ten degrees.</span>
                 </div>
                 </sc-if>
               </div>
@@ -563,6 +562,21 @@ window.noctoTrack = function (name) {
               </div>
               <sc-if value="{{ nearbyResultOn }}" hint-placeholder-val="{{ false }}">
                 <p style="margin: 0; font-size: 14.5px; line-height: 1.45; color: {{ nearbyResultColour }}; text-wrap: pretty;">{{ nearbyResultLine }}</p>
+              </sc-if>
+              <sc-if value="{{ nbMapOn }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; gap: 7px; padding-top: 2px;">
+                  <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Drag to move, pinch to zoom. The rings are how far you could get; the wash is how clouded over the dark hours look, thickest where it is worst.</span>
+                  {{ nbMapEl }}
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Clear<i style="width: 44px; height: 8px; border-radius: 2px; background: linear-gradient(90deg, rgba(198,206,232,.04), rgba(198,206,232,.62));"></i>Clouded over</span>
+                    <span style="flex: 1; min-width: 8px;"></span>
+                    <button type="button" onClick="{{ nbZoomOut }}" aria-label="Zoom out" style="flex: 0 0 auto; min-width: 44px; min-height: 44px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">−</button>
+                    <button type="button" onClick="{{ nbZoomIn }}" aria-label="Zoom in" style="flex: 0 0 auto; min-width: 44px; min-height: 44px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">+</button>
+                  </div>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.4; color: var(--accent); text-wrap: pretty;">{{ nbAtLine }}</span>
+                  <button type="button" onClick="{{ nbUseHere }}" style="min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">Refresh data for here</button>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; line-height: 1.4; color: var(--faint);">{{ nbCredit }}</span>
+                </div>
               </sc-if>
               <p style="margin: 0; font-size: 12px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ nearbyFoot }}</p>
             </div>
@@ -1129,7 +1143,6 @@ window.noctoTrack = function (name) {
 
           <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.4; color: var(--faint);">{{ aurThreshNote }}</p>
           <p style="margin: 0; font-size: 15px; line-height: 1.42; color: var(--text); text-wrap: pretty;">{{ aurBestLine }}</p>
-          <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ aurScaleNote }}</p>
           <sc-if value="{{ aurEyeBrOn }}" hint-placeholder-val="{{ false }}">
             <p style="margin: 0; font-size: 14px; line-height: 1.4; color: var(--cool); text-wrap: pretty;">{{ aurEyeLine }}</p>
           </sc-if>
@@ -1323,26 +1336,14 @@ window.noctoTrack = function (name) {
           </div>
           <p style="margin: 0; font-size: 14.5px; line-height: 1.42; color: var(--text2); text-wrap: pretty;">{{ aurSkyLine }}</p>
 
-          <div style="display: grid; gap: 3px;">
-            <div style="display: flex; gap: 2px; height: 34px;">
-              <sc-for list="{{ aurSectors }}" as="sc" hint-placeholder-count="10">
-                <i style="flex: 1; align-self: flex-end; height: {{ sc.h }}%; border-radius: 3px 3px 0 0; background: var(--accent); opacity: {{ sc.o }};"></i>
-              </sc-for>
-            </div>
-            <i style="height: 1px; background: rgba(var(--line-rgb),.28);"></i>
-            <div style="display: flex; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--faint);">
-              <span style="flex: 1;">{{ aurCompassA }}</span>
-              <span style="flex: 1; text-align: center; color: var(--text);">{{ aurCompassB }}</span>
-              <span style="flex: 1; text-align: right;">{{ aurCompassC }}</span>
-            </div>
-          </div>
+          {{ aurSkylineEl }}
           <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ aurHorizonLabel }}: {{ aurHorizonLine }}</p>
 
           <sc-if value="{{ showDamp }}" hint-placeholder-val="{{ false }}">
             <div style="display: grid; gap: 8px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The cloud figure is taken over the patch of sky where the arc would actually be, half a degree to a degree {{ aurPoleWord }} of you, rather than over your head. Cloud above you is irrelevant if that quarter is clear, and the reverse ruins the night.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">{{ aurDampLine }}</p>
-              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The band above is the light pollution atlas read across that quarter of the sky, out to 140 km, weighted so nearer towns count for more. It is the twenty degrees above your horizon that decides whether a faint arc survives.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The panorama above is your own skyline across that quarter of the compass, read from the elevation model and whatever you have said is in the way, with the light pollution this place has washed in behind it. It is the twenty degrees above your horizon that decides whether a faint arc survives, and a treeline or a town in that direction ends the argument.</p>
             </div>
           </sc-if>
         </div>
@@ -1386,78 +1387,6 @@ window.noctoTrack = function (name) {
           </sc-if>
         </div>
 
-        <div style="display: grid; gap: 9px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid {{ sightCardBd }}; border-radius: 10px;">
-          <button type="button" onClick="{{ sightToggle }}" aria-expanded="{{ sightAria }}" style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; margin: -6px 0; padding: 0; border: 0; background: none; text-align: left; cursor: pointer;">
-            <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: {{ sightHeadColour }};">Log what you saw</span>
-            <span style="flex: 0 0 auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ sightBadge }}</span>
-            <span style="flex: 0 0 auto; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: var(--dim); font-size: 13px; line-height: 1;">{{ sightChevron }}</span>
-          </button>
-
-          <sc-if value="{{ sightTeaseOn }}" hint-placeholder-val="{{ false }}">
-            <span style="font-size: 13.5px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ sightTeaseLine }}</span>
-          </sc-if>
-
-          <sc-if value="{{ sightOpen }}" hint-placeholder-val="{{ false }}">
-            <div style="display: grid; gap: 10px; padding-top: 2px; border-top: 1px solid rgba(var(--line-rgb),.1);">
-
-              <sc-if value="{{ sightHasLog }}" hint-placeholder-val="{{ false }}">
-                <div style="display: flex; gap: 6px;">
-                  <button type="button" onClick="{{ sightShowFormGo }}" data-nv-active="{{ sightTabFormOn }}" style="flex: 1; min-height: 44px; border: 1px solid {{ sightTabFormBd }}; border-radius: 8px; background: {{ sightTabFormBg }}; color: {{ sightTabFormFg }}; font-family: 'Barlow', sans-serif; font-size: 13.5px; cursor: pointer;">Add tonight</button>
-                  <button type="button" onClick="{{ sightShowLogGo }}" data-nv-active="{{ sightTabLogOn }}" style="flex: 1; min-height: 44px; border: 1px solid {{ sightTabLogBd }}; border-radius: 8px; background: {{ sightTabLogBg }}; color: {{ sightTabLogFg }}; font-family: 'Barlow', sans-serif; font-size: 13.5px; cursor: pointer;">{{ sightLogTabLabel }}</button>
-                </div>
-              </sc-if>
-
-              <sc-if value="{{ sightShowForm }}" hint-placeholder-val="{{ true }}">
-                <div style="display: grid; gap: 10px;">
-                  <p style="margin: 0; font-size: 14px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ sightPrompt }}</p>
-                  <div style="display: grid; gap: 5px;">
-                    <span style="font-size: 11px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--faint);">How much showed</span>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                      <sc-for list="{{ sightSawChips }}" as="c" hint-placeholder-count="4">
-                        <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 1 1 auto; min-height: 46px; padding: 0 12px; border: 1px solid {{ c.bd }}; border-radius: 8px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 13.5px; cursor: pointer;">{{ c.label }}</button>
-                      </sc-for>
-                    </div>
-                  </div>
-                  <div style="display: grid; gap: 5px;">
-                    <span style="font-size: 11px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--faint);">How high it stood</span>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                      <sc-for list="{{ sightHeightChips }}" as="c" hint-placeholder-count="4">
-                        <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 1 1 auto; min-height: 46px; padding: 0 12px; border: 1px solid {{ c.bd }}; border-radius: 8px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 13.5px; cursor: pointer;">{{ c.label }}</button>
-                      </sc-for>
-                    </div>
-                  </div>
-                  <input type="text" value="{{ sightNote }}" onChange="{{ sightOnNote }}" placeholder="Anything worth remembering, optional" style="min-height: 46px; padding: 0 12px; border: 1px solid rgba(var(--line-rgb),.2); border-radius: 8px; background: rgba(var(--well-rgb),.5); color: var(--text); font-family: 'Barlow', sans-serif; font-size: 15px;">
-                  <button type="button" onClick="{{ sightSave }}" disabled="{{ sightCantSave }}" style="min-height: 50px; border: 1px solid {{ sightSaveBd }}; border-radius: 8px; background: {{ sightSaveBg }}; color: {{ sightSaveFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;">{{ sightSaveLabel }}</button>
-                  <p style="margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">{{ sightFoot }}</p>
-                </div>
-              </sc-if>
-
-              <sc-if value="{{ sightShowLog }}" hint-placeholder-val="{{ false }}">
-                <div style="display: grid; gap: 8px;">
-                  <sc-for list="{{ sightRows }}" as="r" hint-placeholder-count="3">
-                    <div style="display: grid; gap: 3px; padding: 10px 11px; background: rgba(var(--well-rgb),.5); border-radius: 8px;">
-                      <div style="display: flex; align-items: baseline; gap: 8px;">
-                        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--text2);">{{ r.when }}</span>
-                        <span style="margin-right: auto; font-size: 13px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.place }}</span>
-                        <button type="button" onClick="{{ r.del }}" aria-label="Delete this entry" style="flex: 0 0 auto; min-height: 44px; padding: 0 8px; margin: -11px -6px; border: 0; background: none; color: var(--dim); font-size: 16px; line-height: 1; cursor: pointer;">×</button>
-                      </div>
-                      <span style="font-size: 13.5px; line-height: 1.4; color: var(--text); text-wrap: pretty;">{{ r.saw }}</span>
-                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ r.said }}</span>
-                      <sc-if value="{{ r.noteOn }}" hint-placeholder-val="{{ false }}">
-                        <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ r.note }}</span>
-                      </sc-if>
-                    </div>
-                  </sc-for>
-                  <a href="{{ sightMailHref }}" style="display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 50px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; text-decoration: none;">Send it to Paul</a>
-                  <p style="margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">{{ sightSendFoot }}</p>
-                  <button type="button" onClick="{{ sightCopy }}" style="min-height: 44px; border: 0; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 12.5px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ sightCopyLabel }}</button>
-                </div>
-              </sc-if>
-
-            </div>
-          </sc-if>
-        </div>
-
         <p style="margin: 0; padding: 0 2px; font-size: 12.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Everything here is a likelihood for where you are standing tonight, not a promise of aurora. Index, solar wind, hemispheric power and Kp forecast from NOAA SWPC, half-hourly Hp30 from GFZ where it can be reached, cloud from Open-Meteo, worked out on this device.</p>
 
       </section>
@@ -1469,7 +1398,7 @@ window.noctoTrack = function (name) {
         <div style="display: grid; gap: 6px;">
           <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Meteor outlook</span>
           <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(26px, 8vw, 34px); line-height: 1.05; margin: 0;">{{ ribbonTitle }}</h2>
-          <p style="margin: 0; font-size: 16px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">Each column is one night, read dusk at the top to dawn at the bottom. The faded columns left of the line have already happened.</p>
+          <p style="margin: 0; font-size: 16px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">Each column is one night, read the start of darkness at the top to dawn at the bottom. The faded columns left of the line have already happened.</p>
         </div>
 
         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
@@ -1492,7 +1421,7 @@ window.noctoTrack = function (name) {
           </div>
           <div style="display: flex; gap: 8px; align-items: stretch;">
             <div style="flex: 0 0 44px; display: flex; flex-direction: column; justify-content: space-between; padding: 4px 0 26px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--faint); text-align: right;">
-              <span style="color: var(--accent); letter-spacing: .14em;">DUSK</span>
+              <span style="color: var(--accent); letter-spacing: .14em;">DARK</span>
               <span>00:00</span>
               <span style="color: var(--accent); letter-spacing: .14em;">DAWN</span>
             </div>
@@ -1995,8 +1924,6 @@ window.noctoTrack = function (name) {
               <span style="font-size: 14.5px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ framingNote }}</span>
             </div>
 
-            <button type="button" onClick="{{ goPano }}" style="min-height: 50px; border: 1px solid rgba(var(--line-rgb),.22); border-radius: 999px; background: transparent; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;">Hand off to panorama</button>
-
             <p style="margin: 0 2px; font-size: 13px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">This shows you where things are, not what the photograph will look like. Exposure, gradients and airglow are the night's business. Sizes are true to scale, which means some famous things look humblingly small.</p>
           </div>
         </sc-if>
@@ -2320,11 +2247,6 @@ window.noctoTrack = function (name) {
           </sc-if>
         </div>
 
-        <div style="display: grid; gap: 7px; padding: clamp(13px, 3.6vw, 15px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Reading this profile</span>
-          <span style="font-size: 14.5px; line-height: 1.5; color: var(--text2); text-wrap: pretty;">The star trail recipes, the sky elements, the framing view and the panorama calculator all read this profile. Change the lens on either tab and the other one follows.</span>
-        </div>
-
       </section>
     </sc-if>
 
@@ -2367,7 +2289,7 @@ window.noctoTrack = function (name) {
             </sc-if>
             <button type="button" onClick="{{ mapSeeHorizon }}" style="display: grid; gap: 3px; text-align: left; min-height: 56px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; cursor: pointer;">
               <span style="font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;">See this glow on your horizon</span>
-              <span style="font-size: 13.5px; letter-spacing: 0; text-transform: none; color: var(--text2);">A panorama of your own skyline with the town glow washed in behind it.</span>
+              <span style="font-size: 13.5px; letter-spacing: 0; text-transform: none; color: var(--text2);">A panorama of your own skyline with the light pollution washed in behind it.</span>
             </button>
             <div style="display: grid; gap: 6px; padding: 13px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
               <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Under the crosshair</span>
@@ -2388,7 +2310,6 @@ window.noctoTrack = function (name) {
                 <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint);">B9</span>
               </div>
               <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">The amber dot is your current site. White dots are places you have saved.</span>
-              <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Map tiles come from Esri and OpenStreetMap, fetched as you pan, so unlike the rest of the app those services see roughly where you are looking. Nothing is stored and no account is involved.</span>
             </div>
 
           <div style="display: grid; gap: 10px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
@@ -2534,6 +2455,7 @@ window.noctoTrack = function (name) {
           </sc-if>
         </div>
         <div style="display: grid; gap: 10px;">
+          <button type="button" onClick="{{ goData }}" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.28); background: transparent; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;">Credits and privacy</button>
           <a href="mailto:jpchaworth@gmail.com?subject=Noctography%20Feedback" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-size: 14px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;">Feedback</a>
           <a href="https://www.youtube.com/@nightscapejournals" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 14px; padding: 16px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="display: grid; gap: 3px; margin-right: auto;">
@@ -2554,187 +2476,209 @@ window.noctoTrack = function (name) {
     </sc-if>
 
     <sc-if value="{{ isData }}" hint-placeholder-val="{{ false }}">
-      <section data-sources="1" data-screen-label="Data sources" style="display: grid; gap: 12px; min-width: 0;">
+      <section data-sources="1" data-screen-label="Credits and privacy" style="display: grid; gap: 12px; min-width: 0;">
         <div style="display: grid; gap: 8px;">
-          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Data sources</span>
-          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(26px, 8vw, 34px); line-height: 1.05; margin: 0;">Where every number comes from</h2>
-          <p style="margin: 0; font-size: 17px; line-height: 1.5; color: var(--text2); max-width: 48ch; text-wrap: pretty;">Noctography has no server of its own. It reads these feeds directly from your device and does the astronomy in the browser. Credit where it is due.</p>
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Credits and privacy</span>
+          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(26px, 8vw, 34px); line-height: 1.05; margin: 0;">Where it all comes from</h2>
         </div>
+
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--text2); max-width: 52ch; text-wrap: pretty;">In addition to the providers of the data sources listed below, I am grateful to the many people who have given up their time to test and provide feedback on various elements of this app. Thanks guys, this wouldn’t have been possible without your diligence, patience and encouragement. You know who you are.</p>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--text2); max-width: 52ch; text-wrap: pretty;">With particular thanks to: Paul Clark, Martin Fransson, Jeroen Linnenkamp, Matej Mlakar, Henry Page and Raymond Kamstra.</p>
 
         <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Live feeds</span>
         <div style="display: grid; gap: 8px;">
           <a href="https://open-meteo.com" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">Open-Meteo forecast</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">open-meteo.com</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Cloud cover total, low, mid and high, relative humidity, temperature, dew point, wind speed and gusts. Hourly, 16 days ahead. Free for non-commercial use under CC BY 4.0.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Cloud in three layers, temperature, dew point, humidity, wind and gusts. Hourly, 16 days out. CC BY 4.0.</span>
           </a>
           <a href="https://open-meteo.com/en/docs/historical-weather-api" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">Open-Meteo historical weather (ERA5)</span>
+            <span style="font-size: 16px; font-weight: 600;">Open-Meteo historical weather, ERA5</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">archive-api.open-meteo.com</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Typical cloud beyond the 16 day forecast: three previous years, a three day window either side of the date. Describes a time of year, never a night.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Typical cloud beyond the 16 day forecast, from three previous years.</span>
           </a>
           <a href="https://photon.komoot.io" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">Photon, by Komoot</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">photon.komoot.io</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Place search, the one tried first. It takes a proximity bias, so it offers the fen, the reserve, the viewpoint or the car park nearest you rather than the biggest town of that name. Built on OpenStreetMap data, &copy; OpenStreetMap contributors, available under the Open Database Licence.</span>
-          </a>
-          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">OpenStreetMap</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">openstreetmap.org/copyright</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The place names and geometry behind the search above. &copy; OpenStreetMap contributors, ODbL 1.0.</span>
-          </a>
-          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-            <span style="font-size: 16px; font-weight: 600;">Why the Starlink card sometimes says nothing</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">A train is only visible for a few nights after launch, so it needs the list of the last thirty days of launches, and CelesTrak alone publishes that. CelesTrak asks not to be read by thousands of browsers and enforces it, so this app cannot ask it directly. A small relay solves it, and once one is running the address can be handed to the app by opening it with <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--accent); overflow-wrap: anywhere;">?tle-relay=</span> and the address on the end. The station&rsquo;s own passes do not need any of this: they come from a public elements API.</span>
-          </div>
-          <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">AWS Terrain Tiles elevation</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">elevation-tiles-prod.s3.amazonaws.com</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The ground behind Your skyline: fetched once for a spot, then held on the device. National surveys where they exist and global data elsewhere, so it is sharper in some countries than others, roughly 30 m at best. Assembled by Mapzen and Nextzen, hosted as an AWS Open Data set. Sources include USGS 3DEP and SRTM, Canada&rsquo;s CDEM, EU-DEM, ArcticDEM and GEBCO bathymetry, each under its own terms.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Place search, tried first. Built on OpenStreetMap data, ODbL.</span>
           </a>
           <a href="https://open-meteo.com/en/docs/geocoding-api" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">Open-Meteo geocoding</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">geocoding-api.open-meteo.com</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The fallback for place search, used when Photon does not answer. It indexes populated places by population only, so it is broader on towns and blind to everywhere else.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Place search fallback, when Photon does not answer.</span>
+          </a>
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">OpenStreetMap</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">openstreetmap.org/copyright</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Place names and geometry behind the search, and the Detail layer on the maps. &copy; OpenStreetMap contributors, ODbL 1.0.</span>
+          </a>
+          <a href="https://www.esri.com/en-us/legal/terms/data-attributions" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">Esri basemaps</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">server.arcgisonline.com</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The Map and Satellite layers on Place, and the imagery behind Refine location. Esri, HERE, Garmin, Maxar, Earthstar Geographics.</span>
+          </a>
+          <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">AWS Terrain Tiles elevation</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">elevation-tiles-prod.s3.amazonaws.com</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The ground behind Your skyline, and the height at the pin. Roughly 30 m. Mapzen and Nextzen, from USGS 3DEP, SRTM, CDEM, EU-DEM, ArcticDEM and GEBCO.</span>
           </a>
           <a href="https://www.swpc.noaa.gov/products/planetary-k-index" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">NOAA Space Weather Prediction Center</span>
+            <span style="font-size: 16px; font-weight: 600;">NOAA SWPC, planetary K index</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">services.swpc.noaa.gov</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Planetary K index forecast, three-hourly, for tonight and the ten-night outlook. Public domain, like everything SWPC publishes.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Kp forecast for tonight and the ten-night outlook. Public domain.</span>
           </a>
           <a href="https://www.swpc.noaa.gov/products/real-time-solar-wind" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">NOAA real-time solar wind, L1</span>
+            <span style="font-size: 16px; font-weight: 600;">NOAA SWPC, real-time solar wind</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">services.swpc.noaa.gov/json/rtsw</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Interplanetary field strength and its north-south component (Bz) at one-minute cadence, plus wind speed, measured a million and a half kilometres upwind by the SOLAR-1 observatory with IMAP as backup. The history file is read once and then kept current from a sixty-byte summary, so the aurora page costs almost nothing to leave open.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Field strength, Bz and wind speed at L1, every minute. Drives the aurora trace and the Bz pane.</span>
           </a>
           <a href="https://www.swpc.noaa.gov/products/aurora-30-minute-forecast" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">NOAA OVATION aurora model</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">services.swpc.noaa.gov/json/ovation_aurora_latest.json</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">A global grid of visible-aurora probability at one degree spacing, regenerated every five minutes from the live solar wind, looking 30 to 90 minutes ahead. The whole planet is fetched and then asked about your own coordinates on your device, so your position never leaves the phone.</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">services.swpc.noaa.gov</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Visible-aurora probability on a one degree grid, 30 to 90 minutes ahead. Behind camera against naked eye.</span>
           </a>
           <a href="https://www.swpc.noaa.gov/noaa-scales-explanation" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">NOAA space weather alerts and watches</span>
+            <span style="font-size: 16px; font-weight: 600;">NOAA SWPC, alerts and watches</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">services.swpc.noaa.gov/products/alerts.json</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Geomagnetic storm watches, warnings and alerts. Used for the G-level badge on a night when forecasters have seen a CME leave the sun and expect it to arrive.</span>
-          </a>
-          <a href="https://kp.gfz.de/en/hp30-hp60" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-            <span style="font-size: 16px; font-weight: 600;">GFZ Hp30</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">kp.gfz.de</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The half-hourly geomagnetic index, uncapped, from GFZ Helmholtz Centre for Geosciences under CC BY 4.0. It is what the measured end of the aurora chart wants, because it updates every thirty minutes and can carry a trend. Their server will not release it to a browser directly, so where you see it here it has come through a relay of mine; where the app says "estimated" instead, it is running on NOAA's three-hour running figure and the trend is blunter.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The G-level storm badge and CME watches.</span>
           </a>
           <a href="https://www.swpc.noaa.gov/products/27-day-outlook-107-cm-radio-flux-and-geomagnetic-indices" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">NOAA 27-day outlook</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">services.swpc.noaa.gov/text/27-day-outlook.txt</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Predicted largest Kp for each of the next 27 days, updated weekly. The basis for the recurrence line: coronal holes come back round as the sun rotates.</span>
+            <span style="font-size: 16px; font-weight: 600;">NOAA SWPC, 27-day outlook</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">services.swpc.noaa.gov</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Largest expected Kp per day for 27 days. The recurrence line.</span>
+          </a>
+          <a href="https://kp.gfz.de/en/hp30-hp60" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">GFZ Hp30</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">kp.gfz.de</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Half-hourly geomagnetic index, uncapped. The measured end of the aurora chart, through a relay of mine. GFZ Helmholtz Centre for Geosciences, CC BY 4.0.</span>
+          </a>
+          <a href="https://tle.ivanstanojevic.me" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">TLE API</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">tle.ivanstanojevic.me</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Orbital elements for the station. Same US Space Force data, served with the header a browser needs.</span>
+          </a>
+          <a href="https://celestrak.org" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">CelesTrak</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">celestrak.org</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Elements for the station and for launches in the last thirty days. Dr T.S. Kelso’s service.</span>
+          </a>
+          <a href="https://environment.data.gov.uk/apiportal" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">Environment Agency tide gauges</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">environment.data.gov.uk</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Measured water level at the nearest of 607 gauges around the UK and Ireland. The tide tile. Open Government Licence.</span>
+          </a>
+          <a href="https://admiraltyapi.portal.azure-api.net" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">UK Hydrographic Office, Admiralty Tidal API</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">admiraltyapi.portal.azure-api.net</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Predicted high and low water. Not currently in use. ADMIRALTY&reg; tidal data: &copy; Crown copyright.</span>
           </a>
         </div>
 
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <a href="https://tle.ivanstanojevic.me" target="_blank" rel="noopener" style="font-size: 16px; font-weight: 600; color: var(--text);">TLE API</a>
-          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">tle.ivanstanojevic.me</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The station's elements when CelesTrak will not answer a browser, which is most of the time: it asks clients not to re-fetch elements they hold and enforces it. Same US Space Force data, served with the header a web page needs.</span>
-        </div>
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <a href="https://celestrak.org" target="_blank" rel="noopener" style="font-size: 16px; font-weight: 600; color: var(--text);">CelesTrak: orbital elements</a>
-          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">celestrak.org</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Two-line elements for the International Space Station and for launches in the last thirty days. Dr T.S. Kelso's service, free for public use. The orbits themselves are propagated on your device, not fetched as a list of passes.</span>
-        </div>
-
-        <a href="https://environment.data.gov.uk/apiportal" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-          <span style="font-size: 16px; font-weight: 600;">Environment Agency real-time tide gauges</span>
-          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">environment.data.gov.uk</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Measured water level at the nearest of 607 gauges around the UK and Ireland, which is what the tide tile shows when no forecast is available. &copy; Environment Agency copyright and database right, under the Open Government Licence.</span>
-        </a>
-        <a href="https://admiraltyapi.portal.azure-api.net" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-          <span style="font-size: 16px; font-weight: 600;">UK Hydrographic Office, Admiralty Tidal API</span>
-          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">admiraltyapi.portal.azure-api.net</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Predicted high and low water, where a forecast is available rather than a measurement. Contains ADMIRALTY&reg; tidal data: &copy; Crown copyright and database right. Not currently in use: see the note below.</span>
-        </a>
-
-        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Sky brightness</span>
+        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Sky brightness and showers</span>
         <div style="display: grid; gap: 8px;">
           <a href="https://djlorenz.github.io/astronomy/" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">David Lorenz. World Atlas of Artificial Night Sky Brightness</span>
+            <span style="font-size: 16px; font-weight: 600;">David Lorenz, World Atlas of Artificial Night Sky Brightness</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">djlorenz.github.io</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The 2025 VIIRS-derived light pollution atlas, converted to 1.5 arcmin tiles and served from this app. Your sky brightness, naked-eye limiting magnitude and Bortle class are read from it. A coarse world grid is baked into the app as well, for anywhere you have never been online. Reproduced and redistributed here with credit to David Lorenz, whose work this is; the original carries no formal licence, so if he would rather it were not served this way it comes out.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The 2025 VIIRS atlas, served from this app as 1.5 arcmin tiles. Your sky brightness, limiting magnitude and Bortle class, the light pollution map, and the glow behind your skyline. Redistributed with credit; no formal licence, so if David Lorenz would rather it were not, it comes out.</span>
           </a>
           <a href="https://www.imo.net" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">International Meteor Organization</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">imo.net</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Shower dates, solar longitude of maximum, ZHR and population index, hand-encoded from the IMO meteor shower calendar and working list. No outburst or dust-trail predictions.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Shower dates, solar longitude of maximum, ZHR and population index. Hand-encoded from the IMO calendar.</span>
           </a>
         </div>
 
-        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Published models I lean on</span>
+        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Published models and type</span>
         <div style="display: grid; gap: 8px;">
           <a href="https://ui.adsabs.harvard.edu/abs/1991PASP..103.1033K/abstract" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">Moonlight sky brightness model</span>
+            <span style="font-size: 16px; font-weight: 600;">Moonlight sky brightness</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">Krisciunas &amp; Schaefer 1991, PASP</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">How much a given moon, at a given altitude and distance from where you are looking, brightens the sky. The reason rates fade as the moon sets rather than snapping back.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">How much a given moon at a given altitude brightens the sky.</span>
           </a>
           <a href="https://ui.adsabs.harvard.edu/abs/1989ApOpt..28.4735K/abstract" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">Airmass formula</span>
+            <span style="font-size: 16px; font-weight: 600;">Airmass</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">Kasten &amp; Young 1989, Applied Optics</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Keeps the moonlight and extinction terms sane near the horizon, where a simple secant law breaks down.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Keeps moonlight and extinction sane near the horizon.</span>
+          </a>
+          <a href="https://celestrak.org/NORAD/documentation/spacetrk.pdf" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">Orbit propagation</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">SGP4</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Satellite passes, run in the browser against the elements above.</span>
           </a>
           <a href="https://fonts.google.com" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
-            <span style="font-size: 16px; font-weight: 600;">Google Fonts</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">fonts.google.com</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Barlow, Cormorant Garamond and JetBrains Mono. Open source, SIL Open Font License.</span>
+            <span style="font-size: 16px; font-weight: 600;">fonts.google.com</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">Google Fonts</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Barlow, Cormorant Garamond, JetBrains Mono. SIL Open Font License.</span>
           </a>
         </div>
 
-        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Methodology, worked out here rather than fetched</span>
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: 16px; font-weight: 600; color: var(--text);">Real-world Bortle</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Not a published figure. The Lorenz atlas value for your site, plus moonlight (Krisciunas &amp; Schaefer), haze from Open-Meteo humidity, and town glow scattered back down by Open-Meteo cloud: evaluated at the zenith through the dark hours and converted back to a Bortle class. Shown so a dark site under a bright moon is not mistaken for a dark night.</span>
-        </div>
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: 16px; font-weight: 600; color: var(--text);">Satellite passes</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">SGP4, the standard orbit model, run in the browser against CelesTrak elements. A pass counts only when the satellite is in sunlight while you are not, and brightness comes from the usual range-and-phase-angle magnitude model. Only passes worth going outside for are named: the station has to reach magnitude −1 or better and climb above 20°, a train has to hold magnitude 3.2 and 25°. Anything fainter gets lost in the sky it crosses, so it is left out rather than listed. Three stars means bright and high, judged on each object's own scale. Starlink is only reported for launches inside the last eight days, while a batch is still strung out in a line; after that they spread around the orbit and stop being a spectacle.</span>
-        </div>
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: 16px; font-weight: 600; color: var(--text);">Mist and fog risk</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Radiation fog needs three things at once: air close to its dew point, almost no wind to mix it away, and a clear sky to radiate heat to, which is exactly the night you would otherwise drive out for. Temperature, dew point, wind and forecast visibility come from Open-Meteo; the warning fires when all three line up, and defers to the visibility forecast where one exists.</span>
-        </div>
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: 16px; font-weight: 600; color: var(--text);">Eclipses</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Worked out from the same sun and moon positions as everything else: a lunar eclipse when the moon enters the Earth's shadow cone, a solar one when the moon's disc crosses the sun as seen from your position on the globe rather than from its centre, which is what makes a solar eclipse local. Enough to tell you one is coming and roughly when. Times are to the nearest few minutes and the covered fraction is approximate, so check a dedicated prediction before planning a trip around one.</span>
-        </div>
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: 16px; font-weight: 600; color: var(--text);">Looking ahead</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Ten nights ranked on clear sky first, then real-world darkness, then how much is going on overhead. Cloud is live forecast for about 16 days and climatology beyond it, shown faded when it is climatology. Aurora is only shown for nights the NOAA forecast actually reaches.</span>
+        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Worked out on your device</span>
+        <div style="display: grid; gap: 8px;">
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Real-world Bortle</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The atlas value for your site, plus moonlight, haze from humidity and glow scattered back by cloud, at the zenith across the dark hours.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Your skyline</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The elevation data ray-cast out to 150 km with curvature and refraction, giving a real horizon, terrain rise and set times, and a shot window per subject.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Which satellite passes are named</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Only ones worth going outside for: the station at magnitude −1 and 20°, a Starlink train at 3.2 and 25°, and only within eight days of launch while the batch is still in a line.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Mist and fog risk</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Fires when air near its dew point, near-still wind and a clear sky line up. Defers to the visibility forecast where there is one.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Eclipses</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">From the same sun and moon positions as everything else, computed for your position rather than the centre of the Earth. Times to the nearest few minutes.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Looking ahead</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Ten nights ranked on clear sky, then real darkness, then what is overhead. Faded where cloud is climatology rather than forecast.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Light pollution around you</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The atlas sampled on sixteen bearings out to 150 km, near towns weighted more, then scaled by tonight’s humidity and high cloud. My own weightings, not a published model.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Aurora geometry</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Kp to the equatorward limit of the oval by the published table, then your geomagnetic latitude by dipole. The photographed band sits 8° poleward of the limit, which is my number and the least settled one here.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Camera against naked eye</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">One OVATION signal, two thresholds, about 12% and 42%, pushed up by moonlight, cloud in that direction and a brighter site. Starting guesses.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Bz trend</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Half-hour mean, the fraction of the hour below zero, and the length of the current run below −2. The dotted line is what is arriving now, from the distance to L1 over the measured wind speed.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Cloud in the direction that matters</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">For aurora, the forecast is also fetched 55 and 110 km poleward and averaged over the dark hours.</span>
+          </div>
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: 16px; font-weight: 600; color: var(--text);">Sun, moon and radiant positions</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Computed on your device, no third party library.</span>
+          </div>
         </div>
 
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: 16px; font-weight: 600; color: var(--text);">Real life light pollution map</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Not a published product. The Lorenz atlas is sampled on sixteen bearings out to 150 km, each sample weighted so a near town counts for more than a far one, and the whole ring is then scaled by tonight’s humidity and high cloud, because haze is what puts town light back in your eyes. Bar length and opacity carry the strength. The scaling factors are my own judgement, not anyone’s published model, and the map is a guide to which way to point rather than a photometric measurement. It reads the atlas at 1.5 arcmin, about 2 km, wherever you have been online at least once; somewhere new with no signal it falls back to a coarse world grid and the ring flattens out.</span>
-        </div>
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: 16px; font-weight: 600; color: var(--text);">Aurora geometry</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The forecast Kp is turned into the equatorward limit of the auroral oval using the standard published table, then converted to your own geomagnetic latitude with a dipole approximation of the 2025 pole. The band people photograph is placed 8 degrees of latitude poleward of that limit, and its height above your horizon comes from spherical geometry with green emission at about 110 km and red at 250. That 8 degree offset is mine, chosen so a Kp 6 night reads as a glow on the horizon rather than curtains overhead, which is what actually happens at these latitudes. It is the least settled number in the app and wants checking against real sighting records.</span>
-        </div>
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: 16px; font-weight: 600; color: var(--text);">Camera against naked eye</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">One signal, two thresholds. A sensor holding the shutter open picks up aurora roughly five to ten times fainter than a dark-adapted eye, which runs on colour-blind rod vision. The signal is the OVATION probability where you are and, more usefully, the best of the cells poleward of you that still clear your horizon. The thresholds start at about 12 and 42 percent and are then pushed up by moonlight, by cloud in that direction and by a brighter site, more steeply for the eye than the camera. Every one of those constants is a starting guess.</span>
-        </div>
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: 16px; font-weight: 600; color: var(--text);">Bz trend</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">A single Bz reading says little, so the pane reads the direction of travel: the mean of the last half hour, the fraction of the last hour spent below zero, and the length of the current run below minus two. South and holding needs a half-hour mean at or below minus four with three quarters of the hour below zero. Strength tiers are moderate, strong and severe at minus four, eight and fifteen. The dotted line on the trace marks what is arriving now, worked out from the distance to L1 divided by the measured wind speed. It is a warning, not a prediction: substorm timing cannot be forecast from L1 data however good it is.</span>
-        </div>
-        <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-          <span style="font-size: 16px; font-weight: 600; color: var(--text);">Cloud in the direction that matters</span>
-          <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">For aurora, cloud over your head is the wrong figure, so the forecast is also fetched for points 55 and 110 km poleward of you and averaged over the dark hours, with low cloud reported separately because low cloud is what shuts a horizon.</span>
+        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Privacy</span>
+        <div style="display: grid; gap: 10px; padding: 15px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--text2); max-width: 52ch; text-wrap: pretty;">Noctography has no server of its own, no account and no sign-in. I do not know who you are and I have not built anything that could tell me.</p>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--dim); max-width: 52ch; text-wrap: pretty;">Three things leave your device. Your coordinates go to the feeds above so they can return a forecast, a place name or the ground under you: there is no way to ask for the weather where you are standing without saying where that is. Map tiles are fetched as you pan, so Esri and OpenStreetMap see roughly which patch of ground you are looking at. And the app counts usage with GoatCounter: a page view, which tab you opened, whether you added it to your home screen, and whether AR got the camera going. GoatCounter sets no cookies, stores no IP address and cannot follow anyone between sites; it derives a country and a browser from the request and discards the rest. Counts are per visit, not per tap.</p>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--dim); max-width: 52ch; text-wrap: pretty;">Nothing else goes anywhere. Your saved places, your skyline and the obstructions you have drawn, your kit profile, your colour scheme and everything you type stay in this browser’s own storage, on this device, and are never uploaded. The aurora probability grid is fetched whole and asked about your position here, so that one never leaves at all. The one-file copy of the app you can keep on a laptop reports nothing whatsoever.</p>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--text2); max-width: 52ch; text-wrap: pretty;">The ethos, in one line: the app should know where you are only for as long as it takes to answer a question, and I should never know at all.</p>
         </div>
 
-        <p style="margin: 4px 0 0; font-size: 14px; line-height: 1.6; color: var(--faint); text-wrap: pretty;">Sun, moon and radiant positions are computed on your device with no third party library. Nothing you enter, and no location, is sent anywhere except to the feeds above in order to fetch a forecast.</p>
+        <p style="margin: 8px 0 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.5; color: var(--faint);">{{ copyrightLine }}</p>
       </section>
     </sc-if>
 
     <footer style="display: grid; gap: 14px; margin-top: 10px; padding: 18px 0 4px; border-top: 1px solid rgba(var(--line-rgb),.14);">
       <a href="{{ coffeeHref }}" target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); font-size: 14px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;">Say thanks</a>
       <a href="https://www.youtube.com/@nightscapejournals" target="_blank" rel="noopener" style="display: block; font-size: 16px; line-height: 1.35; color: var(--text2); text-wrap: pretty;">Follow my cinematic nightscape adventures at <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; color: var(--accent); white-space: nowrap;">youtube.com/@nightscapejournals</span></a>
-      <button type="button" onClick="{{ goData }}" style="justify-self: start; min-height: 44px; padding: 0; background: none; border: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;">Data sources and credits</button>
       <div style="display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(var(--line-rgb),.14);">
         <img src="../assets/logo-roundel.png" alt="" style="width: 40px; height: 40px; border-radius: 50%; flex: 0 0 40px; display: block;">
         <span style="display: grid; gap: 3px; margin-right: auto; font-size: 10px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Paul Haworth Nightscapes
@@ -2867,7 +2811,7 @@ window.noctoTrack = function (name) {
       </sc-if>
     </div>
 
-    <div data-nv-bar="1" style="display: grid; gap: 10px; padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); background: rgba(6,6,7,.94); border-top: 1px solid rgba(240,236,228,.12);">
+    <div data-nv-bar="1" style="display: grid; gap: 10px; max-height: 62vh; overflow-y: auto; overscroll-behavior: contain; padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); background: rgba(6,6,7,.94); border-top: 1px solid rgba(240,236,228,.12);">
 
       <sc-if value="{{ arCal }}" hint-placeholder-val="{{ false }}">
         <div style="display: grid; gap: 9px; padding: 12px; background: rgba(240,236,228,.04); border: 1px solid rgba(var(--accent-rgb),.4); border-radius: 10px;">
@@ -2876,6 +2820,15 @@ window.noctoTrack = function (name) {
             <button type="button" onClick="{{ arCalDone }}" style="min-height: 44px; padding: 0 4px; border: 0; background: none; color: rgba(240,236,228,.6); font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Done</button>
           </div>
           <span style="font-size: 14.5px; line-height: 1.42; color: rgba(240,236,228,.82); text-wrap: pretty;">Drag the amber line onto the real skyline. Sideways sets the compass, which moves the whole sky at once. Up and down records what is standing in the way in the direction you are facing: a hedge, a barn, a treeline.</span>
+          <sc-if value="{{ arSunUp }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ arAlignSun }}" data-nv-active="{{ arAlignOn }}" style="justify-self: start; min-height: 46px; padding: 0 15px; border: 1px solid var(--accent); border-radius: 999px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Set the compass on the sun</button>
+          </sc-if>
+          <sc-if value="{{ arMoonUp }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ arAlignMoon }}" data-nv-active="{{ arAlignOn }}" style="justify-self: start; min-height: 46px; padding: 0 15px; border: 1px solid rgba(240,236,228,.28); border-radius: 999px; background: none; color: rgba(240,236,228,.82); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Set the compass on the moon</button>
+          </sc-if>
+          <sc-if value="{{ arAlignOn }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 13.5px; line-height: 1.4; color: var(--accent); text-wrap: pretty;">Now tap the {{ arAlignWord }} where you can see it on the screen. One tap sets the whole overlay. Never look at the sun through a viewfinder or with the naked eye: work from the screen.</span>
+          </sc-if>
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--accent);">compass {{ arCalNudge }}</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: rgba(240,236,228,.6);">in the way {{ arCalSector }}</span>
@@ -2900,12 +2853,18 @@ window.noctoTrack = function (name) {
         </div>
       </sc-if>
 
-      <div style="display: grid; gap: 5px;">
-        <input type="range" min="0" max="100" value="{{ arScrub }}" onInput="{{ onArScrub }}" aria-label="Time through the night" style="width: 100%; height: 26px; accent-color: var(--accent);">
+      <div style="display: grid; gap: 7px;">
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button type="button" onClick="{{ arDayBack }}" aria-label="A day earlier" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-size: 18px; line-height: 1; cursor: pointer;">‹</button>
+          <input type="date" value="{{ arDateValue }}" onChange="{{ onArDate }}" aria-label="Date to preview" style="flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: rgba(240,236,228,.05); color: #F3F0EA; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px;">
+          <button type="button" onClick="{{ arDayFwd }}" aria-label="A day later" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-size: 18px; line-height: 1; cursor: pointer;">›</button>
+          <button type="button" onClick="{{ arNow }}" data-nv-active="{{ arLiveOn }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 14px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Now</button>
+        </div>
+        <input type="range" min="0" max="100" step="0.05" value="{{ arScrub }}" onInput="{{ onArScrub }}" aria-label="Time of day" style="width: 100%; height: 26px; accent-color: var(--accent);">
         <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: rgba(240,236,228,.45);">
-          <span>{{ arDarkFrom }}</span>
+          <span>noon</span>
           <span style="color: var(--accent);">{{ arClock }}</span>
-          <span>{{ arDarkTo }}</span>
+          <span>noon next day</span>
         </div>
       </div>
 
@@ -2944,12 +2903,13 @@ class Component extends DCLogic {
     filmSecs: 10, showTl: false,
     framePitch: 34, frameScrub: 40, frameAz: null, frameThirds: true, frameLabels: true, frameElements: true,
     calView: null, calOffset: 0, calSel: null,
-    nearbyOpen: false, nearbyDrive: null, nearbyStatus: 'idle', noticeDone: {}, buildsOpen: false,
+    nearbyOpen: false, nearbyDrive: null, nearbyStatus: 'idle', nbView: null, noticeDone: {}, buildsOpen: false,
     tideChecked: false, tideShowInfo: false,
+    pinElev: null,
     hz: null, hzObs: null, hzStatus: 'idle', hzDone: 0, hzTotal: 0, hzErr: null, hzSector: 'all', hzDrift: null, hzOpen: false, hzEdit: false, hzGlow: true,
     sightSaw: null, sightHeight: null, sightNote: '', sightOpen: false, sightLogOpen: false, sightSaved: 0, sightCopied: 0,
     sightings: [],
-    arOpen: false, arScrub: null, arSubject: 'all', arTrails: 0, arCam: true,
+    arOpen: false, arScrub: null, arDate: null, arSubject: 'all', arTrails: 0, arCam: true,
     arMotion: null, arCamOk: null, arAligning: false, arShowTune: false, arCal: false, arNudge: 0, arHfov: 62, arTick: 0,
     arAnchor: null, arLandscape: false,
     t: null, kp: null, nights: [], sky: null, wx: 'idle', clim: 'idle', tick: 0, nv: false,
@@ -3009,14 +2969,32 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '1.1';
+  VERSION = '1.1.2';
   BUILDS = [
     {
-      v: '1.1', date: '2026-08-30',
+      v: '1.1.2', date: '2026-08-31', silent: true,
+      title: 'Sharper tools',
+      intro: 'A round of refinements to the tools that were already here:',
+      bullets: [
+        'AR now reaches any date and any time, so you can stand somewhere in daylight and see how a composition will sit six months from now, with one tap back to Now.',
+        'AR calibration works in daylight: point at the sun, tap it, and the whole overlay swings onto the real bearing. The cardinal points are much easier to read.',
+        'Somewhere nearby might be better now opens a map: distance rings, a wash showing how clouded over the night looks in each direction, and a button to move the app to any spot you pick.',
+        'Both maps zoom and pan properly with your fingers, and Refine location shows the height above sea level at the pin.',
+        'Your sky tonight on the Aurora tab now shows your real skyline with the light pollution behind it, in place of the old bars.',
+        'The meteor night columns are drawn across the dark hours, so they fill the height and can actually be read.',
+        'The star trails headline now leads on the longest unbroken clear run, rather than sounding cheerful about a night with one clear hour in it.',
+        'A new Credits and privacy page, on the More tab, listing every source and saying plainly what leaves your device.',
+        'A good deal of text that was telling you things you did not need to know has gone.',
+        'And squashed some bugs.',
+      ],
+      foot: 'Next up: I\u2019ll be making the sky object overlays in AR mode more realistic so you can use it to better plan your compositions. That might take a while, so bear with me!',
+    },
+    {
+      v: '1.1.1', date: '2026-08-30',
       title: 'Your own horizon',
       intro: 'I\u2019ve made some changes to make Noctography better for planning your night and your shots. Here are the main changes:',
       bullets: [
-        'Your horizon: read the real skyline for any spot and see it as a panorama, with the town glow washed in behind it.',
+        'Your horizon: read the real skyline for any spot and see it as a panorama, with the light pollution washed in behind it.',
         'Everything that used to assume a flat horizon now uses yours: the AR overlay, the framing view, and new terrain rise and set times for the sun and the moon.',
         'A shot window for every subject in Sky: when it is genuinely clear of your skyline and well framed for your lens.',
         'A new Place tab, with a proper map and the light pollution atlas over it, for finding somewhere dark that is not the middle of the sea.',
@@ -3027,7 +3005,7 @@ class Component extends DCLogic {
         'The ISS card is reliable again, and the tide reading no longer gives up on a weak signal.',
         'Colour schemes have moved into More, with the other settings.',
       ],
-      foot: 'Next up: I\u2019ll be making the sky object overlays in AR mode more realistic so you can use it to better plan your compositions. That might take a while, so bear with me!',
+      foot: '',
     },
   ];
 
@@ -3046,7 +3024,9 @@ class Component extends DCLogic {
   /* The top build, as a notice. Derived rather than written twice. */
   buildNotice() {
     const b = this.BUILDS[0];
-    if (!b) return null;
+    /* A release with nothing in it worth interrupting somebody for is marked silent: it still goes
+       into the history in More, it just does not open over the top of the app. */
+    if (!b || b.silent) return null;
     return {
       id: 'build-' + b.v, style: 'takeover', label: 'Version ' + b.v,
       title: b.title, body: b.intro, bullets: b.bullets, foot: b.foot, cta: null,
@@ -3245,7 +3225,7 @@ class Component extends DCLogic {
 
   componentDidUpdate(prev) {
     this.drawRibbon(); this.applyNv(this.state.nv); this.measureAhead(); this.parkHistory(); this.syncLogo(this.state.pal);
-    this.drawSkyline(); this.drawMap(); this.drawPin();
+    this.drawSkyline(); this.drawAurSkyline(); this.drawMap(); this.drawPin();
     this.parkRail(); this.drawFrame();
     this.watchWind(this.state.tab === 'aurora');
   }
@@ -3880,7 +3860,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=1.1';
+    s.src = '../pano-calculator.js?v=1.1.2';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -4147,13 +4127,30 @@ class Component extends DCLogic {
     c.clearRect(0, 0, W, HH);
     c.font = '9px "JetBrains Mono", ui-monospace, monospace';
     c.textAlign = 'center';
+    /* Every column is drawn across the same window, and that window is the dark hours rather than
+       the whole span between sunset and sunrise. In summer twilight took most of the height and
+       squeezed the part actually worth reading, the moon and the cloud through darkness, into a
+       sliver a few pixels tall. The union of the dark hours across the nights on screen keeps the
+       columns comparable while giving them the full height. */
+    let f0 = 1, f1 = 0;
+    nights.forEach(n => {
+      const N = n.slots.length;
+      for (let k = 0; k < N; k++) if (n.slots[k].sunAlt <= -6) { f0 = Math.min(f0, k / N); f1 = Math.max(f1, (k + 1) / N); }
+    });
+    if (!(f1 > f0)) { f0 = 0; f1 = 1; }
+    const pad = (f1 - f0) * 0.05;              // a sliver of twilight at each end, so darkness has an edge
+    f0 = Math.max(0, f0 - pad); f1 = Math.min(1, f1 + pad);
+    const yOf = f => TOP + ((f - f0) / (f1 - f0)) * H;
     nights.forEach((n, i) => {
-      const x = PAD + i * (CW + GAP), N = n.slots.length, sh = H / N;
+      const x = PAD + i * (CW + GAP), N = n.slots.length;
       const snap = v => Math.round(v * dpr) / dpr;
       c.globalAlpha = i < PAST ? 0.45 : 1;   // nights that have already happened sit back
       c.fillStyle = P.base; c.fillRect(x, TOP, CW, H);
       for (let k = 0; k < N; k++) {
-        const s = n.slots[k], y0 = snap(TOP + k * sh), y1 = snap(TOP + (k + 1) * sh), hh = Math.max(y1 - y0, 0.5);
+        if ((k + 1) / N <= f0 || k / N >= f1) continue;
+        const s = n.slots[k];
+        const y0 = snap(Math.max(TOP, yOf(k / N))), y1 = snap(Math.min(TOP + H, yOf((k + 1) / N)));
+        const hh = Math.max(y1 - y0, 0.5);
         if (s.sunAlt > -6) {
           c.fillStyle = s.sunAlt > 0 ? P.day : P.twi;
           c.fillRect(x, y0, CW, hh);
@@ -4324,6 +4321,7 @@ class Component extends DCLogic {
       goSightingsCount: (st.sightings && st.sightings.length) ? ' (' + st.sightings.length + ')' : '',
       goMore: () => this.goTab('more'),
       goData: () => { this.goTab('data'); window.scrollTo(0, 0); },
+      copyrightLine: 'Copyright ' + new Date().getFullYear() + ' Paul Haworth. All rights reserved.',
       ribScroll: el => { this.ribBox = el; },
       onRibScroll: e => this.setState({ ribX: e.currentTarget.scrollLeft, ribMax: e.currentTarget.scrollWidth - e.currentTarget.clientWidth }),
       ribFade: (st.ribMax > 6 && (st.ribX || 0) < st.ribMax - 6) ? 1 : 0,
@@ -4538,16 +4536,29 @@ class Component extends DCLogic {
     const illum = Math.round((t.midIllum || 0) * 100);
 
     const thirdHours = P.hoursForFraction(kit, 1 / 3, 0);
+    /* The headline used to read off darkness and the moon alone, which made it cheerful about a
+       night with one clear hour in it. Trails are the one subject where a broken sky is fatal
+       rather than inconvenient: an arc is a single continuous exposure, or a stack of them, and
+       cloud through the middle ends it. So the longest unbroken clear run leads, and the moon only
+       gets a mention once there is enough clear sky for the moon to matter. */
+    const runMins = t.clearRun ? t.clearRun.mins : 0;
+    const trailsHead = !dark ? 'No dark hours tonight.'
+      : t.noCloudData ? 'No cloud forecast for tonight.'
+      : runMins < 30 ? 'Cloud has this one.'
+      : runMins < 60 ? 'Barely a gap in the cloud.'
+      : runMins < 120 ? 'One short window, if you are quick.'
+      : runMins < 240 ? (illum > 40 ? 'A short session, moon and all.' : 'Enough clear sky for a short stack.')
+      : (illum > 40 ? 'A good long run, moon and all.' : 'Dark, still and long enough.');
     const base = {
-      trailsHead: !dark ? 'No dark hours tonight.'
-        : illum > 40 ? 'A good night for it, moon and all.'
-        : 'Dark, still and long enough.',
+      trailsHead,
       trailsSub: 'Trails put up with moonlight, town glow and middling transparency better than anything else here. Pick a pattern and I will tell you where to point.',
       trailDark: dark ? this.hhmm(dark.from) + ' – ' + this.hhmm(dark.to) : 'None',
       trailDarkSub: dark ? this.hoursWordShort(t.darkHours) + ' dark' : 'the sun stays too high',
       trailMoonLine: 'Moon ' + illum + '%'
         + (t.moonSet ? ', sets ' + this.hhmm(t.moonSet) : t.moonRise ? ', rises ' + this.hhmm(t.moonRise) : ', up all night')
-        + '. ' + (dark && t.darkHours >= 4 ? 'Enough dark for the four-hour version.' : 'Keep the session short tonight.'),
+        + '. ' + (dark && t.darkHours >= 4 && runMins >= 240 ? 'Enough clear dark for the four-hour version.'
+          : runMins >= 60 ? 'The clear run is what limits it, so keep the session inside that.'
+          : 'Keep the session short tonight.'),
       /* Trails are the one thing an average cannot answer. Four scattered clear hours stack into
          nothing: what matters is the longest unbroken run, so that is what gets stated, and under
          an hour the honest advice is not to bother. */
@@ -5346,7 +5357,7 @@ class Component extends DCLogic {
      Everything is done in angles read back through the projector rather than in pixels, so it holds
      at any field of view and at any tilt. */
   arCalDown = e => {
-    if (!this.state.arCal) return;
+    if (!this.state.arCal || this.state.arAligning) return;   // a tap to align is not a drag
     const at = this.arUnproject(e);
     if (!at) return;
     this._calPrev = at;
@@ -5464,11 +5475,34 @@ class Component extends DCLogic {
     };
     this._arRaf = requestAnimationFrame(step);
   }
+  /* AR is used in daylight to scout a composition for a night months away, so the clock has to
+     reach any moment, not just tonight's dark hours. The window is noon to noon, which puts a whole
+     night in the middle of the slider instead of splitting it across the two ends. */
+  arDayBase() {
+    const s = this.state.arDate;
+    if (s) { const d = new Date(s + 'T12:00:00'); if (!isNaN(d)) return d; }
+    const n = new Date();
+    const b = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12, 0, 0, 0);
+    if (n.getHours() < 12) b.setDate(b.getDate() - 1);   // the small hours belong to the night before
+    return b;
+  }
+  arNowScrub() {
+    return Math.max(0, Math.min(100, ((Date.now() - this.arDayBase().getTime()) / 86400000) * 100));
+  }
+  arDateStr(d) {
+    const p = n => (n < 10 ? '0' : '') + n;
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  arShiftDay(n) {
+    const d = this.arDayBase();
+    d.setDate(d.getDate() + n);
+    this.setState({ arDate: this.arDateStr(d), arScrub: this.state.arScrub == null ? 50 : this.state.arScrub });
+  }
   arTime() {
-    const t = this.state.t;
-    if (this.state.arScrub == null || !t || !t.darkWin) return new Date();
-    const a = t.darkWin.from.getTime(), b = t.darkWin.to.getTime();
-    return new Date(a + (this.state.arScrub / 100) * (b - a));
+    const st = this.state;
+    if (st.arScrub == null && !st.arDate) return new Date();
+    const s = st.arScrub == null ? 50 : st.arScrub;
+    return new Date(this.arDayBase().getTime() + (s / 100) * 86400000);
   }
   /* Recomputing every trail every frame would cook the phone, so they are cached against the
      one thing that changes them: the moment, the length and where you are standing. */
@@ -5692,10 +5726,32 @@ class Component extends DCLogic {
       pts.forEach(p => { if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y); });
       ctx.stroke();
     }
-    [[0, 'N'], [90, 'E'], [180, 'S'], [270, 'W']].forEach(([az, label]) => {
+    /* The cardinals are the one thing on screen you navigate by, and as plain small text they were
+       lost against a lit horizon. A ring with a stalk down to the bearing reads at arm's length and
+       cannot be mistaken for a star label. Drawn straight rather than queued, and their footprints
+       are handed to the label pass so nothing lands on top of them. */
+    const cardRects = [];
+    [[0,'N'],[45,'NE'],[90,'E'],[135,'SE'],[180,'S'],[225,'SW'],[270,'W'],[315,'NW']].forEach(([az, label]) => {
       const p = pr(this.hzAt(az), az);
       if (!inView(p)) return;
-      say(label, p.x - 5 * scale, p.y - 10 * scale, accent, 15, 600, 50);
+      const major = label.length === 1;
+      const rr = (major ? 18 : 13) * scale;
+      const cy = p.y - (rr + 10 * scale);
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(p.x, cy + rr); ctx.lineTo(p.x, p.y);
+      ctx.strokeStyle = major ? accent : dim;
+      ctx.lineWidth = (major ? 2 : 1.3) * scale;
+      ctx.stroke();
+      ctx.beginPath(); ctx.arc(p.x, cy, rr, 0, 6.2832);
+      ctx.fillStyle = nv ? 'rgba(11,3,1,.7)' : 'rgba(4,4,6,.6)';
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = (major ? 700 : 600) + ' ' + ((major ? 20 : 12) * scale) + 'px Barlow, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = major ? accent : (nv ? 'rgba(255,59,24,.82)' : 'rgba(' + pal.brightRgb + ',.78)');
+      ctx.fillText(label, p.x, cy + scale);
+      ctx.restore();
+      cardRects.push({ x1: p.x - rr - 4 * scale, y1: cy - rr - 4 * scale, x2: p.x + rr + 4 * scale, y2: p.y + 4 * scale });
     });
 
     // your lens, drawn over the middle: this is what the shot will hold
@@ -5725,7 +5781,7 @@ class Component extends DCLogic {
 
     /* One pass, in priority order: the subject you chose, then the rest, cardinals, the moon,
        star names. Anything with nowhere clear to sit is dropped rather than overprinted. */
-    const placed = [{ x1: 0, y1: 0, x2: W, y2: 54 * scale }];
+    const placed = [{ x1: 0, y1: 0, x2: W, y2: 54 * scale }].concat(cardRects);
     const clear = r => !placed.some(q => !(r.x2 < q.x1 || r.x1 > q.x2 || r.y2 < q.y1 || r.y1 > q.y2));
     labels.sort((a, b) => a.pri - b.pri).forEach(L => {
       const mono = L.weight === 500;
@@ -5811,12 +5867,52 @@ class Component extends DCLogic {
          the real one was, but it never said so and it was a whole mode to explain. Tune does the
          same correction with one control and no prompt text to misread. */
       arLandscape: !!st.arLandscape,
-      onArTap: () => {},
-      arScrub: st.arScrub == null ? 50 : st.arScrub,
+      /* Daytime scouting needs a daytime calibration, and in daylight there is exactly one thing
+         in the sky to line up against. Point at it, tap it, and the whole overlay swings onto the
+         real bearing in one gesture: the same trick the moon gives you at night. */
+      onArTap: e => {
+        const mode = st.arAligning, cv = this._arCanvas, P = this.P();
+        if (!mode || !cv || !P || E.state.lat == null) return;
+        /* The sky you can point at is the real one, now, whatever the slider is previewing.
+           Aligning against a scrubbed sun would set the compass to a bearing six months old. */
+        const sky = P.skyAt(new Date(), E.state.lat, E.state.lon);
+        const body = mode === 'sun' ? sky.sun : sky.moon;
+        if (!body || body.alt <= 0) { this.setState({ arAligning: false }); return; }
+        const r = cv.getBoundingClientRect();
+        AR.alignTo(body.az, (e.clientX - r.left) * (cv.width / r.width),
+          (e.clientY - r.top) * (cv.height / r.height), cv.width, cv.height);
+        this.track('ar-align-' + mode);
+        this.setState({ arAligning: false, arTick: st.arTick + 1 });
+      },
+      arAlignOn: !!st.arAligning,
+      arAlignWord: st.arAligning === 'sun' ? 'sun' : 'moon',
+      arSunUp: (() => {
+        const P = this.P();
+        if (!P || E.state.lat == null) return false;
+        try { return P.skyAt(new Date(), E.state.lat, E.state.lon).sun.alt > 0; } catch (err) { return false; }
+      })(),
+      arMoonUp: (() => {
+        const P = this.P();
+        if (!P || E.state.lat == null) return false;
+        try { return P.skyAt(new Date(), E.state.lat, E.state.lon).moon.alt > 3; } catch (err) { return false; }
+      })(),
+      arAlignSun: () => this.setState({ arAligning: st.arAligning === 'sun' ? false : 'sun' }),
+      arAlignMoon: () => this.setState({ arAligning: st.arAligning === 'moon' ? false : 'moon' }),
+      arScrub: st.arScrub == null ? this.arNowScrub() : st.arScrub,
       onArScrub: e => this.setState({ arScrub: Number(e.target.value) }),
-      arClock: st.arScrub == null ? 'now, ' + this.hhmm(when) : this.hhmm(when),
-      arDarkFrom: t && t.darkWin ? this.hhmm(t.darkWin.from) : '\u2013',
-      arDarkTo: t && t.darkWin ? this.hhmm(t.darkWin.to) : '\u2013',
+      arLiveNow: st.arScrub == null && !st.arDate,
+      arLiveOn: (st.arScrub == null && !st.arDate) ? 'on' : 'off',
+      arClock: (st.arScrub == null && !st.arDate ? 'Now \u00b7 ' : '')
+        + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][when.getDay()] + ' '
+        + when.getDate() + ' ' + E.MONTHS[when.getMonth()] + ' ' + this.hhmm(when),
+      arDateValue: this.arDateStr(this.arDayBase()),
+      onArDate: e => {
+        const v = e.target.value;
+        this.setState({ arDate: v || null, arScrub: v ? (st.arScrub == null ? 50 : st.arScrub) : null });
+      },
+      arDayBack: () => this.arShiftDay(-1),
+      arDayFwd: () => this.arShiftDay(1),
+      arNow: () => this.setState({ arScrub: null, arDate: null }),
       arSubjectChips: [chip('Everything', st.arSubject === 'all', () => this.setState({ arSubject: 'all' }))]
         .concat(picks.map(p => chip(p.el.name, st.arSubject === p.el.id, () => this.setState({ arSubject: p.el.id })))),
       arTrailChips: [
@@ -6448,7 +6544,7 @@ class Component extends DCLogic {
   }
 
   tideReading(tide) {
-    if (!tide) return { tideVal: '\u2013', tideSub: 'Could not reach the gauge just now. Worth another tap in a minute.', tideColour: 'var(--dim)', tideInfoLine: '', tideTrendOn: false };
+    if (!tide) return { tideVal: '\u2013', tideSub: 'Data currently not available', tideColour: 'var(--dim)', tideInfoLine: '', tideTrendOn: false };
     const hh = t => this.hhmm(new Date(t));
     const scope = ' Predicted times only cover the UK, Ireland, the Isle of Man and the Channel Islands (Jersey and Guernsey stations get the live reading only, no predictions): elsewhere this tile does not appear at all, since there is no baked-in gauge list to check against.';
     if (tide.mode === 'forecast') {
@@ -6628,8 +6724,6 @@ class Component extends DCLogic {
       hzEditOn: !!st.hzEdit,
       toggleHzEdit: () => this.setState({ hzEdit: !st.hzEdit }),
       hzEditLabel: st.hzEdit ? 'Finished editing' : 'Edit this skyline',
-      hzRead: () => this.readSkyline(),
-      hzReadLabel: reading ? 'Reading\u2026' : 'Read the ground again',
       hzStatusOn: reading || st.hzStatus === 'failed' || !prof,
       hzStatusLine: reading
         ? 'Reading the ground around this spot\u2026'
@@ -6663,7 +6757,7 @@ class Component extends DCLogic {
           hzGlowLine: g
             ? (g.even > 0.75
                 ? 'Glow sits much the same all the way round, worst towards ' + g.worst.name + '.'
-                : 'Brightest towards ' + g.worst.name + ', darkest towards ' + g.best.name + '. Point that way.')
+                : 'Brightest towards ' + g.worst.name + ', darkest towards ' + g.best.name + '.')
             : '',
         };
       })(),
@@ -6709,13 +6803,24 @@ class Component extends DCLogic {
     return a * (1 - s) + b * s;
   }
 
-  drawSkyline() {
-    const el = this._skyCv, T = this.T(), st = this.state;
+  drawSkyline() { this.paintSkyline(this._skyCv, 132, 0, 360); }
+
+  /* The aurora page wants the same picture and only one quarter of it: the sky the arc could
+     appear in, with your own skyline in front and the light pollution washed in behind. That is
+     what decides whether a faint arc survives, and eight abstract bars never said it. */
+  drawAurSkyline() {
+    const E = this.E();
+    if (!this._aurCv || !E || E.state.lat == null) return;
+    this.paintSkyline(this._aurCv, 112, (E.state.lat >= 0 ? 0 : 180) - 70, 140);
+  }
+
+  paintSkyline(el, cssH, az0, span) {
+    const T = this.T(), st = this.state;
     if (!el || !T) return;
     const prof = st.hz, obs = st.hzObs;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const cssW = Math.max(200, el.clientWidth || el.parentNode.clientWidth || 300);
-    const W = Math.round(cssW * dpr), H = Math.round(132 * dpr);
+    const W = Math.round(cssW * dpr), H = Math.round(cssH * dpr);
     if (el.width !== W || el.height !== H) { el.width = W; el.height = H; }
     const ctx = el.getContext('2d');
     const nv = !!st.nv, pal = this.pal();
@@ -6725,19 +6830,20 @@ class Component extends DCLogic {
     const obsFill = nv ? 'rgba(255,59,24,.42)' : 'rgba(' + pal.accentRgb + ',.42)';
     ctx.clearRect(0, 0, W, H);
 
-    const at = az => {
+    const at = a0 => {
+      const az = ((a0 % 360) + 360) % 360;
       const g = prof ? T.altAt(prof, az) : 0;
       const l = T.sectorAlt(obs, az);
       return { g, l: Math.max(l, g) };
     };
     let hi = 0;
-    for (let az = 0; az < 360; az += 1) { const v = at(az); hi = Math.max(hi, v.g, v.l); }
+    for (let d = 0; d <= span; d += 1) { const v = at(az0 + d); hi = Math.max(hi, v.g, v.l); }
     // a floor of fifteen degrees, so there is sky above a low horizon for the glow to sit in
     const top = Math.max(st.hzGlow === false ? 5 : 15, Math.ceil((hi + 1.5) / 5) * 5);
     const bot = -2;
     const PAD = 16 * dpr;                       // room for the compass row along the bottom
     const y = a => (H - PAD) - ((a - bot) / (top - bot)) * (H - PAD);
-    const x = az => (az / 360) * W;
+    const x = d => (d / span) * W;   // d is degrees from the left edge, not a bearing
 
     ctx.font = (10 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
     ctx.fillStyle = nv ? 'rgba(255,59,24,.6)' : pal.faint;
@@ -6756,7 +6862,7 @@ class Component extends DCLogic {
     if (glow) {
       const clip = new Path2D();
       clip.moveTo(0, y(top));
-      for (let az = 0; az <= 360; az += 1) clip.lineTo(x(az), y(at(az % 360).l));
+      for (let d = 0; d <= span; d += 1) clip.lineTo(x(d), y(at(az0 + d).l));
       clip.lineTo(W, y(top));
       clip.closePath();
       const GW = 180, GH = 48;
@@ -6769,7 +6875,7 @@ class Component extends DCLogic {
          line of sight low down passes through far more lit air than the one straight up. */
       const H_DEG = 16;
       for (let i = 0; i < GW; i++) {
-        const lvl = this.glowAt(glow, (i + 0.5) / GW * 360);
+        const lvl = this.glowAt(glow, az0 + (i + 0.5) / GW * span);
         if (lvl <= 0.01) continue;
         for (let j = 0; j < GH; j++) {
           const alt = bot + (1 - (j + 0.5) / GH) * (top - bot);
@@ -6789,7 +6895,7 @@ class Component extends DCLogic {
     const band = (pick, fill) => {
       ctx.beginPath();
       ctx.moveTo(0, y(bot));
-      for (let az = 0; az <= 360; az += 0.5) ctx.lineTo(x(az), y(pick(at(az % 360))));
+      for (let d = 0; d <= span; d += 0.5) ctx.lineTo(x(d), y(pick(at(az0 + d))));
       ctx.lineTo(W, y(bot));
       ctx.closePath();
       ctx.fillStyle = fill; ctx.fill();
@@ -6798,14 +6904,26 @@ class Component extends DCLogic {
     band(v => v.g, groundFill);
 
     ctx.beginPath();
-    for (let az = 0; az <= 360; az += 0.5) {
-      const p = y(at(az % 360).l), px = x(az);
-      if (az === 0) ctx.moveTo(px, p); else ctx.lineTo(px, p);
+    for (let d = 0; d <= span; d += 0.5) {
+      const p = y(at(az0 + d).l), px = x(d);
+      if (d === 0) ctx.moveTo(px, p); else ctx.lineTo(px, p);
     }
     ctx.strokeStyle = ink; ctx.lineWidth = 1.5 * dpr; ctx.stroke();
 
-    [[0,'N'],[45,'NE'],[90,'E'],[135,'SE'],[180,'S'],[225,'SW'],[270,'W'],[315,'NW'],[359.9,'N']].forEach(([az, label]) => {
-      const px = x(az);
+    /* Eight points across the whole round, sixteen across a slice: the marks should be about the
+       same distance apart on screen whichever picture this is. */
+    const MARKS = (span > 200
+      ? [[0,'N'],[45,'NE'],[90,'E'],[135,'SE'],[180,'S'],[225,'SW'],[270,'W'],[315,'NW']]
+      : [[0,'N'],[22.5,'NNE'],[45,'NE'],[67.5,'ENE'],[90,'E'],[112.5,'ESE'],[135,'SE'],[157.5,'SSE'],
+         [180,'S'],[202.5,'SSW'],[225,'SW'],[247.5,'WSW'],[270,'W'],[292.5,'WNW'],[315,'NW'],[337.5,'NNW']]);
+    const marks = [];
+    MARKS.forEach(([az, label]) => {
+      const d = (((az - az0) % 360) + 360) % 360;
+      if (d <= span + 0.001) marks.push([Math.min(d, span - 0.1), label]);
+      if (span >= 359.9 && d < 0.001) marks.push([span - 0.1, label]);
+    });
+    marks.forEach(([d, label]) => {
+      const px = x(d);
       ctx.strokeStyle = nv ? 'rgba(255,59,24,.18)' : 'rgba(' + pal.brightRgb + ',.12)';
       ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H - PAD); ctx.stroke();
       ctx.fillStyle = nv ? '#FF3B18' : pal.dim;
@@ -6916,26 +7034,41 @@ class Component extends DCLogic {
     const W = Math.round(cssW * dpr), H = Math.round(cssH * dpr);
     if (el.width !== W || el.height !== H) { el.width = W; el.height = H; }
     const ctx = el.getContext('2d');
-    const z = Math.max(src.minZ || 3, Math.min(src.maxZ, Math.round(view.z)));
+    /* Zoom is fractional now, because a pinch lands between levels. Tiles are still fetched and
+       drawn at whole levels, at their own resolution, and scaled the remaining part of a level:
+       worst case a 1.41x resample, against a map that used to snap while your fingers moved. */
+    const zf = Math.max(src.minZ || 3, Math.min(src.maxZ, view.z || 0));
+    const z = Math.max(src.minZ || 3, Math.min(src.maxZ, Math.round(zf)));
+    const k = Math.pow(2, zf - z);
+    const S = k * dpr;                          // world pixels at level z, into device pixels
+    const vw = cssW / k, vh = cssH / k;         // what the box covers, in world pixels at level z
     const [wx, wy] = this.project(view.lat, view.lon, z);
-    const ox = wx - cssW / 2, oy = wy - cssH / 2;
+    const ox = wx - vw / 2, oy = wy - vh / 2;
     const nv = !!this.state.nv, pal = this.pal();
+    const toXY = (lat, lon) => {
+      const [x, y] = this.project(lat, lon, z);
+      return [(x - ox) * S, (y - oy) * S];
+    };
+    /* Two hooks, so a caller can draw in this projection instead of re-deriving it: wash goes under
+       the place names, after goes over the markers and under the crosshair. The nearby-cloud map is
+       the only user of either. */
+    const frame = { ox, oy, k, z, S, dpr, W, H, cssW, cssH, nv, pal, toXY };
 
     ctx.fillStyle = src.bg;
     ctx.fillRect(0, 0, W, H);
 
     const layer = tpl => {
       if (!tpl) return;
-      const x0 = Math.floor(ox / 256), x1 = Math.floor((ox + cssW) / 256);
-      const y0 = Math.floor(oy / 256), y1 = Math.floor((oy + cssH) / 256);
+      const x0 = Math.floor(ox / 256), x1 = Math.floor((ox + vw) / 256);
+      const y0 = Math.floor(oy / 256), y1 = Math.floor((oy + vh) / 256);
       const n = Math.pow(2, z);
       for (let ty = y0; ty <= y1; ty++) {
         if (ty < 0 || ty >= n) continue;
         for (let tx = x0; tx <= x1; tx++) {
           const img = this.tileFor(this.tileUrl(tpl, src, z, tx, ty));
           if (!img) continue;
-          ctx.drawImage(img, Math.round((tx * 256 - ox) * dpr), Math.round((ty * 256 - oy) * dpr),
-            Math.ceil(256 * dpr) + 1, Math.ceil(256 * dpr) + 1);
+          ctx.drawImage(img, Math.round((tx * 256 - ox) * S), Math.round((ty * 256 - oy) * S),
+            Math.ceil(256 * S) + 1, Math.ceil(256 * S) + 1);
         }
       }
     };
@@ -6957,7 +7090,7 @@ class Component extends DCLogic {
       const delta = this.mapDelta();
       for (let j = 0; j < bh; j++) {
         for (let i = 0; i < bw; i++) {
-          const [lat, lon] = this.unproject(ox + (i + 0.5) * STEP, oy + (j + 0.5) * STEP, z);
+          const [lat, lon] = this.unproject(ox + (i + 0.5) * STEP / k, oy + (j + 0.5) * STEP / k, z);
           const t = E.tileSky(lat, lon) || E.atlasSky(lat, lon);
           if (!t) continue;
           lx.fillStyle = this.mapColour(t.sqm + delta, nv);
@@ -6971,12 +7104,10 @@ class Component extends DCLogic {
       ctx.restore();
     }
 
+    if (opts.wash) opts.wash(ctx, frame);
+
     layer(src.labels);
 
-    const toXY = (lat, lon) => {
-      const [x, y] = this.project(lat, lon, z);
-      return [(x - ox) * dpr, (y - oy) * dpr];
-    };
     (opts.markers || []).forEach(m => {
       const [x, y] = toXY(m.lat, m.lon);
       if (x < -20 || x > W + 20 || y < -20 || y > H + 20) return;
@@ -6984,6 +7115,8 @@ class Component extends DCLogic {
       ctx.fillStyle = m.colour; ctx.fill();
       ctx.strokeStyle = nv ? '#0B0301' : '#05041886'; ctx.lineWidth = 1.6 * dpr; ctx.stroke();
     });
+
+    if (opts.after) opts.after(ctx, frame);
 
     /* The crosshair sits at the centre of the box, not at a coordinate: what you are choosing is
        wherever you have dragged the map to. */
@@ -7001,7 +7134,7 @@ class Component extends DCLogic {
     }
 
     /* Scale bar, a round number of metres or kilometres at whatever zoom you are on. */
-    const mPerPx = this.metresPerPx(view.lat, z);
+    const mPerPx = this.metresPerPx(view.lat, z) / k;
     const target = cssW * 0.26 * mPerPx;
     const NICE = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000];
     const nice = NICE.reduce((a, b) => Math.abs(b - target) < Math.abs(a - target) ? b : a);
@@ -7022,42 +7155,74 @@ class Component extends DCLogic {
      under a drag, which also means the browser's own pinch never fires: it has to be tracked here.
      Zoom stays whole-numbered, so tiles are always drawn at their native resolution rather than
      resampled, and a pinch steps a level once the fingers have moved far enough to mean it. */
-  slippyHandlers(view, set) {
+  slippyHandlers(view, set, warm) {
     const src = this.TILE_SOURCES[view.style] || this.TILE_SOURCES.dark;
-    const floor = src.minZ || 3;
-    const step = dir => {
-      const z = Math.max(floor, Math.min(src.maxZ, view.z + dir));
-      if (z !== view.z) set({ ...view, z });
-      return z;
+    const lo = src.minZ || 3;
+    const clampZ = z => Math.max(lo, Math.min(src.maxZ, z));
+    const offset = (e, el) => {
+      const r = (el || e.currentTarget).getBoundingClientRect();
+      return [e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)];
+    };
+    /* Zoom about a point rather than about the middle. Whatever is under the fingers, or under the
+       cursor, is the thing being looked at, and it should stay where it is while the scale moves. */
+    const zoomAbout = (z, dx, dy) => {
+      const [wx, wy] = this.project(view.lat, view.lon, view.z);
+      const g = this.unproject(wx + dx, wy + dy, view.z);
+      const [ax, ay] = this.project(g[0], g[1], z);
+      const ll = this.unproject(ax - dx, ay - dy, z);
+      set({ ...view, z, lat: ll[0], lon: ll[1] });
     };
     if (!this._ptrs) this._ptrs = new Map();
-    const spread = () => {
+    const two = el => {
       const p = [...this._ptrs.values()];
       if (p.length < 2) return null;
-      return Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+      const r = el.getBoundingClientRect();
+      return { d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y),
+        mx: (p[0].x + p[1].x) / 2 - (r.left + r.width / 2),
+        my: (p[0].y + p[1].y) / 2 - (r.top + r.height / 2) };
+    };
+    const pan = (x, y) => {
+      const [wx, wy] = this.project(view.lat, view.lon, view.z);
+      this._drag = { x, y, wx, wy, z: view.z };
     };
     return {
       onPointerDown: e => {
         this._ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
         try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
-        if (this._ptrs.size === 2) {
+        if (this._ptrs.size >= 2) {
           this._drag = null;                       // a second finger ends the pan and starts a pinch
-          this._pinch = spread();
-        } else if (this._ptrs.size === 1) {
-          const [wx, wy] = this.project(view.lat, view.lon, view.z);
-          this._drag = { x: e.clientX, y: e.clientY, wx, wy, z: view.z };
+          const g = two(e.currentTarget);
+          if (g) {
+            const [wx, wy] = this.project(view.lat, view.lon, view.z);
+            this._pinch = { d: g.d, z: view.z, anchor: this.unproject(wx + g.mx, wy + g.my, view.z) };
+          }
+          return;
+        }
+        pan(e.clientX, e.clientY);
+        /* Double tap zooms in on the spot tapped: the one-handed gesture, for when the other hand
+           is holding a torch. */
+        const t = Date.now(), last = this._tap;
+        this._tap = { t, x: e.clientX, y: e.clientY };
+        if (last && t - last.t < 320 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 34) {
+          const [dx, dy] = offset(e);
+          this._tap = null; this._drag = null;
+          zoomAbout(clampZ(Math.floor(view.z) + 1), dx, dy);
         }
       },
       onPointerMove: e => {
         if (this._ptrs.has(e.pointerId)) this._ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
         if (this._ptrs.size >= 2) {
-          const now = spread();
-          if (!now || !this._pinch) return;
-          const ratio = now / this._pinch;
-          /* A third of the starting separation each way: firm enough that a slightly uneven
-             two-finger drag does not read as a zoom. */
-          if (ratio > 1.34) { step(1); this._pinch = now; }
-          else if (ratio < 0.75) { step(-1); this._pinch = now; }
+          const g = two(e.currentTarget), p0 = this._pinch;
+          if (!g || !g.d || !p0 || !p0.d) return;
+          /* The scale follows the fingers exactly, in fractional zoom, and the tiles are drawn at
+             the nearest whole level and scaled the rest of the way. Stepping a whole level once the
+             fingers had moved a third of their separation was the old behaviour, and on a phone it
+             read as a map that ignored you. The pinch midpoint stays put, so a two-finger drag
+             pans as well as zooms. */
+          const z = clampZ(p0.z + Math.log2(g.d / p0.d));
+          const [ax, ay] = this.project(p0.anchor[0], p0.anchor[1], z);
+          const ll = this.unproject(ax - g.mx, ay - g.my, z);
+          set({ ...view, z, lat: ll[0], lon: ll[1] });
           return;
         }
         const d = this._drag;
@@ -7068,7 +7233,15 @@ class Component extends DCLogic {
       onPointerUp: e => {
         this._ptrs.delete(e.pointerId);
         if (this._ptrs.size < 2) this._pinch = null;
-        if (this._drag) { this._drag = null; this.mapWarm(); }
+        /* A finger left over from a pinch carries straight on as a pan, from wherever it now is,
+           rather than being ignored until it is lifted too. */
+        if (this._ptrs.size === 1) {
+          const p = [...this._ptrs.values()][0];
+          pan(p.x, p.y);
+          return;
+        }
+        this._drag = null;
+        if (warm !== false) this.mapWarm();
       },
       onPointerCancel: e => {
         this._ptrs.delete(e.pointerId);
@@ -7076,10 +7249,13 @@ class Component extends DCLogic {
       },
       onWheel: e => {
         e.preventDefault();
-        const now = Date.now();
-        if (this._wheelAt && now - this._wheelAt < 140) return;   // trackpads emit a great many
-        this._wheelAt = now;
-        step(e.deltaY < 0 ? 1 : -1);
+        /* A trackpad pinch arrives as ctrl and a small delta; a mouse wheel arrives in notches.
+           Both are read as a fraction of a zoom level, anchored at the cursor. */
+        const [dx, dy] = offset(e);
+        const notch = e.ctrlKey
+          ? Math.max(-1, Math.min(1, -e.deltaY / 90))
+          : (e.deltaY < 0 ? 0.5 : -0.5);
+        zoomAbout(clampZ(view.z + notch), dx, dy);
       },
     };
   }
@@ -7184,8 +7360,8 @@ class Component extends DCLogic {
       mapSqm: t ? (t.sqm + this.mapDelta()).toFixed(2) + ' mag/arcsec\u00b2' : 'no reading here',
       mapKmLabel: km >= 10 ? Math.round(km) + ' km wide' : km.toFixed(1) + ' km wide',
       mapCredit: src.credit,
-      mapZoomIn: () => set({ ...v, z: Math.min(src.maxZ, v.z + 1) }),
-      mapZoomOut: () => set({ ...v, z: Math.max(src.minZ, v.z - 1) }),
+      mapZoomIn: () => set({ ...v, z: Math.min(src.maxZ, Math.floor(v.z) + 1) }),
+      mapZoomOut: () => set({ ...v, z: Math.max(src.minZ, Math.ceil(v.z) - 1) }),
       mapLayerAtlas: () => this.setState({ mapLayer: 'atlas' }, () => this.drawMap()),
       mapLayerTonight: () => this.setState({ mapLayer: 'tonight' }, () => this.drawMap()),
       mapLayerOff: () => this.setState({ mapLayer: 'off' }, () => this.drawMap()),
@@ -7220,6 +7396,10 @@ class Component extends DCLogic {
         this.track('map-to-horizon');
         this.setState({ showLoc: true, hzOpen: true, hzGlow: true });
         if (!st.hz && st.hzStatus !== 'reading') this.readSkyline();
+        /* The pane sits above the map and is often already open, in which case setting the same
+           state again changes nothing on screen and the tap reads as broken. Move to the panorama
+           itself either way. */
+        this.scrollSoon('[data-hz-panorama]');
       },
       mapUseHere: () => {
         this.applySite({ lat: v.lat, lon: v.lon, place: v.lat.toFixed(3) + ', ' + v.lon.toFixed(3) }, true);
@@ -7250,10 +7430,30 @@ class Component extends DCLogic {
     if (had) this.setState({ hzOpen: true, hz: null }, () => this.readSkyline());
   }
 
+  /* The height at the pin, read the same way the skyline is: one tile of 30 m elevation data,
+     sampled where the pin sits. Settled for a moment first, so dragging across a valley does not
+     fire a fetch per frame, and keyed on the spot so a pin nudged back where it was is free. */
+  pinElevFor(lat, lon) {
+    const T = window.NoctoTerrain;
+    if (!T || !T.groundAt || lat == null) return;
+    const key = lat.toFixed(5) + ',' + lon.toFixed(5);
+    if (this._elevKey === key) return;
+    this._elevKey = key;
+    clearTimeout(this._elevTimer);
+    this._elevTimer = setTimeout(() => {
+      T.groundAt(lat, lon).then(m => {
+        if (this._elevKey !== key) return;
+        const val = m == null ? null : Math.round(m);
+        if (val !== this.state.pinElev) this.setState({ pinElev: val });
+      });
+    }, 260);
+  }
+
   pinVals() {
     const E = this.E(), st = this.state;
     const v = this.pinView();
     if (!E || !v) return { pinOn: false };
+    if (st.pinOpen) this.pinElevFor(v.lat, v.lon);
     const src = this.TILE_SOURCES[v.style];
     const set = nv => this.setState({ pinView: nv }, () => {
       clearTimeout(this._pinTimer);
@@ -7271,14 +7471,15 @@ class Component extends DCLogic {
         style: { display: 'block', width: '100%', height: '260px',
           borderRadius: '8px', touchAction: 'none', cursor: 'grab' },
       }),
-      pinCoord: v.lat.toFixed(5) + ', ' + v.lon.toFixed(5),
+      pinCoord: v.lat.toFixed(5) + ', ' + v.lon.toFixed(5)
+        + (st.pinElev == null ? '' : ' \u00b7 ' + st.pinElev + ' m above sea level'),
       pinMovedOn: moved >= 5,
       pinMovedLine: moved >= 5
         ? Math.round(moved) + ' m from where the forecast was reading'
         : 'Everything below is reading from this spot',
       pinCredit: src.credit,
-      pinZoomIn: () => set({ ...v, z: Math.min(src.maxZ, v.z + 1) }),
-      pinZoomOut: () => set({ ...v, z: Math.max(8, v.z - 1) }),
+      pinZoomIn: () => set({ ...v, z: Math.min(src.maxZ, Math.floor(v.z) + 1) }),
+      pinZoomOut: () => set({ ...v, z: Math.max(8, Math.ceil(v.z) - 1) }),
       pinStyleDetail: () => set({ ...v, style: 'detail' }),
       pinDetailBg: v.style === 'detail' ? 'rgba(var(--accent-rgb),.16)' : 'transparent',
       pinDetailFg: v.style === 'detail' ? 'var(--accent)' : 'var(--dim)',
@@ -7327,7 +7528,8 @@ class Component extends DCLogic {
         bd: st.nearbyDrive === c.id ? 'var(--accent)' : 'rgba(var(--line-rgb),.18)',
       })),
       ...this.nearbyResult(homeLowMid),
-      nearbyFoot: 'An estimate, not a route: straight-line distance for the drive time, discounted for roads not being straight. Cloud only, not darkness or moon, which barely change over this kind of distance.',
+      ...this.nearbyMapVals(),
+      nearbyFoot: 'An estimate, not a route: straight-line distance for the drive time, discounted for roads not being straight. Cloud only, not darkness or moon, which barely change over this kind of distance. The shading between the sixteen readings is filled in, so read it as a shape rather than a number.',
     };
   }
 
@@ -7360,11 +7562,240 @@ class Component extends DCLogic {
   }
   driveLabel(id) { return (this.DRIVE_CHIPS.find(c => c.id === id) || {}).label || 'a drive'; }
 
+  /* ---- the nearby map ----
+     The scan already knows the sky on eight bearings at two radii. A sentence can carry two of
+     those and no more, so this draws the lot: rings for how far you could get, a wash for how
+     clouded over the night looks, and a crosshair you can put anywhere and read the whole app
+     from. Nothing new is fetched to draw it. */
+  nbView() {
+    const E = this.E(), st = this.state;
+    if (st.nbView) return st.nbView;
+    if (!E || E.state.lat == null) return null;
+    const nb = E.state.nearby;
+    const km = (nb && nb.radiusKm) || 50;
+    return { lat: E.state.lat, lon: E.state.lon, z: this.nbZoomFor(E.state.lat, km * 2.7), style: 'dark' };
+  }
+  /* Fractional zoom earns its keep here: the outer ring lands just inside the box whether the
+     drive is half an hour or two hours. */
+  nbZoomFor(lat, spanKm) {
+    const z = Math.log2(156543.03392 * Math.cos(lat * Math.PI / 180) * 340 / (spanKm * 1000));
+    return Math.max(4, Math.min(12, z));
+  }
+  destPt(lat, lon, brgDeg, km) {
+    const D = Math.PI / 180, R = 6371;
+    const b = brgDeg * D, la = lat * D, lo = lon * D, d = km / R;
+    const la2 = Math.asin(Math.sin(la) * Math.cos(d) + Math.cos(la) * Math.sin(d) * Math.cos(b));
+    const lo2 = lo + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(la), Math.cos(d) - Math.sin(la) * Math.sin(la2));
+    return [la2 / D, ((lo2 / D + 540) % 360) - 180];
+  }
+  brgTo(la1, lo1, la2, lo2) {
+    const D = Math.PI / 180, dLon = (lo2 - lo1) * D;
+    const y = Math.sin(dLon) * Math.cos(la2 * D);
+    const x = Math.cos(la1 * D) * Math.sin(la2 * D) - Math.sin(la1 * D) * Math.cos(la2 * D) * Math.cos(dLon);
+    return (Math.atan2(y, x) / D + 360) % 360;
+  }
+  /* Sixteen scanned points and your own site, smoothed into a field. Inverse distance with a
+     softening length of a fifth of the radius: without it every point becomes a bullseye, which
+     would be drawing precision the scan has not got. Flat metres rather than great circles, which
+     is exact enough at a hundred kilometres and fast enough to re-sample while fingers move.
+     Nothing is painted past the outer ring plus a quarter, because out there the app knows
+     nothing and should look like it. */
+  cloudField(nb, home) {
+    const D = Math.PI / 180;
+    const mLat = 110540, mLon = 111320 * Math.cos(home.lat * D);
+    const pts = (nb.points || []).filter(p => p.clear != null).map(p => ({
+      x: (p.lon - home.lon) * mLon, y: (p.lat - home.lat) * mLat,
+      clear: p.clear, lat: p.lat, lon: p.lon, km: p.km, brg: p.brg,
+    }));
+    if (home.clear != null) pts.push({ x: 0, y: 0, clear: home.clear, lat: home.lat, lon: home.lon, km: 0, brg: 0, home: true });
+    const R = (nb.radiusKm || 50) * 1000;
+    const s2 = Math.pow(R * 0.11, 2);
+    const off = (lat, lon) => [(lon - home.lon) * mLon, (lat - home.lat) * mLat];
+    return {
+      pts, R, home,
+      sample: (lat, lon) => {
+        if (!pts.length) return null;
+        const [px, py] = off(lat, lon);
+        if (Math.hypot(px, py) > R * 1.25) return null;
+        let num = 0, den = 0;
+        for (let i = 0; i < pts.length; i++) {
+          const dx = px - pts[i].x, dy = py - pts[i].y;
+          const w = 1 / (dx * dx + dy * dy + s2);
+          num += pts[i].clear * w; den += w;
+        }
+        return den ? num / den : null;
+      },
+      fade: (lat, lon) => {
+        const [px, py] = off(lat, lon);
+        const d = Math.hypot(px, py);
+        return d <= R ? 1 : Math.max(0, 1 - (d - R) / (R * 0.25));
+      },
+    };
+  }
+
+  nbHome() {
+    const E = this.E(), t = this.state.t;
+    if (!E || E.state.lat == null) return null;
+    return { lat: E.state.lat, lon: E.state.lon, clear: t && t.lowMid != null ? 100 - t.lowMid : null };
+  }
+
+  drawNearby() {
+    const E = this.E(), cv = this._nbCv;
+    const nb = E && E.state.nearby;
+    const v = this.nbView(), home = this.nbHome();
+    if (!cv || !nb || !v || !home) return;
+    const field = this.cloudField(nb, home);
+    const pal = this.pal(), nv = !!this.state.nv;
+    this.drawSlippy(cv, v, {
+      lp: false, crosshair: true,
+      markers: [{ lat: home.lat, lon: home.lon, r: 4.5, colour: nv ? '#FF3B18' : pal.accent }],
+      wash: (ctx, f) => this.drawCloudWash(ctx, f, field),
+      after: (ctx, f) => this.drawNearbyOverlay(ctx, f, field, nb),
+    });
+  }
+
+  /* Cloud is grey, so cloud is drawn grey: thickening haze over a dark map, which leaves the clear
+     ground dark and legible. An amber ramp would have said "avoid" about the one thing here you
+     actually want to look at. Built at an eighth resolution and scaled up, the way the light
+     pollution wash is, because a thousand translucent rectangles seam on every edge. */
+  drawCloudWash(ctx, f, field) {
+    const STEP = 8;
+    const bw = Math.max(1, Math.ceil(f.cssW / STEP)), bh = Math.max(1, Math.ceil(f.cssH / STEP));
+    if (!this._cloudCv) this._cloudCv = document.createElement('canvas');
+    const cv = this._cloudCv;
+    if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
+    const cx = cv.getContext('2d');
+    cx.clearRect(0, 0, bw, bh);
+    for (let j = 0; j < bh; j++) {
+      for (let i = 0; i < bw; i++) {
+        const [lat, lon] = this.unproject(f.ox + (i + 0.5) * STEP / f.k, f.oy + (j + 0.5) * STEP / f.k, f.z);
+        const s = field.sample(lat, lon);
+        if (s == null) continue;
+        const cloud = Math.max(0, Math.min(1, (100 - s) / 100));
+        const a = cloud * 0.52 * field.fade(lat, lon);
+        if (a < 0.012) continue;
+        cx.fillStyle = f.nv ? 'rgba(255,59,24,' + (a * 0.8).toFixed(3) + ')' : 'rgba(198,206,232,' + a.toFixed(3) + ')';
+        cx.fillRect(i, j, 1, 1);
+      }
+    }
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(cv, 0, 0, bw, bh, 0, 0, f.W, f.H);
+    ctx.restore();
+  }
+
+  /* Rings, the scanned points, and only the labels that are worth the clutter: your own site, and
+     the three best places on the map. Sixteen percentages would be a table, and a table is what
+     the wash is there to replace. */
+  drawNearbyOverlay(ctx, f, field, nb) {
+    const dpr = f.dpr, nv = f.nv;
+    const home = field.home;
+    const ink = nv ? 'rgba(255,59,24,' : 'rgba(245,245,245,';
+    const accent = nv ? '#FF3B18' : f.pal.accent;
+    /* Labels are placed in order of importance, and a later one gives way rather than landing on
+       top of an earlier one: your own reading first, then the rings, then the best places. There is
+       not room for sixteen readings on a phone-sized map, and half a legible label is worse than
+       none at all. */
+    const placed = [];
+    const say = (text, x, y, colour) => {
+      ctx.font = (10.5 * dpr) + 'px JetBrains Mono, ui-monospace, monospace';
+      const w = ctx.measureText(text).width + 6 * dpr;
+      if (x - w / 2 < 2 * dpr || x + w / 2 > f.W - 2 * dpr || y < 9 * dpr || y > f.H - 9 * dpr) return false;
+      if (placed.some(p => Math.abs(p.y - y) < 15 * dpr && Math.abs(p.x - x) < (p.w + w) / 2 + 4 * dpr)) return false;
+      placed.push({ x, y, w });
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = nv ? 'rgba(11,3,1,.74)' : 'rgba(5,4,24,.68)';
+      ctx.fillRect(x - w / 2, y - 7 * dpr, w, 14 * dpr);
+      ctx.fillStyle = colour;
+      ctx.fillText(text, x, y);
+      ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+      return true;
+    };
+    const homeClear = home.clear;
+    const [hx, hy] = f.toXY(home.lat, home.lon);
+    say('you' + (homeClear == null ? '' : ' · ' + Math.round(homeClear) + '% clear'), hx, hy + 15 * dpr, accent);
+    /* The engine's own assumption about a drive, reused: twenty-five kilometres of straight line
+       per half hour. Quoting a different number here would be a second opinion. */
+    const mins = km => Math.max(5, Math.round(km * 1.2 / 5) * 5);
+    [(nb.radiusKm || 50) * 0.5, nb.radiusKm || 50].forEach(km => {
+      ctx.save();
+      ctx.setLineDash([4 * dpr, 5 * dpr]);
+      ctx.lineWidth = 1.2 * dpr;
+      ctx.strokeStyle = ink + '.34)';
+      ctx.beginPath();
+      for (let a = 0; a <= 360; a += 5) {
+        const p = this.destPt(home.lat, home.lon, a, km);
+        const [x, y] = f.toXY(p[0], p[1]);
+        if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+      const north = this.destPt(home.lat, home.lon, 0, km);
+      const [lx, ly] = f.toXY(north[0], north[1]);
+      say(Math.round(km) + ' km · ' + mins(km) + ' min', lx, ly + 11 * dpr, ink + '.72)');
+    });
+    const scanned = field.pts.filter(p => !p.home);
+    const best = scanned.slice().sort((a, b) => b.clear - a.clear).slice(0, 3);
+    scanned.forEach(p => {
+      const [x, y] = f.toXY(p.lat, p.lon);
+      if (x < -20 || x > f.W + 20 || y < -20 || y > f.H + 20) return;
+      const good = homeClear != null && p.clear - homeClear >= 25 && p.clear >= 50;
+      ctx.beginPath();
+      ctx.arc(x, y, 2.6 * dpr, 0, Math.PI * 2);
+      ctx.fillStyle = good ? accent : ink + '.5)';
+      ctx.fill();
+      /* Away from the middle, so a label sits over open map rather than over the rings and the
+         readings on the far side of your own site. */
+      if (best.indexOf(p) >= 0) say(Math.round(p.clear) + '% clear', x, y + (y <= hy ? -12 : 14) * dpr, good ? accent : ink + '.82)');
+    });
+  }
+
+  nearbyMapVals() {
+    const E = this.E(), st = this.state;
+    const nb = E && E.state.nearby;
+    const v = this.nbView(), home = this.nbHome();
+    if (!st.nearbyOpen || !nb || !nb.points || !v || !home || st.nearbyStatus !== 'live') return { nbMapOn: false };
+    const src = this.TILE_SOURCES[v.style];
+    const set = view => this.setState({ nbView: view });
+    const field = this.cloudField(nb, home);
+    const at = field.sample(v.lat, v.lon);
+    const km = this.haversineM(home.lat, home.lon, v.lat, v.lon) / 1000;
+    const clearWord = at == null ? 'outside the scan, nothing known here' : 'about ' + Math.round(at) + '% clear tonight';
+    return {
+      nbMapOn: true,
+      nbMapEl: React.createElement('canvas', {
+        ref: el => { this._nbCv = el; if (el) requestAnimationFrame(() => this.drawNearby()); },
+        ...this.slippyHandlers(v, set, false),
+        style: { display: 'block', width: '100%', height: 'auto', aspectRatio: '1 / 1',
+          borderRadius: '8px', touchAction: 'none', cursor: 'grab' },
+      }),
+      nbAtLine: km < 1.2
+        ? 'The crosshair is on your own site · ' + clearWord
+        : Math.round(km) + ' km ' + E.compass(this.brgTo(home.lat, home.lon, v.lat, v.lon))
+          + ' · roughly ' + Math.max(5, Math.round(km * 1.2 / 5) * 5) + ' min · ' + clearWord,
+      nbZoomIn: () => set({ ...v, z: Math.min(src.maxZ, v.z + 1) }),
+      nbZoomOut: () => set({ ...v, z: Math.max(src.minZ, v.z - 1) }),
+      nbCredit: src.credit,
+      /* Moving the site is the whole point of the map: the crosshair becomes the place the app
+         talks about, everything re-reads, and the scan re-runs from there so the rings and the
+         wash mean what they say. */
+      nbUseHere: () => {
+        this.track('nearby-move');
+        const drive = st.nearbyDrive;
+        this.applySite({ lat: v.lat, lon: v.lon, place: v.lat.toFixed(3) + ', ' + v.lon.toFixed(3) }, true);
+        this.setState({ nbView: { ...v } });
+        Promise.resolve(this.refresh()).then(() => { if (drive) this.runNearbyScan(drive); });
+      },
+    };
+  }
+
   runNearbyScan(driveId) {
     const E = this.E(), st = this.state;
     if (!E || !st.t) return;
     this.track('nearby-' + driveId);
-    this.setState({ nearbyDrive: driveId, nearbyStatus: 'pending' });
+    this.setState({ nearbyDrive: driveId, nearbyStatus: 'pending', nbView: null });
     const km = E.DRIVE_RADIUS_KM[driveId] || 50;
     E.loadNearbyScan(km, st.t.darkWin).then(ok => this.setState({ nearbyStatus: ok ? 'live' : 'unavailable' }));
   }
@@ -7815,7 +8246,7 @@ class Component extends DCLogic {
      forecast Kp and the site's geometry, and a nowcast layer cut from the live solar wind. */
   auroraVals() {
     const E = this.E(), st = this.state;
-    if (!E || !st.t) return { aurReady: false, aurBars: [], aurSectors: [], aurNights: [] };
+    if (!E || !st.t) return { aurReady: false, aurBars: [], aurNights: [] };
     const t = st.t, n = t.night;
     const dark = t.darkHours > 0.25;
     const nightKp = t.darkWin ? E.kpForNight(st.kp, t.darkWin) : null;
@@ -7985,8 +8416,6 @@ class Component extends DCLogic {
       }
     }
     const earthPct = (w && w.lag != null) ? Math.max(0, Math.min(100, 100 - (w.lag / winMin) * 100)) : null;
-
-    const sectors = glow.sectors.map(sc => ({ o: (0.12 + sc.level * 0.88).toFixed(2), h: (5 + sc.level * 95).toFixed(0) }));
 
     /* the nights after this one, in the same four words */
     const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -8195,9 +8624,6 @@ class Component extends DCLogic {
       aurBandLabels: bandLabels,
       aurNowPct: (xOf(nowMs) / 404 * 100).toFixed(1) + '%',
       aurArrPct: ((xOf(arrMs) + 4) / 404 * 100).toFixed(1) + '%',
-      aurScaleNote: waiting
-        ? 'The dark hours take two thirds of the width, because that is what you are planning for. The wait until then is squeezed, and the next hour keeps just enough room to read.'
-        : 'The next hour takes up half the width, because that is the part worth acting on. The rest of the night is squeezed in behind it.',
       aurBestLine: bestWin && (bestWin.to - bestWin.from) > 4 * 3600000
         ? 'Fairly flat across the night, with no single best window. One line, three sources: it fades from measurement into forecast as the night goes on, and the shading is how far either side of it the forecast could land.'
         : bestWin
@@ -8278,15 +8704,15 @@ class Component extends DCLogic {
         + (!moonUp ? ', and no moon to worry about once it is properly dark.'
            : moonIll > 0.4 ? ', and a bright moon up through part of the dark hours, which will wash out a faint arc.'
            : ', and a thin moon up for part of the dark hours.'),
-      aurSectors: sectors,
-      aurCompassA: geom.poleward === 'north' ? 'NW' : 'SE',
-      aurCompassB: geom.poleward === 'north' ? 'N' : 'S',
-      aurCompassC: geom.poleward === 'north' ? 'NE' : 'SW',
+      aurSkylineEl: React.createElement('canvas', {
+        ref: el => { this._aurCv = el; if (el) requestAnimationFrame(() => this.drawAurSkyline()); },
+        style: { display: 'block', width: '100%', height: '112px', borderRadius: '6px' },
+      }),
       aurHorizonLabel: 'Your ' + Poleward.toLowerCase() + ' horizon',
       aurHorizonLine: glow.bortle == null ? 'The atlas does not cover this site.'
         : 'Bortle ' + glow.bortle + ' looking ' + poleWord + ' against ' + (glow.zenithBortle == null ? '\u2013' : glow.zenithBortle) + ' overhead'
           + (glow.worst ? ', with the worst of the glow ' + E.compass(glow.worst.brg) + '.' : ', with nothing much in the way.')
-          + ' The bars are on a fixed scale, so full height is a town-lit horizon and a dark one is nearly flat.',
+          + '',
       aurDampLine: 'Damp air is the quiet killer of a low arc: it takes whatever light is about and smears it across exactly the part of the sky you need. '
         + (n.rh == null ? 'No humidity reading for tonight.'
            : Math.round(n.rh) >= 85 ? 'Humidity is ' + Math.round(n.rh) + '% tonight, which is high enough to soften a faint arc on its own.'
@@ -8602,14 +9028,13 @@ class Component extends DCLogic {
       : pct < 47 ? (wax ? 'waxing crescent' : 'waning crescent')
       : pct <= 53 ? (wax ? 'first quarter' : 'last quarter')
       : (wax ? 'waxing gibbous' : 'waning gibbous');
-    const grain = hours === 0 ? 'Three parts of the night' : hours === 1 ? 'Hour by hour' : hours + '-hour blocks';
-    const src = live >= 0.9 ? (r.hist ? 'as recorded' : 'from the forecast')
-      : live >= 0.5 ? 'forecast for the hours it covers'
-      : 'no hourly forecast this far out, so cloud is typical for the time of year';
+    /* The grain of the table is visible in the table. Only the caveat that there is no forecast
+       this far out changes what you would do with it. */
+    const src = live >= 0.5 ? '' : 'No hourly forecast this far out, so cloud is typical for the time of year. ';
     const shower = r.s && r.s.peakRate > 3 && r.s.headlineName ? ' ' + r.s.headlineName + ' running.' : '';
     return {
       detOn: true, detCols, detRows,
-      detNote: grain + ', ' + src + '. Moon ' + pct + '% ' + phase + '.' + shower,
+      detNote: src + 'Moon ' + pct + '% ' + phase + '.' + shower,
     };
   }
 
@@ -8681,14 +9106,9 @@ class Component extends DCLogic {
   trainSentence(tr) {
     const st = this.state.trainState;
     if (st === 'idle' || st === 'loading') return 'Checking recent launches…';
-    if (st === 'failed') {
-      /* Only CelesTrak publishes the last thirty days of launches, and it refuses browsers. Saying
-         which piece is missing is more use than saying it failed: with the relay set this card
-         works, and without it no amount of retrying will help. */
-      return window.NoctoSat && window.NoctoSat.relay()
-        ? 'The relay did not answer. Worth another look shortly.'
-        : 'Recent launches come from CelesTrak, which will not answer a browser. Needs the relay: see the notes in Data sources.';
-    }
+    /* Why a feed is down is my problem, not the reader's: standing in a field, the only useful
+       thing to say is that there is nothing to show. */
+    if (st === 'failed') return 'Data currently not available';
     if (!tr) return 'No fresh train high or bright enough tonight';
     const E = this.E(), p = tr.pass;
     return this.hhmm(p.start) + ', ' + Math.round(p.maxEl) + '\u00b0 up, '
@@ -8698,7 +9118,7 @@ class Component extends DCLogic {
 
   issSentence(best, all) {
     if (this.state.issState === 'loading') return 'Working out tonight’s passes…';
-    if (this.state.issState === 'failed') return 'Could not reach the orbital elements';
+    if (this.state.issState === 'failed') return 'Data currently not available';
     /* Elements drift. Inside a day the timing is good to a minute or two, so it is not worth
        mentioning; beyond that the reader should know the answer is built on old numbers. */
     const age = this.state.issTleAge;

@@ -1,0 +1,19 @@
+Noctography 1.1.2, 31 August 2026
+
+Two files changed since the version that is live (1.1). Upload them to your repository,
+keeping the folder structure exactly as it is here:
+
+  app/index.html            ->  app/index.html
+  noctography-terrain.js    ->  noctography-terrain.js   (repository root)
+
+On GitHub: Add file -> Upload files, drag both over, commit. Two minutes later the site
+is live. Hard refresh once on your phone if it still looks old.
+
+Nothing else needs uploading. The other modules are unchanged; the script tags now read
+?v=1.1.2 but that only tells the browser to re-check them, it does not need new files.
+
+What is in it: AR reaches any date and time with a Now button and daytime sun calibration,
+bolder cardinal markers, a nearby cloud map behind "Somewhere nearby might be better",
+pinch zoom on both maps, height at the pin, the real skyline on the Aurora tab, taller
+meteor night columns, an honest star trails headline, a Credits and privacy page, and a
+good deal of superfluous text removed.

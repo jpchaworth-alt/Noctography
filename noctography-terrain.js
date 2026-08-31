@@ -170,6 +170,34 @@ async function fetchTile(t){
   return out;
 }
 
+/* The ground height at one point, for the pin readout. One tile off the inner ring, which is
+   the same 30 m data the skyline cast uses, sampled bilinearly so dragging the pin across a slope
+   gives a height that moves rather than a staircase. Answers are remembered per spot: the tile
+   cache is emptied after a skyline read, and re-reading a place you have already asked about
+   should not cost a fetch. */
+const groundMem = new Map();
+async function groundAt(lat, lon){
+  if (lat == null || lon == null) return null;
+  const key = lat.toFixed(5) + ',' + lon.toFixed(5);
+  if (groundMem.has(key)) return groundMem.get(key);
+  const ring = ringsFor(lat)[0];
+  const fx = lonToX(lon, ring.z), fy = latToY(lat, ring.z);
+  let out = null;
+  try {
+    const grid = await fetchTile({ z: ring.z, x: Math.floor(fx), y: Math.floor(fy) });
+    const W = Math.round(Math.sqrt(grid.length));
+    const px = (fx - Math.floor(fx)) * W, py = (fy - Math.floor(fy)) * W;
+    const x0 = Math.min(W - 1, Math.floor(px)), y0 = Math.min(W - 1, Math.floor(py));
+    const x1 = Math.min(W - 1, x0 + 1), y1 = Math.min(W - 1, y0 + 1);
+    const dx = px - x0, dy = py - y0;
+    const a = grid[y0 * W + x0], b = grid[y0 * W + x1], c = grid[y1 * W + x0], d = grid[y1 * W + x1];
+    const v = (a * (1 - dx) + b * dx) * (1 - dy) + (c * (1 - dx) + d * dx) * dy;
+    if (isFinite(v)) out = v;
+  } catch (e) { out = null; }
+  groundMem.set(key, out);
+  return out;
+}
+
 async function fetchAll(list, onProgress){
   const jobs = list.slice();
   let done = 0, failed = 0;
@@ -456,7 +484,7 @@ function summary(profile, obs){
 }
 
 window.NoctoTerrain = {
-  profileFor, plan, sizeLine, altAt, distAt, effectiveAt, horizonFn, sectorAlt, SECTORS,
+  profileFor, plan, sizeLine, groundAt, altAt, distAt, effectiveAt, horizonFn, sectorAlt, SECTORS,
   clearIntervals, encode, decode, driftM, DRIFT_LIMIT_M, summary, ringsFor,
   RANGE_M, RAYS, TILE_BASE, R_EFF, EYE_M,
 };
