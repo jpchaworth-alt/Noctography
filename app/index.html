@@ -2807,7 +2807,7 @@ window.noctoTrack = function (name) {
 </sc-if>
 
 <sc-if value="{{ arOpen }}" hint-placeholder-val="{{ false }}">
-  <div data-screen-label="AR" style="position: fixed; inset: 0; z-index: 120; background: #000; display: grid; grid-template-rows: 1fr auto; overscroll-behavior: contain;">
+  <div data-screen-label="AR" style="position: fixed; inset: 0; z-index: 120; background: #000; display: grid; grid-template-rows: 1fr auto; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;">
 
     <div ref="{{ setArStage }}" onClick="{{ onArTap }}" onPointerDown="{{ arCalDown }}" onPointerMove="{{ arCalMove }}" onPointerUp="{{ arCalUp }}" onPointerCancel="{{ arCalUp }}" style="position: relative; overflow: hidden; touch-action: none;">
       <video ref="{{ setArVideo }}" playsinline="playsinline" muted="muted" autoplay="autoplay" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: {{ arVideoOpacity }}; filter: {{ arCamFilter }};"></video>
@@ -2912,6 +2912,18 @@ window.noctoTrack = function (name) {
         </div>
       </div>
 
+      <div style="display: grid; gap: 7px;">
+        <div style="display: flex; align-items: baseline; gap: 10px;">
+          <span style="font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: rgba(240,236,228,.5);">Contrast</span>
+          <span style="margin-left: auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: rgba(240,236,228,.45);">{{ arDimRead }}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span aria-hidden="true" style="flex: 0 0 auto; width: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; line-height: 1; color: rgba(240,236,228,.45);">&#8722;</span>
+          <input type="range" min="0" max="100" step="1" value="{{ arDim }}" onInput="{{ onArDim }}" aria-label="Contrast against the camera" style="flex: 1; min-width: 0; height: 26px; accent-color: var(--accent);">
+          <span aria-hidden="true" style="flex: 0 0 auto; width: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; line-height: 1; color: rgba(240,236,228,.45);">+</span>
+        </div>
+      </div>
+
       <div style="display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;">
         <sc-for list="{{ arSubjectChips }}" as="c" hint-placeholder-count="4">
           <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 13px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 13px; white-space: nowrap; cursor: pointer;">{{ c.label }}</button>
@@ -2954,7 +2966,7 @@ class Component extends DCLogic {
     hz: null, hzObs: null, hzStatus: 'idle', hzDone: 0, hzTotal: 0, hzErr: null, hzSector: 'all', hzDrift: null, hzOpen: false, hzEdit: false, hzGlow: true,
     sightSaw: null, sightHeight: null, sightNote: '', sightOpen: false, sightLogOpen: false, sightSaved: 0, sightCopied: 0,
     sightings: [],
-    arOpen: false, arScrub: null, arDate: null, arSubject: 'all', arTrails: 0, arCam: true, arDim: false,
+    arOpen: false, arScrub: null, arDate: null, arSubject: 'all', arTrails: 0, arCam: true, arDim: 0,
     arMotion: null, arCamOk: null, arAligning: false, arShowTune: false, arCal: false, arNudge: 0, arHfov: 62, arTick: 0,
     arAnchor: null, arLandscape: false,
     /* The photographic sky. 118 catalogue objects of 1 degree or more, everything else keeps the
@@ -3030,7 +3042,7 @@ class Component extends DCLogic {
         'The Milky Way is a photograph too, calibrated to its real position rather than drawn as a band.',
         'An exposure slider brightens the sky and the Milky Way together, so a faint scene can be pushed closer to what the camera will actually pull out.',
         'Frame it now scrubs by date, so you can watch the Milky Way core swing into season before committing to a night.',
-        'A Daylight toggle in AR: it dims the camera and lifts the overlay together, so you can actually see where a subject will sit while scouting in broad daylight.',
+        'A Contrast slider in AR: it dims the camera and lifts the overlay together, so you can dial in enough separation to see where a subject will sit while scouting in daylight.',
         'Sky AR moved up next to Place, renamed from Sky, and got its own "Open Sky AR" button on every tab.',
         'Kit gained 50mm and 135mm presets, plus a field for typing in any focal length.',
         'A new attribution page for every object and image credited in Sky AR, linked from Credits.',
@@ -6265,16 +6277,26 @@ class Component extends DCLogic {
       setArImgCanvas: this.setArImgCanvas,
       closeAr: () => this.closeAr(),
       arVideoOpacity: st.arCam && st.arCamOk ? '1' : '0',
-      /* Daylight scouting: the overlay is a screen blend, and screen over a bright sky adds almost
-         nothing, so no amount of exposure recovers it. Dimming the camera is what actually works:
-         it gives the overlay somewhere dark to add into. The overlay is lifted at the same time so
-         the trade is one tap rather than two controls. */
-      arCamFilter: st.nv
-        ? 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(' + (st.arDim ? '.16' : '.6') + ')'
-        : st.arDim ? 'brightness(.2) saturate(.6)' : 'none',
-      arVideoFilter: st.nv
-        ? 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(' + (st.arDim ? '1' : '.6') + ')'
-        : st.arDim ? 'brightness(1.8)' : 'none',
+      /* Contrast against the camera. The overlay is a screen blend, and screen over a bright sky
+         adds almost nothing, so no amount of exposure recovers it in daylight: what works is
+         giving the overlay somewhere darker to add into. One slider drives both ends of that
+         trade, held down to a gentle range so full right is still a usable camera image rather
+         than a black screen. At zero nothing is touched at all, which is the night default. */
+      ...(() => {
+        const d = Math.max(0, Math.min(100, Number(st.arDim) || 0)) / 100;
+        const cam = (1 - d * 0.72).toFixed(3);          // 1.00 down to 0.28
+        const over = (1 + d * 0.55).toFixed(3);         // 1.00 up to 1.55
+        const nvBase = 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) ';
+        return {
+          arCamFilter: st.nv ? nvBase + 'brightness(' + (0.6 * (1 - d * 0.72)).toFixed(3) + ')'
+            : d ? 'brightness(' + cam + ') saturate(' + (1 - d * 0.4).toFixed(3) + ')' : 'none',
+          arVideoFilter: st.nv ? nvBase + 'brightness(' + (0.6 * (1 + d * 0.55)).toFixed(3) + ')'
+            : d ? 'brightness(' + over + ')' : 'none',
+          arDim: st.arDim || 0,
+          arDimRead: !d ? 'off' : Math.round(d * 100) + '%',
+          onArDim: e => this.setState({ arDim: Number(e.target.value) }),
+        };
+      })(),
       arAim: AR.live()
         ? E.compass(AR.basis().az) + ' ' + Math.round(AR.basis().az) + '\u00b0 \u00b7 ' + Math.round(AR.basis().alt) + '\u00b0 up'
         : 'waiting for the sensors',
@@ -6346,7 +6368,6 @@ class Component extends DCLogic {
           if (st.arCam && st.arCamOk) { AR.stopCamera(); this.setState({ arCam: false, arCamOk: false }); }
           else { this.setState({ arCam: true }); this.startArCamera(); }
         }),
-        chip('Daylight', !!st.arDim, () => this.setState({ arDim: !st.arDim })),
         chip('Tune', st.arShowTune, () => this.setState({ arShowTune: !st.arShowTune, arAligning: false, arCal: false })),
         chip(st.arCal ? 'Lining up' : 'Line up', st.arCal, () => this.setState({ arCal: !st.arCal, arShowTune: false })),
       ],
