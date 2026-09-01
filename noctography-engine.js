@@ -143,58 +143,58 @@ const mag2nl=V=>34.08*Math.exp(20.7233-0.92104*V);
    ZHR = zhr*10^(-b*|dlam|) (+ a broad "wide" component where the stream has long wings). */
 const SHOWERS=[
  {code:'QUA',name:'Quadrantids',lam:283.15,zhr:106,r:2.1,ra:230,dec:49.5,dRa:0.4,dDec:-0.2,v:41,bB:1.0,bA:1.0,span:6,wide:{zhr:4,b:0.30},
-  active:'28 Dec – 12 Jan',parent:'Asteroid 2003 EH1 (probably a dormant comet)',
-  facts:'The sharpest peak of any major shower: full rates last only a few hours, so being clouded out at the wrong moment costs you the whole event. Meteors are medium speed and often bluish, with few persistent trains but a fair number of bright ones. The radiant sits in northern Boötes, in the old constellation Quadrans Muralis that was dropped from the official list in 1922, and is circumpolar from northern mid-latitudes, climbing highest before dawn.'},
+  active:'28 Dec â€“ 12 Jan',parent:'Asteroid 2003 EH1 (probably a dormant comet)',
+  facts:'The sharpest peak of any major shower: full rates last only a few hours, so being clouded out at the wrong moment costs you the whole event. Meteors are medium speed and often bluish, with few persistent trains but a fair number of bright ones. The radiant sits in northern BoÃ¶tes, in the old constellation Quadrans Muralis that was dropped from the official list in 1922, and is circumpolar from northern mid-latitudes, climbing highest before dawn.'},
  {code:'LYR',name:'Lyrids',lam:32.32,zhr:18,r:2.1,ra:271,dec:34,dRa:1.1,dDec:0.0,v:49,bB:1.0,bA:1.0,span:8,
-  active:'14 – 30 April',parent:'Comet C/1861 G1 Thatcher (415-year orbit)',
+  active:'14 â€“ 30 April',parent:'Comet C/1861 G1 Thatcher (415-year orbit)',
   facts:'The oldest shower with a continuous record, noted by Chinese observers in 687 BC. Normally modest, but capable of short outbursts, most recently around 90 an hour in 1982. Meteors are fast, frequently bright, and around a quarter leave persistent trains. The radiant near Vega is high all night from northern latitudes, which makes even a moderate ZHR worthwhile.'},
  {code:'ETA',name:'Eta Aquariids',lam:45.5,zhr:50,r:2.4,ra:338,dec:-1,dRa:0.9,dDec:0.4,v:66,bB:0.10,bA:0.10,span:20,
-  active:'19 April – 28 May',parent:'Comet 1P/Halley',
+  active:'19 April â€“ 28 May',parent:'Comet 1P/Halley',
   facts:'Debris shed by Halley on its inbound leg. Very fast at 66 km/s, with a high proportion of long trails and persistent trains. The catch for northern observers is geometry: the radiant rises only shortly before dawn from northern latitudes, so you see a small fraction of the quoted rate in a short window. Superb from the tropics and the southern hemisphere.'},
  {code:'SDA',name:'Southern Delta Aquariids',lam:125.0,zhr:25,r:2.5,ra:340,dec:-16,dRa:0.8,dDec:0.2,v:41,bB:0.09,bA:0.15,span:22,
-  active:'12 July – 23 August',parent:'Likely the 96P/Machholz complex',
+  active:'12 July â€“ 23 August',parent:'Likely the 96P/Machholz complex',
   facts:'A broad plateau of activity rather than a peak, so any clear night in late July is roughly as good as the next. Meteors are medium speed and mostly faint, which makes dark skies matter more than usual. From northern latitudes the radiant stays low in the south, capping the rate you can actually achieve.'},
  {code:'CAP',name:'Alpha Capricornids',lam:127.0,zhr:5,r:2.5,ra:307,dec:-10,dRa:0.9,dDec:0.3,v:23,bB:0.06,bA:0.06,span:24,
-  active:'3 July – 15 August',parent:'Comet 169P/NEAT',
+  active:'3 July â€“ 15 August',parent:'Comet 169P/NEAT',
   facts:'Low rates but a disproportionate share of slow, brilliant, long-lasting fireballs, which is why it is worth leaving a camera running through late July even though the predicted count is only a few an hour. The stream is young and unusually broad; models suggest it will strengthen over the next few centuries.'},
  {code:'PER',name:'Perseids',lam:140.0,zhr:80,r:2.2,ra:48,dec:58,dRa:1.35,dDec:0.25,v:59,bB:0.35,bA:0.25,span:20,wide:{zhr:23,b:0.05},
-  active:'17 July – 24 August',parent:'Comet 109P/Swift-Tuttle (133-year orbit, 26 km nucleus)',
+  active:'17 July â€“ 24 August',parent:'Comet 109P/Swift-Tuttle (133-year orbit, 26 km nucleus)',
   facts:'The reliable summer shower, recorded for close to two thousand years and once called the tears of St Lawrence. Fast, bright meteors with plenty of persistent trains. The wide activity profile matters for planning: the week either side of maximum still delivers useful rates, so a clear night three days off peak beats a cloudy peak. The radiant is very high from northern latitudes and climbs all night, which pushes the best window into the small hours.'},
  {code:'KCG',name:'Kappa Cygnids',lam:140.5,zhr:3,r:3.0,ra:286,dec:59,dRa:0.6,dDec:0.2,v:25,bB:0.10,bA:0.10,span:12,
-  active:'3 – 25 August',parent:'Uncertain, possibly asteroid 2008 ED69',
+  active:'3 â€“ 25 August',parent:'Uncertain, possibly asteroid 2008 ED69',
   facts:'A minor stream that shares the Perseid dates and is easily mistaken for it, except that the meteors are noticeably slow and the radiant sits in Cygnus, near the zenith. Activity varies from year to year, with enhanced returns roughly every seven years, and it produces occasional bright fireballs.'},
  {code:'AUR',name:'Alpha Aurigids',lam:158.6,zhr:6,r:2.5,ra:91,dec:39,dRa:1.1,dDec:0.0,v:66,bB:1.0,bA:1.0,span:5,
-  active:'28 August – 5 September',parent:'Comet C/1911 N1 Kiess',
+  active:'28 August â€“ 5 September',parent:'Comet C/1911 N1 Kiess',
   facts:'Usually a footnote, but it has produced brief outbursts of 30 to 50 an hour in 1935, 1986, 1994 and 2019, each lasting under two hours. Fast meteors from a radiant that only gets useful after midnight.'},
  {code:'SPE',name:'September Epsilon Perseids',lam:166.7,zhr:5,r:2.9,ra:48,dec:40,dRa:1.0,dDec:0.1,v:64,bB:0.4,bA:0.4,span:8,
-  active:'5 – 21 September',parent:'Unknown long-period comet',
+  active:'5 â€“ 21 September',parent:'Unknown long-period comet',
   facts:'Only properly characterised once video meteor networks came along. Fast and mostly faint, with unexpected outbursts in 2008 and 2013 that suggest an old dust trail crossing Earth\u2019s path.'},
  {code:'DRA',name:'October Draconids',lam:195.4,zhr:5,r:2.6,ra:262,dec:54,dRa:0.0,dDec:0.0,v:20,bB:2.5,bA:2.5,span:3,
-  active:'6 – 10 October',parent:'Comet 21P/Giacobini-Zinner',
+  active:'6 â€“ 10 October',parent:'Comet 21P/Giacobini-Zinner',
   facts:'The odd one out in two ways. The meteors are exceptionally slow at 20 km/s, and the radiant is highest in the evening rather than before dawn, so this is a shower you watch straight after dusk. Rates are usually near zero, but it produced true storms in 1933 and 1946 and strong showings in 2011 and 2018, always tied to the comet\u2019s return.'},
  {code:'STA',name:'Southern Taurids',lam:197.0,zhr:5,r:2.3,ra:32,dec:9,dRa:0.8,dDec:0.2,v:27,bB:0.026,bA:0.026,span:35,
-  active:'10 September – 20 November',parent:'Comet 2P/Encke',
+  active:'10 September â€“ 20 November',parent:'Comet 2P/Encke',
   facts:'Part of Encke\u2019s enormous, ancient dust complex. Rates are low for weeks on end, but the meteors are slow, often orange, and include an unusually high share of fireballs. In certain years the Earth meets a swarm of larger fragments, as in 2005, 2015 and 2022, and the fireball count jumps.'},
  {code:'ORI',name:'Orionids',lam:208.0,zhr:20,r:2.5,ra:95,dec:16,dRa:1.2,dDec:0.1,v:66,bB:0.12,bA:0.12,span:18,
-  active:'2 October – 7 November',parent:'Comet 1P/Halley',
+  active:'2 October â€“ 7 November',parent:'Comet 1P/Halley',
   facts:'Halley\u2019s other shower, this time from the outbound leg. Very fast, with frequent persistent trains, and a broad flat maximum spread over several nights instead of one sharp peak, which is forgiving for anyone chasing a gap in the cloud. The radiant lies near Betelgeuse and is well placed from midnight onwards.'},
  {code:'NTA',name:'Northern Taurids',lam:230.0,zhr:5,r:2.3,ra:58,dec:22,dRa:0.8,dDec:0.2,v:29,bB:0.026,bA:0.026,span:35,
-  active:'20 October – 10 December',parent:'Comet 2P/Encke',
+  active:'20 October â€“ 10 December',parent:'Comet 2P/Encke',
   facts:'The northern branch of the same complex, peaking a month after its southern twin and with the radiant higher from northern latitudes. Same character: low counts, slow meteors, an outsized proportion of fireballs.'},
  {code:'LEO',name:'Leonids',lam:235.27,zhr:12,r:2.5,ra:152,dec:22,dRa:0.7,dDec:-0.4,v:71,bB:0.55,bA:0.55,span:12,wide:{zhr:3,b:0.10},
-  active:'6 – 30 November',parent:'Comet 55P/Tempel-Tuttle (33-year orbit)',
+  active:'6 â€“ 30 November',parent:'Comet 55P/Tempel-Tuttle (33-year orbit)',
   facts:'The fastest meteors you will routinely see, entering at 71 km/s and often leaving trains that hang for seconds. Famous for the storms of 1833, 1866, 1966 and 1999 to 2002, when rates reached thousands an hour; between comet returns it is a modest shower. The radiant rises around midnight.'},
  {code:'HYD',name:'Sigma Hydrids',lam:256.0,zhr:7,r:3.0,ra:127,dec:2,dRa:0.9,dDec:-0.2,v:58,bB:0.4,bA:0.4,span:10,
-  active:'3 – 20 December',parent:'Unknown long-period comet',
+  active:'3 â€“ 20 December',parent:'Unknown long-period comet',
   facts:'Long dismissed as a shower at the edge of visual detection, but video data pushed the estimate up and it repeatedly turns in bright meteors. It runs alongside the Geminid build-up, so keep an eye on the direction a meteor came from before logging it.'},
  {code:'MON',name:'December Monocerotids',lam:260.9,zhr:3,r:3.0,ra:100,dec:8,dRa:1.0,dDec:-0.1,v:42,bB:0.5,bA:0.5,span:10,
-  active:'27 November – 17 December',parent:'Comet C/1917 F1 Mellish',
+  active:'27 November â€“ 17 December',parent:'Comet C/1917 F1 Mellish',
   facts:'A weak stream that shares the sky with the Geminids and is frequently confused with them. Medium speed, low rates, but the radiant is well placed and the meteors are distinctly slower than Geminids.'},
  {code:'GEM',name:'Geminids',lam:262.2,zhr:135,r:2.6,ra:112,dec:33,dRa:1.02,dDec:-0.15,v:35,bB:0.59,bA:0.81,span:9,wide:{zhr:18,b:0.14},
-  active:'4 – 20 December',parent:'Asteroid 3200 Phaethon, a rock comet',
+  active:'4 â€“ 20 December',parent:'Asteroid 3200 Phaethon, a rock comet',
   facts:'The strongest and most dependable annual shower, and unusual in coming from an asteroid rather than a comet. Only recognised in the 1860s and it has strengthened ever since as the stream drifts into Earth\u2019s path. Meteors are medium speed, plentiful, often bright with a yellow cast, and leave few trains. The radiant is up from early evening and near the zenith by 02:00 from northern latitudes, so you can shoot a full night. The counterweight is December weather and cold.'},
  {code:'URS',name:'Ursids',lam:270.7,zhr:10,r:3.0,ra:217,dec:76,dRa:0.0,dDec:-0.2,v:33,bB:1.0,bA:1.0,span:5,
-  active:'17 – 26 December',parent:'Comet 8P/Tuttle',
+  active:'17 â€“ 26 December',parent:'Comet 8P/Tuttle',
   facts:'Overlooked because it falls in the week before Christmas, immediately after the Geminids. The radiant near Kochab is circumpolar from northern latitudes, so it is available all night, and short bursts have been recorded in 1945, 1986 and 2000.'},
 ];
 const ANT={code:'ANT',name:'Antihelion source',r:3.0,v:30,
@@ -205,15 +205,15 @@ const SPO={code:'SPO',name:'Sporadic background',r:3.0,v:35,
   facts:'Meteors not tied to any recognised stream. Rates roughly double between early evening and dawn, because after midnight your side of the planet turns to face the direction Earth is travelling and sweeps up particles head-on rather than waiting to be caught. On a night with no shower running, this is what you are shooting.'};
 
 const BORTLE=[null,
- {sqm:22.0,nelm:7.7,label:'1 – Pristine'},
- {sqm:21.9,nelm:7.3,label:'2 – Truly dark'},
- {sqm:21.7,nelm:6.9,label:'3 – Rural'},
- {sqm:21.3,nelm:6.4,label:'4 – Rural / suburban transition'},
- {sqm:20.4,nelm:6.0,label:'5 – Suburban'},
- {sqm:19.3,nelm:5.5,label:'6 – Bright suburban'},
- {sqm:18.7,nelm:5.0,label:'7 – Suburban / urban transition'},
- {sqm:18.2,nelm:4.5,label:'8 – City'},
- {sqm:17.8,nelm:4.0,label:'9 – Inner city'}];
+ {sqm:22.0,nelm:7.7,label:'1 â€“ Pristine'},
+ {sqm:21.9,nelm:7.3,label:'2 â€“ Truly dark'},
+ {sqm:21.7,nelm:6.9,label:'3 â€“ Rural'},
+ {sqm:21.3,nelm:6.4,label:'4 â€“ Rural / suburban transition'},
+ {sqm:20.4,nelm:6.0,label:'5 â€“ Suburban'},
+ {sqm:19.3,nelm:5.5,label:'6 â€“ Bright suburban'},
+ {sqm:18.7,nelm:5.0,label:'7 â€“ Suburban / urban transition'},
+ {sqm:18.2,nelm:4.5,label:'8 â€“ City'},
+ {sqm:17.8,nelm:4.0,label:'9 â€“ Inner city'}];
 
 
 /* ============================ light pollution atlas ============================ */
@@ -1035,8 +1035,8 @@ function sentence(sw,n){
   if(sw.code==='SPO'){
     parts.push('Background meteors with no parent stream, running at about '+peak.toFixed(1)+' an hour at best and rising towards dawn.');
   }else{
-    const when=at?fmtTime(at):'–';
-    parts.push('Peaks for you around '+when+' at roughly '+peak.toFixed(1)+' an hour, with the radiant '+Math.round(d.radAlt)+'° above the horizon in the '+compass(d.radAz)+'.');
+    const when=at?fmtTime(at):'â€“';
+    parts.push('Peaks for you around '+when+' at roughly '+peak.toFixed(1)+' an hour, with the radiant '+Math.round(d.radAlt)+'Â° above the horizon in the '+compass(d.radAz)+'.');
     if(d.activityFrac<0.25) parts.push('The shower itself is well off its maximum, at about '+Math.round(d.activityFrac*100)+'% of peak strength.');
   }
   if(d.moonLoss>1.2) parts.push('Moonlight is the limiting factor tonight, costing around '+d.moonLoss.toFixed(1)+' magnitudes of sky darkness.');
@@ -2379,17 +2379,243 @@ function nearestTideStation(lat, lon){
   return best;
 }
 
-/* TIDE_RELAY is the Admiralty predictions, through a Worker holding the real key server-side, the
-   same shape as HP30_RELAY. null until it is set up, which is the honest default: nobody publishes
-   a free forecast of UK tide times, so until then this reads the last measured level instead of a
-   time ahead of it, which is real and useful on its own even though it isn't a forecast. */
-/* Deliberately null. The Worker exists at https://tide.jpchaworth.workers.dev but has never
-   answered with a live Admiralty key, so leaving the address here meant every tide tap made a
-   request that was always going to fail and then fell silently back to the measured level. The
-   code now says what is true. Restore the address the day the key is in place and verified, and
-   not before: a constant that describes an intention rather than a fact is worse than no
-   constant, because it hides a broken path behind a working-looking one. */
-const TIDE_RELAY = null;
+/* ---- predicted high and low water, worked out here ----
+   Nobody publishes a free forecast of UK tide times: the Admiralty sell theirs, and the relay this
+   app was going to read them through needs an account, a key and a server to hide the key on. It
+   sat unbuilt for months and the tile showed only a measured level, which tells you where the
+   water is and nothing about where it is going next.
+
+   But a forecast does not have to be fetched. The Environment Agency publish every gauge's own
+   record, free, under the Open Government Licence, and a tide is the sum of a small number of
+   sinusoids whose periods are fixed by the orbits of the moon and the sun. Fit those sinusoids to
+   a month of the gauge's own measurements and you have that gauge's tide, and can run it forward.
+   This is how tide tables have been made since Kelvin, and doing it here costs one fetch a month
+   per gauge and about a fifth of a second of arithmetic.
+
+   Ten constituents, which is what a month of data can honestly separate. Two frequencies can only
+   be told apart if the record is longer than one beat between them, so the record length decides
+   the list: M2 and S2 need 14.8 days, K1 and O1 need 13.7, M2 and N2 need 27.6. Thirty days clears
+   all of those. K2 and P1 are deliberately absent, because separating K2 from S2 takes half a year
+   and pretending otherwise would be fitting noise. They are not missing from the answer, though:
+   over a window this short the fitted S2 is really S2 and K2 together, and the pair only drift
+   apart by about two degrees a day. That is the real reason predictions here are offered a few
+   days ahead and the fit is renewed every month, rather than solved once and trusted forever.
+
+   Nodal corrections are absent for the same sort of reason and with the same justification: the
+   18.6-year cycle is a constant across a month, so fitting recent data absorbs it exactly, where
+   published constants have to correct for it.
+
+   What this does not predict is surge. A deep low over the North Sea can hold the water half a
+   metre above where the astronomy says it should be, and no tide table anywhere predicts that
+   either. The measured level is shown alongside, which is the honest way to see it: when the two
+   disagree, the difference is the weather. */
+const TIDE_SPEEDS = [
+  ['M2', 28.9841042], ['S2', 30.0000000], ['N2', 28.4397295],
+  ['K1', 15.0410686], ['O1', 13.9430356], ['Q1', 13.3986609],
+  ['M4', 57.9682084], ['MS4', 58.9841042], ['MN4', 57.4238337], ['M6', 86.9523127],
+];
+const TIDE_FIT_DAYS = 30;
+const TIDE_FIT_TTL = 30 * 86400000;
+const TIDE_FIT_TIMEOUT_MS = 20000;
+const TIDE_HORIZON_H = 60;
+
+/* Solve a symmetric normal-equation system by Gaussian elimination with partial pivoting. Twenty
+   one unknowns; there is no case for anything cleverer. */
+function solveLinear(A, y){
+  const n = y.length;
+  const M = A.map((row, i) => row.concat([y[i]]));
+  for (let c = 0; c < n; c++) {
+    let p = c;
+    for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    if (Math.abs(M[p][c]) < 1e-12) return null;
+    const tmp = M[c]; M[c] = M[p]; M[p] = tmp;
+    for (let r = 0; r < n; r++) {
+      if (r === c) continue;
+      const f = M[r][c] / M[c][c];
+      if (!f) continue;
+      for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k];
+    }
+  }
+  return M.map((row, i) => row[n] / row[i]);
+}
+
+/* One least-squares pass: mean level plus a cosine and a sine per constituent. Returns the
+   coefficients and how much of the water's movement they account for. */
+function tideFitOnce(rows, epoch, keep){
+  const K = TIDE_SPEEDS.length, N = 1 + 2 * K;
+  const A = []; for (let i = 0; i < N; i++) A.push(new Array(N).fill(0));
+  const y = new Array(N).fill(0);
+  const basis = new Array(N);
+  let used = 0, sum = 0;
+  for (let r = 0; r < rows.length; r++) {
+    if (keep && !keep[r]) continue;
+    const th = (rows[r].t - epoch) / 3600000;
+    basis[0] = 1;
+    for (let k = 0; k < K; k++) {
+      const w = TIDE_SPEEDS[k][1] * Math.PI / 180 * th;
+      basis[1 + 2 * k] = Math.cos(w);
+      basis[2 + 2 * k] = Math.sin(w);
+    }
+    for (let i = 0; i < N; i++) {
+      const bi = basis[i];
+      if (!bi) continue;
+      for (let j = i; j < N; j++) A[i][j] += bi * basis[j];
+      y[i] += bi * rows[r].v;
+    }
+    used++; sum += rows[r].v;
+  }
+  if (used < 400) return null;
+  for (let i = 0; i < N; i++) for (let j = 0; j < i; j++) A[i][j] = A[j][i];
+  const x = solveLinear(A, y);
+  if (!x || x.some(v => !isFinite(v))) return null;
+
+  const c = TIDE_SPEEDS.map(([n, w], k) => ({ n, w, a: x[1 + 2 * k], b: x[2 + 2 * k] }));
+  const fit = { z0: x[0], c, epoch };
+  const mean = sum / used;
+  let ss = 0, tot = 0, worst = 0;
+  const resid = new Array(rows.length).fill(0);
+  for (let r = 0; r < rows.length; r++) {
+    if (keep && !keep[r]) continue;
+    const d = rows[r].v - harmEval(fit, (rows[r].t - epoch) / 3600000);
+    resid[r] = d; ss += d * d; tot += (rows[r].v - mean) * (rows[r].v - mean);
+    if (Math.abs(d) > worst) worst = Math.abs(d);
+  }
+  fit.rms = Math.sqrt(ss / used);
+  fit.r2 = tot > 0 ? 1 - ss / tot : 0;
+  fit.n = used;
+  fit.resid = resid;
+  return fit;
+}
+
+function harmEval(h, th){
+  let v = h.z0;
+  for (let i = 0; i < h.c.length; i++) {
+    const w = h.c[i].w * Math.PI / 180 * th;
+    v += h.c[i].a * Math.cos(w) + h.c[i].b * Math.sin(w);
+  }
+  return v;
+}
+function harmSlope(h, th){
+  let d = 0;
+  for (let i = 0; i < h.c.length; i++) {
+    const wr = h.c[i].w * Math.PI / 180;
+    const w = wr * th;
+    d += wr * (h.c[i].b * Math.cos(w) - h.c[i].a * Math.sin(w));
+  }
+  return d;
+}
+
+/* Fit, then throw away anything more than three standard deviations out and fit again. A month
+   almost always contains a storm surge or a gauge dropout, and one bad afternoon should not be
+   allowed to bend a whole month's worth of astronomy. */
+function tideFit(rows){
+  if (!rows || rows.length < 400) return null;
+  const epoch = rows[Math.floor(rows.length / 2)].t;
+  let f = tideFitOnce(rows, epoch, null);
+  if (!f) return null;
+  const cut = 3 * f.rms;
+  const keep = f.resid.map(d => Math.abs(d) <= cut);
+  const f2 = tideFitOnce(rows, epoch, keep);
+  const out = f2 || f;
+  delete out.resid;
+  out.spanDays = (rows[rows.length - 1].t - rows[0].t) / 86400000;
+  return out;
+}
+
+/* Every turning point between now and the end of the horizon. The slope is differentiated in
+   closed form rather than estimated from samples, so a ten-minute scan for a sign change and then
+   a bisection lands the time within a second or two of the fit's own answer. */
+function tideEvents(h, fromMs, hours){
+  const out = [];
+  const step = 10 / 60;
+  const t0 = (fromMs - h.epoch) / 3600000;
+  let prev = harmSlope(h, t0), pt = t0;
+  for (let th = t0 + step; th <= t0 + hours; th += step) {
+    const s = harmSlope(h, th);
+    if ((prev > 0 && s <= 0) || (prev < 0 && s >= 0)) {
+      let lo = pt, hi = th, sl = prev;
+      for (let i = 0; i < 40; i++) {
+        const mid = (lo + hi) / 2, sm = harmSlope(h, mid);
+        if ((sl > 0 && sm > 0) || (sl < 0 && sm < 0)) { lo = mid; sl = sm; } else hi = mid;
+      }
+      const at = (lo + hi) / 2;
+      out.push({ t: h.epoch + at * 3600000, type: prev > 0 ? 'high' : 'low', height: harmEval(h, at) });
+    }
+    prev = s; pt = th;
+  }
+  return out;
+}
+
+function tideFitKey(ref){ return 'nocto.tidefit.' + ref; }
+function readTideFit(ref){
+  try {
+    const o = JSON.parse(localStorage.getItem(tideFitKey(ref)) || 'null');
+    if (!o || o.v !== 1 || !Array.isArray(o.c) || !isFinite(o.z0)) return null;
+    if (Date.now() - o.at > TIDE_FIT_TTL) return null;
+    return o;
+  } catch (e) { return null; }
+}
+function writeTideFit(ref, o){
+  try { localStorage.setItem(tideFitKey(ref), JSON.stringify(o)); } catch (e) {}
+}
+
+/* A month of the gauge's own record, as CSV rather than JSON: the same numbers in a third of the
+   bytes, and it compresses on the wire to a few tens of kilobytes. A gauge can carry more than one
+   measure, so the rows are grouped and the tidal one taken. */
+async function eaMonth(ref){
+  const since = new Date(Date.now() - TIDE_FIT_DAYS * 86400000).toISOString().replace(/\.\d+Z$/, 'Z');
+  const url = 'https://environment.data.gov.uk/flood-monitoring/id/stations/' +
+    encodeURIComponent(ref) + '/readings.csv?_sorted&since=' + encodeURIComponent(since) + '&_limit=4000';
+  const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), TIDE_FIT_TIMEOUT_MS) : null;
+  let r;
+  try { r = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined); }
+  finally { if (timer) clearTimeout(timer); }
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const text = await r.text();
+  const lines = text.split(/\r?\n/);
+  const head = (lines[0] || '').split(',');
+  const iT = head.indexOf('dateTime'), iM = head.indexOf('measure'), iV = head.indexOf('value');
+  if (iT < 0 || iV < 0) throw new Error('unexpected columns');
+  const groups = new Map();
+  for (let i = 1; i < lines.length; i++) {
+    const p = lines[i].split(',');
+    if (p.length <= iV) continue;
+    const t = Date.parse(p[iT]), v = parseFloat(p[iV]);
+    if (!isFinite(t) || !isFinite(v)) continue;
+    const m = iM >= 0 ? p[iM] : 'one';
+    if (!groups.has(m)) groups.set(m, []);
+    groups.get(m).push({ t, v });
+  }
+  let best = null, bestKey = '';
+  groups.forEach((rows, m) => {
+    const tidal = /tidal/i.test(m);
+    const score = rows.length * (tidal ? 10 : 1);
+    if (!best || score > best.score) { best = { rows, score }; bestKey = m; }
+  });
+  if (!best || best.rows.length < 400) throw new Error('not enough readings');
+  best.rows.sort((a, b) => a.t - b.t);
+  const datum = (bestKey.split('-').pop() || '').trim();
+  return { rows: best.rows, datum: /^m[A-Za-z]+$/.test(datum) ? datum : '' };
+}
+
+/* A fit is only offered if it actually describes the water. Twenty days of record, four hundred
+   readings and ninety per cent of the variance accounted for: below any of those the honest answer
+   is the measured level on its own. */
+async function tideHarmonics(ref){
+  const cached = readTideFit(ref);
+  if (cached) return cached;
+  const got = await eaMonth(ref);
+  const f = tideFit(got.rows);
+  if (!f) throw new Error('fit failed');
+  const ok = f.spanDays >= 20 && f.n >= 400 && f.r2 >= 0.9;
+  const out = { v: 1, at: Date.now(), epoch: f.epoch, z0: f.z0, c: f.c,
+    rms: f.rms, r2: f.r2, n: f.n, spanDays: f.spanDays, datum: got.datum, ok };
+  writeTideFit(ref, out);
+  if (!ok) throw new Error('fit too poor: r2 ' + f.r2.toFixed(3));
+  return out;
+}
+
 /* The free reading, from the Environment Agency's flood-monitoring API. Two changes after
    watching this fail in the field. It reads the station's last few readings rather than the
    station record: the same size of response, but it carries the trend as well as the level, and
@@ -2399,6 +2625,7 @@ const TIDE_RELAY = null;
    the tile ended up saying "unavailable" so often. Readings are 15 minutes apart, newest first. */
 const TIDE_TIMEOUT_MS = 8000;
 const TIDE_STALE_MS = 2 * 3600000;   // a tide cycle is 12.4 hours: past two, "now" is a fiction
+const TIDE_CREDIT = 'Environment Agency tide gauge data, Open Government Licence. Predicted times worked out on this device from that gauge\u2019s own record';
 function tideCacheKey(ref){ return 'nocto.tide.' + ref; }
 function readTideCache(ref){
   try {
@@ -2441,49 +2668,84 @@ function tideTrend(rows){
   const dir = change > 0.04 ? 'rising' : change < -0.04 ? 'falling' : 'slack';
   return { dir, change, rate, spanHours: hours };
 }
-async function loadTide(lat, lon, darkWin){
+
+/* The level comes back straight away, because it is one small request and it is what the tile can
+   show while anything else is happening. The month-long fit is a separate errand: cached for
+   thirty days, so it runs once per gauge and then never again that month, and it upgrades the tile
+   underneath the reader rather than making them wait for it. */
+function tideAttachEvents(fit){
+  if (!state.tide || !fit) return false;
+  const events = tideEvents(fit, Date.now() - 3600000, TIDE_HORIZON_H);
+  if (!events.length) return false;
+  state.tide.mode = 'forecast';
+  state.tide.events = events;
+  state.tide.datum = fit.datum;
+  state.tide.fitR2 = fit.r2;
+  state.tide.fitRms = fit.rms;
+  state.tide.fitAt = fit.at;
+  state.tide.credit = TIDE_CREDIT;
+  /* Which way the water is going is measured from the gauge when the gauge answered, and read off
+     the prediction when it did not: on the way to a high, it is rising. That needs no measurement
+     to know, and it is the one thing a person standing on a beach actually wants. */
+  if (!state.tide.trend || !state.tide.trend.dir) {
+    const next = events.find(e => e.t >= Date.now());
+    if (next) state.tide.trend = { dir: next.type === 'high' ? 'rising' : 'falling', predicted: true };
+  }
+  return true;
+}
+
+async function loadTide(lat, lon, darkWin, onUpdate){
   const st = nearestTideStation(lat, lon);
   if(!st) { state.tide = null; state.tideStatus = 'unavailable'; return false; }
-  if(TIDE_RELAY){
-    try{
-      const r = await fetch(TIDE_RELAY + '?lat=' + st.lat.toFixed(4) + '&lon=' + st.lon.toFixed(4), { cache: 'no-store' });
-      if(!r.ok) throw new Error('HTTP ' + r.status);
-      const j = await r.json();
-      const events = (j.events || []).map(ev => ({ t: Date.parse(ev.time), type: ev.type, height: ev.height })).filter(ev => isFinite(ev.t));
-      if(events.length){
-        const next = events.filter(ev => ev.t > Date.now()).sort((a, b) => a.t - b.t)[0];
-        state.tide = { mode: 'forecast', station: j.station || st.name, distanceKm: st.km, events,
-          // a tide on its way to high water is rising, and that needs no measurement to know
-          trend: next ? { dir: next.type === 'high' ? 'rising' : 'falling' } : null,
-          credit: j.credit || 'Contains ADMIRALTY\u00ae tidal data: \u00a9 Crown copyright and database right' };
-        state.tideStatus = 'live';
-        return true;
-      }
-    }catch(e){ /* falls through to the free reading below */ }
-  }
+  let haveLevel = false;
   try{
     const rows = await eaReadings(st.ref);
     const newest = rows[0];
     const trend = tideTrend(rows);
     state.tide = { mode: 'level', station: st.name, distanceKm: st.km,
-      value: newest.v, at: newest.t, trend, stale: false,
-      credit: 'Environment Agency, Open Government Licence' };
+      value: newest.v, at: newest.t, trend, stale: false, credit: TIDE_CREDIT };
     writeTideCache(st.ref, { at: newest.t, value: newest.v, trend, station: st.name });
     state.tideStatus = 'live';
-    return true;
+    haveLevel = true;
   }catch(e){
     /* Nothing from the gauge. A reading from the last couple of hours, clearly dated, beats a
        tile that says only that something went wrong. */
     const hit = readTideCache(st.ref);
     if (hit && Date.now() - hit.at < TIDE_STALE_MS) {
       state.tide = { mode: 'level', station: st.name, distanceKm: st.km,
-        value: hit.value, at: hit.at, trend: hit.trend || null, stale: true,
-        credit: 'Environment Agency, Open Government Licence' };
+        value: hit.value, at: hit.at, trend: hit.trend || null, stale: true, credit: TIDE_CREDIT };
       state.tideStatus = 'cached';
-      return true;
+      haveLevel = true;
     }
-    state.tide = null; state.tideStatus = 'unavailable'; return false;
   }
+
+  const cached = readTideFit(st.ref);
+  if (cached && cached.ok) {
+    if (!haveLevel) { state.tide = { mode: 'level', station: st.name, distanceKm: st.km,
+      value: null, at: null, trend: null, stale: false, credit: TIDE_CREDIT }; }
+    state.tideFitStatus = 'ready';
+    tideAttachEvents(cached);
+    state.tideStatus = state.tideStatus === 'cached' ? 'cached' : 'live';
+    return true;
+  }
+  if (cached && !cached.ok) { state.tideFitStatus = 'poor'; return haveLevel; }
+
+  if (!haveLevel) { state.tide = null; state.tideStatus = 'unavailable'; }
+  state.tideFitStatus = 'fitting';
+  tideHarmonics(st.ref).then(fit => {
+    state.tideFitStatus = 'ready';
+    if (!state.tide) {
+      state.tide = { mode: 'level', station: st.name, distanceKm: st.km,
+        value: null, at: null, trend: null, stale: false, credit: TIDE_CREDIT };
+      state.tideStatus = 'live';
+    }
+    tideAttachEvents(fit);
+    if (onUpdate) onUpdate(true);
+  }).catch(() => {
+    state.tideFitStatus = 'poor';
+    if (onUpdate) onUpdate(false);
+  });
+  return haveLevel;
 }
 
 
@@ -2877,7 +3139,7 @@ function helio(name, T){
 }
 
 /* Geocentric apparent place, plus the brightness, since "Mars near the moon" means something
-   different at magnitude 1.8 than at −1.5. Phase angle comes from the sun–planet–earth triangle. */
+   different at magnitude 1.8 than at âˆ’1.5. Phase angle comes from the sunâ€“planetâ€“earth triangle. */
 function planetPos(jd, name){
   const T = centuries(jd);
   const p = helio(name, T), E = helio('Earth', T);
@@ -3000,7 +3262,7 @@ window.NoctoEngine = {
   loadSolarWind, windState, loadOvation, ovationAt, ovationScan,
   polewardGlow, allSkyGlow, COMPASS16, loadPolewardCloud, auroraThresholds,
   loadNearbyScan, DRIVE_RADIUS_KM,
-  TIDE_STATIONS, nearestTideStation, loadTide, tideTrend,
+  TIDE_STATIONS, nearestTideStation, loadTide, tideTrend, tideHarmonics, tideFit, tideEvents, harmEval,
   loadAlerts, watchFor, gToKp, loadOutlook27, outlookKp, recurrenceAhead,
   AURORA_CAL, loadHp30, hpNow, loadHemiPower, windDerived, newell,
   PLANETS, PLANET_ORDER, planetPos, skyBodies, conjunctions, pairLabel,
