@@ -144,18 +144,18 @@ window.noctoTrack = function (name) {
       new MutationObserver(function (recs, obs) {
         var img = document.querySelector('img[data-logo]');
         if (!img) return;
-        if (p !== 'obsidian') img.src = '../assets/logo/' + p + '.png?v=2026-08-15';
+        if (p !== 'obsidian') img.src = './assets/logo/' + p + '.png?v=2026-08-15';
         obs.disconnect();
       }).observe(document.documentElement, { childList: true, subtree: true });
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=1.1.3"></script>
-<script src="../noctography-sat.js?v=1.1.3"></script>
-<script src="../noctography-plan.js?v=1.1.3"></script>
-<script src="../noctography-ar.js?v=1.1.3"></script>
-<script src="../noctography-log.js?v=1.1.3"></script>
-<script src="../noctography-terrain.js?v=1.1.3"></script>
+<script src="../noctography-engine.js?v=1.1.4"></script>
+<script src="../noctography-sat.js?v=1.1.4"></script>
+<script src="../noctography-plan.js?v=1.1.4"></script>
+<script src="../noctography-ar.js?v=1.1.4"></script>
+<script src="../noctography-log.js?v=1.1.4"></script>
+<script src="../noctography-terrain.js?v=1.1.4"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -277,6 +277,9 @@ window.noctoTrack = function (name) {
       <button type="button" onClick="{{ openLocation }}" style="min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; flex: 0 1 auto; max-width: min(46%, 170px); min-width: 0;">
         <span data-nv-dot="on" style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: 0 0 6px;"></span>
         <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ placeName }}</span>
+      </button>
+      <button type="button" onClick="{{ openArAll }}" aria-label="Open Sky AR" title="Open Sky AR" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: var(--accent); color: var(--ink); cursor: pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"></rect><path d="M10 6.5h4"></path><circle cx="12" cy="13" r="2.6"></circle></svg>
       </button>
     </header>
 
@@ -473,12 +476,9 @@ window.noctoTrack = function (name) {
     <sc-if value="{{ isTonight }}" hint-placeholder-val="{{ true }}">
       <section data-screen-label="Tonight" style="display: grid; gap: 14px;">
 
-        <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: start; padding: 4px 0 2px;">
-          <h1 style="grid-column: 1; grid-row: 1; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(30px, 9vw, 40px); line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ greeting }}</h1>
-          <button type="button" onClick="{{ openArAll }}" title="Point your phone at the sky" aria-label="Point your phone at the sky" style="grid-column: 2; grid-row: 1; align-self: start; width: 46px; height: 46px; margin-top: 2px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 999px; background: transparent; color: var(--dim); cursor: pointer;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"></rect><path d="M10 6.5h4"></path><circle cx="12" cy="13" r="2.6"></circle></svg>
-          </button>
-          <p style="grid-column: 1 / -1; grid-row: 2; margin: 0; font-size: 19px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ greetLine }}</p>
+        <div style="display: grid; gap: 8px; padding: 4px 0 2px;">
+          <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(30px, 9vw, 40px); line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ greeting }}</h1>
+          <p style="margin: 0; font-size: 19px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ greetLine }}</p>
         </div>
 
         <sc-if value="{{ conjOn }}" hint-placeholder-val="{{ false }}">
@@ -1706,15 +1706,20 @@ window.noctoTrack = function (name) {
     </sc-if>
 
     <sc-if value="{{ isSky }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Sky" style="display: grid; gap: 14px;">
+      <section data-screen-label="Sky AR" style="display: grid; gap: 14px;">
 
         <sc-if value="{{ skyList }}" hint-placeholder-val="{{ true }}">
           <div style="display: grid; gap: 13px;">
             <div style="display: grid; gap: 7px; padding: 4px 0 2px;">
-              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Sky</span>
+              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Sky AR</span>
               <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(28px, 8.5vw, 36px); line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ skyHead }}</h1>
               <p style="margin: 0; font-size: 17px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ skySub }}</p>
             </div>
+
+            <button type="button" onClick="{{ openArAll }}" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 58px; border: 0; border-radius: 10px; background: var(--accent); color: var(--ink); font-family: 'Barlow', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: .02em; cursor: pointer;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"></rect><path d="M10 6.5h4"></path><circle cx="12" cy="13" r="2.6"></circle></svg>
+              Open Sky AR
+            </button>
 
             <sc-if value="{{ skyPoorOn }}" hint-placeholder-val="{{ false }}">
               <p style="display: grid; gap: 4px; margin: 0; padding: 12px 14px; background: rgba(var(--well-rgb),.5); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 10px;">
@@ -1737,11 +1742,6 @@ window.noctoTrack = function (name) {
                 <span>{{ cursorTo }}</span>
               </div>
             </div>
-
-            <button type="button" onClick="{{ openArAll }}" style="display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 50px; border: 1px solid rgba(var(--line-rgb),.22); border-radius: 999px; background: transparent; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"></rect><path d="M10 6.5h4"></path><circle cx="12" cy="13" r="2.6"></circle></svg>
-              Point your phone
-            </button>
 
             <sc-for list="{{ skyPicks }}" as="p" hint-placeholder-count="4">
               <button type="button" onClick="{{ p.go }}" style="display: grid; grid-template-columns: 76px 1fr; gap: 13px; text-align: left; padding: clamp(12px, 3.4vw, 15px); background: {{ p.bg }}; border: 1px solid {{ p.border }}; border-radius: 10px; color: var(--text); font-family: 'Barlow', sans-serif; cursor: pointer;">
@@ -1858,7 +1858,7 @@ window.noctoTrack = function (name) {
 
             <div style="display: flex; gap: 8px;">
               <button type="button" onClick="{{ openFrame }}" style="flex: 1; min-height: 52px; border: 1px solid var(--accent); border-radius: 999px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;">Frame it</button>
-              <button type="button" onClick="{{ openArHere }}" aria-label="Point your phone at it" style="flex: 0 0 56px; min-height: 52px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(var(--line-rgb),.22); border-radius: 999px; background: transparent; color: var(--text2); cursor: pointer;">
+              <button type="button" onClick="{{ openArHere }}" aria-label="Open Sky AR" title="Open Sky AR" style="flex: 0 0 56px; min-height: 52px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: var(--accent); color: var(--ink); cursor: pointer;">
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"></rect><path d="M10 6.5h4"></path><circle cx="12" cy="13" r="2.6"></circle></svg>
               </button>
             </div>
@@ -1869,6 +1869,7 @@ window.noctoTrack = function (name) {
           <div style="display: grid; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
               <button type="button" onClick="{{ closeFrame }}" style="min-height: 44px; padding: 0 14px 0 10px; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13.5px; white-space: nowrap; flex: 0 0 auto; cursor: pointer;">‹ Back</button>
+              <button type="button" onClick="{{ frameGoKit }}" style="min-height: 44px; padding: 0 14px; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13.5px; white-space: nowrap; flex: 0 0 auto; cursor: pointer;">Kit ›</button>
               <span style="margin-left: auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ frameFov }}</span>
             </div>
 
@@ -1898,11 +1899,17 @@ window.noctoTrack = function (name) {
             </div>
 
             <div style="display: grid; gap: 7px;">
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <button type="button" onClick="{{ frameDayBack }}" aria-label="A day earlier" style="flex: 0 0 auto; width: 40px; height: 40px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: none; color: var(--text2); font-size: 17px; line-height: 1; cursor: pointer;">‹</button>
+                <input type="date" value="{{ frameDateValue }}" onChange="{{ onFrameDate }}" aria-label="Date to frame" style="flex: 1; min-width: 0; min-height: 40px; padding: 0 10px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: rgba(var(--line-rgb),.05); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px;">
+                <button type="button" onClick="{{ frameDayFwd }}" aria-label="A day later" style="flex: 0 0 auto; width: 40px; height: 40px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: none; color: var(--text2); font-size: 17px; line-height: 1; cursor: pointer;">›</button>
+                <button type="button" onClick="{{ frameTonight }}" data-nv-active="{{ frameTonightOn }}" style="flex: 0 0 auto; min-height: 40px; padding: 0 13px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Tonight</button>
+              </div>
               <input type="range" min="0" max="100" value="{{ frameScrub }}" onInput="{{ onScrub }}" aria-label="Time through the night" style="width: 100%; height: 26px; accent-color: var(--accent);">
               <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--faint);">
-                <span>{{ sFrom }}</span>
+                <span>{{ frameSFrom }}</span>
                 <span>{{ frameClock }}</span>
-                <span>{{ sTo }}</span>
+                <span>{{ frameSTo }}</span>
               </div>
             </div>
 
@@ -1916,6 +1923,15 @@ window.noctoTrack = function (name) {
               <sc-for list="{{ frameToggles }}" as="g" hint-placeholder-count="3">
                 <button type="button" onClick="{{ g.go }}" data-nv-active="{{ g.on }}" style="flex: 1; min-height: 46px; border: 1px solid {{ g.bd }}; border-radius: 8px; background: {{ g.bg }}; color: {{ g.fg }}; font-family: 'Barlow', sans-serif; font-size: 13.5px; cursor: pointer;">{{ g.label }}</button>
               </sc-for>
+            </div>
+
+            <div style="display: grid; gap: 7px;">
+              <span style="font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--faint);">Exposure</span>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span aria-hidden="true" style="flex: 0 0 auto; width: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; line-height: 1; color: var(--faint);">&#8722;</span>
+                <input type="range" min="0" max="100" step="1" value="{{ frameExposure }}" onInput="{{ onFrameExposure }}" aria-label="Exposure" style="flex: 1; min-width: 0; height: 26px; accent-color: var(--accent);">
+                <span aria-hidden="true" style="flex: 0 0 auto; width: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; line-height: 1; color: var(--faint);">+</span>
+              </div>
             </div>
 
             <div style="display: grid; gap: 7px; padding: clamp(13px, 3.6vw, 15px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
@@ -2184,6 +2200,13 @@ window.noctoTrack = function (name) {
                   <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 1; min-height: 46px; padding: 0 4px; border: 1px solid {{ c.bd }}; border-radius: 8px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: {{ c.font }}; font-size: 13px; cursor: pointer;">{{ c.label }}</button>
                 </sc-for>
               </div>
+              <sc-if value="{{ row.custom }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 12.5px; color: var(--faint); white-space: nowrap;">or type one</span>
+                  <input type="number" min="1" max="2000" step="1" value="{{ row.customValue }}" onChange="{{ row.onCustomFocal }}" aria-label="Custom focal length in millimetres" style="flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: rgba(var(--line-rgb),.05); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px;">
+                  <span style="font-size: 13px; color: var(--faint);">mm</span>
+                </div>
+              </sc-if>
             </div>
           </sc-for>
         </div>
@@ -2584,6 +2607,15 @@ window.noctoTrack = function (name) {
           </a>
         </div>
 
+        <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">AR sky imagery</span>
+        <div style="display: grid; gap: 8px;">
+          <a href="../attribution.html" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">Stellarium nebula texture set</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">stellarium.org</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Real photographs for the 118 objects of a degree or more that AR draws in place of an outline. Full credit and licence for every one on its own page, generated from the same list that ships.</span>
+          </a>
+        </div>
+
         <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Published models and type</span>
         <div style="display: grid; gap: 8px;">
           <a href="https://ui.adsabs.harvard.edu/abs/1991PASP..103.1033K/abstract" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
@@ -2779,6 +2811,7 @@ window.noctoTrack = function (name) {
 
     <div ref="{{ setArStage }}" onClick="{{ onArTap }}" onPointerDown="{{ arCalDown }}" onPointerMove="{{ arCalMove }}" onPointerUp="{{ arCalUp }}" onPointerCancel="{{ arCalUp }}" style="position: relative; overflow: hidden; touch-action: none;">
       <video ref="{{ setArVideo }}" playsinline="playsinline" muted="muted" autoplay="autoplay" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: {{ arVideoOpacity }}; filter: {{ arVideoFilter }};"></video>
+      <canvas ref="{{ setArImgCanvas }}" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; pointer-events: none; filter: {{ arVideoFilter }};"></canvas>
       <canvas ref="{{ setArCanvas }}" style="position: absolute; inset: 0; width: 100%; height: 100%;"></canvas>
 
       <div style="position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,0));">
@@ -2868,6 +2901,17 @@ window.noctoTrack = function (name) {
         </div>
       </div>
 
+      <div style="display: grid; gap: 7px;">
+        <div style="display: flex; align-items: baseline; gap: 10px;">
+          <span style="font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: rgba(240,236,228,.5);">Exposure</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span aria-hidden="true" style="flex: 0 0 auto; width: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; line-height: 1; color: rgba(240,236,228,.45);">&#8722;</span>
+          <input type="range" min="0" max="100" step="1" value="{{ arExposure }}" onInput="{{ onArExposure }}" aria-label="Exposure" style="flex: 1; min-width: 0; height: 26px; accent-color: var(--accent);">
+          <span aria-hidden="true" style="flex: 0 0 auto; width: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; line-height: 1; color: rgba(240,236,228,.45);">+</span>
+        </div>
+      </div>
+
       <div style="display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;">
         <sc-for list="{{ arSubjectChips }}" as="c" hint-placeholder-count="4">
           <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 13px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 13px; white-space: nowrap; cursor: pointer;">{{ c.label }}</button>
@@ -2902,6 +2946,7 @@ class Component extends DCLogic {
     skyView: 'list', skySel: null, showSkyOut: false, showNpfInfo: false, skyScrub: null,
     filmSecs: 10, showTl: false,
     framePitch: 34, frameScrub: 40, frameAz: null, frameThirds: true, frameLabels: true, frameElements: true,
+    frameExposure: 100, frameDate: null,
     calView: null, calOffset: 0, calSel: null,
     nearbyOpen: false, nearbyDrive: null, nearbyStatus: 'idle', nbView: null, noticeDone: {}, buildsOpen: false,
     tideChecked: false, tideShowInfo: false,
@@ -2912,6 +2957,11 @@ class Component extends DCLogic {
     arOpen: false, arScrub: null, arDate: null, arSubject: 'all', arTrails: 0, arCam: true,
     arMotion: null, arCamOk: null, arAligning: false, arShowTune: false, arCal: false, arNudge: 0, arHfov: 62, arTick: 0,
     arAnchor: null, arLandscape: false,
+    /* The photographic sky. 118 catalogue objects of 1 degree or more, everything else keeps the
+       ellipse. Exposure defaults to the reference sky, full and unmodulated: the job AR does is
+       finding a composition, not grading tonight, so it opens showing what the source photographs
+       actually hold rather than a sky nobody standing there tonight would see. */
+    arObjs: null, arExposure: 100,
     t: null, kp: null, nights: [], sky: null, wx: 'idle', clim: 'idle', tick: 0, nv: false,
     iss: null, issState: 'idle', issTleAge: null, trains: null, count: 0, trainState: 'idle', focal: '24', favs: [],
     logView: 'auto', logMonth: null, logKey: null, logStep: -1, logShotId: null, logToast: '',
@@ -2969,8 +3019,23 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '1.1.3';
+  VERSION = '1.1.4';
   BUILDS = [
+    {
+      v: '1.1.4', date: '2026-09-01', silent: true,
+      title: 'Real skies in AR',
+      intro: 'The AR overlay now shows the sky as it actually looks, not just where things are:',
+      bullets: [
+        'Every catalogue object in Sky AR is a real photograph now, sized, rotated and placed exactly where it sits, in both AR and Frame it.',
+        'The Milky Way is a photograph too, calibrated to its real position rather than drawn as a band.',
+        'An exposure slider brightens the sky and the Milky Way together, so a faint scene can be pushed closer to what the camera will actually pull out.',
+        'Frame it now scrubs by date, so you can watch the Milky Way core swing into season before committing to a night.',
+        'Sky AR moved up next to Place, renamed from Sky, and got its own "Open Sky AR" button on every tab.',
+        'Kit gained 50mm and 135mm presets, plus a field for typing in any focal length.',
+        'A new attribution page for every object and image credited in Sky AR, linked from Credits.',
+      ],
+      foot: '',
+    },
     {
       v: '1.1.3', date: '2026-09-01', silent: true,
       title: 'Bugs squashed',
@@ -3182,7 +3247,7 @@ class Component extends DCLogic {
   syncLogo(k) {
     const logo = document.querySelector('img[data-logo]');
     if (!logo || !this.PALETTES[k]) return;
-    const want = '../assets/logo/' + k + '.png?v=2026-08-15';
+    const want = './assets/logo/' + k + '.png?v=2026-08-15';
     if (!logo.getAttribute('src').endsWith(k + '.png?v=2026-08-15')) logo.setAttribute('src', want);
   }
 
@@ -3840,7 +3905,7 @@ class Component extends DCLogic {
       if (!document.querySelector('link[rel="icon"]')) {
         const fav = document.createElement('link');
         fav.rel = 'icon'; fav.type = 'image/png'; fav.sizes = '512x512';
-        fav.href = '../favicon.png?v=2026-08-18p';        // sits beside the page in the repo
+        fav.href = './favicon.png?v=2026-08-18p';        // sits beside the page in the repo
         document.head.appendChild(fav);
       }
       const icon = document.querySelector('link[rel="apple-touch-icon"]');
@@ -3872,7 +3937,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=1.1.3';
+    s.src = './pano-calculator.js?v=1.1.4';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -4267,10 +4332,10 @@ class Component extends DCLogic {
       navItems: [
         { key: 'tonight', label: 'Tonight' },
         { key: 'map', label: 'Place' },
+        { key: 'sky', label: 'Sky AR' },
         { key: 'aurora', label: 'Aurora', off: !auroraOn },
         { key: 'meteors', label: 'Meteors' },
         { key: 'trails', label: 'Trails' },
-        { key: 'sky', label: 'Sky' },
         { key: 'pano', label: 'Pano' },
         { key: 'kit', label: 'Kit' },
         { key: 'more', label: 'More' },
@@ -4770,16 +4835,12 @@ class Component extends DCLogic {
 
     const out = {
       skyList: st.skyView === 'list', skyDetail: st.skyView === 'detail' && !!sel, skyFrame: st.skyView === 'frame' && !!sel,
-      skyHead: !r.picks.length
-        ? 'Nothing much clears the horizon tonight.'
-        : r.picks.some(p => p.el.id === 'core')
-          ? 'The core isn\u2019t the only show.'
-          : 'What is worth pointing at tonight.',
+      skyHead: 'What to shoot tonight',
       skySub: !r.picks.length
         ? 'Between the moon, the cloud and the season, tonight is a night off.'
         : r.thin
           ? 'Nothing is really well placed tonight, so these are the closest to it.'
-          : 'Ranked for the impact of tonight\u2019s moon, humidity, cloud and light pollution.',
+          : 'Popular objects ranked for tonight\u2019s moon, humidity, cloud and light pollution.',
       /* On a night nobody would go out on, saying so first is worth more than a ranked list that
          reads like an invitation. The list stays: it is still what you want when you are planning
          rather than going. */
@@ -5014,6 +5075,7 @@ class Component extends DCLogic {
   }
 
   openFrame() {
+    this.loadArObjs();
     const sel = this.rank() && this.state.skySel
       ? this.rank().picks.concat(this.rank().out).find(p => p.el.id === this.state.skySel) : null;
     const b = sel && sel.best;
@@ -5029,10 +5091,32 @@ class Component extends DCLogic {
     return Math.round(((when.getTime() - a) / (b - a)) * 100);
   }
   frameTime() {
-    const t = this.state.t;
+    const st = this.state;
+    if (st.frameDate) {
+      const base = new Date(st.frameDate + 'T12:00:00');
+      if (!isNaN(base)) return new Date(base.getTime() + (st.frameScrub / 100) * 86400000);
+    }
+    const t = st.t;
     if (!t || !t.darkWin) return new Date();
     const a = t.darkWin.from.getTime(), b = t.darkWin.to.getTime();
-    return new Date(a + (this.state.frameScrub / 100) * (b - a));
+    return new Date(a + (st.frameScrub / 100) * (b - a));
+  }
+  /* Framing is a scouting job, not just a tonight job: the Milky Way core out of season, or a
+     shower's radiant before it rises for the year, both want to be checked by picking the date
+     rather than only living inside tonight's dark window. Noon to noon, same as AR, so a whole
+     night sits in the middle of the slider rather than split across its two ends. */
+  frameDateValue() {
+    if (this.state.frameDate) return this.state.frameDate;
+    const t = this.state.t;
+    return this.arDateStr(t && t.darkWin ? t.darkWin.from : new Date());
+  }
+  frameShiftDay(n) {
+    const base = this.state.frameDate ? new Date(this.state.frameDate + 'T12:00:00') : this.frameTime();
+    base.setDate(base.getDate() + n);
+    this.setState({ frameDate: this.arDateStr(base), frameScrub: this.state.frameScrub == null ? 50 : this.state.frameScrub });
+  }
+  frameGoTonight() {
+    this.setState({ frameDate: null, frameScrub: this.scrubFor(new Date()) });
   }
 
   setFrameCanvas = el => { this._frameEl = el; if (el) setTimeout(() => this.drawFrame(), 0); };
@@ -5060,11 +5144,25 @@ class Component extends DCLogic {
       panLabel: 'facing ' + E.compass(az) + ' \u00b7 ' + Math.round(((az % 360) + 360) % 360) + '\u00b0',
       onPitch: e => this.setState({ framePitch: Number(e.target.value) }),
       onScrub: e => this.setState({ frameScrub: Number(e.target.value) }),
-      frameClock: this.hhmm(when),
+      frameDateValue: this.frameDateValue(),
+      onFrameDate: e => {
+        const v = e.target.value;
+        this.setState({ frameDate: v || null, frameScrub: v ? (st.frameScrub == null ? 50 : st.frameScrub) : this.scrubFor(new Date()) });
+      },
+      frameDayBack: () => this.frameShiftDay(-1),
+      frameDayFwd: () => this.frameShiftDay(1),
+      frameTonight: () => this.frameGoTonight(),
+      frameTonightOn: st.frameDate ? 'off' : 'on',
+      frameClock: (st.frameDate
+        ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][when.getDay()] + ' ' + when.getDate() + ' ' + E.MONTHS[when.getMonth()] + ', '
+        : '') + this.hhmm(when),
+      frameSFrom: st.frameDate ? 'noon' : (st.t && st.t.darkWin ? this.hhmm(st.t.darkWin.from) : '\u2013'),
+      frameSTo: st.frameDate ? 'noon next day' : (st.t && st.t.darkWin ? this.hhmm(st.t.darkWin.to) : '\u2013'),
       frameLook: 'Looking ' + E.compass(az),
       frameFov: kit.focal + 'mm \u00b7 ' + P.SENSORS[kit.sensor].label + ' \u00b7 '
         + (kit.orient === 'port' ? 'portrait' : 'landscape') + ' \u00b7 '
         + Math.round(d.across) + '\u00b0 \u00d7 ' + Math.round(d.down) + '\u00b0',
+      frameGoKit: () => this.goTab('kit'),
       pitchLabel: 'aimed ' + (pitch < 0 ? Math.abs(pitch) + '\u00b0 down' : pitch + '\u00b0 up'),
       spanLabel: topAlt >= 90 ? 'frame spans ' + Math.round(bottomAlt) + '\u00b0 to past the zenith'
         : 'frame spans ' + Math.round(bottomAlt) + '\u00b0 to ' + Math.round(topAlt) + '\u00b0',
@@ -5074,6 +5172,8 @@ class Component extends DCLogic {
         this.chip('Labels', st.frameLabels, () => this.setState({ frameLabels: !st.frameLabels })),
         this.chip('Subjects', st.frameElements, () => this.setState({ frameElements: !st.frameElements })),
       ],
+      frameExposure: st.frameExposure,
+      onFrameExposure: e => this.setState({ frameExposure: Number(e.target.value) }),
       framingLine: kit.focal + 'mm \u00b7 ' + (kit.orient === 'port' ? 'portrait' : 'landscape') + ' \u00b7 '
         + Math.round(d.across) + '\u00b0 \u00d7 ' + Math.round(d.down) + '\u00b0 \u00b7 ' + this.hhmm(when)
         + ' \u00b7 ' + Math.round(ex.secs) + 's',
@@ -5151,19 +5251,36 @@ class Component extends DCLogic {
       });
     };
 
-    // the Milky Way, drawn from the galactic equator rather than from a photograph
-    ctx.save();
-    ctx.strokeStyle = nv ? 'rgba(255,59,24,.2)' : 'rgba(' + pal.brightRgb + ',.16)';
-    ctx.lineWidth = 58; ctx.lineCap = 'round';
-    let started = false;
-    sky.gal.forEach(g => {
-      const p = pr(g.alt, g.az);
-      if (!p) { started = false; return; }
-      if (!started) { ctx.beginPath(); ctx.moveTo(p.x, p.y); started = true; }
-      else ctx.lineTo(p.x, p.y);
-    });
-    if (started) ctx.stroke();
-    ctx.restore();
+    // the Milky Way, as a photograph on the same gnomonic projection, so the Great Rift's dark
+    // lane shows as real structure rather than an even glow. Falls back to the plain stroke while
+    // the source image is still loading.
+    const lst = E.lstOf(E.jdFrom(when), E.state.lon);
+    if (!this._frameBand) this._frameBand = { cv: null, t: 0 };
+    const bandGain = Math.max(0, Math.min(1, (st.frameExposure / 100) * 1.5 - 0.06)) * 0.95;
+    const frameBandCv = bandGain > 0.01 ? this.bandLayer(this._frameBand, pr, E.state.lat, lst, W, H, 80, 40, 0) : null;
+    if (frameBandCv) {
+      ctx.save();
+      // the source photograph is genuinely dark (its own night sky, not a display); boosted here
+      // rather than baked into the mesh, so the exposure slider still reads the same everywhere
+      ctx.filter = (nv ? 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(1.8)' : 'brightness(3.5) contrast(1.1)');
+      ctx.globalAlpha = bandGain;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.drawImage(frameBandCv, 0, 0, W, H);
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.strokeStyle = nv ? 'rgba(255,59,24,.2)' : 'rgba(' + pal.brightRgb + ',.16)';
+      ctx.lineWidth = 58; ctx.lineCap = 'round';
+      let started = false;
+      sky.gal.forEach(g => {
+        const p = pr(g.alt, g.az);
+        if (!p) { started = false; return; }
+        if (!started) { ctx.beginPath(); ctx.moveTo(p.x, p.y); started = true; }
+        else ctx.lineTo(p.x, p.y);
+      });
+      if (started) ctx.stroke();
+      ctx.restore();
+    }
 
     // stars, sized by magnitude
     sky.stars.forEach(s => {
@@ -5178,6 +5295,54 @@ class Component extends DCLogic {
       if (st.frameLabels && s.name && s.mag < 1.3)
         say(s.name, p.x + 11, p.y + 6, '500 17px "JetBrains Mono", ui-monospace, monospace', dim, 6);
     });
+
+    /* Real photographs for the 118 catalogue objects of a degree or more, same source and same
+       maths as the AR view: the two offset vectors from the projected centre ARE the affine
+       transform. No screen blend needed here since there is no camera to protect, just a
+       'lighter' pass so overlapping sprites add rather than punch through each other. */
+    if (st.frameElements && st.arObjs && st.arObjs.length && st.frameExposure > 1) {
+      const FD = Math.PI / 180;
+      const frames = P.arSpriteFrames(st.arObjs, when, E.state.lat, E.state.lon);
+      const aimV = [Math.sin(aimAz * FD) * Math.cos(aimAlt * FD), Math.cos(aimAz * FD) * Math.cos(aimAlt * FD), Math.sin(aimAlt * FD)];
+      const cullCos = Math.cos(Math.min(85, Math.hypot(viewAcross, viewDown) / 2 + 12) * FD);
+      const expT = st.frameExposure / 100;
+      const seenSubjects = new Set();
+      ctx.save();
+      if (nv) ctx.filter = 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(.6)';
+      ctx.globalCompositeOperation = 'lighter';
+      frames.forEach(fr => {
+        const o = fr.o;
+        const v = [Math.sin(fr.az * FD) * Math.cos(fr.alt * FD), Math.cos(fr.az * FD) * Math.cos(fr.alt * FD), Math.sin(fr.alt * FD)];
+        if (v[0] * aimV[0] + v[1] * aimV[1] + v[2] * aimV[2] < cullCos) return;   // cull in angles first
+        const p = pr(fr.alt, fr.az); if (!p || p.x < -80 || p.x > W + 80 || p.y < -80 || p.y > H + 80) return;
+        const pE = pr(fr.eAlt, fr.eAz), pN = pr(fr.nAlt, fr.nAz);
+        if (!pE || !pN) return;
+        const ax = pE.x - p.x, ay = pE.y - p.y, bx = pN.x - p.x, by = pN.y - p.y;
+        const size = Math.max(Math.hypot(ax, ay), Math.hypot(bx, by)) * 2;
+        if (!isFinite(size) || size > Math.max(W, H) * 6) return;
+        const gain = this.arSpriteGain(o, expT);
+        if (gain < 0.02) return;
+        const spr = this.arSpriteImg(o);
+        if (spr) {
+          ctx.save();
+          ctx.globalAlpha = gain;
+          ctx.setTransform(ax, ay, -bx, -by, p.x, p.y);
+          ctx.drawImage(spr, -1, -1, 2, 2);
+          ctx.restore();
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
+        if (st.frameLabels && size > 22) {
+          const nm = this.arSpriteSubject(o.n);
+          if (!seenSubjects.has(nm)) {
+            seenSubjects.add(nm);
+            const below = fr.alt < this.hzAt(fr.az);
+            say(nm.toUpperCase(), p.x - Math.hypot(ax, ay) * 0.5, p.y + Math.hypot(bx, by) + 14,
+              '600 16px Barlow, sans-serif', below ? (nv ? 'rgba(255,59,24,.28)' : 'rgba(240,236,228,.28)') : dim, 3.5);
+          }
+        }
+      });
+      ctx.restore();
+    }
 
     // the catalogue, true to angular size
     // where the frame will sit, worked out before the catalogue so labels can be clipped to it
@@ -5315,7 +5480,7 @@ class Component extends DCLogic {
     const kit = this.kit(), d = P.kitDerived(kit);
     const sensors = ['ff', 'aps', 'apsc', 'mft'];
     const mps = [24, 33, 45.7, 61];
-    const focals = [14, 20, 24, 35, 85];
+    const focals = [14, 20, 24, 35, 50, 85, 135];
     const aps = [1.4, 1.8, 2.8, 4];
     const npf = d.npf * (kit.tol === 'relax' ? 2 : 1);
     const thirds = P.hoursForFraction(kit, 1 / 3, 0);
@@ -5324,7 +5489,9 @@ class Component extends DCLogic {
       kitRows: [
         { label: 'Sensor', chips: sensors.map(s => this.chip(P.SENSORS[s].label.replace('full frame', 'Full frame').replace('APS-C Canon', 'APS-C 1.6'), kit.sensor === s, () => this.setKit({ sensor: s }))) },
         { label: 'Megapixels', chips: mps.map(m => this.chip(String(m), kit.mp === m, () => this.setKit({ mp: m }), true)) },
-        { label: 'Lens', chips: focals.map(f => this.chip(String(f), kit.focal === f, () => this.setKit({ focal: f }), true)) },
+        { label: 'Lens', chips: focals.map(f => this.chip(String(f), kit.focal === f, () => this.setKit({ focal: f }), true)),
+          custom: true, customValue: kit.focal,
+          onCustomFocal: e => { const v = Math.round(Number(e.target.value)); if (v > 0 && v <= 2000) this.setKit({ focal: v }); } },
         { label: 'Widest aperture', chips: aps.map(a => this.chip('f/' + a, kit.aperture === a, () => this.setKit({ aperture: a }), true)) },
         { label: 'Orientation', chips: [this.chip('Landscape', kit.orient !== 'port', () => this.setKit({ orient: 'land' })), this.chip('Portrait', kit.orient === 'port', () => this.setKit({ orient: 'port' }))] },
       ],
@@ -5358,6 +5525,140 @@ class Component extends DCLogic {
   setArStage = el => { this._arStage = el; };
   setArVideo = el => { this._arVideo = el; };
   setArCanvas = el => { this._arCanvas = el; if (el) this.arLoop(); };
+  setArImgCanvas = el => { this._arImgCanvas = el; };
+
+  /* The 118-object catalogue, fetched once and kept for the life of the tab. Bundling it rather
+     than streaming per-subject is the build note's call: AR is used in fields with no signal, so
+     "fetched on first use" can mean fetched exactly when there is no network. This still fetches
+     on open because the file is not yet part of this project's asset bundle; once it is, this
+     line is the only thing that changes. */
+  loadArObjs() {
+    if (this.state.arObjs || this._arObjsReq) return;
+    this._arObjsReq = true;
+    fetch('ar-sky-objects.json').then(r => r.json()).then(objs => this.setState({ arObjs: objs }))
+      .catch(() => { this._arObjsReq = false; });
+  }
+
+  /* The multi-tile subjects are named once rather than once per tile: stripping trailing digits
+     would turn a real catalogue designation like Sh2-264 into nonsense, so the four families that
+     ship as several files are named explicitly instead. */
+  arSpriteSubject(name) {
+    const MULTI = [
+      [/^Barnard Loop/i, 'Barnard\u2019s Loop'], [/^Lmc\b/i, 'Large Magellanic Cloud'],
+      [/^Smc/i, 'Small Magellanic Cloud'], [/^Rho[- ]?A\d/i, 'Rho Ophiuchi'],
+    ];
+    for (let i = 0; i < MULTI.length; i++) if (MULTI[i][0].test(name)) return MULTI[i][1];
+    return name;
+  }
+
+  /* Alpha falloff baked once per texture and cached: sources are rectangles with hard borders and
+     the sky is not made of rectangles, so without this every sprite is a visible stamp. Nebulosity
+     two degrees or wider gets a generous falloff; compact objects get a tighter one so the object
+     itself is not eaten. Loaded from the Stellarium set directly for now: the build note's call to
+     bundle these as individual WebP files is an asset-pipeline job this environment cannot run,
+     so this is the one deliberate gap between this build and task 1 of the build sheet. */
+  arSpriteImg(o) {
+    if (!this._arSprites) this._arSprites = new Map();
+    const hit = this._arSprites.get(o.f);
+    if (hit) return hit.ready ? hit.cv : null;
+    const rec = { ready: false, cv: null };
+    this._arSprites.set(o.f, rec);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const s = Math.min(512, img.naturalWidth || 512);
+      const cv = document.createElement('canvas');
+      cv.width = s; cv.height = s;
+      const c = cv.getContext('2d');
+      c.drawImage(img, 0, 0, s, s);
+      const soft = Math.max(o.w, o.h) >= 2 ? 0.30 : 0.62;
+      const g = c.createRadialGradient(s / 2, s / 2, s * soft * 0.5, s / 2, s / 2, s * 0.5);
+      g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      c.globalCompositeOperation = 'destination-in';
+      c.fillStyle = g; c.fillRect(0, 0, s, s);
+      rec.cv = cv; rec.ready = true;
+    };
+    img.onerror = () => { rec.failed = true; };
+    img.src = 'https://cdn.jsdelivr.net/gh/Stellarium/stellarium@master/nebulae/default/' + o.f;
+    return null;
+  }
+
+  /* The Milky Way band, as a photograph rather than a stroke: Solar System Scope's "Stars + Milky
+     Way" panorama, CC BY 4.0, now a project asset rather than an external fetch, which is what
+     made calibrating it possible at all. */
+  bandImg() {
+    if (this._bandReq) return this._bandOk || null;
+    this._bandReq = true;
+    const img = new Image();
+    img.onload = () => { this._bandOk = img; };
+    img.src = 'uploads/8k_stars_milky_way.jpg';
+    return null;
+  }
+
+  /* The band as a warped mesh: cut into a grid of cells in right ascension and declination, each
+     cell's corners projected, and the matching patch of the panorama drawn into the resulting
+     quad. Composited normally onto its own off-screen surface first, so overlapping cell edges
+     cannot add up into visible seams, then handed back as one flat image. Cached and throttled
+     per caller: the band is soft enough that a phone's continuous animation loop can update it a
+     few times a second rather than every frame with nothing lost to the eye. */
+  bandLayer(cache, pr, lat, lst, W, H, nx, ny, throttleMs) {
+    const img = this.bandImg();
+    if (!img || !img.naturalWidth) return null;
+    const bw = Math.max(1, Math.round(W / 2)), bh = Math.max(1, Math.round(H / 2));
+    const now = Date.now();
+    if (cache.cv && cache.cv.width === bw && cache.cv.height === bh && now - cache.t < throttleMs) return cache.cv;
+    if (!cache.cv) cache.cv = document.createElement('canvas');
+    const cv = cache.cv;
+    cv.width = bw; cv.height = bh;
+    const cx = cv.getContext('2d');
+    cx.setTransform(1, 0, 0, 1, 0, 0);
+    cx.clearRect(0, 0, bw, bh);
+    const eng = this.E(), P = this.P();
+    const SW = img.naturalWidth, SH = img.naturalHeight, cw = SW / nx, ch = SH / ny;
+    const grid = new Array((nx + 1) * (ny + 1));
+    /* Measured against the actual pixels, not guessed: this texture is galactic coordinates, not
+       equatorial, centred on the galactic core (confirmed by the brightest column landing within
+       3° of u=0.5) with the top row at the south galactic pole (confirmed by a large diffuse
+       patch at u≈0.72, v≈0.32 landing within a degree of the LMC's real l/b once decoded on
+       that assumption). Column u and row v convert to galactic l/b, then to RA/Dec via the same
+       rotation the app already trusts for drawing the band's geometry. */
+    for (let j = 0; j <= ny; j++) {
+      const b = (j / ny) * 180 - 90;
+      for (let i = 0; i <= nx; i++) {
+        let l = (0.5 - i / nx) * 360; l = ((l % 360) + 360) % 360;
+        const g = P.galToEq(l, b);
+        const c = eng.eq2horiz(g.ra, g.dec, lat, lst);
+        const p = c.alt < -8 ? null : pr(c.alt, c.az);
+        grid[j * (nx + 1) + i] = p ? [p.x / 2, p.y / 2] : null;
+      }
+    }
+    for (let j = 0; j < ny; j++) {
+      for (let i = 0; i < nx; i++) {
+        const P0 = grid[j * (nx + 1) + i], P1 = grid[j * (nx + 1) + i + 1], P2 = grid[(j + 1) * (nx + 1) + i];
+        if (!P0 || !P1 || !P2) continue;
+        const minx = Math.min(P0[0], P1[0], P2[0]), maxx = Math.max(P0[0], P1[0], P2[0]);
+        const miny = Math.min(P0[1], P1[1], P2[1]), maxy = Math.max(P0[1], P1[1], P2[1]);
+        if (maxx < 0 || minx > bw || maxy < 0 || miny > bh) continue;
+        if (maxx - minx > bw || maxy - miny > bh) continue;
+        cx.setTransform((P1[0] - P0[0]) / cw, (P1[1] - P0[1]) / cw, (P2[0] - P0[0]) / ch, (P2[1] - P0[1]) / ch, P0[0], P0[1]);
+        cx.drawImage(img, i * cw, j * ch, cw + 1, ch + 1, 0, 0, cw + 1, ch + 1);
+      }
+    }
+    cx.setTransform(1, 0, 0, 1, 0, 0);
+    cache.t = now;
+    return cv;
+  }
+
+  /* Indicative, as the build review asks: one slider, no named stops. maxBrightness barely varies
+     across the set (83% of it sits inside two magnitudes) so it orders objects rather than scaling
+     them; the exposure figure does the actual work of deciding how deep into the faint end to
+     reach. */
+  arSpriteGain(o, t) {
+    const faint = Math.max(0, Math.min(1, (o.mb - 12.5) / 3));
+    const reach = t * 1.35 - faint * 0.55;
+    if (reach <= 0) return 0;
+    return Math.min(1, reach) * (0.25 + 0.75 * t);
+  }
 
   /* ---- lining the horizon up ----
      The compass on a phone is wrong by a few degrees on a good day and by thirty next to a car, and
@@ -5430,6 +5731,7 @@ class Component extends DCLogic {
     if (o.trails != null) patch.arTrails = o.trails;
     this.setState(patch);
     this.watchArOrientation(true);
+    this.loadArObjs();
     const AR = window.NoctoAR;
     if (!AR || !AR.supported() || !AR.secure()) { this.setState({ arMotion: false }); return; }
     const ok = await AR.requestMotion();
@@ -5544,6 +5846,13 @@ class Component extends DCLogic {
     if (el.width !== W || el.height !== H) { el.width = W; el.height = H; }
     const ctx = el.getContext('2d');
     if (!ctx) return;
+    /* The photographic layer: its own canvas so it can carry mix-blend-mode: screen, which means
+       exposure can only ever ADD light. Without that, turning it up would paint each sprite's own
+       black background over the camera and progressively blot the view out. */
+    const imgCv = this._arImgCanvas;
+    if (imgCv && (imgCv.width !== W || imgCv.height !== H)) { imgCv.width = W; imgCv.height = H; }
+    const ictx = imgCv ? imgCv.getContext('2d') : null;
+    if (ictx) { ictx.setTransform(1, 0, 0, 1, 0, 0); ictx.clearRect(0, 0, W, H); }
     const nv = !!st.nv;
     const pal = this.PALETTES[st.pal] || this.PALETTES.obsidian;
     const ink = nv ? '#FF3B18' : pal.bright;
@@ -5598,19 +5907,37 @@ class Component extends DCLogic {
     const say = (text, x, y, colour, size, weight, pri) =>
       labels.push({ text, x, y, colour, size: size * scale, weight, pri });
 
-    // the galactic band, from its own geometry
-    ctx.save();
-    ctx.strokeStyle = nv ? 'rgba(255,59,24,.16)' : 'rgba(' + pal.brightRgb + ',.11)';
-    ctx.lineWidth = 60 * scale; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    let run = false;
-    sky.gal.forEach(g => {
-      const p = g.alt < 0 ? null : pr(g.alt, g.az);
-      if (!p) { run = false; return; }
-      if (!run) { ctx.beginPath(); ctx.moveTo(p.x, p.y); run = true; }
-      else ctx.lineTo(p.x, p.y);
-    });
-    if (run) ctx.stroke();
-    ctx.restore();
+    // the Milky Way, as a photograph warped onto the same projection as everything else, so the
+    // Great Rift and every other dark lane read as real structure rather than a soft glow. Falls
+    // back to the plain stroke while the source image is still loading.
+    const lst = E.lstOf(E.jdFrom(when), E.state.lon);
+    if (!this._arBand) this._arBand = { cv: null, t: 0 };
+    const bandGain = Math.max(0, Math.min(1, (st.arExposure / 100) * 1.5 - 0.06)) * 0.95;
+    const arBandCv = (ictx && bandGain > 0.01)
+      ? this.bandLayer(this._arBand, pr, E.state.lat, lst, W, H, 70, 35, 120) : null;
+    if (arBandCv) {
+      ictx.save();
+      // the source photograph is genuinely dark; boosted here rather than in the mesh, so the
+      // exposure slider still reads the same as it does for the sprites
+      ictx.filter = 'brightness(3.5) contrast(1.1)';
+      ictx.globalAlpha = bandGain;
+      ictx.globalCompositeOperation = 'lighter';
+      ictx.drawImage(arBandCv, 0, 0, W, H);
+      ictx.restore();
+    } else {
+      ctx.save();
+      ctx.strokeStyle = nv ? 'rgba(255,59,24,.16)' : 'rgba(' + pal.brightRgb + ',.11)';
+      ctx.lineWidth = 60 * scale; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      let run = false;
+      sky.gal.forEach(g => {
+        const p = g.alt < 0 ? null : pr(g.alt, g.az);
+        if (!p) { run = false; return; }
+        if (!run) { ctx.beginPath(); ctx.moveTo(p.x, p.y); run = true; }
+        else ctx.lineTo(p.x, p.y);
+      });
+      if (run) ctx.stroke();
+      ctx.restore();
+    }
 
     // star trails, when asked for
     const trails = this.arTrails(when);
@@ -5646,6 +5973,61 @@ class Component extends DCLogic {
       ctx.globalAlpha = 1;
       if (s.name && s.mag < 1.1) say(s.name, p.x + 11 * scale, p.y + 5 * scale, dim, 13, 500, 70);
     });
+
+    /* Real photographs for the 118 catalogue objects of a degree or more. Everything smaller keeps
+       the ellipse below: at this field of view a five-pixel photograph and a dot are the same
+       picture, so cutting here buys nothing visible. Drawn onto the imagery canvas, in screen mode,
+       cropped by the same sky clip as everything else. */
+    if (ictx && st.arObjs && st.arObjs.length && st.arExposure > 1) {
+      const AD = Math.PI / 180;
+      const frames = P.arSpriteFrames(st.arObjs, when, E.state.lat, E.state.lon);
+      const b = pr.basis, fwd = b.fwd;
+      const halfDiag = Math.hypot(pr.hfovDeg, pr.vfovDeg) / 2;
+      const cullCos = Math.cos(Math.min(85, halfDiag + 12) * AD);
+      const expT = st.arExposure / 100;
+      const seenSubjects = new Set();
+      ictx.save();
+      if (skyClip) ictx.clip(skyClip);
+      ictx.globalCompositeOperation = 'lighter';
+      frames.forEach(fr => {
+        const o = fr.o;
+        const v = AR.vecFor(fr.alt, fr.az, b.off);
+        if (v[0] * fwd[0] + v[1] * fwd[1] + v[2] * fwd[2] < cullCos) return;   // cull in angles, before projecting
+        const p = pr(fr.alt, fr.az); if (!p || !inView(p)) return;
+        const pE = pr(fr.eAlt, fr.eAz), pN = pr(fr.nAlt, fr.nAz);
+        if (!pE || !pN) return;
+        const ax = pE.x - p.x, ay = pE.y - p.y, bx = pN.x - p.x, by = pN.y - p.y;
+        const size = Math.max(Math.hypot(ax, ay), Math.hypot(bx, by)) * 2;
+        // a gnomonic projection can still blow a grazing-incidence object up past the cull margin
+        if (!isFinite(size) || size > Math.max(W, H) * 6) return;
+        const gain = this.arSpriteGain(o, expT);
+        if (gain < 0.02) return;
+        const spr = this.arSpriteImg(o);
+        if (spr) {
+          ictx.save();
+          ictx.globalAlpha = gain;
+          // the two offset vectors ARE the transform: scale, sky rotation and the projection's
+          // own shear all fall out at once, exactly rather than approximately
+          ictx.setTransform(ax, ay, -bx, -by, p.x, p.y);
+          ictx.drawImage(spr, -1, -1, 2, 2);
+          ictx.restore();
+          ictx.setTransform(1, 0, 0, 1, 0, 0);
+        }
+        if (size > 22 * scale) {
+          const nm = this.arSpriteSubject(o.n);
+          if (!seenSubjects.has(nm)) {
+            seenSubjects.add(nm);
+            // behind the ridge is no longer nothing to say, now the ground is a wash rather than a
+            // mask: named at a third of the weight reads as "there, but not yet"
+            const below = fr.alt < this.hzAt(fr.az);
+            say(nm.toUpperCase(), p.x - Math.hypot(ax, ay) * 0.5, p.y + Math.hypot(bx, by) + 12 * scale,
+              below ? (nv ? 'rgba(255,59,24,.28)' : 'rgba(240,236,228,.28)') : dim, 12, 500, 35);
+          }
+        }
+      });
+      ictx.globalCompositeOperation = 'source-over';
+      ictx.restore();
+    }
 
     // subjects: all of them, or the one you picked, at their true shape and tilt
     sky.elements.forEach(e => {
@@ -5698,7 +6080,9 @@ class Component extends DCLogic {
 
     if (groundPath) {
       ctx.save();
-      ctx.fillStyle = nv ? 'rgba(9,2,1,.42)' : 'rgba(4,4,6,.4)';
+      /* About 76% black, per the build review: a wash rather than a mask, so what is about to rise
+         behind the ridge stays faintly readable instead of vanishing under a solid mask. */
+      ctx.fillStyle = nv ? 'rgba(9,2,1,.7)' : 'rgba(4,4,6,.76)';
       ctx.fill(groundPath);
       ctx.restore();
     }
@@ -5867,6 +6251,7 @@ class Component extends DCLogic {
     return {
       arOpen: st.arOpen,
       setArStage: this.setArStage, setArVideo: this.setArVideo, setArCanvas: this.setArCanvas,
+      setArImgCanvas: this.setArImgCanvas,
       closeAr: () => this.closeAr(),
       arVideoOpacity: st.arCam && st.arCamOk ? '1' : '0',
       arVideoFilter: st.nv ? 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(.6)' : 'none',
@@ -5912,6 +6297,8 @@ class Component extends DCLogic {
       arAlignMoon: () => this.setState({ arAligning: st.arAligning === 'moon' ? false : 'moon' }),
       arScrub: st.arScrub == null ? this.arNowScrub() : st.arScrub,
       onArScrub: e => this.setState({ arScrub: Number(e.target.value) }),
+      arExposure: st.arExposure,
+      onArExposure: e => this.setState({ arExposure: Number(e.target.value) }),
       arLiveNow: st.arScrub == null && !st.arDate,
       arLiveOn: (st.arScrub == null && !st.arDate) ? 'on' : 'off',
       arClock: (st.arScrub == null && !st.arDate ? 'Now \u00b7 ' : '')
