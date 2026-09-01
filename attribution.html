@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <style>
+    html, body { margin: 0; background: #0A0A0B; color-scheme: dark; }
+    body { -webkit-font-smoothing: antialiased; }
+    a { color: #D6B368; }
+    a:hover { color: #E8C98A; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; background: #0A0A0B; color: #F3F0EA; font-family: 'Barlow', sans-serif;">
+  <div style="max-width: 780px; margin: 0 auto; padding: 48px 20px 88px; display: grid; gap: 32px;">
+
+    <div style="display: grid; gap: 10px;">
+      <a href="./Noctography.dc.html" style="justify-self: start; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: #ADA79B; text-decoration: none;">&#8249; Back to Noctography</a>
+      <span style="font-size: 11.5px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #D6B368;">AR sky, attribution</span>
+      <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(32px, 6vw, 44px); line-height: 1.05; margin: 0; text-wrap: pretty;">Where the photographs come from</h1>
+      <p style="margin: 0; font-size: 16px; line-height: 1.55; color: #DCD7CC; max-width: 62ch; text-wrap: pretty;">The AR view draws {{ total }} deep-sky objects as real photographs rather than outlines, all of them from the Stellarium project's nebula texture set. Every one is credited below, with the licence it carries.</p>
+    </div>
+
+    <div style="display: grid; gap: 8px; padding: 16px 18px; background: #15151A; border: 1px solid rgba(240,236,228,.11); border-radius: 10px;">
+      <span style="font-size: 11.5px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #ADA79B;">What was done to them</span>
+      <p style="margin: 0; font-size: 14.5px; line-height: 1.5; color: #DCD7CC; text-wrap: pretty;">The same modification for every image, stated once: cropped to the object, resized, converted to WebP, and given a soft alpha falloff at the edges so it sits against the sky rather than reading as a rectangle. No astrometric change: each photograph is placed at the true position and size the source data gives it.</p>
+    </div>
+
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="5">
+      <div style="display: grid; gap: 12px;">
+        <div style="display: flex; align-items: baseline; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(240,236,228,.14);">
+          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: 24px; margin: 0;">{{ g.label }}</h2>
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #918B81;">{{ g.count }}</span>
+        </div>
+        <sc-if value="{{ g.sa }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #ADA79B; text-wrap: pretty;">ShareAlike: these sprites go out under this same licence. Noctography's own code, design and text stay under their own terms; this attaches to these files only.</p>
+        </sc-if>
+        <div style="display: grid; gap: 2px;">
+          <sc-for list="{{ g.items }}" as="o" hint-placeholder-count="6">
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid rgba(240,236,228,.06);">
+              <span style="font-size: 14.5px; color: #F3F0EA;">{{ o.name }}</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: #918B81; text-align: right;">{{ o.lic }}</span>
+              <sc-if value="{{ o.link }}" hint-placeholder-val="{{ false }}">
+                <a href="{{ o.link }}" target="_blank" rel="noopener" style="grid-column: 1 / -1; font-size: 12.5px; color: #ADA79B; text-decoration: none;">{{ o.credit }} &#8250;</a>
+              </sc-if>
+              <sc-if value="{{ o.noLink }}" hint-placeholder-val="{{ false }}">
+                <span style="grid-column: 1 / -1; font-size: 12.5px; color: #918B81;">{{ o.credit }}</span>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+
+    <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #918B81; max-width: 62ch; text-wrap: pretty;">Generated from the object inventory rather than written by hand, so it cannot drift out of step with what ships. If a credit here does not match how you would like to be named, get in touch and it will be corrected.</p>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { objs: null };
+  componentDidMount() {
+    fetch('ar-sky-objects.json').then(r => r.json()).then(objs => this.setState({ objs })).catch(() => this.setState({ objs: [] }));
+  }
+  renderVals() {
+    const objs = this.state.objs || [];
+    const ORDER = ['CC BY 4.0', 'CC BY 3.0', 'Public domain / CC0', 'CC BY-SA 4.0', 'CC BY-SA 3.0', 'CC BY-SA 2.5'];
+    const by = {};
+    objs.forEach(o => { (by[o.lic] = by[o.lic] || []).push(o); });
+    const groups = ORDER.filter(k => by[k] && by[k].length).map(k => ({
+      label: k, count: by[k].length + (by[k].length === 1 ? ' image' : ' images'), sa: /SA/.test(k),
+      items: by[k].slice().sort((a, b) => a.n.localeCompare(b.n)).map(o => ({
+        name: o.n, lic: o.lic, credit: o.c, link: o.url || '', noLink: !o.url,
+      })),
+    }));
+    return { total: objs.length, groups };
+  }
+}
+
+</script>
+</body>
+</html>
