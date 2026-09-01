@@ -13,6 +13,7 @@ const KEY = 'nocto-ar-v1';
    slider: framing a 135mm shot through a 68-degree wide lens leaves a rectangle the size of a
    postage stamp. Nominal horizontal fields for the three kinds, used to choose between them and
    as the starting calibration for each. */
+const MAX_ZOOM = 12;
 const LENS_NOMINAL = { ultrawide: 104, wide: 68, tele: 26 };
 const LENS_LABEL = { ultrawide: 'ultra wide', wide: 'wide', tele: 'telephoto' };
 
@@ -284,22 +285,41 @@ function stopCamera(){
 }
 function stop(){ stopCamera(); unlisten(); S.motion = false; S.haveEvent = false; S.smooth = null; }
 
-/* Which fitted lens suits a frame this wide, and how much zoom on top of it. The rule is the
-   narrowest lens that still holds the frame with a margin to compose in: a 135mm shot goes to
-   the telephoto if the phone has one, and the zoom then fills most of the screen with the
-   rectangle instead of leaving it tiny in the middle. */
-function pickLensFor(acrossDeg){
-  if (!S.cameras.length) return null;
-  const need = Math.max(4, acrossDeg) * 1.25;
-  const fit = S.cameras.filter(c => LENS_NOMINAL[c.kind] >= need);
-  return fit.length ? fit[fit.length - 1] : S.cameras[S.cameras.length - 1];
+/* Zooming is expressed as one continuous quantity: the field of view you want to see. The lens
+   fitted and the zoom applied are both derived from it, which is what makes a pinch flow through
+   the phone's cameras instead of stopping at the edge of one. Nothing here consults the focal
+   length being planned: that only decides where a pinch STARTS.
+
+   The rule for a wanted field: the narrowest camera that still contains it, so zoom is only ever
+   used to go tighter than a lens natively sees, never wider (which would be pure upscaling with
+   a better lens sitting unused). */
+function hfovFor(kind){
+  return S.hfovByLens[kind] || LENS_NOMINAL[kind] || 62;
 }
-function zoomFor(acrossDeg, fill){
-  const b = baseHfov();
+function pickLensForField(target){
+  if (!S.cameras.length) return null;
+  const fit = S.cameras.filter(c => hfovFor(c.kind) >= target * 0.999);
+  // nothing contains a field this wide, so the widest camera there is; otherwise the tightest
+  // one that still holds it, which is the one that needs the least digital zoom
+  return fit.length ? fit[fit.length - 1] : S.cameras[0];
+}
+function zoomForField(target, kind){
+  const b = hfovFor(kind || S.lens);
+  if (!(target > 0) || target >= b) return 1;
+  return Math.max(1, Math.min(MAX_ZOOM, Math.tan(b / 2 * D2R) / Math.tan(target / 2 * D2R)));
+}
+/* How wide and how tight this phone can actually go, across every camera it has. */
+function fieldRange(){
+  const bases = S.cameras.length ? S.cameras.map(c => hfovFor(c.kind)) : [baseHfov()];
+  const wide = Math.max.apply(null, bases);
+  const narrowBase = Math.min.apply(null, bases);
+  return { wide, narrow: 2 * Math.atan(Math.tan(narrowBase / 2 * D2R) / MAX_ZOOM) * R2D };
+}
+
+/* Kept for the framing case: the field that puts a frame this wide across most of the screen. */
+function fieldForFrame(acrossDeg, fill){
   const f = Math.max(0.2, Math.min(0.95, fill || 0.72));
-  const target = Math.max(1, acrossDeg / f);
-  if (target >= b) return 1;
-  return Math.max(1, Math.min(12, Math.tan(b / 2 * D2R) / Math.tan(target / 2 * D2R)));
+  return Math.max(1, Math.max(1, acrossDeg) / f);
 }
 
 window.NoctoAR = {
@@ -323,12 +343,12 @@ window.NoctoAR = {
   lens: () => S.lens,
   lensLabel: () => LENS_LABEL[S.lens] || S.lens,
   setLens: k => { if (LENS_NOMINAL[k]) S.lens = k; },
-  listCameras, pickLensFor, zoomFor,
+  listCameras, hfovFor, pickLensForField, zoomForField, fieldRange, fieldForFrame,
   zoom: () => S.zoom,
   cssZoom,
-  maxZoom: () => 12,
+  maxZoom: () => MAX_ZOOM,
   setZoom: async z => {
-    S.zoom = Math.max(1, Math.min(12, Number(z) || 1));
+    S.zoom = Math.max(1, Math.min(MAX_ZOOM, Number(z) || 1));
     await applyHardwareZoom();
     return S.zoom;
   },
