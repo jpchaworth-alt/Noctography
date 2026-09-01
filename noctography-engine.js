@@ -143,58 +143,58 @@ const mag2nl=V=>34.08*Math.exp(20.7233-0.92104*V);
    ZHR = zhr*10^(-b*|dlam|) (+ a broad "wide" component where the stream has long wings). */
 const SHOWERS=[
  {code:'QUA',name:'Quadrantids',lam:283.15,zhr:106,r:2.1,ra:230,dec:49.5,dRa:0.4,dDec:-0.2,v:41,bB:1.0,bA:1.0,span:6,wide:{zhr:4,b:0.30},
-  active:'28 Dec â€“ 12 Jan',parent:'Asteroid 2003 EH1 (probably a dormant comet)',
-  facts:'The sharpest peak of any major shower: full rates last only a few hours, so being clouded out at the wrong moment costs you the whole event. Meteors are medium speed and often bluish, with few persistent trains but a fair number of bright ones. The radiant sits in northern BoÃ¶tes, in the old constellation Quadrans Muralis that was dropped from the official list in 1922, and is circumpolar from northern mid-latitudes, climbing highest before dawn.'},
+  active:'28 Dec – 12 Jan',parent:'Asteroid 2003 EH1 (probably a dormant comet)',
+  facts:'The sharpest peak of any major shower: full rates last only a few hours, so being clouded out at the wrong moment costs you the whole event. Meteors are medium speed and often bluish, with few persistent trains but a fair number of bright ones. The radiant sits in northern Boötes, in the old constellation Quadrans Muralis that was dropped from the official list in 1922, and is circumpolar from northern mid-latitudes, climbing highest before dawn.'},
  {code:'LYR',name:'Lyrids',lam:32.32,zhr:18,r:2.1,ra:271,dec:34,dRa:1.1,dDec:0.0,v:49,bB:1.0,bA:1.0,span:8,
-  active:'14 â€“ 30 April',parent:'Comet C/1861 G1 Thatcher (415-year orbit)',
+  active:'14 – 30 April',parent:'Comet C/1861 G1 Thatcher (415-year orbit)',
   facts:'The oldest shower with a continuous record, noted by Chinese observers in 687 BC. Normally modest, but capable of short outbursts, most recently around 90 an hour in 1982. Meteors are fast, frequently bright, and around a quarter leave persistent trains. The radiant near Vega is high all night from northern latitudes, which makes even a moderate ZHR worthwhile.'},
  {code:'ETA',name:'Eta Aquariids',lam:45.5,zhr:50,r:2.4,ra:338,dec:-1,dRa:0.9,dDec:0.4,v:66,bB:0.10,bA:0.10,span:20,
-  active:'19 April â€“ 28 May',parent:'Comet 1P/Halley',
+  active:'19 April – 28 May',parent:'Comet 1P/Halley',
   facts:'Debris shed by Halley on its inbound leg. Very fast at 66 km/s, with a high proportion of long trails and persistent trains. The catch for northern observers is geometry: the radiant rises only shortly before dawn from northern latitudes, so you see a small fraction of the quoted rate in a short window. Superb from the tropics and the southern hemisphere.'},
  {code:'SDA',name:'Southern Delta Aquariids',lam:125.0,zhr:25,r:2.5,ra:340,dec:-16,dRa:0.8,dDec:0.2,v:41,bB:0.09,bA:0.15,span:22,
-  active:'12 July â€“ 23 August',parent:'Likely the 96P/Machholz complex',
+  active:'12 July – 23 August',parent:'Likely the 96P/Machholz complex',
   facts:'A broad plateau of activity rather than a peak, so any clear night in late July is roughly as good as the next. Meteors are medium speed and mostly faint, which makes dark skies matter more than usual. From northern latitudes the radiant stays low in the south, capping the rate you can actually achieve.'},
  {code:'CAP',name:'Alpha Capricornids',lam:127.0,zhr:5,r:2.5,ra:307,dec:-10,dRa:0.9,dDec:0.3,v:23,bB:0.06,bA:0.06,span:24,
-  active:'3 July â€“ 15 August',parent:'Comet 169P/NEAT',
+  active:'3 July – 15 August',parent:'Comet 169P/NEAT',
   facts:'Low rates but a disproportionate share of slow, brilliant, long-lasting fireballs, which is why it is worth leaving a camera running through late July even though the predicted count is only a few an hour. The stream is young and unusually broad; models suggest it will strengthen over the next few centuries.'},
  {code:'PER',name:'Perseids',lam:140.0,zhr:80,r:2.2,ra:48,dec:58,dRa:1.35,dDec:0.25,v:59,bB:0.35,bA:0.25,span:20,wide:{zhr:23,b:0.05},
-  active:'17 July â€“ 24 August',parent:'Comet 109P/Swift-Tuttle (133-year orbit, 26 km nucleus)',
+  active:'17 July – 24 August',parent:'Comet 109P/Swift-Tuttle (133-year orbit, 26 km nucleus)',
   facts:'The reliable summer shower, recorded for close to two thousand years and once called the tears of St Lawrence. Fast, bright meteors with plenty of persistent trains. The wide activity profile matters for planning: the week either side of maximum still delivers useful rates, so a clear night three days off peak beats a cloudy peak. The radiant is very high from northern latitudes and climbs all night, which pushes the best window into the small hours.'},
  {code:'KCG',name:'Kappa Cygnids',lam:140.5,zhr:3,r:3.0,ra:286,dec:59,dRa:0.6,dDec:0.2,v:25,bB:0.10,bA:0.10,span:12,
-  active:'3 â€“ 25 August',parent:'Uncertain, possibly asteroid 2008 ED69',
+  active:'3 – 25 August',parent:'Uncertain, possibly asteroid 2008 ED69',
   facts:'A minor stream that shares the Perseid dates and is easily mistaken for it, except that the meteors are noticeably slow and the radiant sits in Cygnus, near the zenith. Activity varies from year to year, with enhanced returns roughly every seven years, and it produces occasional bright fireballs.'},
  {code:'AUR',name:'Alpha Aurigids',lam:158.6,zhr:6,r:2.5,ra:91,dec:39,dRa:1.1,dDec:0.0,v:66,bB:1.0,bA:1.0,span:5,
-  active:'28 August â€“ 5 September',parent:'Comet C/1911 N1 Kiess',
+  active:'28 August – 5 September',parent:'Comet C/1911 N1 Kiess',
   facts:'Usually a footnote, but it has produced brief outbursts of 30 to 50 an hour in 1935, 1986, 1994 and 2019, each lasting under two hours. Fast meteors from a radiant that only gets useful after midnight.'},
  {code:'SPE',name:'September Epsilon Perseids',lam:166.7,zhr:5,r:2.9,ra:48,dec:40,dRa:1.0,dDec:0.1,v:64,bB:0.4,bA:0.4,span:8,
-  active:'5 â€“ 21 September',parent:'Unknown long-period comet',
+  active:'5 – 21 September',parent:'Unknown long-period comet',
   facts:'Only properly characterised once video meteor networks came along. Fast and mostly faint, with unexpected outbursts in 2008 and 2013 that suggest an old dust trail crossing Earth\u2019s path.'},
  {code:'DRA',name:'October Draconids',lam:195.4,zhr:5,r:2.6,ra:262,dec:54,dRa:0.0,dDec:0.0,v:20,bB:2.5,bA:2.5,span:3,
-  active:'6 â€“ 10 October',parent:'Comet 21P/Giacobini-Zinner',
+  active:'6 – 10 October',parent:'Comet 21P/Giacobini-Zinner',
   facts:'The odd one out in two ways. The meteors are exceptionally slow at 20 km/s, and the radiant is highest in the evening rather than before dawn, so this is a shower you watch straight after dusk. Rates are usually near zero, but it produced true storms in 1933 and 1946 and strong showings in 2011 and 2018, always tied to the comet\u2019s return.'},
  {code:'STA',name:'Southern Taurids',lam:197.0,zhr:5,r:2.3,ra:32,dec:9,dRa:0.8,dDec:0.2,v:27,bB:0.026,bA:0.026,span:35,
-  active:'10 September â€“ 20 November',parent:'Comet 2P/Encke',
+  active:'10 September – 20 November',parent:'Comet 2P/Encke',
   facts:'Part of Encke\u2019s enormous, ancient dust complex. Rates are low for weeks on end, but the meteors are slow, often orange, and include an unusually high share of fireballs. In certain years the Earth meets a swarm of larger fragments, as in 2005, 2015 and 2022, and the fireball count jumps.'},
  {code:'ORI',name:'Orionids',lam:208.0,zhr:20,r:2.5,ra:95,dec:16,dRa:1.2,dDec:0.1,v:66,bB:0.12,bA:0.12,span:18,
-  active:'2 October â€“ 7 November',parent:'Comet 1P/Halley',
+  active:'2 October – 7 November',parent:'Comet 1P/Halley',
   facts:'Halley\u2019s other shower, this time from the outbound leg. Very fast, with frequent persistent trains, and a broad flat maximum spread over several nights instead of one sharp peak, which is forgiving for anyone chasing a gap in the cloud. The radiant lies near Betelgeuse and is well placed from midnight onwards.'},
  {code:'NTA',name:'Northern Taurids',lam:230.0,zhr:5,r:2.3,ra:58,dec:22,dRa:0.8,dDec:0.2,v:29,bB:0.026,bA:0.026,span:35,
-  active:'20 October â€“ 10 December',parent:'Comet 2P/Encke',
+  active:'20 October – 10 December',parent:'Comet 2P/Encke',
   facts:'The northern branch of the same complex, peaking a month after its southern twin and with the radiant higher from northern latitudes. Same character: low counts, slow meteors, an outsized proportion of fireballs.'},
  {code:'LEO',name:'Leonids',lam:235.27,zhr:12,r:2.5,ra:152,dec:22,dRa:0.7,dDec:-0.4,v:71,bB:0.55,bA:0.55,span:12,wide:{zhr:3,b:0.10},
-  active:'6 â€“ 30 November',parent:'Comet 55P/Tempel-Tuttle (33-year orbit)',
+  active:'6 – 30 November',parent:'Comet 55P/Tempel-Tuttle (33-year orbit)',
   facts:'The fastest meteors you will routinely see, entering at 71 km/s and often leaving trains that hang for seconds. Famous for the storms of 1833, 1866, 1966 and 1999 to 2002, when rates reached thousands an hour; between comet returns it is a modest shower. The radiant rises around midnight.'},
  {code:'HYD',name:'Sigma Hydrids',lam:256.0,zhr:7,r:3.0,ra:127,dec:2,dRa:0.9,dDec:-0.2,v:58,bB:0.4,bA:0.4,span:10,
-  active:'3 â€“ 20 December',parent:'Unknown long-period comet',
+  active:'3 – 20 December',parent:'Unknown long-period comet',
   facts:'Long dismissed as a shower at the edge of visual detection, but video data pushed the estimate up and it repeatedly turns in bright meteors. It runs alongside the Geminid build-up, so keep an eye on the direction a meteor came from before logging it.'},
  {code:'MON',name:'December Monocerotids',lam:260.9,zhr:3,r:3.0,ra:100,dec:8,dRa:1.0,dDec:-0.1,v:42,bB:0.5,bA:0.5,span:10,
-  active:'27 November â€“ 17 December',parent:'Comet C/1917 F1 Mellish',
+  active:'27 November – 17 December',parent:'Comet C/1917 F1 Mellish',
   facts:'A weak stream that shares the sky with the Geminids and is frequently confused with them. Medium speed, low rates, but the radiant is well placed and the meteors are distinctly slower than Geminids.'},
  {code:'GEM',name:'Geminids',lam:262.2,zhr:135,r:2.6,ra:112,dec:33,dRa:1.02,dDec:-0.15,v:35,bB:0.59,bA:0.81,span:9,wide:{zhr:18,b:0.14},
-  active:'4 â€“ 20 December',parent:'Asteroid 3200 Phaethon, a rock comet',
+  active:'4 – 20 December',parent:'Asteroid 3200 Phaethon, a rock comet',
   facts:'The strongest and most dependable annual shower, and unusual in coming from an asteroid rather than a comet. Only recognised in the 1860s and it has strengthened ever since as the stream drifts into Earth\u2019s path. Meteors are medium speed, plentiful, often bright with a yellow cast, and leave few trains. The radiant is up from early evening and near the zenith by 02:00 from northern latitudes, so you can shoot a full night. The counterweight is December weather and cold.'},
  {code:'URS',name:'Ursids',lam:270.7,zhr:10,r:3.0,ra:217,dec:76,dRa:0.0,dDec:-0.2,v:33,bB:1.0,bA:1.0,span:5,
-  active:'17 â€“ 26 December',parent:'Comet 8P/Tuttle',
+  active:'17 – 26 December',parent:'Comet 8P/Tuttle',
   facts:'Overlooked because it falls in the week before Christmas, immediately after the Geminids. The radiant near Kochab is circumpolar from northern latitudes, so it is available all night, and short bursts have been recorded in 1945, 1986 and 2000.'},
 ];
 const ANT={code:'ANT',name:'Antihelion source',r:3.0,v:30,
@@ -205,15 +205,15 @@ const SPO={code:'SPO',name:'Sporadic background',r:3.0,v:35,
   facts:'Meteors not tied to any recognised stream. Rates roughly double between early evening and dawn, because after midnight your side of the planet turns to face the direction Earth is travelling and sweeps up particles head-on rather than waiting to be caught. On a night with no shower running, this is what you are shooting.'};
 
 const BORTLE=[null,
- {sqm:22.0,nelm:7.7,label:'1 â€“ Pristine'},
- {sqm:21.9,nelm:7.3,label:'2 â€“ Truly dark'},
- {sqm:21.7,nelm:6.9,label:'3 â€“ Rural'},
- {sqm:21.3,nelm:6.4,label:'4 â€“ Rural / suburban transition'},
- {sqm:20.4,nelm:6.0,label:'5 â€“ Suburban'},
- {sqm:19.3,nelm:5.5,label:'6 â€“ Bright suburban'},
- {sqm:18.7,nelm:5.0,label:'7 â€“ Suburban / urban transition'},
- {sqm:18.2,nelm:4.5,label:'8 â€“ City'},
- {sqm:17.8,nelm:4.0,label:'9 â€“ Inner city'}];
+ {sqm:22.0,nelm:7.7,label:'1 – Pristine'},
+ {sqm:21.9,nelm:7.3,label:'2 – Truly dark'},
+ {sqm:21.7,nelm:6.9,label:'3 – Rural'},
+ {sqm:21.3,nelm:6.4,label:'4 – Rural / suburban transition'},
+ {sqm:20.4,nelm:6.0,label:'5 – Suburban'},
+ {sqm:19.3,nelm:5.5,label:'6 – Bright suburban'},
+ {sqm:18.7,nelm:5.0,label:'7 – Suburban / urban transition'},
+ {sqm:18.2,nelm:4.5,label:'8 – City'},
+ {sqm:17.8,nelm:4.0,label:'9 – Inner city'}];
 
 
 /* ============================ light pollution atlas ============================ */
@@ -1035,8 +1035,8 @@ function sentence(sw,n){
   if(sw.code==='SPO'){
     parts.push('Background meteors with no parent stream, running at about '+peak.toFixed(1)+' an hour at best and rising towards dawn.');
   }else{
-    const when=at?fmtTime(at):'â€“';
-    parts.push('Peaks for you around '+when+' at roughly '+peak.toFixed(1)+' an hour, with the radiant '+Math.round(d.radAlt)+'Â° above the horizon in the '+compass(d.radAz)+'.');
+    const when=at?fmtTime(at):'–';
+    parts.push('Peaks for you around '+when+' at roughly '+peak.toFixed(1)+' an hour, with the radiant '+Math.round(d.radAlt)+'° above the horizon in the '+compass(d.radAz)+'.');
     if(d.activityFrac<0.25) parts.push('The shower itself is well off its maximum, at about '+Math.round(d.activityFrac*100)+'% of peak strength.');
   }
   if(d.moonLoss>1.2) parts.push('Moonlight is the limiting factor tonight, costing around '+d.moonLoss.toFixed(1)+' magnitudes of sky darkness.');
@@ -3139,7 +3139,7 @@ function helio(name, T){
 }
 
 /* Geocentric apparent place, plus the brightness, since "Mars near the moon" means something
-   different at magnitude 1.8 than at âˆ’1.5. Phase angle comes from the sunâ€“planetâ€“earth triangle. */
+   different at magnitude 1.8 than at −1.5. Phase angle comes from the sun–planet–earth triangle. */
 function planetPos(jd, name){
   const T = centuries(jd);
   const p = helio(name, T), E = helio('Earth', T);
