@@ -144,7 +144,7 @@ window.noctoTrack = function (name) {
       new MutationObserver(function (recs, obs) {
         var img = document.querySelector('img[data-logo]');
         if (!img) return;
-        if (p !== 'obsidian') img.src = './assets/logo/' + p + '.png?v=2026-08-15';
+        if (p !== 'obsidian') img.src = '../assets/logo/' + p + '.png?v=2026-08-15';
         obs.disconnect();
       }).observe(document.documentElement, { childList: true, subtree: true });
     }
@@ -3247,7 +3247,7 @@ class Component extends DCLogic {
   syncLogo(k) {
     const logo = document.querySelector('img[data-logo]');
     if (!logo || !this.PALETTES[k]) return;
-    const want = './assets/logo/' + k + '.png?v=2026-08-15';
+    const want = '../assets/logo/' + k + '.png?v=2026-08-15';
     if (!logo.getAttribute('src').endsWith(k + '.png?v=2026-08-15')) logo.setAttribute('src', want);
   }
 
@@ -3905,7 +3905,7 @@ class Component extends DCLogic {
       if (!document.querySelector('link[rel="icon"]')) {
         const fav = document.createElement('link');
         fav.rel = 'icon'; fav.type = 'image/png'; fav.sizes = '512x512';
-        fav.href = './favicon.png?v=2026-08-18p';        // sits beside the page in the repo
+        fav.href = '../favicon.png?v=2026-08-18p';        // sits beside the page in the repo
         document.head.appendChild(fav);
       }
       const icon = document.querySelector('link[rel="apple-touch-icon"]');
@@ -3937,7 +3937,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = './pano-calculator.js?v=1.1.4';
+    s.src = '../pano-calculator.js?v=1.1.4';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -5535,7 +5535,7 @@ class Component extends DCLogic {
   loadArObjs() {
     if (this.state.arObjs || this._arObjsReq) return;
     this._arObjsReq = true;
-    fetch('ar-sky-objects.json').then(r => r.json()).then(objs => this.setState({ arObjs: objs }))
+    fetch('../ar-sky-objects.json').then(r => r.json()).then(objs => this.setState({ arObjs: objs }))
       .catch(() => { this._arObjsReq = false; });
   }
 
@@ -5598,7 +5598,10 @@ class Component extends DCLogic {
     this._bandReq = true;
     const img = new Image();
     img.onload = () => { this._bandOk = img; this.drawFrame(); this.drawAr(); };
-    img.src = 'uploads/8k_stars_milky_way.jpg';
+    /* Leading ./ matters: the deploy copy rewrites ./ to ../ because the app is served from
+       /app/ while its assets sit one level up. Without it this resolved to /app/assets/ live,
+       which is why the band was missing everywhere except the project preview. */
+    img.src = '../assets/8k_stars_milky_way.jpg';
     return null;
   }
 
