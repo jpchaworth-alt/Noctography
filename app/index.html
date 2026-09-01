@@ -2185,6 +2185,13 @@ window.noctoTrack = function (name) {
     <sc-if value="{{ isKit }}" hint-placeholder-val="{{ false }}">
       <section data-screen-label="Kit" style="display: grid; gap: 14px;">
 
+        <sc-if value="{{ kitBackAr }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ kitBackArGo }}" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; border: 0; border-radius: 10px; background: var(--accent); color: var(--ink); font-family: 'Barlow', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: .02em; cursor: pointer;">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"></rect><path d="M10 6.5h4"></path><circle cx="12" cy="13" r="2.6"></circle></svg>
+            Back to Sky AR
+          </button>
+        </sc-if>
+
         <div style="display: grid; gap: 7px; padding: 4px 0 2px;">
           <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Kit</span>
           <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(28px, 8.5vw, 36px); line-height: 1.02; letter-spacing: -.02em; margin: 0;">What you are shooting with.</h1>
@@ -2810,7 +2817,7 @@ window.noctoTrack = function (name) {
   <div data-screen-label="AR" style="position: fixed; inset: 0; z-index: 120; background: #000; display: grid; grid-template-rows: 1fr auto; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;">
 
     <div ref="{{ setArStage }}" onClick="{{ onArTap }}" onPointerDown="{{ arCalDown }}" onPointerMove="{{ arCalMove }}" onPointerUp="{{ arCalUp }}" onPointerCancel="{{ arCalUp }}" style="position: relative; overflow: hidden; touch-action: none;">
-      <video ref="{{ setArVideo }}" playsinline="playsinline" muted="muted" autoplay="autoplay" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: {{ arVideoOpacity }}; filter: {{ arCamFilter }};"></video>
+      <video ref="{{ setArVideo }}" playsinline="playsinline" muted="muted" autoplay="autoplay" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 50%; transform: {{ arCamTransform }}; opacity: {{ arVideoOpacity }}; filter: {{ arCamFilter }};"></video>
       <canvas ref="{{ setArImgCanvas }}" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; pointer-events: none; filter: {{ arVideoFilter }};"></canvas>
       <canvas ref="{{ setArCanvas }}" style="position: absolute; inset: 0; width: 100%; height: 100%;"></canvas>
 
@@ -2845,6 +2852,27 @@ window.noctoTrack = function (name) {
     </div>
 
     <div data-nv-bar="1" style="display: grid; gap: 10px; max-height: 62vh; overflow-y: auto; overscroll-behavior: contain; padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); background: rgba(6,6,7,.94); border-top: 1px solid rgba(240,236,228,.12);">
+
+      <div style="display: grid; gap: 8px; padding: 10px 11px; background: rgba(240,236,228,.045); border: 1px solid rgba(240,236,228,.12); border-radius: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="flex: 0 0 auto; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: rgba(240,236,228,.5);">Lens</span>
+          <span style="margin-left: auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(240,236,228,.5);">{{ arOpticLine }}</span>
+        </div>
+        <div style="display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none;">
+          <sc-for list="{{ arFocalChips }}" as="c" hint-placeholder-count="7">
+            <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 1 0 auto; min-width: 46px; min-height: 46px; padding: 0 8px; border: 1px solid {{ c.bd }}; border-radius: 8px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; cursor: pointer;">{{ c.label }}</button>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button type="button" onClick="{{ arOrientFlip }}" style="flex: 1 1 auto; min-height: 46px; padding: 0 12px; border: 1px solid rgba(240,236,228,.2); border-radius: 8px; background: none; color: rgba(240,236,228,.82); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">{{ arOrientLabel }}</button>
+          <sc-if value="{{ arZoomOn }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ arZoomReset }}" style="flex: 0 0 auto; min-height: 46px; padding: 0 13px; border: 1px solid rgba(240,236,228,.2); border-radius: 8px; background: none; color: rgba(240,236,228,.7); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; cursor: pointer;">1&times;</button>
+          </sc-if>
+          <button type="button" onClick="{{ arZoomFit }}" style="flex: 0 0 auto; min-height: 46px; padding: 0 13px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Fit</button>
+          <button type="button" onClick="{{ arGoKit }}" style="flex: 0 0 auto; min-height: 46px; padding: 0 13px; border: 1px solid rgba(240,236,228,.2); border-radius: 8px; background: none; color: rgba(240,236,228,.82); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Kit &rsaquo;</button>
+        </div>
+        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: rgba(240,236,228,.45);">{{ arLensLine }} &middot; pinch to zoom</span>
+      </div>
 
       <sc-if value="{{ arCal }}" hint-placeholder-val="{{ false }}">
         <div style="display: grid; gap: 9px; padding: 12px; background: rgba(240,236,228,.04); border: 1px solid rgba(var(--accent-rgb),.4); border-radius: 10px;">
@@ -2881,8 +2909,8 @@ window.noctoTrack = function (name) {
             <span style="margin-right: auto; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(240,236,228,.5);">Match the camera's field</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--accent);">{{ arHfovLabel }}</span>
           </div>
-          <input type="range" min="35" max="100" step="1" value="{{ arHfov }}" onInput="{{ onArHfov }}" aria-label="Camera field of view" style="width: 100%; height: 26px; accent-color: var(--accent);">
-          <span style="font-size: 13px; line-height: 1.4; color: rgba(240,236,228,.5); text-wrap: pretty;">Widen or narrow until a known star sits on the real one. Both settings are remembered.</span>
+          <input type="range" min="10" max="120" step="1" value="{{ arHfov }}" onInput="{{ onArHfov }}" aria-label="Camera field of view" style="width: 100%; height: 26px; accent-color: var(--accent);">
+          <span style="font-size: 13px; line-height: 1.4; color: rgba(240,236,228,.5); text-wrap: pretty;">Widen or narrow until a known star sits on the real one. Each of the phone's cameras is remembered separately, and this sets the one in use now, before any zoom.</span>
         </div>
       </sc-if>
 
@@ -2959,7 +2987,7 @@ class Component extends DCLogic {
     filmSecs: 10, showTl: false,
     framePitch: 34, frameScrub: 40, frameAz: null, frameThirds: true, frameLabels: true, frameElements: true,
     frameExposure: 100, frameDate: null,
-    calView: null, calOffset: 0, calSel: null,
+    calView: null, calOffset: 0, calSel: null, kitReturn: null,
     nearbyOpen: false, nearbyDrive: null, nearbyStatus: 'idle', nbView: null, noticeDone: {}, buildsOpen: false,
     tideChecked: false, tideShowInfo: false,
     pinElev: null,
@@ -3043,6 +3071,9 @@ class Component extends DCLogic {
         'An exposure slider brightens the sky and the Milky Way together, so a faint scene can be pushed closer to what the camera will actually pull out.',
         'Frame it now scrubs by date, so you can watch the Milky Way core swing into season before committing to a night.',
         'A Contrast slider in AR: it dims the camera and lifts the overlay together, so you can dial in enough separation to see where a subject will sit while scouting in daylight.',
+        'Sky AR now fits the phone\u2019s own optics to the lens you are planning: it picks the best-placed camera, ultra wide through telephoto, and zooms until your frame fills the screen. Pinch to zoom yourself, and the sky narrows with it and stays registered.',
+        'Focal length, orientation and a link through to Kit sit right under the AR view, so changing lens no longer means leaving the sky. Kit shows a way straight back.',
+        'The Place map follows your location when you change it, instead of staying over the old spot, and no longer locks up after an interrupted pinch.',
         'Sky AR moved up next to Place, renamed from Sky, and got its own "Open Sky AR" button on every tab.',
         'Kit gained 50mm and 135mm presets, plus a field for typing in any focal length.',
         'A new attribution page for every object and image credited in Sky AR, linked from Credits.',
@@ -3315,6 +3346,7 @@ class Component extends DCLogic {
 
   componentDidUpdate(prev) {
     this.drawRibbon(); this.applyNv(this.state.nv); this.measureAhead(); this.parkHistory(); this.syncLogo(this.state.pal);
+    this.syncMapHome(); this.syncArLens();
     this.drawSkyline(); this.drawAurSkyline(); this.drawMap(); this.drawPin(); this.drawNearby();
     this.parkRail(); this.drawFrame();
     this.watchWind(this.state.tab === 'aurora');
@@ -5508,6 +5540,12 @@ class Component extends DCLogic {
         { label: 'Widest aperture', chips: aps.map(a => this.chip('f/' + a, kit.aperture === a, () => this.setKit({ aperture: a }), true)) },
         { label: 'Orientation', chips: [this.chip('Landscape', kit.orient !== 'port', () => this.setKit({ orient: 'land' })), this.chip('Portrait', kit.orient === 'port', () => this.setKit({ orient: 'port' }))] },
       ],
+      /* Sent here from AR to change a lens: the way back, with the view restored as it was. */
+      kitBackAr: !!this.state.kitReturn,
+      kitBackArGo: () => {
+        const back = this.state.kitReturn;
+        this.setState({ kitReturn: null }, () => this.openAr(back || { subject: 'all' }));
+      },
       kitProfileLine: d.label + ' \u00b7 ' + d.pitch.toFixed(1) + ' \u00b5m pixels',
       kitFovLine: (kit.orient === 'port' ? 'portrait' : 'landscape') + ' \u00b7 ' + Math.round(d.across) + '\u00b0 \u00d7 ' + Math.round(d.down) + '\u00b0 field of view',
       npfSecs: (npf < 10 ? npf.toFixed(1) : String(Math.round(npf))) + 's',
@@ -5692,16 +5730,43 @@ class Component extends DCLogic {
 
      Everything is done in angles read back through the projector rather than in pixels, so it holds
      at any field of view and at any tilt. */
+  /* Two fingers on the stage zoom the view, whatever else is going on: it is the one gesture
+     everybody already knows from the camera app, and here it is what turns a long lens from a
+     tiny rectangle into something you can compose inside. The overlay's field narrows with it,
+     so the stars stay on the stars. */
+  arPinchState(el) {
+    if (!el._nArGest) el._nArGest = { ptrs: new Map(), pinch: null, did: false };
+    return el._nArGest;
+  }
   arCalDown = e => {
+    const AR = window.NoctoAR, g = this.arPinchState(e.currentTarget);
+    if (e.isPrimary) { g.ptrs.clear(); g.pinch = null; g.did = false; }
+    g.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+    if (g.ptrs.size >= 2 && AR) {
+      const p = [...g.ptrs.values()];
+      this._calPrev = null;                        // a second finger cancels an align drag
+      g.pinch = { d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y), z: AR.zoom() };
+      g.did = true;
+      return;
+    }
     if (!this.state.arCal || this.state.arAligning) return;   // a tap to align is not a drag
     const at = this.arUnproject(e);
     if (!at) return;
     this._calPrev = at;
     this._calMoved = 0;
-    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
   };
   arCalMove = e => {
     const AR = window.NoctoAR, T = this.T();
+    const g = this.arPinchState(e.currentTarget);
+    if (g.ptrs.has(e.pointerId)) g.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (g.ptrs.size >= 2 && g.pinch && AR) {
+      const p = [...g.ptrs.values()];
+      const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+      if (!d || !g.pinch.d) return;
+      this.applyArLens(g.pinch.z * (d / g.pinch.d));
+      return;
+    }
     if (!this.state.arCal || !this._calPrev || !AR) return;
     const at = this.arUnproject(e);
     if (!at) return;
@@ -5724,7 +5789,13 @@ class Component extends DCLogic {
     this._calPrev = at;
     this.setState({ arTick: this.state.arTick + 1 });
   };
-  arCalUp = () => {
+  arCalUp = e => {
+    if (e && e.currentTarget && e.currentTarget._nArGest) {
+      const g = e.currentTarget._nArGest;
+      g.ptrs.delete(e.pointerId);
+      if (g.ptrs.size < 2) g.pinch = null;
+      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
     this._calPrev = null;
     if (this._calDirty != null) {
       const obs = this.state.hzObs || {};
@@ -5752,6 +5823,8 @@ class Component extends DCLogic {
     const patch = { arOpen: true, arShowTune: false, arAligning: false };
     if (o.subject) patch.arSubject = o.subject;
     if (o.trails != null) patch.arTrails = o.trails;
+    if (o.date !== undefined) patch.arDate = o.date;
+    if (o.scrub !== undefined) patch.arScrub = o.scrub;
     this.setState(patch);
     this.watchArOrientation(true);
     this.loadArObjs();
@@ -5769,6 +5842,38 @@ class Component extends DCLogic {
     const ok = await AR.startCamera(this._arVideo);
     this.track(ok ? 'ar-camera-on' : 'ar-camera-refused');
     this.setState({ arCamOk: ok });
+    if (ok) { this._arLensFor = null; this.applyArLens(); }
+  }
+
+  /* Fit the phone's own optics to the lens being planned. A 135mm frame is four degrees across:
+     through a 68-degree phone camera that is a rectangle you cannot compose inside, which made
+     the long end of the kit list useless in AR. So the narrowest fitted camera that still holds
+     the frame is selected, and then zoomed until the rectangle fills most of the screen. The
+     overlay projects through the resulting field, so the sky grows with it and stays registered
+     on the real one. */
+  async applyArLens(zoomOverride) {
+    const AR = window.NoctoAR, P = this.P();
+    if (!AR || !P || !this.state.arOpen) return;
+    const d = P.kitDerived(this.kit());
+    if (this.state.arCam && this.state.arCamOk) {
+      await AR.listCameras();
+      const pick = AR.pickLensFor(d.across);
+      if (pick && AR.cameras().length > 1 && pick.id !== AR.state.deviceId) {
+        await AR.startCamera(this._arVideo, { deviceId: pick.id, lens: pick.kind });
+      } else if (pick) AR.setLens(pick.kind);
+    }
+    await AR.setZoom(zoomOverride != null ? zoomOverride : AR.zoomFor(d.across, 0.72));
+    this.setState({ arTick: this.state.arTick + 1 });
+  }
+  /* Changing the focal length or turning the camera in the AR controls has to re-fit the optics,
+     but only when it actually changed: this runs on every update pass. */
+  syncArLens() {
+    if (!this.state.arOpen) { this._arLensFor = null; return; }
+    const k = this.kit();
+    const key = k.focal + '|' + k.orient + '|' + k.sensor + '|' + (this.state.arCamOk ? 'cam' : 'none');
+    if (this._arLensFor === key) return;
+    this._arLensFor = key;
+    this.applyArLens();
   }
   closeAr() {
     if (window.NoctoAR) window.NoctoAR.stop();
@@ -6311,6 +6416,8 @@ class Component extends DCLogic {
          real bearing in one gesture: the same trick the moon gives you at night. */
       onArTap: e => {
         const mode = st.arAligning, cv = this._arCanvas, P = this.P();
+        const g = this._arStage && this._arStage._nArGest;
+        if (g && g.did) { g.did = false; return; }        // that was a pinch, not a tap
         if (!mode || !cv || !P || E.state.lat == null) return;
         /* The sky you can point at is the real one, now, whatever the slider is previewing.
            Aligning against a scrubbed sun would set the compass to a bearing six months old. */
@@ -6394,8 +6501,44 @@ class Component extends DCLogic {
       arNudgeLabel: (AR.nudge() > 180 ? AR.nudge() - 360 : AR.nudge()).toFixed(0) + '\u00b0',
       onArNudge: e => { AR.setNudge(Number(e.target.value)); this.setState({ arNudge: Number(e.target.value) }); },
       arHfov: Math.round(AR.hfov()),
-      arHfovLabel: Math.round(AR.hfov()) + '\u00b0 wide',
+      arHfovLabel: Math.round(AR.hfov()) + '\u00b0 wide \u00b7 ' + AR.lensLabel(),
       onArHfov: e => { AR.setHfov(Number(e.target.value)); this.setState({ arHfov: Number(e.target.value) }); },
+      /* The lens being planned, changeable without leaving the sky. Kept to the focal lengths the
+         Kit tab offers, with a link through to it for anything else. */
+      ...(() => {
+        const k = this.kit(), P = this.P();
+        const d = P ? P.kitDerived(k) : null;
+        const port = k.orient === 'port';
+        const zoom = AR.zoom();
+        const cssZ = AR.cssZoom();
+        return {
+          arCamTransform: cssZ > 1.001 ? 'scale(' + cssZ.toFixed(3) + ')' : 'none',
+          arFocalChips: [14, 20, 24, 35, 50, 85, 135].map(f => ({
+            label: String(f), on: k.focal === f ? 'on' : 'off',
+            bg: k.focal === f ? 'rgba(var(--accent-rgb),.18)' : 'transparent',
+            bd: k.focal === f ? 'var(--accent)' : 'rgba(240,236,228,.18)',
+            fg: k.focal === f ? 'var(--accent)' : 'rgba(240,236,228,.72)',
+            go: () => this.setKit({ focal: f }),
+          })),
+          arOrientLabel: port ? 'Portrait' : 'Landscape',
+          arOrientFlip: () => this.setKit({ orient: port ? 'land' : 'port' }),
+          arLensLine: !d ? '' : k.focal + 'mm ' + (port ? 'portrait' : 'landscape')
+            + ' \u00b7 ' + Math.round(d.across) + '\u00b0 \u00d7 ' + Math.round(d.down) + '\u00b0',
+          arOpticLine: (st.arCam && st.arCamOk ? AR.lensLabel() : 'no camera')
+            + ' \u00b7 ' + Math.round(AR.effHfov()) + '\u00b0 shown'
+            + (zoom > 1.02 ? ' \u00b7 ' + zoom.toFixed(1) + '\u00d7' : ''),
+          arZoomOn: zoom > 1.02,
+          arZoomReset: () => this.applyArLens(1),
+          arZoomFit: () => this.applyArLens(),
+          /* Kit and back again: the AR view is a fullscreen overlay, so leaving it has to be
+             explicit, and coming back has to be one tap or nobody will risk the trip. */
+          arGoKit: () => {
+            const back = { subject: st.arSubject, trails: st.arTrails, date: st.arDate, scrub: st.arScrub };
+            this.closeAr();
+            this.setState({ kitReturn: back }, () => this.goTab('kit'));
+          },
+        };
+      })(),
       openArAll: () => this.openAr({ subject: 'all' }),
       openArHere: () => this.openAr({ subject: st.skySel || 'all' }),
       openArTrails: () => this.openAr({ subject: 'all', trails: Math.min(4, Math.max(0.25, st.trailHours || 2)) }),
@@ -7643,47 +7786,61 @@ class Component extends DCLogic {
       const ll = this.unproject(ax - dx, ay - dy, z);
       set({ ...view, z, lat: ll[0], lon: ll[1] });
     };
-    if (!this._ptrs) this._ptrs = new Map();
+    /* Gesture state lives on the canvas element, not on the component. Three maps share these
+       handlers (Place, the pin picker, Nearby) and a single component-wide pointer map meant a
+       finger that never reported its release, because its canvas went away mid-gesture or the
+       gesture ended on another map, left a phantom pointer behind for good. Every later
+       one-finger drag then looked like a pinch with nothing to pinch against, and the map simply
+       stopped responding: the freeze. Per element, a fresh node is a fresh gesture. */
+    const gs = el => {
+      if (!el._nGest) el._nGest = { ptrs: new Map(), drag: null, pinch: null, tap: null };
+      return el._nGest;
+    };
     const two = el => {
-      const p = [...this._ptrs.values()];
+      const p = [...gs(el).ptrs.values()];
       if (p.length < 2) return null;
       const r = el.getBoundingClientRect();
       return { d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y),
         mx: (p[0].x + p[1].x) / 2 - (r.left + r.width / 2),
         my: (p[0].y + p[1].y) / 2 - (r.top + r.height / 2) };
     };
-    const pan = (x, y) => {
+    const pan = (g, x, y) => {
       const [wx, wy] = this.project(view.lat, view.lon, view.z);
-      this._drag = { x, y, wx, wy, z: view.z };
+      g.drag = { x, y, wx, wy, z: view.z };
     };
     return {
       onPointerDown: e => {
-        this._ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const g = gs(e.currentTarget);
+        /* The first finger down is by definition the start of a gesture, so anything still listed
+           is stale and goes. This is the belt to the per-element braces. */
+        if (e.isPrimary) { g.ptrs.clear(); g.drag = null; g.pinch = null; }
+        g.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
         try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
-        if (this._ptrs.size >= 2) {
-          this._drag = null;                       // a second finger ends the pan and starts a pinch
-          const g = two(e.currentTarget);
-          if (g) {
+        if (g.ptrs.size >= 2) {
+          g.drag = null;                           // a second finger ends the pan and starts a pinch
+          const t2 = two(e.currentTarget);
+          if (t2) {
             const [wx, wy] = this.project(view.lat, view.lon, view.z);
-            this._pinch = { d: g.d, z: view.z, anchor: this.unproject(wx + g.mx, wy + g.my, view.z) };
+            g.pinch = { d: t2.d, z: view.z, anchor: this.unproject(wx + t2.mx, wy + t2.my, view.z) };
           }
           return;
         }
-        pan(e.clientX, e.clientY);
+        pan(g, e.clientX, e.clientY);
         /* Double tap zooms in on the spot tapped: the one-handed gesture, for when the other hand
            is holding a torch. */
-        const t = Date.now(), last = this._tap;
-        this._tap = { t, x: e.clientX, y: e.clientY };
+        const t = Date.now(), last = g.tap;
+        g.tap = { t, x: e.clientX, y: e.clientY };
         if (last && t - last.t < 320 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 34) {
           const [dx, dy] = offset(e);
-          this._tap = null; this._drag = null;
+          g.tap = null; g.drag = null;
           zoomAbout(clampZ(Math.floor(view.z) + 1), dx, dy);
         }
       },
       onPointerMove: e => {
-        if (this._ptrs.has(e.pointerId)) this._ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        if (this._ptrs.size >= 2) {
-          const g = two(e.currentTarget), p0 = this._pinch;
+        const gst = gs(e.currentTarget);
+        if (gst.ptrs.has(e.pointerId)) gst.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (gst.ptrs.size >= 2) {
+          const g = two(e.currentTarget), p0 = gst.pinch;
           if (!g || !g.d || !p0 || !p0.d) return;
           /* The scale follows the fingers exactly, in fractional zoom, and the tiles are drawn at
              the nearest whole level and scaled the rest of the way. Stepping a whole level once the
@@ -7696,27 +7853,30 @@ class Component extends DCLogic {
           set({ ...view, z, lat: ll[0], lon: ll[1] });
           return;
         }
-        const d = this._drag;
+        const d = gst.drag;
         if (!d) return;
         const [lat, lon] = this.unproject(d.wx - (e.clientX - d.x), d.wy - (e.clientY - d.y), d.z);
         set({ ...view, lat, lon });
       },
       onPointerUp: e => {
-        this._ptrs.delete(e.pointerId);
-        if (this._ptrs.size < 2) this._pinch = null;
+        const g = gs(e.currentTarget);
+        g.ptrs.delete(e.pointerId);
+        try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (err) {}
+        if (g.ptrs.size < 2) g.pinch = null;
         /* A finger left over from a pinch carries straight on as a pan, from wherever it now is,
            rather than being ignored until it is lifted too. */
-        if (this._ptrs.size === 1) {
-          const p = [...this._ptrs.values()][0];
-          pan(p.x, p.y);
+        if (g.ptrs.size === 1) {
+          const p = [...g.ptrs.values()][0];
+          pan(g, p.x, p.y);
           return;
         }
-        this._drag = null;
+        g.drag = null;
         if (warm !== false) this.mapWarm();
       },
       onPointerCancel: e => {
-        this._ptrs.delete(e.pointerId);
-        this._drag = null; this._pinch = null;
+        const g = gs(e.currentTarget);
+        g.ptrs.delete(e.pointerId);
+        g.drag = null; g.pinch = null;
       },
       onWheel: e => {
         e.preventDefault();
@@ -7763,6 +7923,25 @@ class Component extends DCLogic {
       'rgba(152,172,88,.30)', 'rgba(202,171,58,.40)', 'rgba(226,150,44,.50)',
       'rgba(235,120,34,.60)', 'rgba(240,95,28,.70)', 'rgba(246,70,24,.78)',
     ][i];
+  }
+
+  /* The Place map is a view onto your site, so when the site moves the view has to follow it.
+     Once panned, mapView holds whatever the user last looked at, which was right for a pan and
+     wrong after a location change: the map stayed over the old county while every reading on the
+     page had moved. The zoom and the basemap are the user's choices and are kept; only the
+     centre is taken back. */
+  syncMapHome() {
+    const E = this.E();
+    if (!E || E.state.lat == null) return;
+    const key = E.state.lat.toFixed(4) + ',' + E.state.lon.toFixed(4);
+    if (this._mapHome === undefined) { this._mapHome = key; return; }   // first sight is not a move
+    if (this._mapHome === key) return;
+    this._mapHome = key;
+    const prev = this.state.mapView;
+    this.setState({
+      mapView: prev ? { ...prev, lat: E.state.lat, lon: E.state.lon } : null,
+      pinView: null,
+    }, () => { this.drawMap(); if (this.state.tab === 'map') this.mapWarm(); });
   }
 
   mapView() {
