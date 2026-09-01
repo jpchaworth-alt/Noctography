@@ -273,7 +273,7 @@ window.noctoTrack = function (name) {
         <span style="font-size: clamp(12.5px, 3.5vw, 15px); font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--text);">Noctography</span>
         <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: clamp(9.5px, 2.8vw, 11px); letter-spacing: .02em; color: var(--dim); white-space: nowrap;">Paul Haworth Nightscapes</span>
       </div>
-      <a href="../index.html" title="About Noctography" style="min-height: 44px; display: flex; align-items: center; padding: 0 clamp(5px, 1.8vw, 10px); color: var(--dim); font-size: 20px; line-height: 1;">â€¹</a>
+      <a href="../index.html" title="About Noctography" style="min-height: 44px; display: flex; align-items: center; padding: 0 clamp(5px, 1.8vw, 10px); color: var(--dim); font-size: 20px; line-height: 1;">‹</a>
       <button type="button" onClick="{{ openLocation }}" style="min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; flex: 0 1 auto; max-width: min(46%, 170px); min-width: 0;">
         <span data-nv-dot="on" style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: 0 0 6px;"></span>
         <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ placeName }}</span>
@@ -344,7 +344,7 @@ window.noctoTrack = function (name) {
         <sc-if value="{{ coordOn }}" hint-placeholder-val="{{ false }}">
           <button type="button" onClick="{{ pickCoord }}" style="display: grid; gap: 2px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(var(--accent-rgb),.45); background: rgba(var(--accent-rgb),.10); color: var(--text); font-family: 'Barlow', sans-serif; cursor: pointer;">
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px;">{{ coordLabel }}</span>
-            <span style="font-size: 13px; color: var(--dim);">Go to these coordinates Â· {{ coordKm }}</span>
+            <span style="font-size: 13px; color: var(--dim);">Go to these coordinates · {{ coordKm }}</span>
           </button>
         </sc-if>
         <sc-for list="{{ results }}" as="r" hint-placeholder-count="0">
@@ -361,7 +361,7 @@ window.noctoTrack = function (name) {
             <div style="display: grid; gap: 6px;">
               <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Favourites</span>
               <select value="{{ favValue }}" onChange="{{ onPickFav }}" style="min-height: 48px; padding: 0 12px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text); font-family: 'Barlow', sans-serif; font-size: 15px;">
-                <option value="">Jump to a saved placeâ€¦</option>
+                <option value="">Jump to a saved place…</option>
                 <sc-for list="{{ favOptions }}" as="f" hint-placeholder-count="0">
                   <option value="{{ f.value }}">{{ f.label }}</option>
                 </sc-for>
@@ -396,7 +396,7 @@ window.noctoTrack = function (name) {
                   <button type="button" onClick="{{ pinStyleSat }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ pinSatBg }}; color: {{ pinSatFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Satellite</button>
                   <button type="button" onClick="{{ pinStyleDetail }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ pinDetailBg }}; color: {{ pinDetailFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Detail</button>
                   <span style="flex: 1; min-width: 20px;"></span>
-                  <button type="button" onClick="{{ pinZoomOut }}" aria-label="Zoom out" style="flex: 0 0 auto; min-width: 48px; min-height: 48px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">âˆ’</button>
+                  <button type="button" onClick="{{ pinZoomOut }}" aria-label="Zoom out" style="flex: 0 0 auto; min-width: 48px; min-height: 48px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">−</button>
                   <button type="button" onClick="{{ pinZoomIn }}" aria-label="Zoom in" style="flex: 0 0 auto; min-width: 48px; min-height: 48px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">+</button>
                 </div>
               </div>
@@ -570,7 +570,7 @@ window.noctoTrack = function (name) {
                   <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <span style="display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Clear<i style="width: 44px; height: 8px; border-radius: 2px; background: linear-gradient(90deg, rgba(198,206,232,.04), rgba(198,206,232,.62));"></i>Clouded over</span>
                     <span style="flex: 1; min-width: 8px;"></span>
-                    <button type="button" onClick="{{ nbZoomOut }}" aria-label="Zoom out" style="flex: 0 0 auto; min-width: 44px; min-height: 44px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">âˆ’</button>
+                    <button type="button" onClick="{{ nbZoomOut }}" aria-label="Zoom out" style="flex: 0 0 auto; min-width: 44px; min-height: 44px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">−</button>
                     <button type="button" onClick="{{ nbZoomIn }}" aria-label="Zoom in" style="flex: 0 0 auto; min-width: 44px; min-height: 44px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">+</button>
                   </div>
                   <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.4; color: var(--accent); text-wrap: pretty;">{{ nbAtLine }}</span>
@@ -782,9 +782,9 @@ window.noctoTrack = function (name) {
             </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">
-              <button type="button" onClick="{{ calPrev }}" aria-label="Previous month" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: transparent; color: var(--text2); font-size: 15px; cursor: pointer;">â€¹</button>
+              <button type="button" onClick="{{ calPrev }}" aria-label="Previous month" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: transparent; color: var(--text2); font-size: 15px; cursor: pointer;">‹</button>
               <span style="flex: 1; text-align: center; font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(19px, 5.6vw, 23px); line-height: 1.1;">{{ calTitle }}</span>
-              <button type="button" onClick="{{ calNext }}" aria-label="Next month" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: transparent; color: var(--text2); font-size: 15px; cursor: pointer;">â€º</button>
+              <button type="button" onClick="{{ calNext }}" aria-label="Next month" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: transparent; color: var(--text2); font-size: 15px; cursor: pointer;">›</button>
             </div>
 
             <sc-if value="{{ calPhaseGridOn }}" hint-placeholder-val="{{ true }}">
@@ -806,7 +806,7 @@ window.noctoTrack = function (name) {
                   <div style="display: grid; gap: 5px; padding: 10px 12px; background: rgba(var(--well-rgb),.5); border-left: 2px solid var(--accent); border-radius: 4px;">
                     <div style="display: flex; align-items: baseline; gap: 9px;">
                       <span style="margin-right: auto; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; line-height: 1.1;">{{ calSelTitle }}</span>
-                      <button type="button" onClick="{{ calSelClear }}" aria-label="Clear the selected day" style="flex: 0 0 auto; min-height: 44px; margin: -11px -6px; padding: 0 8px; border: 0; background: none; color: var(--dim); font-size: 16px; line-height: 1; cursor: pointer;">Ã—</button>
+                      <button type="button" onClick="{{ calSelClear }}" aria-label="Clear the selected day" style="flex: 0 0 auto; min-height: 44px; margin: -11px -6px; padding: 0 8px; border: 0; background: none; color: var(--dim); font-size: 16px; line-height: 1; cursor: pointer;">×</button>
                     </div>
                     <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.5; color: var(--moon);">{{ calSelMoon }}</span>
                     <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.5; color: var(--text2);">{{ calSelSun }}</span>
@@ -846,13 +846,13 @@ window.noctoTrack = function (name) {
         <sc-if value="{{ showGlow }}" hint-placeholder-val="{{ false }}">
           <div style="display: grid; gap: 9px; padding: clamp(12px, 3.4vw, 15px); background: rgba(var(--line-rgb),.04); border: 1px solid rgba(var(--line-rgb),.1); border-radius: 8px;">
             <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">What is airglow</span>
-            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Airglow is the atmosphere making its own light, not reflecting anyone elseâ€™s. Green comes from oxygen in a thin layer around 95 km up, orange from hydroxyl just below it, and a deeper red from oxygen higher still. It is what the green and orange banding low in a wide nightscape usually is.</p>
-            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Its brightness follows the solar cycle, roughly 40% brighter around maximum. The number here is F10.7, the sunâ€™s radio output at 10.7 cm, measured daily at Penticton in Canada since 1947 and used as the standard stand-in for the ultraviolet that drives the chemistry. Todayâ€™s reading is blended with the average over the last solar rotation, because oxygen up there builds over days rather than hours.</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Airglow is the atmosphere making its own light, not reflecting anyone else’s. Green comes from oxygen in a thin layer around 95 km up, orange from hydroxyl just below it, and a deeper red from oxygen higher still. It is what the green and orange banding low in a wide nightscape usually is.</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Its brightness follows the solar cycle, roughly 40% brighter around maximum. The number here is F10.7, the sun’s radio output at 10.7 cm, measured daily at Penticton in Canada since 1947 and used as the standard stand-in for the ultraviolet that drives the chemistry. Today’s reading is blended with the average over the last solar rotation, because oxygen up there builds over days rather than hours.</p>
             <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.5; color: var(--faint);">{{ glowMean }}</p>
-            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Why look low rather than up: the glowing layer is thin, so straight overhead you see through about 10 km of it, while at 15Â° above the horizon your line of sight travels obliquely through four times as much. That stacks the light up. Go much lower and the extra air in the way takes it back again, along with the town glow sitting on the horizon, which is why 10 to 20Â° is the sweet spot.</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Why look low rather than up: the glowing layer is thin, so straight overhead you see through about 10 km of it, while at 15° above the horizon your line of sight travels obliquely through four times as much. That stacks the light up. Go much lower and the extra air in the way takes it back again, along with the town glow sitting on the horizon, which is why 10 to 20° is the sweet spot.</p>
             <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Treat the number as a fuel gauge for the spell you are in, not a forecast for tonight. Satellite averages track the flux closely; single nights at a single site are much looser. The ripples and bands people photograph come from gravity waves rolling through the upper atmosphere, thrown up by storms and terrain far below, and no public feed predicts those.</p>
             <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">It is mostly a camera phenomenon: grey at best to the eye, colour only in long or stacked exposures. Low means faint, never absent. The callout only appears when the flux is high and the night can actually catch it: real darkness, little or no moon, a dark enough site and a reasonable chance of clear sky.</p>
-            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">The cycle passed its peak in 2025, so High will get rarer between now and the next minimum around 2030. That is also why everyoneâ€™s 2024 skies looked so green.</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">The cycle passed its peak in 2025, so High will get rarer between now and the next minimum around 2030. That is also why everyone’s 2024 skies looked so green.</p>
           </div>
         </sc-if>
 
@@ -935,16 +935,16 @@ window.noctoTrack = function (name) {
             <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; padding-right: 6px; background: rgb(var(--card-rgb)); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Sun</span>
             <sc-for list="{{ ahead }}" as="a" hint-placeholder-count="15">
               <span data-nv-active="{{ a.best }}" style="display: grid; justify-items: center; gap: 1px; padding: 4px 0; border-radius: 6px; border-left: {{ a.edge }}; border-right: {{ a.edge2 }}; background: {{ a.bg }}; opacity: {{ a.dim }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; line-height: 1.25; color: var(--dim);">
-                <span>â†‘ {{ a.sunRise }}</span>
-                <span style="color: var(--faint);">â†“ {{ a.sunSet }}</span>
+                <span>↑ {{ a.sunRise }}</span>
+                <span style="color: var(--faint);">↓ {{ a.sunSet }}</span>
               </span>
             </sc-for>
 
             <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; padding-right: 6px; background: rgb(var(--card-rgb)); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Moon</span>
             <sc-for list="{{ ahead }}" as="a" hint-placeholder-count="15">
               <span data-nv-active="{{ a.best }}" style="display: grid; justify-items: center; gap: 1px; padding: 4px 0; border-radius: 6px; border-left: {{ a.edge }}; border-right: {{ a.edge2 }}; background: {{ a.bg }}; opacity: {{ a.dim }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; line-height: 1.25; color: var(--moon);">
-                <span>â†‘ {{ a.moonRise }}</span>
-                <span style="color: var(--grid-line);">â†“ {{ a.moonSet }}</span>
+                <span>↑ {{ a.moonRise }}</span>
+                <span style="color: var(--grid-line);">↓ {{ a.moonSet }}</span>
               </span>
             </sc-for>
 
@@ -1015,8 +1015,8 @@ window.noctoTrack = function (name) {
               <span><b style="color: var(--dim); font-weight: 500;">Cloud</b>: share of the sky covered through the dark hours. Green is clear, amber is patchy, grey is covered.</span>
               <span><b style="color: var(--dim); font-weight: 500;">Sky</b>: real-world Bortle, your site with that night's moon and haze counted in.</span>
               <span><b style="color: var(--dim); font-weight: 500;">Met</b>: meteors an hour at their best. <b style="color: var(--dim); font-weight: 500;">Kp</b>: aurora strength, 5 and up is worth watching.</span>
-              <span><b style="color: var(--dim); font-weight: 500;">Conj</b>: the closest two of Mercury, Venus, Mars, Jupiter, Saturn and the moon, when they come within 5Â° of each other and both stand at least 5Â° up in a dark or nearly dark sky. Initials name the pair, and a + means another pairing that night. Amber is inside 2Â°, which is where it starts looking deliberate through a long lens.</span>
-              <span><b style="color: var(--dim); font-weight: 500;">Sun</b> and <b style="color: var(--dim); font-weight: 500;">Moon</b>: rise on the top line, marked â†‘, and set below it, marked â†“.</span>
+              <span><b style="color: var(--dim); font-weight: 500;">Conj</b>: the closest two of Mercury, Venus, Mars, Jupiter, Saturn and the moon, when they come within 5° of each other and both stand at least 5° up in a dark or nearly dark sky. Initials name the pair, and a + means another pairing that night. Amber is inside 2°, which is where it starts looking deliberate through a long lens.</span>
+              <span><b style="color: var(--dim); font-weight: 500;">Sun</b> and <b style="color: var(--dim); font-weight: 500;">Moon</b>: rise on the top line, marked ↑, and set below it, marked ↓.</span>
             </div>
             </sc-if>
             <sc-if value="{{ eclOn }}" hint-placeholder-val="{{ false }}">
@@ -1249,7 +1249,7 @@ window.noctoTrack = function (name) {
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">Two things matter here, and it is how they sit together that tells you something.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The first is the wind arriving from the sun, measured by spacecraft out ahead of us. When its magnetic field points south it connects with ours and energy pours in. That is the push.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The second is what the earth is actually doing about it, measured by magnetic observatories on the ground and reported as one number for the whole planet. That is the result.</p>
-              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A hard push with the number climbing means it is happening and getting bigger. A hard push with the number flat means energy is going into the earthâ€™s magnetic tail and has not come back out yet, which usually ends in a sudden brightening. A hard push with the number falling is the lull between two of those. Same two readings, three quite different pieces of advice.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A hard push with the number climbing means it is happening and getting bigger. A hard push with the number flat means energy is going into the earth’s magnetic tail and has not come back out yet, which usually ends in a sudden brightening. A hard push with the number falling is the lull between two of those. Same two readings, three quite different pieces of advice.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Nothing here can time a brightening. They last twenty minutes to an hour and nobody forecasts them. The honest version is that the conditions for one are in place.</p>
             </div>
           </sc-if>
@@ -1381,7 +1381,7 @@ window.noctoTrack = function (name) {
           <sc-if value="{{ showAhead }}" hint-placeholder-val="{{ false }}">
             <div style="display: grid; gap: 7px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">These come from NOAA's Kp forecast, three-hour blocks up to three days out, matched against each night's dark window rather than a rolling average around now. A night only reads as likely when the number, the geometry, the darkness and the cloud all agree.</p>
-              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A watch means forecasters have seen a coronal mass ejection, or CME, leave the sun and expect it here on that date. A CME is a billion tonnes of the sunâ€™s atmosphere thrown outwards, and it takes one to three days to cross to us. Arrival routinely slips six to twelve hours, so a watch shows on both nights it could touch, and its size stays unknown until it reaches the spacecraft and its field can be measured. Arriving pointing north, the whole thing can fizzle.</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">A watch means forecasters have seen a coronal mass ejection, or CME, leave the sun and expect it here on that date. A CME is a billion tonnes of the sun’s atmosphere thrown outwards, and it takes one to three days to cross to us. Arrival routinely slips six to twelve hours, so a watch shows on both nights it could touch, and its size stays unknown until it reaches the spacecraft and its field can be measured. Arriving pointing north, the whole thing can fizzle.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Recurrence is a different mechanism. Coronal holes sit still while the sun turns under them, so their streams come back about every 27 days and can be planned around. CME storms never recur.</p>
             </div>
           </sc-if>
@@ -1466,10 +1466,10 @@ window.noctoTrack = function (name) {
           <div style="display: grid; gap: 9px; padding: clamp(12px, 3.4vw, 15px); background: rgba(var(--line-rgb),.04); border: 1px solid rgba(var(--line-rgb),.1); border-radius: 8px;">
             <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Where these numbers come from</span>
             <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">The headline figure is meteors an hour you could expect to see. One relation is evaluated every 15 minutes through the night, separately for every active shower and the sporadic background.</p>
-            <p style="margin: 0; padding: 10px 12px; background: rgba(var(--well-rgb),.5); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--accent); line-height: 1.5;">rate = ZHR(t) Ã— sin(h) Ã— r^(lm âˆ’ 6.5) Ã— clear Ã— 0.75</p>
-            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">ZHR(t) is the shower's strength at this point in its cycle, anchored to solar longitude, with a narrow peak and a broad component for streams with long wings. sin(h) is the radiant altitude, tapered below 8Â° for extinction and terrain. r is the population index, an exponent, which is why one lost magnitude of sky darkness roughly halves the rate.</p>
+            <p style="margin: 0; padding: 10px 12px; background: rgba(var(--well-rgb),.5); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--accent); line-height: 1.5;">rate = ZHR(t) × sin(h) × r^(lm − 6.5) × clear × 0.75</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">ZHR(t) is the shower's strength at this point in its cycle, anchored to solar longitude, with a narrow peak and a broad component for streams with long wings. sin(h) is the radiant altitude, tapered below 8° for extinction and terrain. r is the population index, an exponent, which is why one lost magnitude of sky darkness roughly halves the rate.</p>
             <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Limiting magnitude is built in linear brightness units: an airglow floor at 22.0, artificial ground light from the atlas, twilight, then moonlight from the Krisciunas &amp; Schaefer (1991) model with Kasten &amp; Young airmass, so a setting moon fades gradually. Thin cloud counts twice: it hides part of the sky and scatters town glow and moonlight back down, so the same 60% high cloud costs about a magnitude at Bortle 5. Humidity above 65% adds haze. Everything is scaled by 0.75, since ZHR assumes a perfect observer watching the whole sky at once.</p>
-            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Shower parameters are hand-encoded from the International Meteor Organization's calendar and working list. Cloud, humidity, temperature and dew point come from Open-Meteo, interpolated between hourly samples. Sky darkness comes from David Lorenz's 2025 light pollution atlas, baked into the app. Beyond 16 days the cloud figure is what this place typically does at that time of year, averaged over three years and a Â±3 day window: useful for choosing a week.</p>
+            <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--faint); text-wrap: pretty;">Shower parameters are hand-encoded from the International Meteor Organization's calendar and working list. Cloud, humidity, temperature and dew point come from Open-Meteo, interpolated between hourly samples. Sky darkness comes from David Lorenz's 2025 light pollution atlas, baked into the app. Beyond 16 days the cloud figure is what this place typically does at that time of year, averaged over three years and a ±3 day window: useful for choosing a week.</p>
           </div>
         </sc-if>
 
@@ -1601,7 +1601,7 @@ window.noctoTrack = function (name) {
               <span style="font-size: 14.5px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ trailLenSub }}</span>
               <sc-if value="{{ showTrailLen }}" hint-placeholder-val="{{ false }}">
                 <div style="display: grid; gap: 7px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
-                  <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The sky turns 15Â° an hour. A star's speed across the frame is that times the cosine of its declination, so stars near the pole crawl and stars on the equator race. Trail length is speed times time, read against your lens's field of view.</p>
+                  <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The sky turns 15° an hour. A star's speed across the frame is that times the cosine of its declination, so stars near the pole crawl and stars on the equator race. Trail length is speed times time, read against your lens's field of view.</p>
                   <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">Change the lens or the body on the Kit tab and this number moves with it.</p>
                 </div>
               </sc-if>
@@ -1611,7 +1611,7 @@ window.noctoTrack = function (name) {
 
         <sc-if value="{{ trailOpen }}" hint-placeholder-val="{{ false }}">
           <div style="display: grid; gap: 13px;">
-            <button type="button" onClick="{{ closeTrail }}" style="justify-self: start; min-height: 44px; padding: 0 14px 0 10px; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13.5px; white-space: nowrap; cursor: pointer;">â€¹ All three</button>
+            <button type="button" onClick="{{ closeTrail }}" style="justify-self: start; min-height: 44px; padding: 0 14px 0 10px; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13.5px; white-space: nowrap; cursor: pointer;">‹ All three</button>
 
             <div style="display: grid; gap: 7px;">
               <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">{{ tKind }}</span>
@@ -1641,7 +1641,7 @@ window.noctoTrack = function (name) {
             <div style="display: grid; gap: 10px; padding: clamp(13px, 3.6vw, 15px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <span style="margin-right: auto; font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Tonight's session</span>
-                <button type="button" onClick="{{ startEarlier }}" aria-label="Start half an hour earlier" style="width: 44px; height: 44px; margin: -8px 0; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px; background: none; color: var(--dim); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px; cursor: pointer;">âˆ’</button>
+                <button type="button" onClick="{{ startEarlier }}" aria-label="Start half an hour earlier" style="width: 44px; height: 44px; margin: -8px 0; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px; background: none; color: var(--dim); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px; cursor: pointer;">−</button>
                 <button type="button" onClick="{{ startLater }}" aria-label="Start half an hour later" style="width: 44px; height: 44px; margin: -8px 0; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px; background: none; color: var(--dim); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px; cursor: pointer;">+</button>
               </div>
               <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
@@ -1798,7 +1798,7 @@ window.noctoTrack = function (name) {
 
         <sc-if value="{{ skyDetail }}" hint-placeholder-val="{{ false }}">
           <div style="display: grid; gap: 13px;">
-            <button type="button" onClick="{{ closeSky }}" style="justify-self: start; min-height: 44px; padding: 0 14px 0 10px; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13.5px; white-space: nowrap; cursor: pointer;">â€¹ Sky</button>
+            <button type="button" onClick="{{ closeSky }}" style="justify-self: start; min-height: 44px; padding: 0 14px 0 10px; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13.5px; white-space: nowrap; cursor: pointer;">‹ Sky</button>
 
             <div style="display: grid; gap: 7px;">
               <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">{{ sEyebrow }}</span>
@@ -1868,7 +1868,7 @@ window.noctoTrack = function (name) {
         <sc-if value="{{ skyFrame }}" hint-placeholder-val="{{ false }}">
           <div style="display: grid; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <button type="button" onClick="{{ closeFrame }}" style="min-height: 44px; padding: 0 14px 0 10px; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13.5px; white-space: nowrap; flex: 0 0 auto; cursor: pointer;">â€¹ Back</button>
+              <button type="button" onClick="{{ closeFrame }}" style="min-height: 44px; padding: 0 14px 0 10px; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13.5px; white-space: nowrap; flex: 0 0 auto; cursor: pointer;">‹ Back</button>
               <span style="margin-left: auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ frameFov }}</span>
             </div>
 
@@ -2022,9 +2022,9 @@ window.noctoTrack = function (name) {
         <sc-if value="{{ logIsCal }}" hint-placeholder-val="{{ false }}">
           <div style="display: grid; gap: 13px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <button type="button" onClick="{{ logCalPrev }}" aria-label="Earlier month" style="flex: 0 0 auto; width: 48px; height: 48px; background: none; border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text2); font-size: 20px; line-height: 1; cursor: pointer;">â€¹</button>
+              <button type="button" onClick="{{ logCalPrev }}" aria-label="Earlier month" style="flex: 0 0 auto; width: 48px; height: 48px; background: none; border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text2); font-size: 20px; line-height: 1; cursor: pointer;">‹</button>
               <span style="flex: 1; text-align: center; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; color: var(--text);">{{ logCalMonth }}</span>
-              <button type="button" onClick="{{ logCalNext }}" aria-label="Later month" style="flex: 0 0 auto; width: 48px; height: 48px; background: none; border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text2); font-size: 20px; line-height: 1; cursor: pointer;">â€º</button>
+              <button type="button" onClick="{{ logCalNext }}" aria-label="Later month" style="flex: 0 0 auto; width: 48px; height: 48px; background: none; border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text2); font-size: 20px; line-height: 1; cursor: pointer;">›</button>
             </div>
             <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
               <sc-for list="{{ logCalDows }}" as="w" hint-placeholder-count="7">
@@ -2077,7 +2077,7 @@ window.noctoTrack = function (name) {
             <div style="max-width: 520px; margin: 0 auto; display: grid; gap: 0;">
 
               <div style="display: flex; align-items: center; gap: 12px; padding-bottom: 14px;">
-                <button type="button" onClick="{{ logStepClose }}" aria-label="Close" style="flex: 0 0 auto; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid rgba(var(--line-rgb),.16); border-radius: 10px; color: var(--text2); font-size: 22px; line-height: 1; cursor: pointer;">âœ•</button>
+                <button type="button" onClick="{{ logStepClose }}" aria-label="Close" style="flex: 0 0 auto; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid rgba(var(--line-rgb),.16); border-radius: 10px; color: var(--text2); font-size: 22px; line-height: 1; cursor: pointer;">✕</button>
                 <div style="display: grid; gap: 2px; margin-right: auto; min-width: 0;">
                   <span style="font-size: 11.5px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">{{ logStepKicker }}</span>
                   <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: var(--faint);">{{ logStepStamp }}</span>
@@ -2239,8 +2239,8 @@ window.noctoTrack = function (name) {
           </div>
           <sc-if value="{{ showNpf }}" hint-placeholder-val="{{ false }}">
             <div style="display: grid; gap: 7px; padding: 10px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px;">
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; color: var(--text2);">t = (35 Ã— N + 30 Ã— p) Ã· f</span>
-              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The NPF rule uses aperture and pixel pitch, which is why it lands so far from 500 Ã· focal length on a dense sensor. Both rules assume the worst case, a star on the celestial equator moving at the full 15Â° an hour.</p>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; color: var(--text2);">t = (35 × N + 30 × p) ÷ f</span>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">The NPF rule uses aperture and pixel pitch, which is why it lands so far from 500 ÷ focal length on a dense sensor. Both rules assume the worst case, a star on the celestial equator moving at the full 15° an hour.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">In the framing view, where the app knows what you are pointing at, it uses the fastest star actually in your frame instead. Near the pole that is worth a stop or more, for nothing.</p>
               <p style="margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--faint); text-wrap: pretty;">It is a model of acceptable blur, not a law. Print big or pixel-peep and you will want the pin-sharp figure or less.</p>
             </div>
@@ -2269,14 +2269,14 @@ window.noctoTrack = function (name) {
             <div style="position: relative; min-width: 0;">
               {{ mapEl }}
               <sc-if value="{{ mapBusy }}" hint-placeholder-val="{{ false }}">
-                <span data-nv-bar="1" style="position: absolute; top: 10px; left: 10px; padding: 5px 10px; border-radius: 999px; background: rgba(var(--well-rgb),.86); border: 1px solid rgba(var(--line-rgb),.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--dim);">Reading the atlasâ€¦</span>
+                <span data-nv-bar="1" style="position: absolute; top: 10px; left: 10px; padding: 5px 10px; border-radius: 999px; background: rgba(var(--well-rgb),.86); border: 1px solid rgba(var(--line-rgb),.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--dim);">Reading the atlas…</span>
               </sc-if>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
               <button type="button" onClick="{{ mapLayerAtlas }}" data-nv-active="{{ mapAtlasOn }}" style="flex: 1 1 auto; min-height: 46px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ mapAtlasBg }}; color: {{ mapAtlasFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">The atlas</button>
               <button type="button" onClick="{{ mapLayerTonight }}" data-nv-active="{{ mapTonightOn }}" style="flex: 1 1 auto; min-height: 46px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ mapTonightBg }}; color: {{ mapTonightFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Tonight</button>
               <button type="button" onClick="{{ mapLayerOff }}" data-nv-active="{{ mapOffOn }}" style="flex: 0 1 auto; min-height: 46px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ mapOffBg }}; color: {{ mapOffFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Off</button>
-              <button type="button" onClick="{{ mapZoomOut }}" aria-label="Zoom out" style="flex: 0 0 auto; min-width: 46px; min-height: 46px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">âˆ’</button>
+              <button type="button" onClick="{{ mapZoomOut }}" aria-label="Zoom out" style="flex: 0 0 auto; min-width: 46px; min-height: 46px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">−</button>
               <button type="button" onClick="{{ mapZoomIn }}" aria-label="Zoom in" style="flex: 0 0 auto; min-width: 46px; min-height: 46px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">+</button>
             </div>
             <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
@@ -2462,14 +2462,14 @@ window.noctoTrack = function (name) {
               <span style="font-size: 17px; font-weight: 600;">Nightscape Journals</span>
               <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent);">youtube.com/@nightscapejournals</span>
             </span>
-            <span style="color: var(--dim); font-size: 20px;">â€º</span>
+            <span style="color: var(--dim); font-size: 20px;">›</span>
           </a>
           <a href="https://www.paulhaworthnightscapes.com" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 14px; padding: 16px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="display: grid; gap: 3px; margin-right: auto;">
               <span style="font-size: 17px; font-weight: 600;">Book me to talk at your club or event</span>
               <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent);">paulhaworthnightscapes.com</span>
             </span>
-            <span style="color: var(--dim); font-size: 20px;">â€º</span>
+            <span style="color: var(--dim); font-size: 20px;">›</span>
           </a>
         </div>
       </section>
@@ -2482,7 +2482,7 @@ window.noctoTrack = function (name) {
           <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(26px, 8vw, 34px); line-height: 1.05; margin: 0;">Where it all comes from</h2>
         </div>
 
-        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--text2); max-width: 52ch; text-wrap: pretty;">In addition to the providers of the data sources listed below, I am grateful to the many people who have given up their time to test and provide feedback on various elements of this app. Thanks guys, this wouldnâ€™t have been possible without your diligence, patience and encouragement. You know who you are.</p>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--text2); max-width: 52ch; text-wrap: pretty;">In addition to the providers of the data sources listed below, I am grateful to the many people who have given up their time to test and provide feedback on various elements of this app. Thanks guys, this wouldn’t have been possible without your diligence, patience and encouragement. You know who you are.</p>
         <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--text2); max-width: 52ch; text-wrap: pretty;">With particular thanks to: Paul Clark, Martin Fransson, Jeroen Linnenkamp, Matej Mlakar, Henry Page and Raymond Kamstra.</p>
 
         <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Live feeds</span>
@@ -2560,7 +2560,7 @@ window.noctoTrack = function (name) {
           <a href="https://celestrak.org" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">CelesTrak</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">celestrak.org</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Elements for the station and for launches in the last thirty days. Dr T.S. Kelsoâ€™s service.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Elements for the station and for launches in the last thirty days. Dr T.S. Kelso’s service.</span>
           </a>
           <a href="https://environment.data.gov.uk/apiportal" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">Environment Agency tide gauges</span>
@@ -2620,7 +2620,7 @@ window.noctoTrack = function (name) {
           </div>
           <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
             <span style="font-size: 16px; font-weight: 600; color: var(--text);">Which satellite passes are named</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Only ones worth going outside for: the station at magnitude âˆ’1 and 20Â°, a Starlink train at 3.2 and 25Â°, and only within eight days of launch while the batch is still in a line.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Only ones worth going outside for: the station at magnitude −1 and 20°, a Starlink train at 3.2 and 25°, and only within eight days of launch while the batch is still in a line.</span>
           </div>
           <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
             <span style="font-size: 16px; font-weight: 600; color: var(--text);">High and low water</span>
@@ -2640,11 +2640,11 @@ window.noctoTrack = function (name) {
           </div>
           <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
             <span style="font-size: 16px; font-weight: 600; color: var(--text);">Light pollution around you</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The atlas sampled on sixteen bearings out to 150 km, near towns weighted more, then scaled by tonightâ€™s humidity and high cloud. My own weightings, not a published model.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The atlas sampled on sixteen bearings out to 150 km, near towns weighted more, then scaled by tonight’s humidity and high cloud. My own weightings, not a published model.</span>
           </div>
           <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
             <span style="font-size: 16px; font-weight: 600; color: var(--text);">Aurora geometry</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Kp to the equatorward limit of the oval by the published table, then your geomagnetic latitude by dipole. The photographed band sits 8Â° poleward of the limit, which is my number and the least settled one here.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Kp to the equatorward limit of the oval by the published table, then your geomagnetic latitude by dipole. The photographed band sits 8° poleward of the limit, which is my number and the least settled one here.</span>
           </div>
           <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
             <span style="font-size: 16px; font-weight: 600; color: var(--text);">Camera against naked eye</span>
@@ -2652,7 +2652,7 @@ window.noctoTrack = function (name) {
           </div>
           <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
             <span style="font-size: 16px; font-weight: 600; color: var(--text);">Bz trend</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Half-hour mean, the fraction of the hour below zero, and the length of the current run below âˆ’2. The dotted line is what is arriving now, from the distance to L1 over the measured wind speed.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Half-hour mean, the fraction of the hour below zero, and the length of the current run below −2. The dotted line is what is arriving now, from the distance to L1 over the measured wind speed.</span>
           </div>
           <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
             <span style="font-size: 16px; font-weight: 600; color: var(--text);">Cloud in the direction that matters</span>
@@ -2668,7 +2668,7 @@ window.noctoTrack = function (name) {
         <div style="display: grid; gap: 10px; padding: 15px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
         <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--text2); max-width: 52ch; text-wrap: pretty;">Noctography has no server of its own, no account and no sign-in. I do not know who you are and I have not built anything that could tell me.</p>
         <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--dim); max-width: 52ch; text-wrap: pretty;">Three things leave your device. Your coordinates go to the feeds above so they can return a forecast, a place name or the ground under you: there is no way to ask for the weather where you are standing without saying where that is. Map tiles are fetched as you pan, so Esri and OpenStreetMap see roughly which patch of ground you are looking at. And the app counts usage with GoatCounter: a page view, which tab you opened, whether you added it to your home screen, and whether AR got the camera going. GoatCounter sets no cookies, stores no IP address and cannot follow anyone between sites; it derives a country and a browser from the request and discards the rest. Counts are per visit, not per tap.</p>
-        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--dim); max-width: 52ch; text-wrap: pretty;">Nothing else goes anywhere. Your saved places, your skyline and the obstructions you have drawn, your kit profile, your colour scheme and everything you type stay in this browserâ€™s own storage, on this device, and are never uploaded. The aurora probability grid is fetched whole and asked about your position here, so that one never leaves at all. The one-file copy of the app you can keep on a laptop reports nothing whatsoever.</p>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--dim); max-width: 52ch; text-wrap: pretty;">Nothing else goes anywhere. Your saved places, your skyline and the obstructions you have drawn, your kit profile, your colour scheme and everything you type stay in this browser’s own storage, on this device, and are never uploaded. The aurora probability grid is fetched whole and asked about your position here, so that one never leaves at all. The one-file copy of the app you can keep on a laptop reports nothing whatsoever.</p>
         <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--text2); max-width: 52ch; text-wrap: pretty;">The ethos, in one line: the app should know where you are only for as long as it takes to answer a question, and I should never know at all.</p>
         </div>
 
@@ -2784,7 +2784,7 @@ window.noctoTrack = function (name) {
       <div style="position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,0));">
         <span style="padding: 3px 9px; border: 1px solid var(--accent); border-radius: 999px; font-family: 'Barlow', sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--accent);">Beta</span>
         <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(240,236,228,.8);">{{ arAim }}</span>
-        <button type="button" onClick="{{ closeAr }}" aria-label="Close" style="margin-left: auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.28); border-radius: 999px; background: rgba(0,0,0,.5); color: rgba(240,236,228,.9); font-family: 'Barlow', sans-serif; font-size: 17px; line-height: 1; cursor: pointer;">âœ•</button>
+        <button type="button" onClick="{{ closeAr }}" aria-label="Close" style="margin-left: auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.28); border-radius: 999px; background: rgba(0,0,0,.5); color: rgba(240,236,228,.9); font-family: 'Barlow', sans-serif; font-size: 17px; line-height: 1; cursor: pointer;">✕</button>
       </div>
 
       <sc-if value="{{ arNotice }}" hint-placeholder-val="{{ true }}">
@@ -2855,9 +2855,9 @@ window.noctoTrack = function (name) {
 
       <div style="display: grid; gap: 7px;">
         <div style="display: flex; gap: 6px; align-items: center;">
-          <button type="button" onClick="{{ arDayBack }}" aria-label="A day earlier" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-size: 18px; line-height: 1; cursor: pointer;">â€¹</button>
+          <button type="button" onClick="{{ arDayBack }}" aria-label="A day earlier" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-size: 18px; line-height: 1; cursor: pointer;">‹</button>
           <input type="date" value="{{ arDateValue }}" onChange="{{ onArDate }}" aria-label="Date to preview" style="flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: rgba(240,236,228,.05); color: #F3F0EA; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px;">
-          <button type="button" onClick="{{ arDayFwd }}" aria-label="A day later" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-size: 18px; line-height: 1; cursor: pointer;">â€º</button>
+          <button type="button" onClick="{{ arDayFwd }}" aria-label="A day later" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-size: 18px; line-height: 1; cursor: pointer;">›</button>
           <button type="button" onClick="{{ arNow }}" data-nv-active="{{ arLiveOn }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 14px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Now</button>
         </div>
         <input type="range" min="0" max="100" step="0.05" value="{{ arScrub }}" onInput="{{ onArScrub }}" aria-label="Time of day" style="width: 100%; height: 26px; accent-color: var(--accent);">
@@ -4285,8 +4285,8 @@ class Component extends DCLogic {
       installText: st.canPrompt
         ? 'Noctography works best saved to your home screen: it opens full screen, remembers your site, and the night vision setting stays put.'
         : (/iphone|ipad|ipod/i.test(navigator.userAgent)
-            ? 'Tap the Share button, then â€œAdd to Home Screenâ€. It opens full screen, remembers your site, and keeps night vision where you left it.'
-            : 'Open your browser menu and choose â€œAdd to Home screenâ€. It opens full screen, remembers your site, and keeps night vision where you left it.'),
+            ? 'Tap the Share button, then “Add to Home Screen”. It opens full screen, remembers your site, and keeps night vision where you left it.'
+            : 'Open your browser menu and choose “Add to Home screen”. It opens full screen, remembers your site, and keeps night vision where you left it.'),
       dismissInstall: () => this.dismissInstall(),
       doInstall: () => this.doInstall(),
       showStale: !!st.stale,
@@ -4295,7 +4295,7 @@ class Component extends DCLogic {
         : 'This has been open a while, so the forecast below may have moved on. Refresh to fetch it again.',
       dismissStale: () => this.setState({ stale: false, staleOff: true }),
       doRefresh: () => window.location.reload(),
-      placeName: st.place || 'Finding youâ€¦',
+      placeName: st.place || 'Finding you…',
       navBg1: n1.bg, navFg1: n1.fg, navBgA: nA.bg, navFgA: nA.fg, navOnA: st.tab === 'aurora' ? 'on' : 'off',
       goAurora: () => this.goTab('aurora'),
       navBg2: n2.bg, navFg2: n2.fg,
@@ -4376,7 +4376,7 @@ class Component extends DCLogic {
       favLabel: this.isFav() ? 'Remove' : 'Save',
       favColour: this.isFav() ? 'var(--dim)' : amber,
       favBorder: this.isFav() ? 'rgba(var(--line-rgb),.24)' : 'rgba(var(--accent-rgb),.5)',
-      skyLine: st.sky ? 'Bortle ' + st.sky.bortle + ' Â· ' + st.sky.sqm.toFixed(2) + ' mag/arcsecÂ² Â· naked-eye limit ' + st.sky.nelm.toFixed(1) : 'Reading the light pollution atlasâ€¦',
+      skyLine: st.sky ? 'Bortle ' + st.sky.bortle + ' · ' + st.sky.sqm.toFixed(2) + ' mag/arcsec² · naked-eye limit ' + st.sky.nelm.toFixed(1) : 'Reading the light pollution atlas…',
       ribbonTitle: 'The last five nights, and the next ' + st.range,
       ribbonEl: React.createElement('canvas', {
         ref: el => { this.rib = el; },
@@ -4564,7 +4564,7 @@ class Component extends DCLogic {
     const base = {
       trailsHead,
       trailsSub: 'Trails put up with moonlight, town glow and middling transparency better than anything else here. Pick a pattern and I will tell you where to point.',
-      trailDark: dark ? this.hhmm(dark.from) + ' â€“ ' + this.hhmm(dark.to) : 'None',
+      trailDark: dark ? this.hhmm(dark.from) + ' – ' + this.hhmm(dark.to) : 'None',
       trailDarkSub: dark ? this.hoursWordShort(t.darkHours) + ' dark' : 'the sun stays too high',
       trailMoonLine: 'Moon ' + illum + '%'
         + (t.moonSet ? ', sets ' + this.hhmm(t.moonSet) : t.moonRise ? ', rises ' + this.hhmm(t.moonRise) : ', up all night')
@@ -4588,13 +4588,13 @@ class Component extends DCLogic {
       goSky: () => this.goTab('sky'),
       trailList: !sel, trailOpen: !!sel,
       trailCards: recipes.map(r => ({
-        name: r.name, aim: r.aim ? r.aim.label : 'â€“', hook: r.hook,
+        name: r.name, aim: r.aim ? r.aim.label : '–', hook: r.hook,
         looks: r.looks.map(l => l.h + ' h ' + Math.round(P.arcAngle(l.h)) + '\u00b0').join(' \u00b7 '),
         border: r.id === 'arches' && illum > 40 ? 'var(--accent)' : 'rgba(var(--line-rgb),.14)',
         icon: (r.icon || []).map(p => ({ d: p[0], o: p[1] })),
         go: () => this.setState({ trailRecipe: r.id, trailHours: r.looks[Math.min(1, r.looks.length - 1)].h }),
       })),
-      trailLenKit: kit.focal + 'mm ' + P.SENSORS[kit.sensor].label + ' Â· a third of the frame',
+      trailLenKit: kit.focal + 'mm ' + P.SENSORS[kit.sensor].label + ' · a third of the frame',
       trailLenVal: this.hoursWordShort(thirdHours),
       trailLenSub: 'A star on the equator crosses ' + Math.round(P.trailFraction(kit, 1, 0) * 100) + '% of this frame every hour. Nearer the pole it crawls.',
       showTrailLen: st.showTrailLen,
@@ -4625,7 +4625,7 @@ class Component extends DCLogic {
         : hours >= 2
           ? 'Enough curve to be unmistakable, short enough to finish before the dew wins.'
           : 'Reads as motion rather than as rings. Short arcs still look like a sky with movement in it, rather than a piece of geometry.',
-      tRange: this.hhmm(new Date(startMs)) + ' â€“ ' + this.hhmm(new Date(s.endMs)),
+      tRange: this.hhmm(new Date(startMs)) + ' – ' + this.hhmm(new Date(s.endMs)),
       tSpare: Math.round((dark.to.getTime() - s.endMs) / 60000) >= 0
         ? this.hoursWordShort(Math.max(0, (dark.to.getTime() - s.endMs) / 3600000)) + ' spare'
         : 'past the dark',
@@ -6070,25 +6070,25 @@ class Component extends DCLogic {
     const hour = new Date().getHours();
     const partOfDay = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     if (!t) return {
-      greeting: partOfDay + '.', greetLine: 'Working out what the sky is doingâ€¦',
-      bestRange: 'â€“', bestSub: 'Waiting on the forecast.', bestPct: 0,
-      cloudBars: [], cloudVal: 'â€“', cloudSub: '', moonVal: 'â€“', moonSub: '',
-      darkRange: 'â€“', darkSub: '', mwVal: 'â€“', mwSub: '', kpVal: 'â€“', kpSub: 'Fetching', kpColour: 'var(--dim)',
-      airVal: 'â€“', airSub: '', windVal: 'â€“', windSub: '', metVal: 'â€“', metName: '', metSub: '', metColour: 'var(--dim)',
-      rwbVal: 'â€“', rwbSub: '', rwbColour: 'var(--text)', ahead: [], aheadLead: '', aheadHint: '', dayOpen: false,
+      greeting: partOfDay + '.', greetLine: 'Working out what the sky is doing…',
+      bestRange: '–', bestSub: 'Waiting on the forecast.', bestPct: 0,
+      cloudBars: [], cloudVal: '–', cloudSub: '', moonVal: '–', moonSub: '',
+      darkRange: '–', darkSub: '', mwVal: '–', mwSub: '', kpVal: '–', kpSub: 'Fetching', kpColour: 'var(--dim)',
+      airVal: '–', airSub: '', windVal: '–', windSub: '', metVal: '–', metName: '', metSub: '', metColour: 'var(--dim)',
+      rwbVal: '–', rwbSub: '', rwbColour: 'var(--text)', ahead: [], aheadLead: '', aheadHint: '', dayOpen: false,
       ...this.ringVals(),
       ...this.auroraTileVals(),
       ...this.airglowVals(),
       ...this.nlcVals(),
-      sunVal: 'â€“', sunSub: '', issVal: 'â€“', issSub: '', issColour: 'var(--dim)',
-      slVal: 'â€“', slSub: '', slColour: 'var(--dim)', fogOn: false, fogLine: '',
+      sunVal: '–', sunSub: '', issVal: '–', issSub: '', issColour: 'var(--dim)',
+      slVal: '–', slSub: '', slColour: 'var(--dim)', fogOn: false, fogLine: '',
       solOn: false, solLine: '', lunOn: false, lunLine: '', eclOn: false, eclList: [],
     };
     const n = t.night;
     const place = this.state.place && this.state.place !== 'My location' ? ' at ' + this.state.place : '';
     const greetLine = t.darkHours < 0.25
       ? 'Tonight never gets properly dark' + place + ': one for the noctilucent clouds instead.'
-      : 'Tonightâ€™s looking ' + this.verdictPhrase(t.verdict, n) + ' for some astro' + place
+      : 'Tonight’s looking ' + this.verdictPhrase(t.verdict, n) + ' for some astro' + place
         + (t.qualifier ? ', ' + t.qualifier + '.' : '.');
     /* The greeting still grades the night as it will actually be, cloud and all: that is the
        go-or-stay call. The tiles under it answer a different question, what the sky is doing, so
@@ -6124,9 +6124,9 @@ class Component extends DCLogic {
     const kpColour = !nightKp ? 'var(--dim)' : nightKp.peak >= 6 ? 'var(--cool)' : nightKp.peak >= 5 ? 'var(--accent)' : 'var(--moon)';
 
     const dewNote = n.dewGap != null
-      ? (n.dewGap < 1.5 ? 'Within ' + n.dewGap.toFixed(1) + 'Â° of the dew point around ' + this.hhmm(n.dewAt) + ': donâ€™t forget the dew straps'
-        : n.dewGap < 3 ? 'Down to ' + n.dewGap.toFixed(1) + 'Â° off the dew point at ' + this.hhmm(n.dewAt) + ': pack the dew straps'
-        : 'Dry enough, ' + n.dewGap.toFixed(1) + 'Â° off the dew point')
+      ? (n.dewGap < 1.5 ? 'Within ' + n.dewGap.toFixed(1) + '° of the dew point around ' + this.hhmm(n.dewAt) + ': don’t forget the dew straps'
+        : n.dewGap < 3 ? 'Down to ' + n.dewGap.toFixed(1) + '° off the dew point at ' + this.hhmm(n.dewAt) + ': pack the dew straps'
+        : 'Dry enough, ' + n.dewGap.toFixed(1) + '° off the dew point')
       : 'No humidity data for tonight';
 
     const w = t.wind;
@@ -6135,7 +6135,7 @@ class Component extends DCLogic {
        it stands well clear of that. */
     const gust = w && w.gust != null ? w.gust : (w ? w.max : null);
     const spike = w && w.gustSpike && w.peakGust != null ? ', briefly ' + Math.round(w.peakGust) : '';
-    const windVal = w ? Math.round(w.mean) + ' km/h' : 'â€“';
+    const windVal = w ? Math.round(w.mean) + ' km/h' : '–';
     let windSub = 'No wind data for tonight';
     if (w) {
       if (gust >= 45) windSub = 'Gusting around ' + Math.round(gust) + spike + ': too rough for the tripod, let alone long lenses';
@@ -6159,7 +6159,7 @@ class Component extends DCLogic {
     const fog = t.fog;
     const iss = this.state.iss;
     void 0;
-    // the pass finder already insists the sun is 6Â° down, so anything between tonight's sunset
+    // the pass finder already insists the sun is 6° down, so anything between tonight's sunset
     // and sunrise is genuinely visible, no need to clip it to full astronomical darkness
     const spanFrom = sun.set || (t.darkWin && t.darkWin.from);
     const spanTo = sun.rise || (t.darkWin && t.darkWin.to);
@@ -6183,52 +6183,52 @@ class Component extends DCLogic {
       ...this.terrainVals(),
       solOn: !!ecl.solar, solLine: this.solarLine(ecl.solar),
       lunOn: !!ecl.lunar, lunLine: this.lunarLine(ecl.lunar),
-      sunVal: sun.set ? this.hhmm(sun.set) + 'â€“' + (sun.rise ? this.hhmm(sun.rise) : 'â€“') : 'â€“',
+      sunVal: sun.set ? this.hhmm(sun.set) + '–' + (sun.rise ? this.hhmm(sun.rise) : '–') : '–',
       sunSub: sun.set
         ? (t.darkWin
-            ? this.hoursWord((sun.rise - sun.set) / 3600000) + ' below the horizon Â· true dark from ' + this.hhmm(t.darkWin.from)
+            ? this.hoursWord((sun.rise - sun.set) / 3600000) + ' below the horizon · true dark from ' + this.hhmm(t.darkWin.from)
             : this.hoursWord((sun.rise - sun.set) / 3600000) + ' below the horizon')
         : 'The sun does not set tonight',
-      issVal: this.state.issState === 'loading' ? 'â€¦' : bestPass ? this.stars(bestPass) : 'None',
+      issVal: this.state.issState === 'loading' ? '…' : bestPass ? this.stars(bestPass) : 'None',
       issSub: this.issSentence(bestPass, nightPasses),
       issColour: bestPass ? (this.passScore(bestPass) >= 3 ? 'var(--accent)' : 'var(--text)') : 'var(--dim)',
-      slVal: this.state.trainState === 'loading' || this.state.trainState === 'idle' ? 'â€¦'
+      slVal: this.state.trainState === 'loading' || this.state.trainState === 'idle' ? '…'
         : train ? this.stars(this.trainScore(train.pass)) : 'None',
       slSub: this.trainSentence(train),
       slColour: train ? (this.trainScore(train.pass) >= 3 ? 'var(--accent)' : 'var(--text)') : 'var(--dim)',
       fogOn: !!fog,
       fogLine: fog ? this.fogSentence(fog) : '',
-      rwbVal: rwb ? 'Bortle ' + rwb.bortle : 'â€“',
+      rwbVal: rwb ? 'Bortle ' + rwb.bortle : '–',
       rwbSub: this.rwbSentence(rwb),
       rwbColour,
       greeting: partOfDay + '.',
       greetLine,
       tonCloudOn: !!tonCloudNote, tonCloudNote,
-      bestRange: t.win ? this.hhmm(t.win.from) + ' â€“ ' + this.hhmm(t.win.to) : 'No clear window',
+      bestRange: t.win ? this.hhmm(t.win.from) + ' – ' + this.hhmm(t.win.to) : 'No clear window',
       bestPct: Math.round((t.peakQuality || 0) * 100),
       bestSub: this.bestSentence(t),
       cloudBars,
       cloudVal: cloudAvg == null ? 'No forecast' : cloudAvg + '% average',
       cloudSub: cloudAvg == null ? 'Rates assume clear sky'
         : assumed ? 'Typical for the date, not a forecast'
-        : partial ? 'Forecast hours only Â· clearest ' + cloudMin + '%'
-        : 'Sky obscured through the dark hours Â· clearest ' + cloudMin + '%',
+        : partial ? 'Forecast hours only · clearest ' + cloudMin + '%'
+        : 'Sky obscured through the dark hours · clearest ' + cloudMin + '%',
       moonVal: moonPct + '%',
       moonSub: moonSub,
-      darkRange: t.darkWin ? this.hhmm(t.darkWin.from) + 'â€“' + this.hhmm(t.darkWin.to) : 'None',
+      darkRange: t.darkWin ? this.hhmm(t.darkWin.from) + '–' + this.hhmm(t.darkWin.to) : 'None',
       darkSub: t.darkWin
         ? (t.darkWin.full ? this.hoursWord(t.darkHours) + ' of astronomical dark' : this.hoursWord(t.darkHours) + ' of nautical dark, no full darkness')
         : 'The sun never drops far enough tonight',
-      mwVal: mwUp ? Math.round(mw.mwAlt) + 'Â°' : 'Down',
+      mwVal: mwUp ? Math.round(mw.mwAlt) + '°' : 'Down',
       mwSub: mwUp
         ? (mw.mwAlt < 10 ? 'skimming the ' + this.E().compass(mw.mwAz) + ' horizon at ' + this.hhmm(mw.t) : 'highest ' + this.hhmm(mw.t) + ', ' + this.E().compass(mw.mwAz))
         : 'The core stays below the horizon in the dark hours',
-      kpVal: nightKp ? 'Kp ' + Math.floor(nightKp.peak) : 'â€“',
+      kpVal: nightKp ? 'Kp ' + Math.floor(nightKp.peak) : '–',
       kpSub: !kp ? 'NOAA feed unavailable'
         : !nightKp ? 'No aurora forecast for this night. NOAA runs about three days ahead'
         : this.kpSentence(nightKp),
       kpColour,
-      airVal: minTemp != null ? minTemp.toFixed(0) + 'Â°C' : 'â€“',
+      airVal: minTemp != null ? minTemp.toFixed(0) + '°C' : '–',
       airSub: dewNote,
       windVal, windSub,
       metVal: n.peakClear ? n.peakClear.rate.toFixed(0) + '/hr' : '0/hr',
@@ -6237,7 +6237,7 @@ class Component extends DCLogic {
       metColour: !n.peakClear ? 'var(--dim)' : n.peakClear.rate >= 20 ? 'var(--accent)' : 'var(--text)',
       metName: head ? head.name : 'Sporadics only',
       metSub: n.winClear
-        ? 'best around ' + this.hhmm(n.peakClear.t) + ' Â· ' + this.E().verdictWord(n.scoreClear || 0, this.lowMidOf(n))
+        ? 'best around ' + this.hhmm(n.peakClear.t) + ' · ' + this.E().verdictWord(n.scoreClear || 0, this.lowMidOf(n))
         : 'no dark hours for meteors tonight',
     };
   }
@@ -6264,7 +6264,7 @@ class Component extends DCLogic {
     } else if (s.length === 2) {
       trend = nk.last > nk.first ? 'rising through the night' : nk.last < nk.first ? 'easing off through the night' : 'steady through the night';
     }
-    return level + (trend ? ' Â· ' + trend : '');
+    return level + (trend ? ' · ' + trend : '');
   }
 
   /* What the site's catalogue darkness actually turns into tonight, and what took it there. */
@@ -6276,8 +6276,8 @@ class Component extends DCLogic {
     if (rwb.humLoss > 0.15) bits.push('haze ' + rwb.humLoss.toFixed(1) + ' mag');
     if (rwb.glowLoss > 0.15) bits.push('cloud-lit glow ' + rwb.glowLoss.toFixed(1) + ' mag');
     const lead = (base != null && rwb.bortle > base)
-      ? 'Site is Bortle ' + base + ' Â· costs tonight: '
-      : (base != null ? 'Site is Bortle ' + base + ' Â· ' : '');
+      ? 'Site is Bortle ' + base + ' · costs tonight: '
+      : (base != null ? 'Site is Bortle ' + base + ' · ' : '');
     if (!bits.length) return lead + 'nothing taking it away tonight';
     return lead + bits.join(', ');
   }
@@ -6289,19 +6289,19 @@ class Component extends DCLogic {
     const kind = e.kind === 'total' ? 'Total lunar eclipse'
       : e.kind === 'partial' ? 'Partial lunar eclipse' : 'Penumbral lunar eclipse';
     const when = 'greatest ' + this.hhmm(e.greatest);
-    if (e.alt > 3) return kind + ' Â· ' + when + ', moon ' + Math.round(e.alt) + 'Â° up';
-    if (e.maxAlt > 0) return kind + ' Â· ' + when + ', only part of it clears the horizon here';
+    if (e.alt > 3) return kind + ' · ' + when + ', moon ' + Math.round(e.alt) + '° up';
+    if (e.maxAlt > 0) return kind + ' · ' + when + ', only part of it clears the horizon here';
     return kind + ' tonight, but the moon is below the horizon here';
   }
   solarLine(e) {
     if (!e) return '';
     if (e.kind === 'elsewhere') return 'Solar eclipse today, but not from here';
-    const span = this.hhmm(e.from) + 'â€“' + this.hhmm(e.to);
-    if (e.kind === 'total') return 'Total solar eclipse Â· ' + span + ', totality around ' + this.hhmm(e.greatest);
-    if (e.kind === 'annular') return 'Annular solar eclipse Â· ' + span + ', ring around ' + this.hhmm(e.greatest);
+    const span = this.hhmm(e.from) + '–' + this.hhmm(e.to);
+    if (e.kind === 'total') return 'Total solar eclipse · ' + span + ', totality around ' + this.hhmm(e.greatest);
+    if (e.kind === 'annular') return 'Annular solar eclipse · ' + span + ', ring around ' + this.hhmm(e.greatest);
     // 99.4% is still a partial eclipse, and rounding it to a flat 100 would contradict the word
     const pct = Math.min(99, Math.max(5, Math.round(e.obscuration * 20) * 5));
-    return 'Partial solar eclipse Â· ' + span + ', roughly ' + pct + '% of the sun covered at ' + this.hhmm(e.greatest);
+    return 'Partial solar eclipse · ' + span + ', roughly ' + pct + '% of the sun covered at ' + this.hhmm(e.greatest);
   }
 
   /* A three segment meter. Filled segments are painted, empty ones are drawn as a hairline, so
@@ -6384,7 +6384,7 @@ class Component extends DCLogic {
     if (!se.inSeason || se.band === 'unlikely' || se.band === 'bright') return { nlcOn: false, nlcLine: '', nlcDetail: '' };
     const wins = E.nlcWindows(n);
     if (!wins.length) return { nlcOn: false, nlcLine: '', nlcDetail: '' };
-    const fmt = w => this.hhmm(w.from) + 'â€“' + this.hhmm(w.to);
+    const fmt = w => this.hhmm(w.from) + '–' + this.hhmm(w.to);
     const dir = w => w.compass ? ' low in the ' + w.compass : '';
     const line = wins.length === 1
       ? 'Twilight window ' + fmt(wins[0]) + dir(wins[0]) + '.'
@@ -6406,7 +6406,7 @@ class Component extends DCLogic {
       nlcLine: line,
       nlcDetail: (se.peak ? 'Peak season, and ' : se.edge ? 'The very edge of the season, and ' : 'In season, and ') + se.bandWord + '. '
         + (se.edge ? 'June and July are when these actually turn up: this early or this late they are rare and faint, so treat a sighting as a bonus. ' : '')
-        + 'The window is the stretch when the sun sits between 6Â° and 16Â° below your horizon: deep enough for the ground to be dark, shallow enough that the ice 83 km up is still in sunlight.' + cloudNote,
+        + 'The window is the stretch when the sun sits between 6° and 16° below your horizon: deep enough for the ground to be dark, shallow enough that the ice 83 km up is still in sunlight.' + cloudNote,
     };
   }
 
@@ -6474,7 +6474,7 @@ class Component extends DCLogic {
      colour alpha, so night vision cannot flatten it. */
   ringVals() {
     const E = this.E(), st = this.state;
-    if (!E || !st.t) return { ringBars: [], ringLine: '', ringHaze: '', ringHazeLine: '', ringZenith: 'â€“' };
+    if (!E || !st.t) return { ringBars: [], ringLine: '', ringHaze: '', ringHazeLine: '', ringZenith: '–' };
     const n = st.t.night;
     const withHigh = n.slots.filter(s2 => s2.cloud && s2.cloud.high != null);
     const hi = withHigh.length ? withHigh.reduce((a, b) => a + b.cloud.high, 0) / withHigh.length : null;
@@ -6487,7 +6487,7 @@ class Component extends DCLogic {
     const hazeWord = !g.hazeKnown ? 'unknown' : g.haze >= 1.9 ? 'heavy' : g.haze >= 1.45 ? 'moderate' : g.haze >= 1.15 ? 'slight' : 'none';
     return {
       ringBars: bars,
-      ringZenith: g.zenithBortle == null ? 'â€“' : 'B' + g.zenithBortle,
+      ringZenith: g.zenithBortle == null ? '–' : 'B' + g.zenithBortle,
       ringHaze: 'haze ' + hazeWord,
       ringLine: !g.worst ? 'The atlas does not cover this site, so there is nothing to draw.'
         : g.even > 0.75
@@ -7587,7 +7587,7 @@ class Component extends DCLogic {
      awful than home. */
   nearbyResult(homeLowMid) {
     const st = this.state;
-    if (st.nearbyStatus === 'pending') return { nearbyResultOn: true, nearbyResultLine: 'Checking the sky nearbyâ€¦', nearbyResultColour: 'var(--faint)' };
+    if (st.nearbyStatus === 'pending') return { nearbyResultOn: true, nearbyResultLine: 'Checking the sky nearby…', nearbyResultColour: 'var(--faint)' };
     const nb = this.E().state.nearby;
     if (!st.nearbyDrive || !nb) return { nearbyResultOn: false };
     if (st.nearbyStatus === 'unavailable') return { nearbyResultOn: true, nearbyResultLine: 'Could not reach the forecast for nearby points, try again shortly.', nearbyResultColour: 'var(--faint)' };
@@ -7783,7 +7783,7 @@ class Component extends DCLogic {
     };
     const homeClear = home.clear;
     const [hx, hy] = f.toXY(home.lat, home.lon);
-    say('you' + (homeClear == null ? '' : ' Â· ' + Math.round(homeClear) + '% clear'), hx, hy + 15 * dpr, accent);
+    say('you' + (homeClear == null ? '' : ' · ' + Math.round(homeClear) + '% clear'), hx, hy + 15 * dpr, accent);
     /* The engine's own assumption about a drive, reused: twenty-five kilometres of straight line
        per half hour. Quoting a different number here would be a second opinion. */
     const mins = km => Math.max(5, Math.round(km * 1.2 / 5) * 5);
@@ -7803,7 +7803,7 @@ class Component extends DCLogic {
       ctx.restore();
       const north = this.destPt(home.lat, home.lon, 0, km);
       const [lx, ly] = f.toXY(north[0], north[1]);
-      say(Math.round(km) + ' km Â· ' + mins(km) + ' min', lx, ly + 11 * dpr, ink + '.72)');
+      say(Math.round(km) + ' km · ' + mins(km) + ' min', lx, ly + 11 * dpr, ink + '.72)');
     });
     const scanned = field.pts.filter(p => !p.home);
     const best = scanned.slice().sort((a, b) => b.clear - a.clear).slice(0, 3);
@@ -7843,9 +7843,9 @@ class Component extends DCLogic {
           borderRadius: '8px', touchAction: 'none', cursor: 'grab' },
       }),
       nbAtLine: km < 1.2
-        ? 'The crosshair is on your own site Â· ' + clearWord
+        ? 'The crosshair is on your own site · ' + clearWord
         : Math.round(km) + ' km ' + E.compass(this.brgTo(home.lat, home.lon, v.lat, v.lon))
-          + ' Â· roughly ' + Math.max(5, Math.round(km * 1.2 / 5) * 5) + ' min Â· ' + clearWord,
+          + ' · roughly ' + Math.max(5, Math.round(km * 1.2 / 5) * 5) + ' min · ' + clearWord,
       nbZoomIn: () => set({ ...v, z: Math.min(src.maxZ, v.z + 1) }),
       nbZoomOut: () => set({ ...v, z: Math.max(src.minZ, v.z - 1) }),
       nbCredit: src.credit,
@@ -8856,25 +8856,25 @@ class Component extends DCLogic {
         starColour: isBest || now ? 'var(--accent)' : past ? 'var(--moon-dim)' : 'var(--dim)',
         pick: () => this.setState({ daySel: r.idx }),
         dim: past ? '.82' : '1',
-        conjSep: (() => { const l = conj.byKey[this.conjKeyFor(s)]; return l && l.length ? l[0].sep.toFixed(1) + 'Â°' : 'â€“'; })(),
+        conjSep: (() => { const l = conj.byKey[this.conjKeyFor(s)]; return l && l.length ? l[0].sep.toFixed(1) + '°' : '–'; })(),
         conjWho: (() => { const l = conj.byKey[this.conjKeyFor(s)]; return l && l.length ? (l.length > 1 ? this.conjShort(l[0]) + '+' : this.conjShort(l[0])) : ''; })(),
         conjColour: (() => { const l = conj.byKey[this.conjKeyFor(s)]; if (!l || !l.length) return 'var(--faint)'; return l[0].sep < 2 ? 'var(--accent)' : 'var(--cool)'; })(),
-        conjTitle: (() => { const l = conj.byKey[this.conjKeyFor(s)]; return l && l.length ? l.map(c => c.pair + ' ' + c.sepText).join(', ') : 'No planets within 5Â° that night'; })(),
-        cloudLabel: cloudPct == null ? 'â€“' : cloudPct + '%',
+        conjTitle: (() => { const l = conj.byKey[this.conjKeyFor(s)]; return l && l.length ? l.map(c => c.pair + ' ' + c.sepText).join(', ') : 'No planets within 5° that night'; })(),
+        cloudLabel: cloudPct == null ? '–' : cloudPct + '%',
         cloudColour: cloudPct == null ? 'var(--faint)'
           : cloudPct < 35 ? 'var(--cool)' : cloudPct < 70 ? 'var(--accent)' : 'var(--moon-dim)',
         moon: Math.round(s.moonPct) + '%',
         moonColour: s.moonUp && s.moonPct > 55 ? 'var(--moon)' : 'var(--faint)',
-        sky: b == null ? 'â€“' : 'B' + b,
+        sky: b == null ? '–' : 'B' + b,
         skyColour: b == null ? 'var(--faint)' : b <= 3 ? 'var(--cool)' : b <= 5 ? 'var(--text2)' : 'var(--faint)',
-        met: met > 0 ? String(met) : 'â€“',
+        met: met > 0 ? String(met) : '–',
         metColour: met >= 20 ? 'var(--accent)' : 'var(--dim)',
-        kp: nk ? String(Math.floor(nk.peak)) : 'â€“',
+        kp: nk ? String(Math.floor(nk.peak)) : '–',
         kpColour: nk && nk.peak >= 5 ? 'var(--accent)' : 'var(--faint)',
-        sunSet: s.sun && s.sun.set ? E.fmtTime(s.sun.set) : 'â€“',
-        sunRise: s.sun && s.sun.rise ? E.fmtTime(s.sun.rise) : 'â€“',
-        moonRise: s.mt && s.mt.rise ? E.fmtTime(s.mt.rise) : 'â€“',
-        moonSet: s.mt && s.mt.set ? E.fmtTime(s.mt.set) : 'â€“',
+        sunSet: s.sun && s.sun.set ? E.fmtTime(s.sun.set) : '–',
+        sunRise: s.sun && s.sun.rise ? E.fmtTime(s.sun.rise) : '–',
+        moonRise: s.mt && s.mt.rise ? E.fmtTime(s.mt.rise) : '–',
+        moonSet: s.mt && s.mt.set ? E.fmtTime(s.mt.set) : '–',
       };
     });
 
@@ -8954,7 +8954,7 @@ class Component extends DCLogic {
       dayStarsOn: dstars.on, dayStarsOff: dstars.off,
       dayStarsWord: dstars.n + ' out of 5',
       dayTitle: DAYS[dt.getUTCDay()] + ' ' + s.d + ' ' + E.MONTHS[s.m],
-      dayWindow: s.darkWin ? E.fmtTime(s.darkWin.from) + 'â€“' + E.fmtTime(s.darkWin.to) : 'No dark hours',
+      dayWindow: s.darkWin ? E.fmtTime(s.darkWin.from) + '–' + E.fmtTime(s.darkWin.to) : 'No dark hours',
       dayWindowSub: r.hist ? 'The dark hours that night' : 'The dark hours, astronomical twilight to twilight',
       dayCompare: compare,
       dayConjOn: !!conjLine, dayConjLine: conjLine,
@@ -9157,7 +9157,7 @@ class Component extends DCLogic {
     if (p.mag <= 2.4 && p.maxEl >= 30) return 2;
     return 1;
   }
-  stars(n) { const s = typeof n === 'number' ? n : this.passScore(n); return 'â˜…â˜…â˜…'.slice(0, s) + 'â˜†â˜†â˜†'.slice(0, 3 - s); }
+  stars(n) { const s = typeof n === 'number' ? n : this.passScore(n); return '★★★'.slice(0, s) + '☆☆☆'.slice(0, 3 - s); }
 
   /* The train search runs well past tonight to catch the next evening, so it has to be clipped
      to the night on screen the same way station passes are. */
@@ -9176,7 +9176,7 @@ class Component extends DCLogic {
 
   trainSentence(tr) {
     const st = this.state.trainState;
-    if (st === 'idle' || st === 'loading') return 'Checking recent launchesâ€¦';
+    if (st === 'idle' || st === 'loading') return 'Checking recent launches…';
     /* Why a feed is down is my problem, not the reader's: standing in a field, the only useful
        thing to say is that there is nothing to show. */
     if (st === 'failed') return 'Data currently not available';
@@ -9184,11 +9184,11 @@ class Component extends DCLogic {
     const E = this.E(), p = tr.pass;
     return this.hhmm(p.start) + ', ' + Math.round(p.maxEl) + '\u00b0 up, '
       + E.compass(p.startAz) + ' to ' + E.compass(p.endAz)
-      + ' Â· ' + tr.count + ' satellites, still in a line';
+      + ' · ' + tr.count + ' satellites, still in a line';
   }
 
   issSentence(best, all) {
-    if (this.state.issState === 'loading') return 'Working out tonightâ€™s passesâ€¦';
+    if (this.state.issState === 'loading') return 'Working out tonight’s passes…';
     if (this.state.issState === 'failed') return 'Data currently not available';
     /* Elements drift. Inside a day the timing is good to a minute or two, so it is not worth
        mentioning; beyond that the reader should know the answer is built on old numbers. */
@@ -9199,9 +9199,9 @@ class Component extends DCLogic {
     if (!best) return 'Nothing bright enough to bother with tonight' + oldEls;
     const E = this.E();
     const dir = E.compass(best.startAz) + ' to ' + E.compass(best.endAz);
-    const more = all.length > 1 ? ' Â· ' + (all.length - 1) + ' more' : '';
+    const more = all.length > 1 ? ' · ' + (all.length - 1) + ' more' : '';
     return this.hhmm(best.start) + ', ' + Math.round(best.maxEl) + '\u00b0 up, ' + dir
-      + ' Â· mag ' + best.mag.toFixed(1) + more + oldEls;
+      + ' · mag ' + best.mag.toFixed(1) + more + oldEls;
   }
 
   fogSentence(fog) {
@@ -9283,9 +9283,9 @@ class Component extends DCLogic {
     if (s) {
       const cf = this.E().clearFraction(s.cloud);
       if (cf != null) bits.push(Math.round((1 - cf) * 100) + '% of the sky obscured by cloud');
-      bits.push(s.moonAlt > 0 ? 'moon ' + Math.round(s.moonAlt) + 'Â° up' : 'moon out of the way');
+      bits.push(s.moonAlt > 0 ? 'moon ' + Math.round(s.moonAlt) + '° up' : 'moon out of the way');
     }
-    let out = bits.join(' Â· ') + '.';
+    let out = bits.join(' · ') + '.';
     if (t.clearRun && t.clearRun.mins >= 60) out += ' Longest unbroken clear run: ' + this.hoursWordShort(t.clearRun.mins / 60) + '.';
     if (t.noCloudData) out += ' No cloud forecast reached this night, so treat all of that as unknown.';
     return out;
@@ -9311,16 +9311,16 @@ class Component extends DCLogic {
     const n = this.nightAt(this.selIndex());
     const isPast = this.selIndex() < this.pastCount();
     if (!n) return {
-      chips: [], ribbonRead: 'Calculatingâ€¦', nightTitle: 'Night detail', nightSub: '',
+      chips: [], ribbonRead: 'Calculating…', nightTitle: 'Night detail', nightSub: '',
       nightStats: [], chartEl: null, camLine: '', airLine: '', showers: [], focalOptions: [],
       metCloudOn: false, metCloudNote: '',
     };
     const sky = st.sky || E.state.sky;
     const chips = [
       { k: 'Site', v: st.place },
-      { k: 'Sky', v: sky ? 'Bortle ' + sky.bortle + ' Â· ' + sky.sqm.toFixed(2) + ' mag' : 'â€“' },
-      { k: 'Cloud', v: st.wx === 'live' ? 'live forecast, Open-Meteo' : st.wx === 'pending' ? 'loadingâ€¦' : 'forecast unavailable' },
-      { k: 'Beyond 16 days', v: st.clim === 'ready' ? 'typical cloud, 3 years' : st.clim === 'loading' ? 'fetching historyâ€¦' : 'assumed clear' },
+      { k: 'Sky', v: sky ? 'Bortle ' + sky.bortle + ' · ' + sky.sqm.toFixed(2) + ' mag' : '–' },
+      { k: 'Cloud', v: st.wx === 'live' ? 'live forecast, Open-Meteo' : st.wx === 'pending' ? 'loading…' : 'forecast unavailable' },
+      { k: 'Beyond 16 days', v: st.clim === 'ready' ? 'typical cloud, 3 years' : st.clim === 'loading' ? 'fetching history…' : 'assumed clear' },
     ];
     const next = new Date(Date.UTC(n.y, n.m, n.d + 1));
     const dateStr = n.d + '/' + next.getUTCDate() + ' ' + E.MONTHS[next.getUTCMonth()];
@@ -9341,7 +9341,7 @@ class Component extends DCLogic {
       { k: 'Best window', v: n.winClear ? E.fmtTime(n.winClear.from) + '\u2013' + E.fmtTime(n.winClear.to) : '\u2013', s: n.peakClear ? 'peak around ' + E.fmtTime(n.peakClear.t) : 'no dark hours', c: 'var(--text)' },
       { k: 'Night total', v: String(Math.round(n.totalClear || 0)), s: 'meteors across the dark hours', c: 'var(--text)' },
       { k: 'Score', v: String(Math.round(n.scoreClear || 0)), s: E.verdictWord(n.scoreClear || 0, this.lowMidOf(n)), c: 'var(--text)' },
-      { k: 'Moon', v: n.moonWin ? Math.round(n.moonWin.maxIllum * 100) + '%' : 'â€“', s: n.moonWin ? 'lit, up ' + E.fmtTime(n.moonWin.from) + 'â€“' + E.fmtTime(n.moonWin.to) : 'below the horizon all night', c: 'var(--moon)' },
+      { k: 'Moon', v: n.moonWin ? Math.round(n.moonWin.maxIllum * 100) + '%' : '–', s: n.moonWin ? 'lit, up ' + E.fmtTime(n.moonWin.from) + '–' + E.fmtTime(n.moonWin.to) : 'below the horizon all night', c: 'var(--moon)' },
     ];
 
     const airBits = [];
@@ -9350,23 +9350,23 @@ class Component extends DCLogic {
       ? 'these are clear-sky rates: what the shower would give you if it broke'
       : 'the rates below ignore it, and there is not a great deal on offer even under a clear sky');
     if (n.rh != null) airBits.push('Humidity averages ' + Math.round(n.rh) + '% through the dark hours' + (n.rh > 85 ? ', which will haze the sky and soften faint meteors' : n.rh > 70 ? ', enough to take the edge off transparency' : ', so transparency should hold up'));
-    if (n.dewGap != null && n.dewGap < 2.5) airBits.push('Air comes within ' + n.dewGap.toFixed(1) + 'Â°C of the dew point around ' + E.fmtTime(n.dewAt) + ', so pack the dew straps');
+    if (n.dewGap != null && n.dewGap < 2.5) airBits.push('Air comes within ' + n.dewGap.toFixed(1) + '°C of the dew point around ' + E.fmtTime(n.dewAt) + ', so pack the dew straps');
 
     const showers = n.showers.map((sw, i) => {
       const d = sw.detClear || sw.det, meta = sw.sh;
       const bars = [
         { k: 'Shower activity', pct: Math.round(E.clamp(d.activityFrac, 0, 1) * 100), note: Math.round(d.zhr) + ' ZHR', c: 'var(--accent)' },
       ];
-      if (sw.code !== 'SPO') bars.push({ k: 'Radiant height', pct: Math.round(E.clamp(d.altFactor, 0, 1) * 100), note: Math.round(d.radAlt) + 'Â° ' + E.compass(d.radAz), c: 'var(--accent)' });
-      bars.push({ k: 'Moonlight', pct: Math.round(E.clamp(d.moonFactor, 0, 1) * 100), note: d.moonLoss > 0.05 ? 'âˆ’' + d.moonLoss.toFixed(1) + ' mag' : 'none', c: 'var(--moon)' });
-      bars.push({ k: 'Sky darkness', pct: Math.round(E.clamp(d.darkFactor, 0, 1) * 100), note: sky ? sky.sqm.toFixed(1) + ' mag, Bortle ' + sky.bortle : 'â€“', c: 'var(--accent)' });
-      bars.push({ k: 'Transparency', pct: Math.round(E.clamp(d.transFactor, 0, 1) * 100), note: (d.glowLoss + d.humLoss) > 0.05 ? 'âˆ’' + (d.glowLoss + d.humLoss).toFixed(1) + ' mag' : 'clean air', c: 'var(--moon)' });
+      if (sw.code !== 'SPO') bars.push({ k: 'Radiant height', pct: Math.round(E.clamp(d.altFactor, 0, 1) * 100), note: Math.round(d.radAlt) + '° ' + E.compass(d.radAz), c: 'var(--accent)' });
+      bars.push({ k: 'Moonlight', pct: Math.round(E.clamp(d.moonFactor, 0, 1) * 100), note: d.moonLoss > 0.05 ? '−' + d.moonLoss.toFixed(1) + ' mag' : 'none', c: 'var(--moon)' });
+      bars.push({ k: 'Sky darkness', pct: Math.round(E.clamp(d.darkFactor, 0, 1) * 100), note: sky ? sky.sqm.toFixed(1) + ' mag, Bortle ' + sky.bortle : '–', c: 'var(--accent)' });
+      bars.push({ k: 'Transparency', pct: Math.round(E.clamp(d.transFactor, 0, 1) * 100), note: (d.glowLoss + d.humLoss) > 0.05 ? '−' + (d.glowLoss + d.humLoss).toFixed(1) + ' mag' : 'clean air', c: 'var(--moon)' });
       bars.push({ k: 'High cloud', pct: Math.round(E.clamp(d.veilFrac == null ? 1 : d.veilFrac, 0, 1) * 100), note: (d.veilFrac == null || d.veilFrac > 0.99) ? 'none in the way' : Math.round((1 - d.veilFrac) * 100) + '% dimmed', c: 'var(--moon-dim)' });
       const metaRows = [];
       if (meta.active) metaRows.push({ k: 'Active', v: meta.active });
       if (meta.parent) metaRows.push({ k: 'Parent', v: meta.parent });
       const hi = this.radiantHigh(n, sw.code);
-      if (hi) metaRows.push({ k: 'Radiant highest', v: this.hhmm(hi.t) + ', ' + Math.round(hi.alt) + 'Â° in the ' + E.compass(hi.az) });
+      if (hi) metaRows.push({ k: 'Radiant highest', v: this.hhmm(hi.t) + ', ' + Math.round(hi.alt) + '° in the ' + E.compass(hi.az) });
       metaRows.push({ k: 'Naked-eye limit now', v: d.nelm.toFixed(1) });
       /* Not one of the bars above: the bars are what the rate has been multiplied by, and low and
          mid cloud deliberately is not. */
@@ -9397,7 +9397,7 @@ class Component extends DCLogic {
       focalOptions,
       metCloudOn: !!metCloudNote, metCloudNote,
       camLine: 'A ' + st.focal + 'mm on full frame covers ' + Math.round(fv.frac * 100) + '% of the sky, so at the best hour expect roughly ' + inFrame.toFixed(1) + ' meteors in frame per hour'
-        + (head && head.det ? ', with the radiant ' + Math.round(head.det.radAlt) + 'Â° up in the ' + E.compass(head.det.radAz) + ': point 40 to 60Â° away from it for longer trails' : '') + '.',
+        + (head && head.det ? ', with the radiant ' + Math.round(head.det.radAlt) + '° up in the ' + E.compass(head.det.radAz) + ': point 40 to 60° away from it for longer trails' : '') + '.',
       airLine: airBits.length ? airBits.join('. ') + '.' : '',
       showers,
     };
