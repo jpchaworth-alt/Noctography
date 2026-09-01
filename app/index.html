@@ -2814,9 +2814,9 @@ window.noctoTrack = function (name) {
 </sc-if>
 
 <sc-if value="{{ arOpen }}" hint-placeholder-val="{{ false }}">
-  <div data-screen-label="AR" style="position: fixed; inset: 0; z-index: 120; background: #000; display: grid; grid-template-rows: 1fr auto; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;">
+  <div data-screen-label="AR" style="position: fixed; inset: 0; z-index: 120; background: #000; display: grid; grid-template-rows: minmax(30vh, 1fr) auto; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;">
 
-    <div ref="{{ setArStage }}" onClick="{{ onArTap }}" onPointerDown="{{ arCalDown }}" onPointerMove="{{ arCalMove }}" onPointerUp="{{ arCalUp }}" onPointerCancel="{{ arCalUp }}" style="position: relative; overflow: hidden; touch-action: none;">
+    <div ref="{{ setArStage }}" onClick="{{ onArTap }}" onPointerDown="{{ arCalDown }}" onPointerMove="{{ arCalMove }}" onPointerUp="{{ arCalUp }}" onPointerCancel="{{ arCalUp }}" style="position: relative; overflow: hidden; min-height: 0; touch-action: none;">
       <video ref="{{ setArVideo }}" playsinline="playsinline" muted="muted" autoplay="autoplay" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 50%; transform: {{ arCamTransform }}; opacity: {{ arVideoOpacity }}; filter: {{ arCamFilter }};"></video>
       <canvas ref="{{ setArImgCanvas }}" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; pointer-events: none; filter: {{ arVideoFilter }};"></canvas>
       <canvas ref="{{ setArCanvas }}" style="position: absolute; inset: 0; width: 100%; height: 100%;"></canvas>
@@ -2851,7 +2851,7 @@ window.noctoTrack = function (name) {
       </sc-if>
     </div>
 
-    <div data-nv-bar="1" style="display: grid; gap: 10px; max-height: 62vh; overflow-y: auto; overscroll-behavior: contain; padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); background: rgba(6,6,7,.94); border-top: 1px solid rgba(240,236,228,.12);">
+    <div data-nv-bar="1" style="display: grid; gap: 10px; align-content: start; min-height: 0; max-height: 70vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; padding: 12px 12px calc(24px + env(safe-area-inset-bottom)); background: rgba(6,6,7,.94); border-top: 1px solid rgba(240,236,228,.12);">
 
       <div style="display: grid; gap: 8px; padding: 10px 11px; background: rgba(240,236,228,.045); border: 1px solid rgba(240,236,228,.12); border-radius: 10px;">
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -2866,7 +2866,7 @@ window.noctoTrack = function (name) {
         <div style="display: flex; gap: 6px; align-items: center;">
           <button type="button" onClick="{{ arOrientFlip }}" style="flex: 1 1 auto; min-height: 46px; padding: 0 12px; border: 1px solid rgba(240,236,228,.2); border-radius: 8px; background: none; color: rgba(240,236,228,.82); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">{{ arOrientLabel }}</button>
           <sc-if value="{{ arZoomOn }}" hint-placeholder-val="{{ false }}">
-            <button type="button" onClick="{{ arZoomReset }}" style="flex: 0 0 auto; min-height: 46px; padding: 0 13px; border: 1px solid rgba(240,236,228,.2); border-radius: 8px; background: none; color: rgba(240,236,228,.7); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; cursor: pointer;">1&times;</button>
+            <button type="button" onClick="{{ arZoomReset }}" style="flex: 0 0 auto; min-height: 46px; padding: 0 13px; border: 1px solid rgba(240,236,228,.2); border-radius: 8px; background: none; color: rgba(240,236,228,.7); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Wide</button>
           </sc-if>
           <button type="button" onClick="{{ arZoomFit }}" style="flex: 0 0 auto; min-height: 46px; padding: 0 13px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Fit</button>
           <button type="button" onClick="{{ arGoKit }}" style="flex: 0 0 auto; min-height: 46px; padding: 0 13px; border: 1px solid rgba(240,236,228,.2); border-radius: 8px; background: none; color: rgba(240,236,228,.82); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Kit &rsaquo;</button>
@@ -3071,7 +3071,7 @@ class Component extends DCLogic {
         'An exposure slider brightens the sky and the Milky Way together, so a faint scene can be pushed closer to what the camera will actually pull out.',
         'Frame it now scrubs by date, so you can watch the Milky Way core swing into season before committing to a night.',
         'A Contrast slider in AR: it dims the camera and lifts the overlay together, so you can dial in enough separation to see where a subject will sit while scouting in daylight.',
-        'Sky AR now fits the phone\u2019s own optics to the lens you are planning: it picks the best-placed camera, ultra wide through telephoto, and zooms until your frame fills the screen. Pinch to zoom yourself, and the sky narrows with it and stays registered.',
+        'Sky AR now fits the phone\u2019s own optics to the lens you are planning: it starts on the best-placed camera and zooms until your frame fills the screen. Pinch and the zoom runs continuously from the ultra wide through to the telephoto, handing over between cameras as it goes, with the sky narrowing alongside it and staying registered.',
         'Focal length, orientation and a link through to Kit sit right under the AR view, so changing lens no longer means leaving the sky. Kit shows a way straight back.',
         'The Place map follows your location when you change it, instead of staying over the old spot, and no longer locks up after an interrupted pinch.',
         'Sky AR moved up next to Place, renamed from Sky, and got its own "Open Sky AR" button on every tab.',
@@ -5746,7 +5746,8 @@ class Component extends DCLogic {
     if (g.ptrs.size >= 2 && AR) {
       const p = [...g.ptrs.values()];
       this._calPrev = null;                        // a second finger cancels an align drag
-      g.pinch = { d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y), z: AR.zoom() };
+      g.pinch = { d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y),
+        field: this._arTarget || AR.effHfov() };
       g.did = true;
       return;
     }
@@ -5764,7 +5765,12 @@ class Component extends DCLogic {
       const p = [...g.ptrs.values()];
       const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
       if (!d || !g.pinch.d) return;
-      this.applyArLens(g.pinch.z * (d / g.pinch.d));
+      /* Fingers apart narrows the field by the same ratio, in angle rather than in a zoom
+         number, so the movement feels the same either side of a camera change. */
+      const r = d / g.pinch.d;
+      const AD = Math.PI / 180;
+      const want = 2 * Math.atan(Math.tan(g.pinch.field / 2 * AD) / r) / AD;
+      this.applyArField(want);
       return;
     }
     if (!this.state.arCal || !this._calPrev || !AR) return;
@@ -5845,25 +5851,45 @@ class Component extends DCLogic {
     if (ok) { this._arLensFor = null; this.applyArLens(); }
   }
 
-  /* Fit the phone's own optics to the lens being planned. A 135mm frame is four degrees across:
-     through a 68-degree phone camera that is a rectangle you cannot compose inside, which made
-     the long end of the kit list useless in AR. So the narrowest fitted camera that still holds
-     the frame is selected, and then zoomed until the rectangle fills most of the screen. The
-     overlay projects through the resulting field, so the sky grows with it and stays registered
-     on the real one. */
-  async applyArLens(zoomOverride) {
-    const AR = window.NoctoAR, P = this.P();
-    if (!AR || !P || !this.state.arOpen) return;
-    const d = P.kitDerived(this.kit());
-    if (this.state.arCam && this.state.arCamOk) {
-      await AR.listCameras();
-      const pick = AR.pickLensFor(d.across);
-      if (pick && AR.cameras().length > 1 && pick.id !== AR.state.deviceId) {
-        await AR.startCamera(this._arVideo, { deviceId: pick.id, lens: pick.kind });
-      } else if (pick) AR.setLens(pick.kind);
+  /* One quantity drives the whole zoom: the field of view wanted on screen. Which camera is
+     fitted and how much digital zoom sits on top are both worked out from it, so a pinch runs
+     continuously from the ultra wide right through the telephoto rather than being penned inside
+     whichever lens the focal length happened to select. The overlay projects through the same
+     field, so the sky narrows with the view and stays registered on the real one. */
+  async applyArField(target) {
+    const AR = window.NoctoAR;
+    if (!AR || !this.state.arOpen) return;
+    const rng = AR.fieldRange();
+    const t = Math.max(rng.narrow, Math.min(rng.wide, target));
+    this._arTarget = t;
+    if (this.state.arCam && this.state.arCamOk && AR.cameras().length > 1) {
+      const pick = AR.pickLensForField(t);
+      const cur = AR.lens();
+      if (pick && pick.kind !== cur) {
+        /* Widening back needs real daylight past the boundary. Without that, a pinch resting on
+           the crossover restarts the camera stream over and over. */
+        const widening = AR.LENS_NOMINAL[pick.kind] > AR.LENS_NOMINAL[cur];
+        const clear = !widening || t > AR.hfovFor(cur) * 1.1;
+        if (clear && pick.id !== AR.state.deviceId) {
+          if (!this._arSwitching) {
+            this._arSwitching = true;
+            try { await AR.startCamera(this._arVideo, { deviceId: pick.id, lens: pick.kind }); }
+            catch (e) {}
+            this._arSwitching = false;
+          }
+        } else if (clear) AR.setLens(pick.kind);
+      }
     }
-    await AR.setZoom(zoomOverride != null ? zoomOverride : AR.zoomFor(d.across, 0.72));
+    await AR.setZoom(AR.zoomForField(t));
     this.setState({ arTick: this.state.arTick + 1 });
+  }
+  /* Fit: the field that puts the planned frame across about 72% of the screen. This is the only
+     place the focal length has a say, and it is a starting point, not a limit. */
+  applyArLens() {
+    const AR = window.NoctoAR, P = this.P();
+    if (!AR || !P) return Promise.resolve();
+    const d = P.kitDerived(this.kit());
+    return this.applyArField(AR.fieldForFrame(d.across, 0.72));
   }
   /* Changing the focal length or turning the camera in the AR controls has to re-fit the optics,
      but only when it actually changed: this runs on every update pass. */
@@ -6524,11 +6550,20 @@ class Component extends DCLogic {
           arOrientFlip: () => this.setKit({ orient: port ? 'land' : 'port' }),
           arLensLine: !d ? '' : k.focal + 'mm ' + (port ? 'portrait' : 'landscape')
             + ' \u00b7 ' + Math.round(d.across) + '\u00b0 \u00d7 ' + Math.round(d.down) + '\u00b0',
-          arOpticLine: (st.arCam && st.arCamOk ? AR.lensLabel() : 'no camera')
-            + ' \u00b7 ' + Math.round(AR.effHfov()) + '\u00b0 shown'
-            + (zoom > 1.02 ? ' \u00b7 ' + zoom.toFixed(1) + '\u00d7' : ''),
-          arZoomOn: zoom > 1.02,
-          arZoomReset: () => this.applyArLens(1),
+          /* The factor quoted is against the widest camera on the phone, not against whichever
+             lens is fitted at that moment: it has to keep counting up through a lens change
+             rather than dropping back to 1 and starting again. */
+          arOpticLine: (() => {
+            const eff = AR.effHfov();
+            const wide = AR.fieldRange().wide;
+            const AD = Math.PI / 180;
+            const total = Math.tan(wide / 2 * AD) / Math.max(1e-6, Math.tan(eff / 2 * AD));
+            return (st.arCam && st.arCamOk ? AR.lensLabel() : 'no camera')
+              + ' \u00b7 ' + Math.round(eff) + '\u00b0 shown'
+              + (total > 1.05 ? ' \u00b7 ' + total.toFixed(1) + '\u00d7' : '');
+          })(),
+          arZoomOn: zoom > 1.02 || AR.lens() !== 'wide',
+          arZoomReset: () => this.applyArField(AR.fieldRange().wide),
           arZoomFit: () => this.applyArLens(),
           /* Kit and back again: the AR view is a fullscreen overlay, so leaving it has to be
              explicit, and coming back has to be one tap or nobody will risk the trip. */
