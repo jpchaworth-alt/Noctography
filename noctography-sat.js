@@ -397,7 +397,7 @@
 
      ?tle-relay=off clears it again. The point is that the Worker can be deployed and proved from a
      phone in the field, in the ten minutes it takes, with no build step in between. */
-  const RELAY_BUILT_IN = null;
+  const RELAY_BUILT_IN = 'https://tle.jpchaworth.workers.dev';   // deployed 1 September 2026
   const RELAY_KEY = 'noctography.tleRelay';
   const TLE_RELAY = (function () {
     let stored = null;
@@ -419,11 +419,16 @@
         () => ({ label: 'CelesTrak', kind: 'tle', timeoutMs: 8000, url: 'https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle' }),
       ],
     },
+    /* Kept as 'tle-new' locally because that is the key a device's cached copy is stored under,
+       but the group at CelesTrak is called last-30-days: the legacy names were retired, and a
+       deprecated query is not a harmless one. They firewall an address that collects fifty 301,
+       403 or 404 responses in two hours, so asking for a name that no longer exists is the sort
+       of thing that gets a user's network blocked rather than politely refused. */
     'tle-new': {
       ttl: 12 * 3600000,
       sources: [
-        relay => relay && { label: 'relay', kind: 'tle', timeoutMs: 9000, url: relay + '?feed=tle-new' },
-        () => ({ label: 'CelesTrak', kind: 'tle', timeoutMs: 9000, url: 'https://celestrak.org/NORAD/elements/gp.php?GROUP=tle-new&FORMAT=tle' }),
+        relay => relay && { label: 'relay', kind: 'tle', timeoutMs: 9000, url: relay + '?feed=last-30-days' },
+        () => ({ label: 'CelesTrak', kind: 'tle', timeoutMs: 9000, url: 'https://celestrak.org/NORAD/elements/gp.php?GROUP=last-30-days&FORMAT=tle' }),
       ],
     },
   };
