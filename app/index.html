@@ -5563,8 +5563,12 @@ class Component extends DCLogic {
     if (hit) return hit.ready ? hit.cv : null;
     const rec = { ready: false, cv: null };
     this._arSprites.set(o.f, rec);
+    // no crossOrigin here: nothing in this file ever reads the sprite's pixels back (no
+    // getImageData/toDataURL), only draws it, so there is nothing for CORS to protect. Setting
+    // crossOrigin='anonymous' bought nothing and cost real images: Safari fails the load outright
+    // when this CDN's redirect chain doesn't carry consistent CORS headers, which is exactly what
+    // happened on iPhone while Chrome quietly tolerated it.
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     img.onload = () => {
       const s = Math.min(512, img.naturalWidth || 512);
       const cv = document.createElement('canvas');
