@@ -9,18 +9,35 @@ const D2R = Math.PI / 180, R2D = 180 / Math.PI;
 const norm = a => ((a % 360) + 360) % 360;
 const KEY = 'nocto-ar-v1';
 
+/* A modern phone is three cameras, not one, and which one is fitted matters more than any
+   slider: framing a 135mm shot through a 68-degree wide lens leaves a rectangle the size of a
+   postage stamp. Nominal horizontal fields for the three kinds, used to choose between them and
+   as the starting calibration for each. */
+const LENS_NOMINAL = { ultrawide: 104, wide: 68, tele: 26 };
+const LENS_LABEL = { ultrawide: 'ultra wide', wide: 'wide', tele: 'telephoto' };
+
 const S = {
   motion: false, camera: false, stream: null, video: null,
   alpha: 0, beta: 70, gamma: 0, absolute: false, compass: null,
-  screenAngle: 0, nudge: 0, hfov: 62, haveEvent: false, listening: false,
+  screenAngle: 0, nudge: 0, haveEvent: false, listening: false,
   smooth: null,
+  /* the fitted lens, the digital zoom on top of it, and how much of that zoom the hardware
+     agreed to do for us (the rest is done in CSS, which is all iOS Safari allows) */
+  lens: 'wide', cameras: [], deviceId: null, zoom: 1, hwZoom: 1,
+  hfovByLens: { ultrawide: 104, wide: 62, tele: 26 },
 };
 try {
   const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
   if (typeof saved.nudge === 'number') S.nudge = saved.nudge;
-  if (typeof saved.hfov === 'number') S.hfov = saved.hfov;
+  if (saved.hfovByLens && typeof saved.hfovByLens === 'object')
+    S.hfovByLens = Object.assign(S.hfovByLens, saved.hfovByLens);
+  // one calibration figure was saved before there was more than one lens: it was the wide
+  else if (typeof saved.hfov === 'number') S.hfovByLens.wide = saved.hfov;
 } catch (e) {}
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ nudge: S.nudge, hfov: S.hfov })); } catch (e) {} };
+const save = () => {
+  try { localStorage.setItem(KEY, JSON.stringify({ nudge: S.nudge, hfovByLens: S.hfovByLens })); }
+  catch (e) {}
+};
 
 /* ---------- rotation ---------- */
 /* The W3C device frame: X across the screen, Y up the screen, Z out of the glass, so the rear
@@ -88,6 +105,26 @@ function unlisten(){
   window.removeEventListener('orientationchange', readScreen);
 }
 
+/* ---------- fields of view ---------- */
+/* Two figures, kept apart on purpose. The base is what the fitted lens sees, and it is what the
+   calibration slider adjusts, per lens, because a phone's published figures are marketing. The
+   effective field is the base narrowed by whatever zoom is applied, and it is what the overlay
+   projects through: zoom in and the sky, the subjects and the lens rectangle all grow together,
+   which is the only way a zoomed view stays honest. */
+function baseHfov(){
+  return S.hfovByLens[S.lens] || LENS_NOMINAL[S.lens] || 62;
+}
+function effHfov(){
+  const b = baseHfov();
+  const z = Math.max(1, S.zoom || 1);
+  if (z <= 1.0001) return b;
+  return 2 * Math.atan(Math.tan(b / 2 * D2R) / z) * R2D;
+}
+/* What CSS has to make up, because the hardware would not do it. */
+function cssZoom(){
+  return Math.max(1, (S.zoom || 1) / (S.hwZoom || 1));
+}
+
 /* ---------- the aim ---------- */
 /* The compass is the weak link: 10 to 20 degrees out is routine and worse beside a tripod head
    or a car. Where iOS gives a true heading we trust it as the starting guess; everywhere else
@@ -123,7 +160,7 @@ const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
    hands back a function from alt/az to pixels, or null when the point is behind you. */
 function projector(W, H, opts){
   const b = (opts && opts.basis) || basis();
-  const hf = ((opts && opts.hfov) || S.hfov) * D2R;
+  const hf = ((opts && opts.hfov) || effHfov()) * D2R;
   const vf = 2 * Math.atan(Math.tan(hf / 2) * (H / W));
   const kx = (W / 2) / Math.tan(hf / 2), ky = (H / 2) / Math.tan(vf / 2);
   const fn = (alt, az) => {
@@ -168,15 +205,77 @@ async function requestMotion(){
   await new Promise(r => setTimeout(r, 350));
   return S.haveEvent;
 }
-async function startCamera(video){
+
+/* Which of the phone's cameras is which. Labels are blank until a stream has been granted once,
+   so this is worth calling again after startCamera rather than only before it. */
+function classify(label){
+  const l = (label || '').toLowerCase();
+  if (/ultra/.test(l)) return 'ultrawide';
+  if (/tele/.test(l)) return 'tele';
+  return 'wide';
+}
+async function listCameras(){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return S.cameras;
+  let devs = [];
+  try { devs = await navigator.mediaDevices.enumerateDevices(); } catch (e) { return S.cameras; }
+  const vids = devs.filter(d => d.kind === 'videoinput');
+  const back = vids.filter(d => !/front|face|user|selfie/i.test(d.label || ''));
+  const pool = back.length ? back : vids;
+  const seen = {};
+  const out = [];
+  pool.forEach(d => {
+    const kind = classify(d.label);
+    if (seen[kind]) return;                        // one representative per kind is enough
+    seen[kind] = true;
+    out.push({ id: d.deviceId, label: d.label || LENS_LABEL[kind], kind });
+  });
+  out.sort((a, b) => LENS_NOMINAL[b.kind] - LENS_NOMINAL[a.kind]);   // widest first
+  if (out.length) S.cameras = out;
+  return S.cameras;
+}
+
+/* Ask the track for real optical or sensor zoom, and remember how much of the request it took.
+   Chrome on Android usually obliges; iOS Safari does not expose zoom at all, so this returns 1
+   and CSS carries the whole factor. Either way the overlay maths uses the total. */
+async function applyHardwareZoom(){
+  const track = S.stream && S.stream.getVideoTracks && S.stream.getVideoTracks()[0];
+  if (!track || !track.getCapabilities || !track.applyConstraints) { S.hwZoom = 1; return; }
+  let caps = null;
+  try { caps = track.getCapabilities(); } catch (e) { caps = null; }
+  if (!caps || !caps.zoom) { S.hwZoom = 1; return; }
+  const want = Math.max(caps.zoom.min || 1, Math.min(caps.zoom.max || 1, S.zoom));
+  try { await track.applyConstraints({ advanced: [{ zoom: want }] }); S.hwZoom = want || 1; }
+  catch (e) { S.hwZoom = 1; }
+}
+
+async function startCamera(video, opts){
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return false;
+  const o = opts || {};
+  const want = o.deviceId
+    ? { deviceId: { exact: o.deviceId }, width: { ideal: 1920 } }
+    : { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } };
+  /* One stream at a time: asking for a second camera while the first is live fails outright on
+     iOS, so the old one is released before the new one is requested. */
+  if (S.stream) {
+    S.stream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
+    S.stream = null;
+  }
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } }, audio: false });
-    S.stream = stream; S.camera = true; S.video = video;
-    if (video) { video.srcObject = stream; const p = video.play(); if (p && p.catch) p.catch(() => {}); }
+    const stream = await navigator.mediaDevices.getUserMedia({ video: want, audio: false });
+    S.stream = stream; S.camera = true; S.video = video || S.video;
+    if (o.deviceId) S.deviceId = o.deviceId;
+    if (o.lens) S.lens = o.lens;
+    const v = S.video;
+    if (v) { v.srcObject = stream; const p = v.play(); if (p && p.catch) p.catch(() => {}); }
+    await listCameras();
+    await applyHardwareZoom();
     return true;
-  } catch (e) { S.camera = false; return false; }
+  } catch (e) {
+    // a named camera can be refused where the generic rear one is not: fall back rather than fail
+    if (o.deviceId && !o._retry) return startCamera(video, { _retry: true });
+    S.camera = false;
+    return false;
+  }
 }
 function stopCamera(){
   if (S.stream) { S.stream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} }); S.stream = null; }
@@ -185,8 +284,27 @@ function stopCamera(){
 }
 function stop(){ stopCamera(); unlisten(); S.motion = false; S.haveEvent = false; S.smooth = null; }
 
+/* Which fitted lens suits a frame this wide, and how much zoom on top of it. The rule is the
+   narrowest lens that still holds the frame with a margin to compose in: a 135mm shot goes to
+   the telephoto if the phone has one, and the zoom then fills most of the screen with the
+   rectangle instead of leaving it tiny in the middle. */
+function pickLensFor(acrossDeg){
+  if (!S.cameras.length) return null;
+  const need = Math.max(4, acrossDeg) * 1.25;
+  const fit = S.cameras.filter(c => LENS_NOMINAL[c.kind] >= need);
+  return fit.length ? fit[fit.length - 1] : S.cameras[S.cameras.length - 1];
+}
+function zoomFor(acrossDeg, fill){
+  const b = baseHfov();
+  const f = Math.max(0.2, Math.min(0.95, fill || 0.72));
+  const target = Math.max(1, acrossDeg / f);
+  if (target >= b) return 1;
+  return Math.max(1, Math.min(12, Math.tan(b / 2 * D2R) / Math.tan(target / 2 * D2R)));
+}
+
 window.NoctoAR = {
   state: S,
+  LENS_NOMINAL, LENS_LABEL,
   supported: () => typeof DeviceOrientationEvent !== 'undefined',
   cameraSupported: () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
   secure: () => window.isSecureContext !== false,
@@ -197,8 +315,23 @@ window.NoctoAR = {
   nudge: () => S.nudge,
   setNudge: d => { S.nudge = norm(d); save(); },
   addNudge: d => { S.nudge = norm(S.nudge + d); save(); },
-  hfov: () => S.hfov,
-  setHfov: v => { S.hfov = Math.max(30, Math.min(110, v)); save(); },
+  /* hfov reads and writes the ACTIVE lens's calibration; effHfov is what the overlay uses */
+  hfov: baseHfov,
+  effHfov,
+  setHfov: v => { S.hfovByLens[S.lens] = Math.max(5, Math.min(140, v)); save(); },
+  cameras: () => S.cameras,
+  lens: () => S.lens,
+  lensLabel: () => LENS_LABEL[S.lens] || S.lens,
+  setLens: k => { if (LENS_NOMINAL[k]) S.lens = k; },
+  listCameras, pickLensFor, zoomFor,
+  zoom: () => S.zoom,
+  cssZoom,
+  maxZoom: () => 12,
+  setZoom: async z => {
+    S.zoom = Math.max(1, Math.min(12, Number(z) || 1));
+    await applyHardwareZoom();
+    return S.zoom;
+  },
   /* Tap the moon, or the sun, and the whole overlay swings into place in one gesture. */
   alignTo: (trueAz, screenX, screenY, W, H) => {
     const p = projector(W, H);
