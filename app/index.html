@@ -2810,7 +2810,7 @@ window.noctoTrack = function (name) {
   <div data-screen-label="AR" style="position: fixed; inset: 0; z-index: 120; background: #000; display: grid; grid-template-rows: 1fr auto; overscroll-behavior: contain;">
 
     <div ref="{{ setArStage }}" onClick="{{ onArTap }}" onPointerDown="{{ arCalDown }}" onPointerMove="{{ arCalMove }}" onPointerUp="{{ arCalUp }}" onPointerCancel="{{ arCalUp }}" style="position: relative; overflow: hidden; touch-action: none;">
-      <video ref="{{ setArVideo }}" playsinline="playsinline" muted="muted" autoplay="autoplay" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: {{ arVideoOpacity }}; filter: {{ arVideoFilter }};"></video>
+      <video ref="{{ setArVideo }}" playsinline="playsinline" muted="muted" autoplay="autoplay" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: {{ arVideoOpacity }}; filter: {{ arCamFilter }};"></video>
       <canvas ref="{{ setArImgCanvas }}" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; pointer-events: none; filter: {{ arVideoFilter }};"></canvas>
       <canvas ref="{{ setArCanvas }}" style="position: absolute; inset: 0; width: 100%; height: 100%;"></canvas>
 
@@ -2954,7 +2954,7 @@ class Component extends DCLogic {
     hz: null, hzObs: null, hzStatus: 'idle', hzDone: 0, hzTotal: 0, hzErr: null, hzSector: 'all', hzDrift: null, hzOpen: false, hzEdit: false, hzGlow: true,
     sightSaw: null, sightHeight: null, sightNote: '', sightOpen: false, sightLogOpen: false, sightSaved: 0, sightCopied: 0,
     sightings: [],
-    arOpen: false, arScrub: null, arDate: null, arSubject: 'all', arTrails: 0, arCam: true,
+    arOpen: false, arScrub: null, arDate: null, arSubject: 'all', arTrails: 0, arCam: true, arDim: false,
     arMotion: null, arCamOk: null, arAligning: false, arShowTune: false, arCal: false, arNudge: 0, arHfov: 62, arTick: 0,
     arAnchor: null, arLandscape: false,
     /* The photographic sky. 118 catalogue objects of 1 degree or more, everything else keeps the
@@ -3030,6 +3030,7 @@ class Component extends DCLogic {
         'The Milky Way is a photograph too, calibrated to its real position rather than drawn as a band.',
         'An exposure slider brightens the sky and the Milky Way together, so a faint scene can be pushed closer to what the camera will actually pull out.',
         'Frame it now scrubs by date, so you can watch the Milky Way core swing into season before committing to a night.',
+        'A Daylight toggle in AR: it dims the camera and lifts the overlay together, so you can actually see where a subject will sit while scouting in broad daylight.',
         'Sky AR moved up next to Place, renamed from Sky, and got its own "Open Sky AR" button on every tab.',
         'Kit gained 50mm and 135mm presets, plus a field for typing in any focal length.',
         'A new attribution page for every object and image credited in Sky AR, linked from Credits.',
@@ -6264,7 +6265,16 @@ class Component extends DCLogic {
       setArImgCanvas: this.setArImgCanvas,
       closeAr: () => this.closeAr(),
       arVideoOpacity: st.arCam && st.arCamOk ? '1' : '0',
-      arVideoFilter: st.nv ? 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(.6)' : 'none',
+      /* Daylight scouting: the overlay is a screen blend, and screen over a bright sky adds almost
+         nothing, so no amount of exposure recovers it. Dimming the camera is what actually works:
+         it gives the overlay somewhere dark to add into. The overlay is lifted at the same time so
+         the trade is one tap rather than two controls. */
+      arCamFilter: st.nv
+        ? 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(' + (st.arDim ? '.16' : '.6') + ')'
+        : st.arDim ? 'brightness(.2) saturate(.6)' : 'none',
+      arVideoFilter: st.nv
+        ? 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(' + (st.arDim ? '1' : '.6') + ')'
+        : st.arDim ? 'brightness(1.8)' : 'none',
       arAim: AR.live()
         ? E.compass(AR.basis().az) + ' ' + Math.round(AR.basis().az) + '\u00b0 \u00b7 ' + Math.round(AR.basis().alt) + '\u00b0 up'
         : 'waiting for the sensors',
@@ -6336,6 +6346,7 @@ class Component extends DCLogic {
           if (st.arCam && st.arCamOk) { AR.stopCamera(); this.setState({ arCam: false, arCamOk: false }); }
           else { this.setState({ arCam: true }); this.startArCamera(); }
         }),
+        chip('Daylight', !!st.arDim, () => this.setState({ arDim: !st.arDim })),
         chip('Tune', st.arShowTune, () => this.setState({ arShowTune: !st.arShowTune, arAligning: false, arCal: false })),
         chip(st.arCal ? 'Lining up' : 'Line up', st.arCal, () => this.setState({ arCal: !st.arCal, arShowTune: false })),
       ],
