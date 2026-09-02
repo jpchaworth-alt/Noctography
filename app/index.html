@@ -150,12 +150,12 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=1.1.5"></script>
-<script src="../noctography-sat.js?v=1.1.5"></script>
-<script src="../noctography-plan.js?v=1.1.5"></script>
-<script src="../noctography-ar.js?v=1.1.5"></script>
-<script src="../noctography-log.js?v=1.1.5"></script>
-<script src="../noctography-terrain.js?v=1.1.5"></script>
+<script src="../noctography-engine.js?v=1.1.6"></script>
+<script src="../noctography-sat.js?v=1.1.6"></script>
+<script src="../noctography-plan.js?v=1.1.6"></script>
+<script src="../noctography-ar.js?v=1.1.6"></script>
+<script src="../noctography-log.js?v=1.1.6"></script>
+<script src="../noctography-terrain.js?v=1.1.6"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -2823,7 +2823,7 @@ window.noctoTrack = function (name) {
 
       <div style="position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,0));">
         <span style="padding: 3px 9px; border: 1px solid var(--accent); border-radius: 999px; font-family: 'Barlow', sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--accent);">Beta</span>
-        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(240,236,228,.8);">{{ arAim }}</span>
+        <span data-ar-aim="1" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(240,236,228,.8);"></span>
         <button type="button" onClick="{{ closeAr }}" aria-label="Close" style="margin-left: auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.28); border-radius: 999px; background: rgba(0,0,0,.5); color: rgba(240,236,228,.9); font-family: 'Barlow', sans-serif; font-size: 17px; line-height: 1; cursor: pointer;">✕</button>
       </div>
 
@@ -3077,8 +3077,19 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '1.1.5';
+  VERSION = '1.1.6';
   BUILDS = [
+    {
+      v: '1.1.6', date: '2026-09-02', silent: true,
+      title: 'Sky AR: smoother, and level sideways',
+      intro: 'Two fixes to yesterday\u2019s AR build:',
+      bullets: [
+        'The view no longer judders while you pan. Nothing on the panel is redrawn through the app any more, so panning spends every frame on the sky instead of four full refreshes a second, and the overlay renders at a lighter resolution while the phone is moving and sharpens the moment you hold still.',
+        'The Milky Way rebuilds on a sensible rhythm again: coarse and frequent while you sweep, fine when you stop. Yesterday it was trying to rebuild the fine mesh twenty times a second, which is what made it worse rather than better.',
+        'Landscape was 180 degrees out. The overlay is rotated back against the screen angle with the wrong sign, which cannot be seen in portrait and put the ground shading above the horizon when you turned the phone sideways. Fixed.',
+      ],
+      foot: '',
+    },
     {
       v: '1.1.5', date: '2026-09-02', silent: true,
       title: 'Sky AR, sideways and smoother',
@@ -4015,7 +4026,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=1.1.5';
+    s.src = '../pano-calculator.js?v=1.1.6';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -6122,20 +6133,51 @@ class Component extends DCLogic {
   arPaintClock() {
     this.arSay('[data-ar-clock]', this.arClockText());
   }
+  /* Is the phone being moved? Read off the aim itself rather than the motion events, so a pinch
+     counts too. A tenth of a degree between frames is hand tremor; anything more is a pan, and
+     the view stays "moving" for a beat afterwards so a momentary pause does not spend an
+     expensive sharpen pass mid-sweep. */
+  arMoving() {
+    const AR = window.NoctoAR;
+    if (!AR) return false;
+    const b = AR.basis(), now = Date.now(), fov = AR.effHfov();
+    const prev = this._arAimPrev;
+    this._arAimPrev = { az: b.az, alt: b.alt, fov };
+    if (prev) {
+      const dAz = Math.abs(((b.az - prev.az + 540) % 360) - 180);
+      if (dAz > 0.12 || Math.abs(b.alt - prev.alt) > 0.12
+          || Math.abs(fov - prev.fov) > prev.fov * 0.004) this._arMoveAt = now;
+    }
+    return !!this._arDragging || (this._arMoveAt != null && now - this._arMoveAt < 320);
+  }
   arLoop() {
     if (this._arRaf) return;
+    const AR_LIVE = () => { const A = window.NoctoAR; return A ? A.live() : false; };
+    const AR_ABS = () => { const A = window.NoctoAR; return A ? A.absolute() : false; };
     const step = () => {
       this._arRaf = null;
       if (!this.state.arOpen) return;
       this.drawAr();
-      /* The canvas repaints every frame, but the aim readout and the notices live in the markup,
-         so they need a render. Four times a second is enough to read and cheap enough to hold. */
       const now = Date.now();
-      if (!this._arDragging && (!this._arTickAt || now - this._arTickAt > 250)) {
-        this._arTickAt = now;
-        // live now: the scrub thumb has to walk along with the clock, and nothing re-renders it
-        if (this.state.arScrub == null) this.arSyncInputs();
+      /* No timed whole-app render: that ran four times a second and was most of what made panning
+         judder. But the notices and the sensor state are markup, and they turn over from inside
+         the AR module rather than through setState, so the loop watches a cheap signature of them
+         and renders only when it actually changes. The aim readout is painted from drawAr like the
+         clock, because it changes every degree and must never cost a render. */
+      const sig = [AR_LIVE(), AR_ABS(), this.state.arMotion, this.state.arCamOk].join('|');
+      if (sig !== this._arSig) {
+        this._arSig = sig;
+        this._arRenderAt = now;
         this.setState({ arTick: (this.state.arTick || 0) + 1 });
+      } else if (!this.arMoving() && (!this._arRenderAt || now - this._arRenderAt > 1200)) {
+        // a slow backstop for anything else in the panel that drifts, never while panning
+        this._arRenderAt = now;
+        this.setState({ arTick: (this.state.arTick || 0) + 1 });
+      }
+      if (!this._arDragging && this.state.arScrub == null
+          && (!this._arSyncAt || now - this._arSyncAt > 500)) {
+        this._arSyncAt = now;
+        this.arSyncInputs();
       }
       this._arRaf = requestAnimationFrame(step);
     };
@@ -6194,10 +6236,18 @@ class Component extends DCLogic {
     // the readouts this file owns outright, repainted here rather than through a render
     this.arPaintClock();
     this.arSay('[data-ar-dim-read]', this.arDimFilters(this.arDimVal() / 100).read);
+    this.arSay('[data-ar-aim]', AR.live()
+      ? E.compass(AR.basis().az) + ' ' + Math.round(AR.basis().az) + '\u00b0 \u00b7 '
+        + Math.round(AR.basis().alt) + '\u00b0 up'
+      : 'waiting for the sensors');
     const host = this._arStage;
     const cw = host ? host.clientWidth : el.clientWidth, ch = host ? host.clientHeight : el.clientHeight;
     if (!cw || !ch) return;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    /* Resolution follows movement. A 15 Pro Max overlay at full device pixels is 3.6 million of
+       them a frame, which is affordable standing still and not affordable while panning, so the
+       moving pass renders at about half that and the still pass sharpens back up. */
+    const moving = this.arMoving();
+    const dpr = moving ? Math.min(1.4, window.devicePixelRatio || 1) : Math.min(2, window.devicePixelRatio || 1);
     const W = Math.round(cw * dpr), H = Math.round(ch * dpr);
     if (el.width !== W || el.height !== H) { el.width = W; el.height = H; }
     const ctx = el.getContext('2d');
@@ -6274,11 +6324,14 @@ class Component extends DCLogic {
     const bandT = Math.max(0, Math.min(1, this.arExpVal() / 100));
     const bandGain = bandT < 0.02 ? 0 : Math.min(1, Math.pow(bandT, 0.6) * 1.22);
     const bview = AR.basis();
-    const coarse = !!this._arDragging;
+    /* Coarse while the phone is moving, not merely while a slider is down: panning is when the
+       rebuild rate matters, and a coarser warp of something this soft cannot be seen until you
+       hold still, which is exactly when the fine pass arrives. */
+    const coarse = moving || !!this._arDragging;
     const arBandCv = (ictx && bandGain > 0.01)
       ? this.bandLayer(this._arBand, pr, E.state.lat, lst, W, H, coarse ? 30 : 62, coarse ? 15 : 31,
           { az: bview.az, alt: bview.alt, fov: pr.hfovDeg, sig: coarse ? 'coarse' : 'fine',
-            minMs: coarse ? 90 : 45 }) : null;
+            minMs: coarse ? 70 : 220 }) : null;
     if (arBandCv) {
       ictx.save();
       ictx.globalAlpha = bandGain;
@@ -6630,9 +6683,6 @@ class Component extends DCLogic {
           onArDimDone: () => this.arCommitSlider('dim'),
         };
       })(),
-      arAim: AR.live()
-        ? E.compass(AR.basis().az) + ' ' + Math.round(AR.basis().az) + '\u00b0 \u00b7 ' + Math.round(AR.basis().alt) + '\u00b0 up'
-        : 'waiting for the sensors',
       arNotice: !!noticeTitle, arNoticeTitle: noticeTitle, arNoticeBody: noticeBody,
       arNoticeAction: noticeAction, arNoticeGo: noticeGo,
       /* Align has gone. It did do something real, swinging the overlay so its moon landed where
