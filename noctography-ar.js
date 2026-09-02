@@ -130,17 +130,22 @@ function cssZoom(){
 /* The compass is the weak link: 10 to 20 degrees out is routine and worse beside a tripod head
    or a car. Where iOS gives a true heading we trust it as the starting guess; everywhere else
    the user aligns on the moon and we remember the offset. */
-function headingOffset(fwd){
+function headingOffset(fwd, screenDeg){
   if (S.compass == null) return 0;
-  /* Compared against the azimuth this matrix already gives for the direction the camera is
-     looking, not against alpha on its own. 360 - alpha happens to equal that azimuth while the
-     phone is upright in portrait, and equals nothing useful in any other attitude: alpha tracks
-     the phone's top edge, which sideways is pointing along the horizon a quarter turn from where
-     you are aiming. That is what put landscape out, sky and compass labels together, and why
-     portrait was always right. Only refreshed while the aim is far enough from straight up to
-     have a well-defined azimuth at all; nearer the zenith the last good value stands. */
+  /* Two corrections, and both are needed. The compass is compared against the azimuth this
+     matrix gives for the aim, not against alpha on its own, because 360 - alpha only equals that
+     azimuth while the phone is upright in portrait. And the reading itself is the heading of the
+     phone's physical TOP EDGE, which is not where you are aiming unless the phone is upright:
+     turned sideways the top edge lies along the horizon a quarter turn from the aim, which is
+     exactly the screen angle, so that angle is added back. Portrait is the case where both
+     corrections are zero, which is why it was right all along. Only refreshed while the aim has
+     a well-defined azimuth at all; nearer than about 20 degrees to straight up the last good
+     value stands. */
   const level = Math.hypot(fwd[0], fwd[1]);
-  if (level > 0.35) S.offCache = norm(S.compass - norm(Math.atan2(fwd[0], fwd[1]) * R2D));
+  if (level > 0.35) {
+    const aim = norm(Math.atan2(fwd[0], fwd[1]) * R2D);
+    S.offCache = norm(S.compass + screenDeg - aim);
+  }
   return S.offCache || 0;
 }
 
@@ -167,7 +172,9 @@ function basis(){
   const right = apply(R, [ct, st, 0]);
   const up = apply(R, [-st, ct, 0]);
   const fwd = apply(R, [0, 0, -1]);
-  const off = headingOffset(fwd) + S.nudge;
+  /* The turn actually applied, which the gravity check may have taken 180 from what the platform
+     reported. The compass correction has to use the same figure or the two disagree. */
+  const off = headingOffset(fwd, norm(-t * R2D)) + S.nudge;
   return { right, up, fwd, off,
     alt: Math.asin(Math.max(-1, Math.min(1, fwd[2]))) * R2D,
     az: norm(Math.atan2(fwd[0], fwd[1]) * R2D + off) };
