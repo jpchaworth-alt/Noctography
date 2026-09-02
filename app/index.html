@@ -150,12 +150,12 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=1.1.7"></script>
-<script src="../noctography-sat.js?v=1.1.7"></script>
-<script src="../noctography-plan.js?v=1.1.7"></script>
-<script src="../noctography-ar.js?v=1.1.7"></script>
-<script src="../noctography-log.js?v=1.1.7"></script>
-<script src="../noctography-terrain.js?v=1.1.7"></script>
+<script src="../noctography-engine.js?v=1.1.8"></script>
+<script src="../noctography-sat.js?v=1.1.8"></script>
+<script src="../noctography-plan.js?v=1.1.8"></script>
+<script src="../noctography-ar.js?v=1.1.8"></script>
+<script src="../noctography-log.js?v=1.1.8"></script>
+<script src="../noctography-terrain.js?v=1.1.8"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -3077,41 +3077,18 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '1.1.7';
+  VERSION = '1.1.8';
   BUILDS = [
     {
-      v: '1.1.7', date: '2026-09-02', silent: true,
-      title: 'Sky AR: the scrub, and landscape for real',
-      intro: 'Two more AR fixes:',
+      v: '1.1.8', date: '2026-09-02', silent: true,
+      title: 'Sky AR, sideways',
+      intro: 'A round of work on the AR sky, most of it about making the phone keep up:',
       bullets: [
-        'The time scrub moves with your finger. It was redrawing the whole sky for every pixel the finger moved, rebuilding forty star trails each time; now the drag just sets the time and the next frame picks it up, and the trails are held until you let go.',
-        'Landscape no longer comes out 180 degrees round. Rather than trusting the phone to report its screen rotation in the sign I expect, the overlay now checks the guess against gravity: the screen\u2019s own up direction has to point up in the world, and when it does not the basis is turned round. Both ways up in landscape are covered, whatever the phone reports.',
-      ],
-      foot: '',
-    },
-    {
-      v: '1.1.6', date: '2026-09-02', silent: true,
-      title: 'Sky AR: smoother, and level sideways',
-      intro: 'Two fixes to yesterday\u2019s AR build:',
-      bullets: [
-        'The view no longer judders while you pan. Nothing on the panel is redrawn through the app any more, so panning spends every frame on the sky instead of four full refreshes a second, and the overlay renders at a lighter resolution while the phone is moving and sharpens the moment you hold still.',
-        'The Milky Way rebuilds on a sensible rhythm again: coarse and frequent while you sweep, fine when you stop. Yesterday it was trying to rebuild the fine mesh twenty times a second, which is what made it worse rather than better.',
-        'Landscape was 180 degrees out. The overlay is rotated back against the screen angle with the wrong sign, which cannot be seen in portrait and put the ground shading above the horizon when you turned the phone sideways. Fixed.',
-      ],
-      foot: '',
-    },
-    {
-      v: '1.1.5', date: '2026-09-02', silent: true,
-      title: 'Sky AR, sideways and smoother',
-      intro: 'All of this is AR, and most of it is about the phone keeping up:',
-      bullets: [
-        'Turn the phone sideways and the camera takes the whole screen. The planned frame turns with it, and the fit is redone so a landscape shot fills the view the way a portrait one did.',
-        'In landscape the time scrub, the clock and the zoom buttons sit over the frame, and everything else waits behind Controls.',
-        'The sliders track your finger now. While one is down the overlay is redrawn straight from it rather than through a full refresh of the app, which is what made them jump.',
-        'The Milky Way overlay reads properly away from the core. The lift is a curve baked into the photograph once rather than a brightness multiply on every frame, so the faint arms come up instead of only the core, and the band has its own response to the exposure slider.',
-        'The overlay only rebuilds the band when the view has actually moved, and drops to a coarser mesh while you are dragging or pinching. Same picture, a fraction of the work.',
-        'The time scrub, exposure and contrast now sit directly under the camera view. Lens, orientation and the way through to Kit collapse to one line you tap when you need them.',
-        'Upright, the camera view is taller: the panel below it no longer claims most of the screen.',
+        'Turn the phone sideways and the camera takes the whole screen, which is the right shape for most nightscapes and gives you far more of it. The planned frame turns with the phone and the fit is redone, so a landscape shot fills the view the way a portrait one did. Sideways, the time scrub, the clock and the zoom buttons sit over the frame and the rest waits behind Controls.',
+        'The overlay reads true in both orientations. The compass reference and the screen rotation are both worked out from the aim itself now, rather than from an assumption that only held with the phone upright.',
+        'Everything moves with your finger. The sliders and the time scrub set a value and the next frame draws it, instead of refreshing the whole app on every pixel of travel, and the overlay renders lighter while the phone is moving and sharpens the moment you hold still.',
+        'The Milky Way reads properly away from the core. The lift is a curve applied to the photograph once rather than a brightness multiply on every frame, so the faint arms come up instead of only the core, and the band has its own response to the exposure slider.',
+        'The time scrub, exposure and contrast sit directly under the camera view. Lens, orientation and the way through to Kit collapse to one line you tap when you want them, and upright the camera view is taller for it.',
       ],
       foot: '',
     },
@@ -4036,7 +4013,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=1.1.7';
+    s.src = '../pano-calculator.js?v=1.1.8';
     s.async = true;
     document.head.appendChild(s);
   }
