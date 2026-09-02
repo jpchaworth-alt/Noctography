@@ -150,12 +150,12 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=1.1.8"></script>
-<script src="../noctography-sat.js?v=1.1.8"></script>
-<script src="../noctography-plan.js?v=1.1.8"></script>
-<script src="../noctography-ar.js?v=1.1.8"></script>
-<script src="../noctography-log.js?v=1.1.8"></script>
-<script src="../noctography-terrain.js?v=1.1.8"></script>
+<script src="../noctography-engine.js?v=1.1.9"></script>
+<script src="../noctography-sat.js?v=1.1.9"></script>
+<script src="../noctography-plan.js?v=1.1.9"></script>
+<script src="../noctography-ar.js?v=1.1.9"></script>
+<script src="../noctography-log.js?v=1.1.9"></script>
+<script src="../noctography-terrain.js?v=1.1.9"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -3077,10 +3077,10 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '1.1.8';
+  VERSION = '1.1.9';
   BUILDS = [
     {
-      v: '1.1.8', date: '2026-09-02', silent: true,
+      v: '1.1.9', date: '2026-09-02', silent: true,
       title: 'Sky AR, sideways',
       intro: 'A round of work on the AR sky, most of it about making the phone keep up:',
       bullets: [
@@ -4013,7 +4013,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=1.1.8';
+    s.src = '../pano-calculator.js?v=1.1.9';
     s.async = true;
     document.head.appendChild(s);
   }
