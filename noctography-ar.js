@@ -138,8 +138,13 @@ function headingOffset(){
 
 function basis(){
   const R = mul(mul(rotZ(S.alpha * D2R), rotX(S.beta * D2R)), rotY(S.gamma * D2R));
-  // the rendering surface rotates with the screen, the device frame does not
-  const t = S.screenAngle * D2R, ct = Math.cos(t), st = Math.sin(t);
+  /* The rendering surface rotates with the screen, the device frame does not, so the basis is
+     rotated back about the screen normal. It has to be MINUS the reported angle: when the OS
+     turns the layout to keep it upright, screen-up has moved the other way in device
+     coordinates. Getting this sign wrong is invisible in either portrait, because 0 and 180
+     negate to themselves, and puts the whole overlay 180 degrees out in both landscapes: the
+     giveaway is the ground wash sitting above the horizon instead of below it. */
+  const t = -S.screenAngle * D2R, ct = Math.cos(t), st = Math.sin(t);
   const right = apply(R, [ct, st, 0]);
   const up = apply(R, [-st, ct, 0]);
   const fwd = apply(R, [0, 0, -1]);
