@@ -20,7 +20,7 @@ const LENS_LABEL = { ultrawide: 'ultra wide', wide: 'wide', tele: 'telephoto' };
 const S = {
   motion: false, camera: false, stream: null, video: null,
   alpha: 0, beta: 70, gamma: 0, absolute: false, compass: null,
-  screenAngle: 0, flip: false, nudge: 0, haveEvent: false, listening: false,
+  screenAngle: 0, flip: false, nudge: 0, offCache: 0, haveEvent: false, listening: false,
   smooth: null,
   /* the fitted lens, the digital zoom on top of it, and how much of that zoom the hardware
      agreed to do for us (the rest is done in CSS, which is all iOS Safari allows) */
@@ -130,10 +130,18 @@ function cssZoom(){
 /* The compass is the weak link: 10 to 20 degrees out is routine and worse beside a tripod head
    or a car. Where iOS gives a true heading we trust it as the starting guess; everywhere else
    the user aligns on the moon and we remember the offset. */
-function headingOffset(){
+function headingOffset(fwd){
   if (S.compass == null) return 0;
-  const fromAlpha = norm(360 - S.alpha);
-  return norm(S.compass - fromAlpha);
+  /* Compared against the azimuth this matrix already gives for the direction the camera is
+     looking, not against alpha on its own. 360 - alpha happens to equal that azimuth while the
+     phone is upright in portrait, and equals nothing useful in any other attitude: alpha tracks
+     the phone's top edge, which sideways is pointing along the horizon a quarter turn from where
+     you are aiming. That is what put landscape out, sky and compass labels together, and why
+     portrait was always right. Only refreshed while the aim is far enough from straight up to
+     have a well-defined azimuth at all; nearer the zenith the last good value stands. */
+  const level = Math.hypot(fwd[0], fwd[1]);
+  if (level > 0.35) S.offCache = norm(S.compass - norm(Math.atan2(fwd[0], fwd[1]) * R2D));
+  return S.offCache || 0;
 }
 
 /* How far to rotate the basis back for the screen's own rotation. The platform's reported angle
@@ -159,7 +167,7 @@ function basis(){
   const right = apply(R, [ct, st, 0]);
   const up = apply(R, [-st, ct, 0]);
   const fwd = apply(R, [0, 0, -1]);
-  const off = headingOffset() + S.nudge;
+  const off = headingOffset(fwd) + S.nudge;
   return { right, up, fwd, off,
     alt: Math.asin(Math.max(-1, Math.min(1, fwd[2]))) * R2D,
     az: norm(Math.atan2(fwd[0], fwd[1]) * R2D + off) };
