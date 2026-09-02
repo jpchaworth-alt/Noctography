@@ -150,12 +150,12 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=1.1.4"></script>
-<script src="../noctography-sat.js?v=1.1.4"></script>
-<script src="../noctography-plan.js?v=1.1.4"></script>
-<script src="../noctography-ar.js?v=1.1.4"></script>
-<script src="../noctography-log.js?v=1.1.4"></script>
-<script src="../noctography-terrain.js?v=1.1.4"></script>
+<script src="../noctography-engine.js?v=1.1.5"></script>
+<script src="../noctography-sat.js?v=1.1.5"></script>
+<script src="../noctography-plan.js?v=1.1.5"></script>
+<script src="../noctography-ar.js?v=1.1.5"></script>
+<script src="../noctography-log.js?v=1.1.5"></script>
+<script src="../noctography-terrain.js?v=1.1.5"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -2814,7 +2814,7 @@ window.noctoTrack = function (name) {
 </sc-if>
 
 <sc-if value="{{ arOpen }}" hint-placeholder-val="{{ false }}">
-  <div data-screen-label="AR" style="position: fixed; inset: 0; z-index: 120; background: #000; display: grid; grid-template-rows: minmax(30vh, 1fr) auto; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;">
+  <div data-screen-label="AR" style="position: fixed; inset: 0; z-index: 120; background: #000; display: grid; grid-template-rows: {{ arRows }}; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;">
 
     <div ref="{{ setArStage }}" onClick="{{ onArTap }}" onPointerDown="{{ arCalDown }}" onPointerMove="{{ arCalMove }}" onPointerUp="{{ arCalUp }}" onPointerCancel="{{ arCalUp }}" style="position: relative; overflow: hidden; min-height: 0; touch-action: none;">
       <video ref="{{ setArVideo }}" playsinline="playsinline" muted="muted" autoplay="autoplay" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 50%; transform: {{ arCamTransform }}; opacity: {{ arVideoOpacity }}; filter: {{ arCamFilter }};"></video>
@@ -2828,7 +2828,7 @@ window.noctoTrack = function (name) {
       </div>
 
       <sc-if value="{{ arNotice }}" hint-placeholder-val="{{ true }}">
-        <div style="position: absolute; left: 14px; right: 14px; bottom: 14px; display: grid; gap: 10px; padding: 15px; background: rgba(6,6,7,.9); border: 1px solid rgba(240,236,228,.16); border-radius: 12px;">
+        <div style="position: absolute; left: 14px; right: 14px; bottom: {{ arNoticeBottom }}; display: grid; gap: 10px; padding: 15px; background: rgba(6,6,7,.9); border: 1px solid rgba(240,236,228,.16); border-radius: 12px;">
           <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 23px; line-height: 1.08; color: #F3F0EA;">{{ arNoticeTitle }}</span>
           <span style="font-size: 14.5px; line-height: 1.42; color: rgba(240,236,228,.72); text-wrap: pretty;">{{ arNoticeBody }}</span>
           <sc-if value="{{ arNoticeAction }}" hint-placeholder-val="{{ false }}">
@@ -2837,21 +2837,38 @@ window.noctoTrack = function (name) {
         </div>
       </sc-if>
 
-      <sc-if value="{{ arLandscape }}" hint-placeholder-val="{{ false }}">
-        <div style="position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 24px; background: rgba(6,6,7,.94); text-align: center;">
-          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="7" y="2" width="10" height="20" rx="2"></rect>
-            <path d="M11 18.5h2"></path>
-            <path d="M3.5 9.5a9 9 0 0 1 2.2-3.4"></path>
-            <path d="M20.5 14.5a9 9 0 0 1-2.2 3.4"></path>
-          </svg>
-          <span style="font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--accent);">Turn the phone upright</span>
-          <span style="max-width: 320px; font-size: 15px; line-height: 1.42; color: rgba(240,236,228,.75); text-wrap: pretty;">AR wants a tall frame: you are looking up, and sideways there is no room for the sky or the controls. Turn it back and it carries on where it was.</span>
-        </div>
-      </sc-if>
     </div>
 
-    <div data-nv-bar="1" style="display: grid; gap: 10px; align-content: start; min-height: 0; max-height: 70vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; padding: 12px 12px calc(24px + env(safe-area-inset-bottom)); background: rgba(6,6,7,.94); border-top: 1px solid rgba(240,236,228,.12);">
+    <sc-if value="{{ arHudOn }}" hint-placeholder-val="{{ false }}">
+      <div data-nv-bar="1" style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: grid; gap: 7px; padding: 12px 16px calc(10px + env(safe-area-inset-bottom)); background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.82));">
+        <input type="range" min="0" max="100" step="0.05" defaultValue="{{ arScrub }}" data-ar-slider="scrub" onInput="{{ onArScrub }}" onPointerUp="{{ onArScrubDone }}" onPointerCancel="{{ onArScrubDone }}" onKeyUp="{{ onArScrubDone }}" aria-label="Time of day" style="width: 100%; height: 30px; accent-color: var(--accent); touch-action: pan-x;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span data-ar-clock="1" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; white-space: nowrap; color: var(--accent);"></span>
+          <button type="button" onClick="{{ arNow }}" data-nv-active="{{ arLiveOn }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 12px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Now</button>
+          <button type="button" onClick="{{ arZoomFit }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 12px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Fit</button>
+          <sc-if value="{{ arZoomOn }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ arZoomReset }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 12px; border: 1px solid rgba(240,236,228,.24); border-radius: 8px; background: rgba(0,0,0,.4); color: rgba(240,236,228,.8); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Wide</button>
+          </sc-if>
+          <button type="button" onClick="{{ arToggleSheet }}" style="flex: 0 0 auto; margin-left: auto; min-height: 44px; padding: 0 14px; border: 1px solid rgba(240,236,228,.28); border-radius: 8px; background: rgba(0,0,0,.5); color: rgba(240,236,228,.9); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">{{ arSheetLabel }}</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ arPanelOn }}" hint-placeholder-val="{{ true }}">
+    <div data-nv-bar="1" style="position: {{ arPanelPos }}; left: 0; right: 0; bottom: 0; z-index: 3; display: grid; gap: 10px; align-content: start; min-height: 0; max-height: {{ arPanelMax }}; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; padding: 12px 12px calc(24px + env(safe-area-inset-bottom)); background: rgba(6,6,7,.94); border-top: 1px solid rgba(240,236,228,.12);">
+
+      <sc-if value="{{ arSheetOn }}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{ arToggleSheet }}" style="order: -4; justify-self: stretch; min-height: 44px; border: 1px solid rgba(240,236,228,.2); border-radius: 8px; background: rgba(240,236,228,.05); color: rgba(240,236,228,.8); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">Hide controls</button>
+      </sc-if>
+
+      <button type="button" onClick="{{ arLensToggle }}" style="display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 12px; border: 1px solid rgba(240,236,228,.14); border-radius: 10px; background: rgba(240,236,228,.045); color: rgba(240,236,228,.82); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; text-align: left; cursor: pointer;">
+        <span>{{ arLensSummary }}</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left: auto; display: block;">
+          <path d="m6 9 6 6 6-6"></path>
+        </svg>
+      </button>
+
+      <sc-if value="{{ arLensOpen }}" hint-placeholder-val="{{ false }}">
 
       <div style="display: grid; gap: 8px; padding: 10px 11px; background: rgba(240,236,228,.045); border: 1px solid rgba(240,236,228,.12); border-radius: 10px;">
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -2873,6 +2890,7 @@ window.noctoTrack = function (name) {
         </div>
         <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: rgba(240,236,228,.45);">{{ arLensLine }} &middot; pinch to zoom</span>
       </div>
+      </sc-if>
 
       <sc-if value="{{ arCal }}" hint-placeholder-val="{{ false }}">
         <div style="display: grid; gap: 9px; padding: 12px; background: rgba(240,236,228,.04); border: 1px solid rgba(var(--accent-rgb),.4); border-radius: 10px;">
@@ -2914,40 +2932,40 @@ window.noctoTrack = function (name) {
         </div>
       </sc-if>
 
-      <div style="display: grid; gap: 7px;">
+      <div style="order: -3; display: grid; gap: 7px;">
         <div style="display: flex; gap: 6px; align-items: center;">
           <button type="button" onClick="{{ arDayBack }}" aria-label="A day earlier" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-size: 18px; line-height: 1; cursor: pointer;">‹</button>
           <input type="date" value="{{ arDateValue }}" onChange="{{ onArDate }}" aria-label="Date to preview" style="flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: rgba(240,236,228,.05); color: #F3F0EA; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px;">
           <button type="button" onClick="{{ arDayFwd }}" aria-label="A day later" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-size: 18px; line-height: 1; cursor: pointer;">›</button>
           <button type="button" onClick="{{ arNow }}" data-nv-active="{{ arLiveOn }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 14px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Now</button>
         </div>
-        <input type="range" min="0" max="100" step="0.05" value="{{ arScrub }}" onInput="{{ onArScrub }}" aria-label="Time of day" style="width: 100%; height: 26px; accent-color: var(--accent);">
+        <input type="range" min="0" max="100" step="0.05" defaultValue="{{ arScrub }}" data-ar-slider="scrub" onInput="{{ onArScrub }}" onPointerUp="{{ onArScrubDone }}" onPointerCancel="{{ onArScrubDone }}" onKeyUp="{{ onArScrubDone }}" aria-label="Time of day" style="width: 100%; height: 30px; accent-color: var(--accent); touch-action: pan-x;">
         <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: rgba(240,236,228,.45);">
           <span>noon</span>
-          <span style="color: var(--accent);">{{ arClock }}</span>
+          <span data-ar-clock="1" style="color: var(--accent);"></span>
           <span>noon next day</span>
         </div>
       </div>
 
-      <div style="display: grid; gap: 7px;">
+      <div style="order: -2; display: grid; gap: 7px;">
         <div style="display: flex; align-items: baseline; gap: 10px;">
           <span style="font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: rgba(240,236,228,.5);">Exposure</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <span aria-hidden="true" style="flex: 0 0 auto; width: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; line-height: 1; color: rgba(240,236,228,.45);">&#8722;</span>
-          <input type="range" min="0" max="100" step="1" value="{{ arExposure }}" onInput="{{ onArExposure }}" aria-label="Exposure" style="flex: 1; min-width: 0; height: 26px; accent-color: var(--accent);">
+          <input type="range" min="0" max="100" step="1" defaultValue="{{ arExposure }}" data-ar-slider="exp" onInput="{{ onArExposure }}" onPointerUp="{{ onArExposureDone }}" onPointerCancel="{{ onArExposureDone }}" onKeyUp="{{ onArExposureDone }}" aria-label="Exposure" style="flex: 1; min-width: 0; height: 30px; accent-color: var(--accent); touch-action: pan-x;">
           <span aria-hidden="true" style="flex: 0 0 auto; width: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; line-height: 1; color: rgba(240,236,228,.45);">+</span>
         </div>
       </div>
 
-      <div style="display: grid; gap: 7px;">
+      <div style="order: -1; display: grid; gap: 7px;">
         <div style="display: flex; align-items: baseline; gap: 10px;">
           <span style="font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: rgba(240,236,228,.5);">Contrast</span>
-          <span style="margin-left: auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: rgba(240,236,228,.45);">{{ arDimRead }}</span>
+          <span data-ar-dim-read="1" style="margin-left: auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: rgba(240,236,228,.45);"></span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <span aria-hidden="true" style="flex: 0 0 auto; width: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; line-height: 1; color: rgba(240,236,228,.45);">&#8722;</span>
-          <input type="range" min="0" max="100" step="1" value="{{ arDim }}" onInput="{{ onArDim }}" aria-label="Contrast against the camera" style="flex: 1; min-width: 0; height: 26px; accent-color: var(--accent);">
+          <input type="range" min="0" max="100" step="1" defaultValue="{{ arDim }}" data-ar-slider="dim" onInput="{{ onArDim }}" onPointerUp="{{ onArDimDone }}" onPointerCancel="{{ onArDimDone }}" onKeyUp="{{ onArDimDone }}" aria-label="Contrast against the camera" style="flex: 1; min-width: 0; height: 30px; accent-color: var(--accent); touch-action: pan-x;">
           <span aria-hidden="true" style="flex: 0 0 auto; width: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; line-height: 1; color: rgba(240,236,228,.45);">+</span>
         </div>
       </div>
@@ -2970,8 +2988,8 @@ window.noctoTrack = function (name) {
           <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 1; min-height: 46px; border: 1px solid {{ c.bd }}; border-radius: 8px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 13px; cursor: pointer;">{{ c.label }}</button>
         </sc-for>
       </div>
-
     </div>
+    </sc-if>
   </div>
 </sc-if>
 
@@ -2996,7 +3014,7 @@ class Component extends DCLogic {
     sightings: [],
     arOpen: false, arScrub: null, arDate: null, arSubject: 'all', arTrails: 0, arCam: true, arDim: 0,
     arMotion: null, arCamOk: null, arAligning: false, arShowTune: false, arCal: false, arNudge: 0, arHfov: 62, arTick: 0,
-    arAnchor: null, arLandscape: false,
+    arAnchor: null, arLandscape: false, arLensOpen: false, arSheet: false,
     /* The photographic sky. 118 catalogue objects of 1 degree or more, everything else keeps the
        ellipse. Exposure defaults to the reference sky, full and unmodulated: the job AR does is
        finding a composition, not grading tonight, so it opens showing what the source photographs
@@ -3059,8 +3077,23 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '1.1.4';
+  VERSION = '1.1.5';
   BUILDS = [
+    {
+      v: '1.1.5', date: '2026-09-02', silent: true,
+      title: 'Sky AR, sideways and smoother',
+      intro: 'All of this is AR, and most of it is about the phone keeping up:',
+      bullets: [
+        'Turn the phone sideways and the camera takes the whole screen. The planned frame turns with it, and the fit is redone so a landscape shot fills the view the way a portrait one did.',
+        'In landscape the time scrub, the clock and the zoom buttons sit over the frame, and everything else waits behind Controls.',
+        'The sliders track your finger now. While one is down the overlay is redrawn straight from it rather than through a full refresh of the app, which is what made them jump.',
+        'The Milky Way overlay reads properly away from the core. The lift is a curve baked into the photograph once rather than a brightness multiply on every frame, so the faint arms come up instead of only the core, and the band has its own response to the exposure slider.',
+        'The overlay only rebuilds the band when the view has actually moved, and drops to a coarser mesh while you are dragging or pinching. Same picture, a fraction of the work.',
+        'The time scrub, exposure and contrast now sit directly under the camera view. Lens, orientation and the way through to Kit collapse to one line you tap when you need them.',
+        'Upright, the camera view is taller: the panel below it no longer claims most of the screen.',
+      ],
+      foot: '',
+    },
     {
       v: '1.1.4', date: '2026-09-01', silent: true,
       title: 'Real skies in AR',
@@ -3982,7 +4015,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=1.1.4';
+    s.src = '../pano-calculator.js?v=1.1.5';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -5302,12 +5335,12 @@ class Component extends DCLogic {
     const lst = E.lstOf(E.jdFrom(when), E.state.lon);
     if (!this._frameBand) this._frameBand = { cv: null, t: 0 };
     const bandGain = Math.max(0, Math.min(1, (st.frameExposure / 100) * 1.5 - 0.06)) * 0.95;
-    const frameBandCv = bandGain > 0.01 ? this.bandLayer(this._frameBand, pr, E.state.lat, lst, W, H, 80, 40, 0) : null;
+    const frameBandCv = bandGain > 0.01 ? this.bandLayer(this._frameBand, pr, E.state.lat, lst, W, H, 80, 40, null) : null;
     if (frameBandCv) {
       ctx.save();
-      // the source photograph is genuinely dark (its own night sky, not a display); boosted here
-      // rather than baked into the mesh, so the exposure slider still reads the same everywhere
-      ctx.filter = (nv ? 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(1.8)' : 'brightness(3.5) contrast(1.1)');
+      // the lift now lives in the texture itself, so all this has left to do is the red mapping
+      // when night vision is on
+      if (nv) ctx.filter = 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(0.9)';
       ctx.globalAlpha = bandGain;
       ctx.globalCompositeOperation = 'lighter';
       ctx.drawImage(frameBandCv, 0, 0, W, H);
@@ -5575,8 +5608,28 @@ class Component extends DCLogic {
 
   setArStage = el => { this._arStage = el; };
   setArVideo = el => { this._arVideo = el; };
-  setArCanvas = el => { this._arCanvas = el; if (el) this.arLoop(); };
+  setArCanvas = el => { this._arCanvas = el; if (el) { this.arLoop(); requestAnimationFrame(() => this.arSyncInputs()); } };
   setArImgCanvas = el => { this._arImgCanvas = el; };
+  /* The three AR ranges and the two clock readouts are found in the DOM rather than held as
+     refs: a ref on an <input type="range"> does not reach this runtime, and the clock is
+     rendered twice (docked panel and landscape strip) so one ref could only ever hold one of
+     them. They are uncontrolled on purpose: React restores a controlled input's DOM value on
+     every input event that does not change state, which is exactly what a drag that skips
+     setState looks like, and the thumb snapped back while the canvas followed the finger. So
+     they are seeded once by defaultValue and resynced by hand whenever something other than a
+     finger moves them: the Now button, the date arrows, and the live clock ticking on. */
+  arRoot() {
+    return (this._arStage && this._arStage.parentNode) || document;
+  }
+  arSyncInputs() {
+    const st = this.state, root = this.arRoot();
+    const scrub = st.arScrub == null ? this.arNowScrub() : st.arScrub;
+    const set = (kind, v) => root.querySelectorAll('[data-ar-slider="' + kind + '"]')
+      .forEach(el => { el.value = String(v); });
+    set('scrub', scrub);
+    set('exp', st.arExposure);
+    set('dim', st.arDim || 0);
+  }
 
   /* The 118-object catalogue, fetched once and kept for the life of the tab. Bundling it rather
      than streaming per-subject is the build note's call: AR is used in fields with no signal, so
@@ -5648,12 +5701,45 @@ class Component extends DCLogic {
     if (this._bandReq) return this._bandOk || null;
     this._bandReq = true;
     const img = new Image();
-    img.onload = () => { this._bandOk = img; this.drawFrame(); this.drawAr(); };
+    img.onload = () => { this._bandOk = this.bakeBand(img) || img; this.drawFrame(); this.drawAr(); };
     /* Leading ./ matters: the deploy copy rewrites ./ to ../ because the app is served from
        /app/ while its assets sit one level up. Without it this resolved to /app/assets/ live,
        which is why the band was missing everywhere except the project preview. */
     img.src = '../assets/8k_stars_milky_way.jpg';
     return null;
+  }
+
+  /* The panorama is a photograph of a genuinely dark sky: the faint arms sit in the bottom
+     twentieth of the range while the core is near the top. A linear multiply, which is what a
+     brightness filter is, lifts the core and leaves the arms roughly where they were, which is
+     why the band read as a bright blob in an empty field. A gamma curve is the right shape for
+     that job, and baking it into the texture once here costs nothing per frame, where the old
+     full-screen ctx.filter cost a CPU pass on every single one. */
+  bakeBand(img) {
+    try {
+      const sw = img.naturalWidth || 0, sh = img.naturalHeight || 0;
+      if (!sw || !sh) return null;
+      const w = Math.min(4096, sw), h = Math.max(1, Math.round(w * (sh / sw)));
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      const cx = cv.getContext('2d', { willReadFrequently: true });
+      if (!cx) return null;
+      cx.drawImage(img, 0, 0, w, h);
+      const lut = new Uint8ClampedArray(256);
+      for (let i = 0; i < 256; i++) {
+        // gamma 0.52 with a small black-point cut: the arms roughly double, the core holds short
+        // of clipping so the Great Rift keeps its edge
+        lut[i] = Math.max(0, Math.min(1, Math.pow(i / 255, 0.52) * 1.06 - 0.012)) * 255;
+      }
+      const strip = Math.max(1, Math.floor(2097152 / w));
+      for (let y = 0; y < h; y += strip) {
+        const d = cx.getImageData(0, y, w, Math.min(strip, h - y));
+        const p = d.data;
+        for (let i = 0; i < p.length; i += 4) { p[i] = lut[p[i]]; p[i + 1] = lut[p[i + 1]]; p[i + 2] = lut[p[i + 2]]; }
+        cx.putImageData(d, 0, y);
+      }
+      return cv;
+    } catch (e) { return null; }
   }
 
   /* The band as a warped mesh: cut into a grid of cells in right ascension and declination, each
@@ -5662,12 +5748,32 @@ class Component extends DCLogic {
      cannot add up into visible seams, then handed back as one flat image. Cached and throttled
      per caller: the band is soft enough that a phone's continuous animation loop can update it a
      few times a second rather than every frame with nothing lost to the eye. */
-  bandLayer(cache, pr, lat, lst, W, H, nx, ny, throttleMs) {
+  bandLayer(cache, pr, lat, lst, W, H, nx, ny, view) {
     const img = this.bandImg();
-    if (!img || !img.naturalWidth) return null;
+    const SW = img ? (img.naturalWidth || img.width || 0) : 0;
+    const SH = img ? (img.naturalHeight || img.height || 0) : 0;
+    if (!SW || !SH) return null;
     const bw = Math.max(1, Math.round(W / 2)), bh = Math.max(1, Math.round(H / 2));
     const now = Date.now();
-    if (cache.cv && cache.cv.width === bw && cache.cv.height === bh && now - cache.t < throttleMs) return cache.cv;
+    const v = view || {};
+    /* Rebuilt when the view has actually moved, not on a timer. A hand-held phone's heading
+       wobbles by a fraction of a degree many times a second, and the band is soft enough that
+       half a degree of lag in it cannot be seen: skipping those rebuilds is most of the
+       difference between a smooth loop and a sticky one. Pass no view and it rebuilds every
+       call, which is what the framing view wants since it only draws on demand. */
+    if (view && cache.cv && cache.cv.width === bw && cache.cv.height === bh
+        && cache.nx === nx && cache.ny === ny && cache.at) {
+      const dAz = Math.abs(((v.az - cache.at.az + 540) % 360) - 180);
+      const still = dAz < 0.5
+        && Math.abs(v.alt - cache.at.alt) < 0.5
+        && Math.abs(v.fov - cache.at.fov) < cache.at.fov * 0.012
+        && Math.abs(lst - cache.at.lst) < 0.12
+        && v.sig === cache.at.sig;
+      if (still) return cache.cv;
+      if (now - cache.t < (v.minMs || 0)) return cache.cv;
+    }
+    cache.at = { az: v.az || 0, alt: v.alt || 0, fov: v.fov || 60, lst: lst, sig: v.sig || '' };
+    cache.nx = nx; cache.ny = ny;
     if (!cache.cv) cache.cv = document.createElement('canvas');
     const cv = cache.cv;
     cv.width = bw; cv.height = bh;
@@ -5675,7 +5781,7 @@ class Component extends DCLogic {
     cx.setTransform(1, 0, 0, 1, 0, 0);
     cx.clearRect(0, 0, bw, bh);
     const eng = this.E(), P = this.P();
-    const SW = img.naturalWidth, SH = img.naturalHeight, cw = SW / nx, ch = SH / ny;
+    const cw = SW / nx, ch = SH / ny;
     const grid = new Array((nx + 1) * (ny + 1));
     /* Measured against the actual pixels, not guessed: this texture is galactic coordinates, not
        equatorial, centred on the galactic core (confirmed by the brightest column landing within
@@ -5740,7 +5846,7 @@ class Component extends DCLogic {
   }
   arCalDown = e => {
     const AR = window.NoctoAR, g = this.arPinchState(e.currentTarget);
-    if (e.isPrimary) { g.ptrs.clear(); g.pinch = null; g.did = false; }
+    if (e.isPrimary) { g.ptrs.clear(); g.pinch = null; g.did = false; this._arDragging = false; }
     g.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
     if (g.ptrs.size >= 2 && AR) {
@@ -5749,6 +5855,7 @@ class Component extends DCLogic {
       g.pinch = { d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y),
         field: this._arTarget || AR.effHfov() };
       g.did = true;
+      this._arDragging = true;              // a pinch is a drag: coarse band, no re-render per move
       return;
     }
     if (!this.state.arCal || this.state.arAligning) return;   // a tap to align is not a drag
@@ -5793,13 +5900,19 @@ class Component extends DCLogic {
       this._calDirty = sector;
     }
     this._calPrev = at;
-    this.setState({ arTick: this.state.arTick + 1 });
+    this.drawAr();
   };
   arCalUp = e => {
     if (e && e.currentTarget && e.currentTarget._nArGest) {
       const g = e.currentTarget._nArGest;
       g.ptrs.delete(e.pointerId);
-      if (g.ptrs.size < 2) g.pinch = null;
+      if (g.ptrs.size < 2) {
+        g.pinch = null;
+        if (this._arDragging) {
+          this._arDragging = false;
+          this.setState({ arTick: this.state.arTick + 1 }, () => this.drawAr());
+        }
+      }
       try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (err) {}
     }
     this._calPrev = null;
@@ -5881,7 +5994,8 @@ class Component extends DCLogic {
       }
     }
     await AR.setZoom(AR.zoomForField(t));
-    this.setState({ arTick: this.state.arTick + 1 });
+    if (this._arDragging) this.drawAr();
+    else this.setState({ arTick: this.state.arTick + 1 });
   }
   /* Fit: the field that puts the planned frame across about 72% of the screen. This is the only
      place the focal length has a say, and it is a starting point, not a limit. */
@@ -5905,17 +6019,24 @@ class Component extends DCLogic {
     if (window.NoctoAR) window.NoctoAR.stop();
     if (this._arRaf) { cancelAnimationFrame(this._arRaf); this._arRaf = null; }
     this._arTrailKey = null;
+    this._arLive = null;
+    this._arDragging = false;
     this.watchArOrientation(false);
     this.setState({ arOpen: false });
   }
-  /* AR is a two-handed, phone-held-up affair, and the whole layout assumes a tall frame. Turned
-     sideways the sky is right but the controls are unusable, so it says so rather than coping. */
+  /* Turned sideways, AR gives the camera the whole screen: a landscape frame is what most
+     nightscapes are, and there is far more room for it across the phone than down it. Turning
+     the phone turns the shot as well, and syncArLens re-fits the optics on the next pass so the
+     new frame lands at the same 72% fill it had upright. */
   watchArOrientation(on) {
     if (on) {
       if (this._arOrient) return;
       this._arOrient = () => {
         const land = window.innerWidth > window.innerHeight;
-        if (land !== this.state.arLandscape) this.setState({ arLandscape: land });
+        if (land === this.state.arLandscape) return;
+        this.setState({ arLandscape: land, arSheet: false });
+        const want = land ? 'land' : 'port';
+        if (this.kit().orient !== want) this.setKit({ orient: want });
       };
       window.addEventListener('resize', this._arOrient);
       window.addEventListener('orientationchange', this._arOrient);
@@ -5926,6 +6047,81 @@ class Component extends DCLogic {
       this._arOrient = null;
     }
   }
+  /* One place that says what a slider is currently worth. While a finger is down the value lives
+     in a plain field and the canvas redraws straight from it: no setState, so React never
+     re-renders the input and the native thumb tracks the finger instead of stepping between
+     whatever frames a full re-render of this component can afford. It commits on release. */
+  arExpVal() {
+    const l = this._arLive;
+    return l && l.exp != null ? l.exp : this.state.arExposure;
+  }
+  arScrubVal() {
+    const l = this._arLive;
+    return l && l.scrub != null ? l.scrub : this.state.arScrub;
+  }
+  arDragSlider(kind, value) {
+    if (!this._arLive) this._arLive = {};
+    this._arLive[kind] = value;
+    this._arDragging = true;
+    if (kind === 'dim') this.arPaintDim(value);
+    if (kind === 'scrub') this.arPaintClock();
+    this.drawAr();
+  }
+  arCommitSlider(kind) {
+    this._arDragging = false;
+    const l = this._arLive;
+    if (!l || l[kind] == null) return;
+    const v = l[kind];
+    l[kind] = null;
+    const patch = kind === 'exp' ? { arExposure: v } : kind === 'dim' ? { arDim: v } : { arScrub: v };
+    this.setState(patch, () => { this.arSyncInputs(); this.drawAr(); });
+  }
+  /* Contrast is a CSS filter on two elements rather than anything the canvas draws, so during a
+     drag it is written straight onto them; React writes the same strings from state on commit. */
+  arDimFilters(d01) {
+    const d = Math.max(0, Math.min(1, d01 || 0));
+    const nvBase = 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) ';
+    const cam = (1 - d * 0.72).toFixed(3);          // 1.00 down to 0.28
+    const over = (1 + d * 0.55).toFixed(3);         // 1.00 up to 1.55
+    return {
+      cam: this.state.nv ? nvBase + 'brightness(' + (0.6 * (1 - d * 0.72)).toFixed(3) + ')'
+        : d ? 'brightness(' + cam + ') saturate(' + (1 - d * 0.4).toFixed(3) + ')' : 'none',
+      over: this.state.nv ? nvBase + 'brightness(' + (0.6 * (1 + d * 0.55)).toFixed(3) + ')'
+        : d ? 'brightness(' + over + ')' : 'none',
+      read: !d ? 'off' : Math.round(d * 100) + '%',
+    };
+  }
+  arDimVal() {
+    const l = this._arLive;
+    return l && l.dim != null ? l.dim : (this.state.arDim || 0);
+  }
+  arPaintDim(v) {
+    const f = this.arDimFilters((Number(v) || 0) / 100);
+    if (this._arVideo) this._arVideo.style.filter = f.cam;
+    if (this._arImgCanvas) this._arImgCanvas.style.filter = f.over;
+    this.arSay('[data-ar-dim-read]', f.read);
+  }
+  arClockText() {
+    const E = this.E(), when = this.arTime();
+    const live = this.arScrubVal() == null && !this.state.arDate;
+    return (live ? 'Now \u00b7 ' : '')
+      + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][when.getDay()] + ' '
+      + when.getDate() + ' ' + (E ? E.MONTHS[when.getMonth()] : '') + ' ' + this.hhmm(when);
+  }
+  /* The two live readouts, the clock and the contrast figure, carry no hole at all: they are
+     owned here and painted from drawAr, which is already running for the canvas. A hole would
+     mean the runtime owns their text node, and every imperative write during a drag would
+     detach it and freeze the readout for good. */
+  arSay(sel, text) {
+    this.arRoot().querySelectorAll(sel).forEach(el => {
+      const n = el.firstChild;
+      if (n && n.nodeType === 3) n.nodeValue = text;
+      else el.textContent = text;
+    });
+  }
+  arPaintClock() {
+    this.arSay('[data-ar-clock]', this.arClockText());
+  }
   arLoop() {
     if (this._arRaf) return;
     const step = () => {
@@ -5935,8 +6131,10 @@ class Component extends DCLogic {
       /* The canvas repaints every frame, but the aim readout and the notices live in the markup,
          so they need a render. Four times a second is enough to read and cheap enough to hold. */
       const now = Date.now();
-      if (!this._arTickAt || now - this._arTickAt > 250) {
+      if (!this._arDragging && (!this._arTickAt || now - this._arTickAt > 250)) {
         this._arTickAt = now;
+        // live now: the scrub thumb has to walk along with the clock, and nothing re-renders it
+        if (this.state.arScrub == null) this.arSyncInputs();
         this.setState({ arTick: (this.state.arTick || 0) + 1 });
       }
       this._arRaf = requestAnimationFrame(step);
@@ -5964,12 +6162,13 @@ class Component extends DCLogic {
   arShiftDay(n) {
     const d = this.arDayBase();
     d.setDate(d.getDate() + n);
-    this.setState({ arDate: this.arDateStr(d), arScrub: this.state.arScrub == null ? 50 : this.state.arScrub });
+    this.setState({ arDate: this.arDateStr(d), arScrub: this.state.arScrub == null ? 50 : this.state.arScrub },
+      () => this.arSyncInputs());
   }
   arTime() {
-    const st = this.state;
-    if (st.arScrub == null && !st.arDate) return new Date();
-    const s = st.arScrub == null ? 50 : st.arScrub;
+    const st = this.state, s0 = this.arScrubVal();
+    if (s0 == null && !st.arDate) return new Date();
+    const s = s0 == null ? 50 : s0;
     return new Date(this.arDayBase().getTime() + (s / 100) * 86400000);
   }
   /* Recomputing every trail every frame would cook the phone, so they are cached against the
@@ -5992,6 +6191,9 @@ class Component extends DCLogic {
   drawAr() {
     const el = this._arCanvas, AR = window.NoctoAR, P = this.P(), E = this.E(), st = this.state;
     if (!el || !AR || !P || !E || !st.arOpen) return;
+    // the readouts this file owns outright, repainted here rather than through a render
+    this.arPaintClock();
+    this.arSay('[data-ar-dim-read]', this.arDimFilters(this.arDimVal() / 100).read);
     const host = this._arStage;
     const cw = host ? host.clientWidth : el.clientWidth, ch = host ? host.clientHeight : el.clientHeight;
     if (!cw || !ch) return;
@@ -6066,14 +6268,19 @@ class Component extends DCLogic {
     // back to the plain stroke while the source image is still loading.
     const lst = E.lstOf(E.jdFrom(when), E.state.lon);
     if (!this._arBand) this._arBand = { cv: null, t: 0 };
-    const bandGain = Math.max(0, Math.min(1, (st.arExposure / 100) * 1.5 - 0.06)) * 0.95;
+    /* The band takes its own curve off the same slider rather than sharing the sprites' linear
+       ramp. It is one wide subject whose faint end is the entire point, so it comes up fast and
+       early and is near full by the middle of the travel. */
+    const bandT = Math.max(0, Math.min(1, this.arExpVal() / 100));
+    const bandGain = bandT < 0.02 ? 0 : Math.min(1, Math.pow(bandT, 0.6) * 1.22);
+    const bview = AR.basis();
+    const coarse = !!this._arDragging;
     const arBandCv = (ictx && bandGain > 0.01)
-      ? this.bandLayer(this._arBand, pr, E.state.lat, lst, W, H, 70, 35, 120) : null;
+      ? this.bandLayer(this._arBand, pr, E.state.lat, lst, W, H, coarse ? 30 : 62, coarse ? 15 : 31,
+          { az: bview.az, alt: bview.alt, fov: pr.hfovDeg, sig: coarse ? 'coarse' : 'fine',
+            minMs: coarse ? 90 : 45 }) : null;
     if (arBandCv) {
       ictx.save();
-      // the source photograph is genuinely dark; boosted here rather than in the mesh, so the
-      // exposure slider still reads the same as it does for the sprites
-      ictx.filter = 'brightness(3.5) contrast(1.1)';
       ictx.globalAlpha = bandGain;
       ictx.globalCompositeOperation = 'lighter';
       ictx.drawImage(arBandCv, 0, 0, W, H);
@@ -6132,13 +6339,13 @@ class Component extends DCLogic {
        the ellipse below: at this field of view a five-pixel photograph and a dot are the same
        picture, so cutting here buys nothing visible. Drawn onto the imagery canvas, in screen mode,
        cropped by the same sky clip as everything else. */
-    if (ictx && st.arObjs && st.arObjs.length && st.arExposure > 1) {
+    if (ictx && st.arObjs && st.arObjs.length && this.arExpVal() > 1) {
       const AD = Math.PI / 180;
       const frames = P.arSpriteFrames(st.arObjs, when, E.state.lat, E.state.lon);
       const b = pr.basis, fwd = b.fwd;
       const halfDiag = Math.hypot(pr.hfovDeg, pr.vfovDeg) / 2;
       const cullCos = Math.cos(Math.min(85, halfDiag + 12) * AD);
-      const expT = st.arExposure / 100;
+      const expT = this.arExpVal() / 100;
       const seenSubjects = new Set();
       ictx.save();
       if (skyClip) ictx.clip(skyClip);
@@ -6414,18 +6621,13 @@ class Component extends DCLogic {
          trade, held down to a gentle range so full right is still a usable camera image rather
          than a black screen. At zero nothing is touched at all, which is the night default. */
       ...(() => {
-        const d = Math.max(0, Math.min(100, Number(st.arDim) || 0)) / 100;
-        const cam = (1 - d * 0.72).toFixed(3);          // 1.00 down to 0.28
-        const over = (1 + d * 0.55).toFixed(3);         // 1.00 up to 1.55
-        const nvBase = 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) ';
+        const f = this.arDimFilters((Number(st.arDim) || 0) / 100);
         return {
-          arCamFilter: st.nv ? nvBase + 'brightness(' + (0.6 * (1 - d * 0.72)).toFixed(3) + ')'
-            : d ? 'brightness(' + cam + ') saturate(' + (1 - d * 0.4).toFixed(3) + ')' : 'none',
-          arVideoFilter: st.nv ? nvBase + 'brightness(' + (0.6 * (1 + d * 0.55)).toFixed(3) + ')'
-            : d ? 'brightness(' + over + ')' : 'none',
+          arCamFilter: f.cam,
+          arVideoFilter: f.over,
           arDim: st.arDim || 0,
-          arDimRead: !d ? 'off' : Math.round(d * 100) + '%',
-          onArDim: e => this.setState({ arDim: Number(e.target.value) }),
+          onArDim: e => this.arDragSlider('dim', Number(e.target.value)),
+          onArDimDone: () => this.arCommitSlider('dim'),
         };
       })(),
       arAim: AR.live()
@@ -6437,6 +6639,24 @@ class Component extends DCLogic {
          the real one was, but it never said so and it was a whole mode to explain. Tune does the
          same correction with one control and no prompt text to misread. */
       arLandscape: !!st.arLandscape,
+      /* Sideways the camera takes the whole screen and the controls become overlay: the scrub
+         strip, the clock and the zoom buttons stay out over the frame, everything else waits in
+         a sheet that pulls up on demand. Upright the panel is docked under the frame as before. */
+      arRows: st.arLandscape ? '1fr' : 'minmax(54vh, 1fr) auto',
+      /* The notice card sits at the bottom of the stage, which sideways is the same band the
+         HUD strip claims. The card moves up over the strip rather than the strip standing down:
+         the strip carries the only way into the controls, and "the compass is a guess" is a
+         notice whose own action lives in those controls. */
+      arHudOn: !!st.arLandscape,
+      arNoticeBottom: st.arLandscape ? '124px' : '14px',
+      arPanelOn: !st.arLandscape || !!st.arSheet,
+      arPanelPos: st.arLandscape ? 'absolute' : 'static',
+      arPanelMax: st.arLandscape ? '86vh' : '44vh',
+      arSheetOn: !!st.arSheet,
+      arSheetLabel: st.arSheet ? 'Hide' : 'Controls',
+      arToggleSheet: () => this.setState({ arSheet: !st.arSheet }),
+      arLensOpen: !!st.arLensOpen,
+      arLensToggle: () => this.setState({ arLensOpen: !st.arLensOpen }),
       /* Daytime scouting needs a daytime calibration, and in daylight there is exactly one thing
          in the sky to line up against. Point at it, tap it, and the whole overlay swings onto the
          real bearing in one gesture: the same trick the moon gives you at night. */
@@ -6471,22 +6691,26 @@ class Component extends DCLogic {
       arAlignSun: () => this.setState({ arAligning: st.arAligning === 'sun' ? false : 'sun' }),
       arAlignMoon: () => this.setState({ arAligning: st.arAligning === 'moon' ? false : 'moon' }),
       arScrub: st.arScrub == null ? this.arNowScrub() : st.arScrub,
-      onArScrub: e => this.setState({ arScrub: Number(e.target.value) }),
+      onArScrub: e => this.arDragSlider('scrub', Number(e.target.value)),
+      onArScrubDone: () => this.arCommitSlider('scrub'),
       arExposure: st.arExposure,
-      onArExposure: e => this.setState({ arExposure: Number(e.target.value) }),
+      onArExposure: e => this.arDragSlider('exp', Number(e.target.value)),
+      onArExposureDone: () => this.arCommitSlider('exp'),
       arLiveNow: st.arScrub == null && !st.arDate,
       arLiveOn: (st.arScrub == null && !st.arDate) ? 'on' : 'off',
-      arClock: (st.arScrub == null && !st.arDate ? 'Now \u00b7 ' : '')
-        + ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][when.getDay()] + ' '
-        + when.getDate() + ' ' + E.MONTHS[when.getMonth()] + ' ' + this.hhmm(when),
+      arClock: this.arClockText(),
       arDateValue: this.arDateStr(this.arDayBase()),
       onArDate: e => {
         const v = e.target.value;
-        this.setState({ arDate: v || null, arScrub: v ? (st.arScrub == null ? 50 : st.arScrub) : null });
+        this.setState({ arDate: v || null, arScrub: v ? (st.arScrub == null ? 50 : st.arScrub) : null },
+          () => this.arSyncInputs());
       },
       arDayBack: () => this.arShiftDay(-1),
       arDayFwd: () => this.arShiftDay(1),
-      arNow: () => this.setState({ arScrub: null, arDate: null }),
+      arNow: () => {
+        if (this._arLive) this._arLive.scrub = null;
+        this.setState({ arScrub: null, arDate: null }, () => this.arSyncInputs());
+      },
       arSubjectChips: [chip('Everything', st.arSubject === 'all', () => this.setState({ arSubject: 'all' }))]
         .concat(picks.map(p => chip(p.el.name, st.arSubject === p.el.id, () => this.setState({ arSubject: p.el.id })))),
       arTrailChips: [
@@ -6548,6 +6772,7 @@ class Component extends DCLogic {
           })),
           arOrientLabel: port ? 'Portrait' : 'Landscape',
           arOrientFlip: () => this.setKit({ orient: port ? 'land' : 'port' }),
+          arLensSummary: 'Lens ' + k.focal + 'mm ' + (port ? 'portrait' : 'landscape'),
           arLensLine: !d ? '' : k.focal + 'mm ' + (port ? 'portrait' : 'landscape')
             + ' \u00b7 ' + Math.round(d.across) + '\u00b0 \u00d7 ' + Math.round(d.down) + '\u00b0',
           /* The factor quoted is against the widest camera on the phone, not against whichever
