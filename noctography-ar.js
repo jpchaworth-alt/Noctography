@@ -20,7 +20,7 @@ const LENS_LABEL = { ultrawide: 'ultra wide', wide: 'wide', tele: 'telephoto' };
 const S = {
   motion: false, camera: false, stream: null, video: null,
   alpha: 0, beta: 70, gamma: 0, absolute: false, compass: null,
-  screenAngle: 0, nudge: 0, haveEvent: false, listening: false,
+  screenAngle: 0, flip: false, nudge: 0, haveEvent: false, listening: false,
   smooth: null,
   /* the fitted lens, the digital zoom on top of it, and how much of that zoom the hardware
      agreed to do for us (the rest is done in CSS, which is all iOS Safari allows) */
@@ -136,15 +136,26 @@ function headingOffset(){
   return norm(S.compass - fromAlpha);
 }
 
+/* How far to rotate the basis back for the screen's own rotation. The platform's reported angle
+   is the starting guess, but its sign convention is not something to bet the overlay on: get it
+   wrong and both landscapes come out 180 degrees round, with the ground wash above the horizon
+   and the compass labels swapped end for end, while portrait looks perfect because 0 and 180
+   negate to themselves. So the guess is checked against gravity, which cannot be misread: the
+   screen's own up direction has to point up in the world, or the user is reading the display
+   upside down. Near flat, screen up and down are the same thing and the test means nothing, so
+   the last good decision is held instead. */
+function screenTurn(){
+  const t = -S.screenAngle * D2R;
+  const b = S.beta * D2R, g = S.gamma * D2R;
+  const cb = Math.cos(b), sb = Math.sin(b), sg = Math.sin(g);
+  const upZ = a => cb * sg * Math.sin(a) + sb * Math.cos(a);
+  if (Math.hypot(cb * sg, sb) > 0.42) S.flip = upZ(t) < 0;   // 0.42 is about 25 degrees off flat
+  return S.flip ? t + Math.PI : t;
+}
+
 function basis(){
   const R = mul(mul(rotZ(S.alpha * D2R), rotX(S.beta * D2R)), rotY(S.gamma * D2R));
-  /* The rendering surface rotates with the screen, the device frame does not, so the basis is
-     rotated back about the screen normal. It has to be MINUS the reported angle: when the OS
-     turns the layout to keep it upright, screen-up has moved the other way in device
-     coordinates. Getting this sign wrong is invisible in either portrait, because 0 and 180
-     negate to themselves, and puts the whole overlay 180 degrees out in both landscapes: the
-     giveaway is the ground wash sitting above the horizon instead of below it. */
-  const t = -S.screenAngle * D2R, ct = Math.cos(t), st = Math.sin(t);
+  const t = screenTurn(), ct = Math.cos(t), st = Math.sin(t);
   const right = apply(R, [ct, st, 0]);
   const up = apply(R, [-st, ct, 0]);
   const fwd = apply(R, [0, 0, -1]);
