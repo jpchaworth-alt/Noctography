@@ -150,12 +150,12 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=1.1.6"></script>
-<script src="../noctography-sat.js?v=1.1.6"></script>
-<script src="../noctography-plan.js?v=1.1.6"></script>
-<script src="../noctography-ar.js?v=1.1.6"></script>
-<script src="../noctography-log.js?v=1.1.6"></script>
-<script src="../noctography-terrain.js?v=1.1.6"></script>
+<script src="../noctography-engine.js?v=1.1.7"></script>
+<script src="../noctography-sat.js?v=1.1.7"></script>
+<script src="../noctography-plan.js?v=1.1.7"></script>
+<script src="../noctography-ar.js?v=1.1.7"></script>
+<script src="../noctography-log.js?v=1.1.7"></script>
+<script src="../noctography-terrain.js?v=1.1.7"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -3077,8 +3077,18 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '1.1.6';
+  VERSION = '1.1.7';
   BUILDS = [
+    {
+      v: '1.1.7', date: '2026-09-02', silent: true,
+      title: 'Sky AR: the scrub, and landscape for real',
+      intro: 'Two more AR fixes:',
+      bullets: [
+        'The time scrub moves with your finger. It was redrawing the whole sky for every pixel the finger moved, rebuilding forty star trails each time; now the drag just sets the time and the next frame picks it up, and the trails are held until you let go.',
+        'Landscape no longer comes out 180 degrees round. Rather than trusting the phone to report its screen rotation in the sign I expect, the overlay now checks the guess against gravity: the screen\u2019s own up direction has to point up in the world, and when it does not the basis is turned round. Both ways up in landscape are covered, whatever the phone reports.',
+      ],
+      foot: '',
+    },
     {
       v: '1.1.6', date: '2026-09-02', silent: true,
       title: 'Sky AR: smoother, and level sideways',
@@ -4026,7 +4036,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=1.1.6';
+    s.src = '../pano-calculator.js?v=1.1.7';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -6074,9 +6084,13 @@ class Component extends DCLogic {
     if (!this._arLive) this._arLive = {};
     this._arLive[kind] = value;
     this._arDragging = true;
+    /* Deliberately no draw from here. The overlay loop is already running a frame at a time and
+       will pick this value up on the next one, so many input events coalesce into one redraw.
+       Drawing per event meant a full sky pass, band warp and trail rebuild for every pixel the
+       finger moved, which is what made the scrub stick and then jump. Contrast is the exception:
+       it is two CSS filters rather than anything drawn, so it is written straight on. */
     if (kind === 'dim') this.arPaintDim(value);
     if (kind === 'scrub') this.arPaintClock();
-    this.drawAr();
   }
   arCommitSlider(kind) {
     this._arDragging = false;
@@ -6219,6 +6233,10 @@ class Component extends DCLogic {
     const P = this.P(), E = this.E(), h = this.state.arTrails;
     if (!P || !E || !h) return null;
     const key = [Math.round(when.getTime() / 60000), h, E.state.lat, E.state.lon].join('|');
+    /* Scrubbing sweeps a whole day across a few hundred pixels, so the key changes on nearly
+       every frame of a drag: forty star paths rebuilt per frame is more than the phone will do.
+       While a slider is down the last set stands, and the real one is computed on release. */
+    if (this._arDragging && this._arTrails) return this._arTrails;
     if (this._arTrailKey !== key) {
       /* With trails on the point is to show what a stack looks like, so the limit drops to catch
          the fainter stars as well: a dozen bright arcs read as stray lines, forty read as a stack.
