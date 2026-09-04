@@ -90,8 +90,8 @@ function trailRecipes(lat){
       aim: { az: poleAz, alt: a, label: 'Due ' + poleWord },
       hook: 'Concentric rings around the pole. The one everybody recognises.',
       detail: north
-        ? 'Point due north and the rings close on the pole. Polaris sits within a degree of it, so if you can see the star you have found the centre. How high you put it in the frame is a foreground decision, not a rule.'
-        : 'Point due south and the rings close on the pole. There is no bright south pole star, so the overlay marks the spot for you: that is the whole reason this screen exists down here. How high you put it in the frame is a foreground decision, not a rule.',
+        ? 'Point due north and the rings close on the pole. Polaris sits within a degree of it, so if you can see the star you have found the centre.'
+        : 'Point due south and the rings close on the pole. There is no bright south pole star, so the overlay marks the spot for you.',
       looks: [ { h: 1, word: 'subtle' }, { h: 2.5, word: 'the classic' }, { h: 4, word: 'bold' } ],
       span: 'How long, and how much circle',
       icon: [['M29.2 21 A6 6 0 1 1 24 18', 1], ['M33.5 18.5 A11 11 0 1 1 24 13', 0.6],
@@ -99,7 +99,7 @@ function trailRecipes(lat){
     { id: 'fan', name: 'The fan', kind: 'due east or due west',
       aim: { az: 90, alt: 30, label: 'Due east or due west' },
       hook: 'One dead-straight trail with the rest flaring away from it, opposite ways above and below.',
-      detail: 'Face the point where stars rise or set and the celestial equator draws a dead-straight line, leaning at ' + Math.round(90 - a) + '\u00b0 from here, which is 90\u00b0 minus your latitude. Everything north of it bows one way and everything south of it bows the other: each trail runs closest to that line in the middle of the frame and flares away from it towards the corners, which is what makes the fan. East lifts them out of the foreground, west drops them into it.',
+      detail: 'Face the point where stars rise or set and the celestial equator draws a dead-straight line, leaning at ' + Math.round(90 - a) + '\u00b0 from here, which is 90\u00b0 minus your latitude. Everything north of it bows one way and everything south of it bows the other: each trail runs closest to that line in the middle of the frame and flares away from it towards the corners, which is what makes the fan.',
       looks: [ { h: 1, word: 'short strokes' }, { h: 2, word: 'the usual' }, { h: 3, word: 'long' } ],
       span: 'How long, and how far they flare',
       icon: [['M12 38 L38 15', 1],
@@ -109,7 +109,7 @@ function trailRecipes(lat){
       aim: { az: north ? 180 : 0, alt: Math.max(18, Math.round((90 - a) * 0.7)),
              label: 'Due ' + (north ? 'south' : 'north') },
       hook: 'Nested arches over the landscape, every one peaking due ' + (north ? 'south' : 'north') + '.',
-      detail: 'Turn your back on the pole and every trail arches, rising in the east of the frame and falling in the west, each peaking as it crosses due ' + (north ? 'south' : 'north') + '. The higher the star, the higher its arch, so they nest inside one another and the whole sky reads as a set of curves over your foreground. This is the one to shoot under a moon, because the light on the ground is doing half the work.',
+      detail: 'Turn your back on the pole and every trail arches, rising in the east of the frame and falling in the west, each peaking as it crosses due ' + (north ? 'south' : 'north') + '. The higher the star, the higher its arch, so they nest inside one another and the whole sky reads as a set of curves over your foreground.',
       looks: [ { h: 1, word: 'gentle' }, { h: 2, word: 'the usual' }, { h: 3, word: 'strong' } ],
       span: 'How long, and how much arch',
       icon: [['M4 38 H44', 0.4], ['M7 34 Q24 11 41 34', 1], ['M12 34 Q24 20 36 34', 0.45]] },
@@ -154,7 +154,7 @@ function session(t, kit, opts){
     const worst = Math.round((1 - cf[worstIdx]) * 100);
     if (mean > 0.8) flags.push({ tone: 'good', text: 'Cloud stays under ' + Math.max(10, Math.round((1 - Math.min.apply(null, cf)) * 100)) + '% for the whole session.' });
     else if (mean > 0.5) flags.push({ tone: 'note', text: 'Cloud thickens to ' + worst + '% around ' + hhmm(inWin[worstIdx].t) + '. Some frames will thin out: keep shooting and drop them later.' });
-    else flags.push({ tone: 'warn', text: 'Cloud averages ' + Math.round((1 - mean) * 100) + '% across the session. A stack full of holes is a hard rescue.' });
+    else flags.push({ tone: 'warn', text: 'Cloud averages ' + Math.round((1 - mean) * 100) + '% across the session. A stack full of holes isn\u0027t especially pleasing to the eye.' });
   }
 
   const nt = t.night || {};
@@ -171,8 +171,8 @@ function session(t, kit, opts){
   if (moon && moon.inside){
     const setsAfter = ms && ms > moon.inside.t.getTime() ? ms : null;
     flags.push({ tone: 'warn', text: 'The moon is inside the frame from ' + hhmm(moon.inside.t)
-      + ' at ' + Math.round(moon.inside.illum * 100) + '%. A moon trail across a star trail cannot be fixed afterwards: reframe'
-      + (setsAfter ? ', or start after it sets at ' + hhmm(setsAfter) + '.' : ' or shorten the session.') });
+      + ' at ' + Math.round(moon.inside.illum * 100) + '%. A moon trail across a star trail cannot be fixed afterwards: if you don\u0027t want it, reframe'
+      + (setsAfter ? ', or start after it sets at ' + hhmm(setsAfter) + '.' : '.') });
   } else if (moon && moon.closest && moon.closest.units < 1.7 && moon.closest.illum > 0.2){
     flags.push({ tone: 'note', text: 'The moon passes about ' + Math.round(moon.closest.edgeDeg)
       + '\u00b0 outside the frame edge at ' + hhmm(moon.closest.t) + '. Nothing in shot, but flare is likely: hood on, and check the corners of the first frame.' });
@@ -462,7 +462,7 @@ function reasonFor(item, t, kit){
   if (item.band && item.peakEdge != null && item.peakEdge < item.band.low)
     return 'Never really gets high enough for typical conditions in the ' + dir + '.';
   if (item.skyOk < 0.6)
-    return 'Brighter here than this one really wants, so keep expectations modest: the bright parts will still come through.';
+    return 'Sky conditions from here aren\u0027t ideal for this, so keep expectations modest: the bright parts will still come through.';
   if (b.moonPen < 0.55)
     return 'The moon is ' + Math.round(b.sep) + '\u00b0 away and washing it out. Worth a look after moonset.';
   if (b.clear < 0.4)
@@ -480,8 +480,8 @@ function reasonFor(item, t, kit){
   const skyBit = item.skyGap == null || item.skyGap <= 0 ? ''
     : item.skyGap <= 1 ? ' A Bortle ' + item.bortle + ' sky will cost you a little of the faint stuff.'
     : ' A Bortle ' + item.bortle + ' sky is brighter than it wants, so expect the bright parts rather than the subtle ones.';
-  const moonBit = b.moonPen > 0.85 ? 'tonight\u2019s moon barely touches it'
-    : b.moonPen > 0.7 ? 'the moon costs it a little contrast' : 'it holds up under tonight\u2019s moon';
+  const moonBit = b.moonPen > 0.85 ? 'tonight\u0027s moon barely touches it'
+    : b.moonPen > 0.7 ? 'the moon costs it a little contrast' : 'it holds up under tonight\u0027s moon';
   return Math.round(b.alt) + '\u00b0 up in the ' + dir + ' at ' + when
     + ', framing well with a foreground at ' + k.focal + 'mm '
     + (k.orient === 'port' ? 'portrait' : 'landscape') + ', and ' + moonBit + '.' + skyBit;
