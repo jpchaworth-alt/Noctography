@@ -168,16 +168,16 @@ const SHOWERS=[
   facts:'Usually a footnote, but it has produced brief outbursts of 30 to 50 an hour in 1935, 1986, 1994 and 2019, each lasting under two hours. Fast meteors from a radiant that only gets useful after midnight.'},
  {code:'SPE',name:'September Epsilon Perseids',lam:166.7,zhr:5,r:2.9,ra:48,dec:40,dRa:1.0,dDec:0.1,v:64,bB:0.4,bA:0.4,span:8,
   active:'5 – 21 September',parent:'Unknown long-period comet',
-  facts:'Only properly characterised once video meteor networks came along. Fast and mostly faint, with unexpected outbursts in 2008 and 2013 that suggest an old dust trail crossing Earth\u2019s path.'},
+  facts:'Only properly characterised once video meteor networks came along. Fast and mostly faint, with unexpected outbursts in 2008 and 2013 that suggest an old dust trail crossing Earth\u0027s path.'},
  {code:'DRA',name:'October Draconids',lam:195.4,zhr:5,r:2.6,ra:262,dec:54,dRa:0.0,dDec:0.0,v:20,bB:2.5,bA:2.5,span:3,
   active:'6 – 10 October',parent:'Comet 21P/Giacobini-Zinner',
-  facts:'The odd one out in two ways. The meteors are exceptionally slow at 20 km/s, and the radiant is highest in the evening rather than before dawn, so this is a shower you watch straight after dusk. Rates are usually near zero, but it produced true storms in 1933 and 1946 and strong showings in 2011 and 2018, always tied to the comet\u2019s return.'},
+  facts:'The odd one out in two ways. The meteors are exceptionally slow at 20 km/s, and the radiant is highest in the evening rather than before dawn, so this is a shower you watch straight after dusk. Rates are usually near zero, but it produced true storms in 1933 and 1946 and strong showings in 2011 and 2018, always tied to the comet\u0027s return.'},
  {code:'STA',name:'Southern Taurids',lam:197.0,zhr:5,r:2.3,ra:32,dec:9,dRa:0.8,dDec:0.2,v:27,bB:0.026,bA:0.026,span:35,
   active:'10 September – 20 November',parent:'Comet 2P/Encke',
-  facts:'Part of Encke\u2019s enormous, ancient dust complex. Rates are low for weeks on end, but the meteors are slow, often orange, and include an unusually high share of fireballs. In certain years the Earth meets a swarm of larger fragments, as in 2005, 2015 and 2022, and the fireball count jumps.'},
+  facts:'Part of Encke\u0027s enormous, ancient dust complex. Rates are low for weeks on end, but the meteors are slow, often orange, and include an unusually high share of fireballs. In certain years the Earth meets a swarm of larger fragments, as in 2005, 2015 and 2022, and the fireball count jumps.'},
  {code:'ORI',name:'Orionids',lam:208.0,zhr:20,r:2.5,ra:95,dec:16,dRa:1.2,dDec:0.1,v:66,bB:0.12,bA:0.12,span:18,
   active:'2 October – 7 November',parent:'Comet 1P/Halley',
-  facts:'Halley\u2019s other shower, this time from the outbound leg. Very fast, with frequent persistent trains, and a broad flat maximum spread over several nights instead of one sharp peak, which is forgiving for anyone chasing a gap in the cloud. The radiant lies near Betelgeuse and is well placed from midnight onwards.'},
+  facts:'Halley\u0027s other shower, this time from the outbound leg. Very fast, with frequent persistent trains, and a broad flat maximum spread over several nights instead of one sharp peak, which is forgiving for anyone chasing a gap in the cloud. The radiant lies near Betelgeuse and is well placed from midnight onwards.'},
  {code:'NTA',name:'Northern Taurids',lam:230.0,zhr:5,r:2.3,ra:58,dec:22,dRa:0.8,dDec:0.2,v:29,bB:0.026,bA:0.026,span:35,
   active:'20 October – 10 December',parent:'Comet 2P/Encke',
   facts:'The northern branch of the same complex, peaking a month after its southern twin and with the radiant higher from northern latitudes. Same character: low counts, slow meteors, an outsized proportion of fireballs.'},
@@ -192,7 +192,7 @@ const SHOWERS=[
   facts:'A weak stream that shares the sky with the Geminids and is frequently confused with them. Medium speed, low rates, but the radiant is well placed and the meteors are distinctly slower than Geminids.'},
  {code:'GEM',name:'Geminids',lam:262.2,zhr:135,r:2.6,ra:112,dec:33,dRa:1.02,dDec:-0.15,v:35,bB:0.59,bA:0.81,span:9,wide:{zhr:18,b:0.14},
   active:'4 – 20 December',parent:'Asteroid 3200 Phaethon, a rock comet',
-  facts:'The strongest and most dependable annual shower, and unusual in coming from an asteroid rather than a comet. Only recognised in the 1860s and it has strengthened ever since as the stream drifts into Earth\u2019s path. Meteors are medium speed, plentiful, often bright with a yellow cast, and leave few trains. The radiant is up from early evening and near the zenith by 02:00 from northern latitudes, so you can shoot a full night. The counterweight is December weather and cold.'},
+  facts:'The strongest and most dependable annual shower, and unusual in coming from an asteroid rather than a comet. Only recognised in the 1860s and it has strengthened ever since as the stream drifts into Earth\u0027s path. Meteors are medium speed, plentiful, often bright with a yellow cast, and leave few trains. The radiant is up from early evening and near the zenith by 02:00 from northern latitudes, so you can shoot a full night. The counterweight is December weather and cold.'},
  {code:'URS',name:'Ursids',lam:270.7,zhr:10,r:3.0,ra:217,dec:76,dRa:0.0,dDec:-0.2,v:33,bB:1.0,bA:1.0,span:5,
   active:'17 – 26 December',parent:'Comet 8P/Tuttle',
   facts:'Overlooked because it falls in the week before Christmas, immediately after the Geminids. The radiant near Kochab is circumpolar from northern latitudes, so it is available all night, and short bursts have been recorded in 1945, 1986 and 2000.'},
@@ -1033,7 +1033,7 @@ function sentence(sw,n){
   const at=sw.atClear||sw.at;
   const parts=[];
   if(sw.code==='SPO'){
-    parts.push('Background meteors with no parent stream, running at about '+peak.toFixed(1)+' an hour at best and rising towards dawn.');
+    parts.push('Background meteors with no parent stream, running at about '+peak.toFixed(1)+' an hour.');
   }else{
     const when=at?fmtTime(at):'–';
     parts.push('Peaks for you around '+when+' at roughly '+peak.toFixed(1)+' an hour, with the radiant '+Math.round(d.radAlt)+'° above the horizon in the '+compass(d.radAz)+'.');
@@ -2625,7 +2625,7 @@ async function tideHarmonics(ref){
    the tile ended up saying "unavailable" so often. Readings are 15 minutes apart, newest first. */
 const TIDE_TIMEOUT_MS = 8000;
 const TIDE_STALE_MS = 2 * 3600000;   // a tide cycle is 12.4 hours: past two, "now" is a fiction
-const TIDE_CREDIT = 'Environment Agency tide gauge data, Open Government Licence. Predicted times worked out on this device from that gauge\u2019s own record';
+const TIDE_CREDIT = 'Environment Agency tide gauge data, Open Government Licence. Predicted times worked out on this device from that gauge\u0027s own record';
 function tideCacheKey(ref){ return 'nocto.tide.' + ref; }
 function readTideCache(ref){
   try {
@@ -2989,7 +2989,7 @@ function couplingState(){
     key: 'easing', label: 'Easing', urgent: false,
     line: 'The wind has turned back north. What has built up already may still show, but nothing more is being added.',
   };
-  if(driving === 'north') return { key: 'closed', label: 'Quiet', urgent: false, line: 'The wind is pointing the wrong way, which is the usual state of things.' };
+  if(driving === 'north') return { key: 'closed', label: 'Quiet', urgent: false, line: 'The wind is pointing the wrong way, which is typical but not helpful for mid-level aurora.' };
   return { key: 'unsettled', label: 'Unsettled', urgent: false, line: 'Nothing much in the wind, and nothing much measured here.' };
 }
 
