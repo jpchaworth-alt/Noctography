@@ -137,15 +137,41 @@ window.noctoTrack = function (name) {
      app/desktop.html ships it true and is wide whatever the window. One authored file, two
      outputs, so a fix cannot land in one and miss the other.
 
-     Set before the first paint and read only by CSS, so the whole layout switch costs no
-     JavaScript at run time and nothing reflows after the page has drawn. Someone who prefers the
-     phone layout on a big screen can say so, and that choice sticks. */
+     Set before the first paint, so the layout is right in the first frame rather than reflowing
+     once the app boots. Someone who prefers the phone layout on a big screen can say so in More,
+     and that choice sticks.
+
+     The automatic case reads the window: at 1000px or wider there is room for the tab bar across
+     the top and two columns under it, which is the whole point of the wide layout. The comment here
+     used to claim exactly that while the code only ever read DESK_BUILD, so app/index.html stayed
+     narrow on a 27 inch monitor and the wide layout was reachable only by knowing the desktop URL
+     or finding the override. */
   var DESK_BUILD = false;
-  try {
-    var pref = localStorage.getItem('noctography.layout');
-    var desk = pref === 'wide' ? true : pref === 'narrow' ? false : DESK_BUILD;
+  function noctoAutoWide() {
+    try { return Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0) >= 1000; }
+    catch (e) { return false; }
+  }
+  function noctoApplyLayout() {
+    var desk = DESK_BUILD;
+    try {
+      var pref = localStorage.getItem('noctography.layout');
+      desk = pref === 'wide' ? true : pref === 'narrow' ? false : (DESK_BUILD || noctoAutoWide());
+    } catch (e) { desk = DESK_BUILD || noctoAutoWide(); }
     document.documentElement.setAttribute('data-desk', desk ? 'on' : 'off');
-  } catch (e) { document.documentElement.setAttribute('data-desk', DESK_BUILD ? 'on' : 'off'); }
+  }
+  noctoApplyLayout();
+  /* Dragging a browser window across the threshold, or rotating a tablet, should land in the layout
+     that fits what is now on screen. Only while the choice is automatic: an explicit preference is
+     never second-guessed. */
+  try {
+    window.addEventListener('resize', function () {
+      var pref = null;
+      try { pref = localStorage.getItem('noctography.layout'); } catch (e) {}
+      if (pref === 'wide' || pref === 'narrow') return;
+      clearTimeout(window.__noctoLayoutT);
+      window.__noctoLayoutT = setTimeout(noctoApplyLayout, 150);
+    });
+  } catch (e) {}
   try {
     var p = localStorage.getItem('noctography.palette') || 'obsidian';
     if (/^(obsidian|ember|aurora|plum|bluehour|violet)$/.test(p)) {
@@ -165,15 +191,15 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=1.3.5"></script>
-<script src="../noctography-sat.js?v=1.3.5"></script>
-<script src="../noctography-plan.js?v=1.3.5"></script>
-<script src="../noctography-ar.js?v=1.3.5"></script>
-<script src="../noctography-log.js?v=1.3.5"></script>
-<script src="../noctography-terrain.js?v=1.3.5"></script>
-<script src="../noctography-comp.js?v=1.3.5"></script>
-<script src="../noctography-sightings.js?v=1.3.5"></script>
-<script src="../noctography-backup.js?v=1.3.5"></script>
+<script src="../noctography-engine.js?v=1.3.6"></script>
+<script src="../noctography-sat.js?v=1.3.6"></script>
+<script src="../noctography-plan.js?v=1.3.6"></script>
+<script src="../noctography-ar.js?v=1.3.6"></script>
+<script src="../noctography-log.js?v=1.3.6"></script>
+<script src="../noctography-terrain.js?v=1.3.6"></script>
+<script src="../noctography-comp.js?v=1.3.6"></script>
+<script src="../noctography-sightings.js?v=1.3.6"></script>
+<script src="../noctography-backup.js?v=1.3.6"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -3713,8 +3739,18 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '1.3.5';
+  VERSION = '1.3.6';
   BUILDS = [
+    {
+      v: '1.3.6', date: '2026-09-12', silent: true,
+      title: 'The map works on a phone, and a big screen gets the big layout',
+      intro: 'Two fixes, both of them things that were meant to work already:',
+      bullets: [
+        'The sightings map moved on a desktop and not on an iPhone. Safari watches the first moments of a touch, decides the gesture belongs to the page and cancels it, so the map received the first touch and nothing after it. It now holds the gesture itself: one finger pans, two pinch, and a touch that barely moves opens the pin under it.',
+        'Opening the app in a desktop browser now gives you the wide layout once the window is 1000px or more across. It was supposed to do that all along and never did, so the wide version was reachable only by knowing the desktop address.',
+      ],
+      foot: 'Everything is still worked out on your own device. A report leaves it only when you make one.',
+    },
     {
       v: '1.3.5', date: '2026-09-12', silent: true,
       title: 'The sightings map responds properly',
@@ -4826,7 +4862,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=1.3.5';
+    s.src = '../pano-calculator.js?v=1.3.6';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -7400,7 +7436,7 @@ class Component extends DCLogic {
     return {
       layoutChips: [chip('auto', 'Automatic'), chip('narrow', 'One column'), chip('wide', 'Wide')],
       layoutNote: cur === 'auto'
-        ? 'One column on a phone, wide on a big screen. The desktop link is always wide.'
+        ? 'One column on a phone, and the wide layout once the window is 1000px or more across. The desktop link is always wide.'
         : cur === 'wide' ? 'Always the wide layout, whatever the screen.' : 'Always one column, whatever the screen.',
     };
   }
@@ -11723,6 +11759,92 @@ class Component extends DCLogic {
     });
     ctx.restore();
   }
+  /* Touch on iOS, handled natively rather than through pointer events.
+
+     The pointer handlers work everywhere except the one place this app is actually used. Safari
+     watches the first moments of a touch, decides the gesture belongs to the page, and fires
+     pointercancel: the map receives a pointerdown, nothing else, and reads as frozen. React cannot
+     prevent that, because it registers touch listeners passively at the document root, so
+     preventDefault inside them is ignored. The only thing that holds a gesture on iOS is a
+     non-passive listener on the element itself, which has to be attached by hand.
+
+     So: one finger pans, two pinch about their midpoint, and a touch that moves less than ten
+     pixels is a tap. Same maths as the pointer path, same view object, deliberately no reliance on
+     pointer capture. */
+  attachTouchMap(el, getView, set, onTap, onEnd) {
+    if (!el || el._touchMap) return;
+    el._touchMap = true;
+    const SRC = () => this.TILE_SOURCES[getView().style] || this.TILE_SOURCES.dark;
+    const clampZ = z => {
+      const s = SRC();
+      return Math.max(s.minZ || 3, Math.min(s.maxZ, z));
+    };
+    const mid = ts => {
+      const r = el.getBoundingClientRect();
+      return { x: (ts[0].clientX + ts[1].clientX) / 2 - (r.left + r.width / 2),
+               y: (ts[0].clientY + ts[1].clientY) / 2 - (r.top + r.height / 2),
+               d: Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY) };
+    };
+    let pan = null, pinch = null, start = null, moved = 0;
+
+    el.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const ts = e.touches, v = getView();
+      moved = 0;
+      if (ts.length >= 2) {
+        pan = null;
+        const m = mid(ts);
+        const [wx, wy] = this.project(v.lat, v.lon, v.z);
+        pinch = { d: m.d, z: v.z, anchor: this.unproject(wx + m.x, wy + m.y, v.z) };
+        return;
+      }
+      pinch = null;
+      const t = ts[0];
+      const [wx, wy] = this.project(v.lat, v.lon, v.z);
+      pan = { x: t.clientX, y: t.clientY, wx, wy, z: v.z };
+      const r = el.getBoundingClientRect();
+      start = { x: t.clientX - r.left, y: t.clientY - r.top };
+    }, { passive: false });
+
+    el.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const ts = e.touches, v = getView();
+      if (ts.length >= 2 && pinch) {
+        const m = mid(ts);
+        if (!m.d || !pinch.d) return;
+        moved = 99;
+        const z = clampZ(pinch.z + Math.log2(m.d / pinch.d));
+        const [ax, ay] = this.project(pinch.anchor[0], pinch.anchor[1], z);
+        const ll = this.unproject(ax - m.x, ay - m.y, z);
+        set({ ...v, z, lat: ll[0], lon: ll[1] });
+        return;
+      }
+      if (!pan) return;
+      const t = ts[0];
+      moved = Math.max(moved, Math.hypot(t.clientX - pan.x, t.clientY - pan.y));
+      const ll = this.unproject(pan.wx - (t.clientX - pan.x), pan.wy - (t.clientY - pan.y), pan.z);
+      set({ ...v, lat: ll[0], lon: ll[1] });
+    }, { passive: false });
+
+    const end = e => {
+      if (e.cancelable) e.preventDefault();
+      if (e.touches && e.touches.length) {
+        /* A finger lifted out of a pinch carries on as a pan from wherever the other one now is,
+           rather than the gesture dying until both are off the glass. */
+        const v = getView(), t = e.touches[0];
+        const [wx, wy] = this.project(v.lat, v.lon, v.z);
+        pan = { x: t.clientX, y: t.clientY, wx, wy, z: v.z };
+        pinch = null;
+        return;
+      }
+      if (onTap && start && moved < 10) onTap(start.x, start.y);
+      pan = null; pinch = null; start = null;
+      if (onEnd) onEnd();
+    };
+    el.addEventListener('touchend', end, { passive: false });
+    el.addEventListener('touchcancel', () => { pan = null; pinch = null; start = null; }, { passive: false });
+  }
+
   sgtTap(x, y) {
     const hits = this._sgtHits || [];
     let best = null, bestD = Infinity;
@@ -11843,9 +11965,15 @@ class Component extends DCLogic {
         const h = this.slippyHandlers(v, nv => this.sgtSetView(nv), false, (x, y) => this.sgtTap(x, y));
         /* Committed when the gesture ends, so the rest of the app re-renders once rather than sixty
            times. The wheel has no end event, so it settles on a short timer. */
+        /* Safari fires both families for a finger. The native touch listeners own touch here, so
+           the pointer handlers decline it rather than applying every pan twice. */
+        const touchy = e => e && e.pointerType === 'touch';
+        const wrap = fn => e => { if (!touchy(e)) fn(e); };
         const upFn = h.onPointerUp, cancelFn = h.onPointerCancel;
-        h.onPointerUp = e => { upFn(e); this.sgtCommitView(); };
-        h.onPointerCancel = e => { cancelFn(e); this.sgtCommitView(); };
+        h.onPointerDown = wrap(h.onPointerDown);
+        h.onPointerMove = wrap(h.onPointerMove);
+        h.onPointerUp = e => { if (touchy(e)) return; upFn(e); this.sgtCommitView(); };
+        h.onPointerCancel = e => { if (touchy(e)) return; cancelFn(e); this.sgtCommitView(); };
         const wheelFn = h.onWheel;
         h.onWheel = e => {
           wheelFn(e);
@@ -11867,7 +11995,11 @@ class Component extends DCLogic {
               el._wheelBound = true;
               el.addEventListener('wheel', e => { if (this._sgtWheel) this._sgtWheel(e); }, { passive: false });
             }
-            if (el) requestAnimationFrame(() => this.drawSightMap());
+            if (el) {
+              this.attachTouchMap(el, () => this.sgtView(), nv => this.sgtSetView(nv),
+                (x, y) => this.sgtTap(x, y), () => this.sgtCommitView());
+              requestAnimationFrame(() => this.drawSightMap());
+            }
           },
           style: { display: 'block', width: '100%', height: 'auto', aspectRatio: '4 / 3', touchAction: 'none' },
         };

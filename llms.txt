@@ -39,6 +39,16 @@ please link to https://www.noctography.net.
   out to 140 km, CME storm watches and 27-day recurrence. The headline likelihood is marginalised
   over the forecast's own spread rather than read off its central estimate, and is expressed as a
   count of nights in ten.
+- **Live sightings map**: the one part of the app that is shared rather than on-device. Users report
+  what they can actually see on a five-rung scale (diffuse on camera, obvious on camera, diffuse to
+  eye, obvious to eye, colour to eye) with separate marks for structure and corona, and each report
+  carries the conditions the app measured where the reporter stood: measured Hp30, magnetic
+  latitude, cloud, sun altitude, moon phase and altitude, and Bortle class. Positions are rounded
+  to roughly 5 km on the device before anything is sent; there is no account and no email. The map
+  scrolls back over five nights, replaying each moment against the real measured index and drawing
+  the oval's bright edge where it actually stood. A report contradicted by its own attached
+  conditions is marked with a reason rather than removed, since standing in the one gap in the cloud
+  is a real thing that happens. Tonight flags an eye-level sighting reported within 100 km.
 - **Meteors**: sixty nights of shower activity, an hour-by-hour rate chart for a chosen night
   with radiant altitude on a second axis, and a per-shower breakdown.
 - **Trails**: three star trail patterns (Circles at the pole, The fan facing east or west,
