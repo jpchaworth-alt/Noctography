@@ -280,7 +280,7 @@ const ELEMENTS = [
             'Low over a northern foreground on autumn evenings, high overhead by spring. High cloud, starglow or fog filters make it pop.'] },
   { id: 'zodiacal', name: 'Zodiacal light', ra: null, dec: null, ext: 30, need: 3, minAlt: 5, fl: '14–24mm', elong: 2.2, hemi: 0,
     hook: 'Sunlight off dust in the plane of the solar system.',
-    lines: ['A tall, faint cone leaning off the horizon after evening twilight in spring, or before dawn twilight in autumn.',
+    lines: ['A tall, faint cone leaning off the horizon in the first hour after darkness falls, or the last hour before it lifts. By the middle of the night it has gone.',
             'It needs a very dark sky, no moon at all, and the right season. Most people have never knowingly seen it.'] },
   { id: 'carina', name: 'The Carina Nebula', ra: 161.3, dec: -59.7, ext: 12, need: 2, minAlt: 10, fl: '35–85mm', elong: 1.4, hemi: -1,
     hook: 'Brighter and bigger than Orion, and the north never sees it.',
@@ -356,6 +356,19 @@ function moonPenalty(need, sepDeg, illum, moonAlt){
 function rankTonight(t, lat, lon, sky, kit){
   const eng = E();
   const slots = (t.night.slots || []).filter(s => s.sunAlt < -15);
+  /* The zodiacal light is a dusk and dawn subject, and only just. The cone stands off the horizon
+     where the sun has just gone or is about to arrive, and by the middle of the night it has
+     rotated away and set. Offering it at two in the morning sends someone out to photograph a part
+     of the sky where there is nothing to photograph, so it is considered only in the first hour of
+     darkness and the last. */
+  const ZOD_EDGE = 60 * 60000;
+  const darkFrom = t.darkWin && t.darkWin.from ? +t.darkWin.from : (slots.length ? +slots[0].t : null);
+  const darkTo = t.darkWin && t.darkWin.to ? +t.darkWin.to : (slots.length ? +slots[slots.length - 1].t : null);
+  const zodSlot = ms => {
+    if (darkFrom == null || darkTo == null) return false;
+    const v = +ms;
+    return (v <= darkFrom + ZOD_EDGE) || (v >= darkTo - ZOD_EDGE);
+  };
   if (!slots.length) return { picks: [], out: [], none: true };
   const bortle = sky ? sky.bortle : 5;
   const hemi = lat >= 0 ? 1 : -1;
@@ -381,6 +394,9 @@ function rankTonight(t, lat, lon, sky, kit){
         pos = eng.eq2horiz(el.ra, el.dec, lat, lst);
       }
       curve.push({ t: s.t, alt: pos.alt, az: pos.az });
+      /* Drawn across the night, but only scored inside its two windows: the curve is the honest
+         picture of where the cone is, the score is the answer to "should I go out now". */
+      if (el.id === 'zodiacal' && !zodSlot(s.t)) return;
       const edge = pos.alt - el.ext / 2;          // the bottom of the subject, not its centre
       if (edge >= el.minAlt && !riseT) riseT = s.t;
       const cf = eng.clearFraction(s.cloud);
@@ -411,10 +427,13 @@ function rankTonight(t, lat, lon, sky, kit){
   /* The zodiacal light is not a "worth a try" subject: it needs a genuinely dark sky, no moon
      worth speaking of, and the cone standing up off the horizon. Anything less and offering it
      would be dishonest, so it is not offered at all. */
-  const moonOutOfTheWay = slots.some(s => s.moonAlt < 0 || s.illum < 0.15);
-  const zodiacalOn = bortle <= 4 && moonOutOfTheWay;
+  const moonOutOfTheWay = slots.some(s => (s.moonAlt < 0 || s.illum < 0.15) && zodSlot(s.t));
+  const zodiacalOn = bortle <= 4 && moonOutOfTheWay && slots.some(s => zodSlot(s.t));
+  /* Judged on its best moment inside the dusk and dawn windows, not on its peak across the whole
+     night. The curve still peaks in the small hours, which is exactly the reading that used to let
+     it through on nights when it is only up when nobody can use it. */
   const ranked = scored.filter(s => s.el.id !== 'zodiacal'
-    || (zodiacalOn && s.peak && s.peak.alt >= s.el.minAlt));
+    || (zodiacalOn && s.best && s.best.alt >= s.el.minAlt));
   /* Even a filthy night has a best answer, so the list never comes up empty: anything that
      actually clears its own horizon can be offered, with the reason stated plainly. */
   const eligible = ranked.filter(s => s.hemiOk === 1 && s.peakEdge != null && s.peakEdge >= s.el.minAlt);
