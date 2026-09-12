@@ -140,7 +140,7 @@ window.noctoTrack = function (name) {
      Set before the first paint and read only by CSS, so the whole layout switch costs no
      JavaScript at run time and nothing reflows after the page has drawn. Someone who prefers the
      phone layout on a big screen can say so, and that choice sticks. */
-  var DESK_BUILD = false;
+  var DESK_BUILD = true;
   try {
     var pref = localStorage.getItem('noctography.layout');
     var desk = pref === 'wide' ? true : pref === 'narrow' ? false : DESK_BUILD;
