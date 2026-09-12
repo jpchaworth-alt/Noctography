@@ -404,12 +404,28 @@ function horizonFn(profile, obs){
    just the first crossing. In mountains an object routinely clears a col, drops behind the next
    ridge and clears again, and returning one time would be wrong rather than merely incomplete.
    Crossing times are interpolated between samples, so a two-minute walk still lands within a few
-   seconds of the truth. */
-function clearIntervals(samples, hz){
+   seconds of the truth.
+
+   The catch, reported from the Fens: a bare crossing test counts a graze as a crossing. Sampled
+   every fifteen minutes, an object creeping along a few tenths of a degree above a nominally flat
+   horizon will dip a hundredth of a degree under it and come straight back, because the profile
+   itself wobbles by that much between azimuths. That is the elevation model's noise floor, not a
+   ridge, and reporting it as one told somebody on ground as flat as a table that the moon had gone
+   behind a ridge.
+
+   So a dip has to be worth something before it separates two intervals: deeper than GRAZE_DEG, or
+   longer than GRAZE_MS. Anything shallower is stitched back together. */
+const GRAZE_DEG = 0.25;            // shallower than this is inside the model's own uncertainty
+const GRAZE_MS = 20 * 60000;       // and briefer than this is not a thing you would notice
+
+function clearIntervals(samples, hz, opts){
   if (!samples || samples.length < 2) return [];
+  const o = opts || {};
+  const grazeDeg = o.grazeDeg == null ? GRAZE_DEG : o.grazeDeg;
+  const grazeMs = o.grazeMs == null ? GRAZE_MS : o.grazeMs;
   const val = s => s.alt - (hz ? hz(s.az) : 0);
   const out = [];
-  let open = null;
+  let open = null, dip = 0;
   for (let i = 0; i < samples.length; i++) {
     const s = samples[i], v = val(s);
     if (v > 0 && open == null) {
@@ -420,18 +436,45 @@ function clearIntervals(samples, hz){
         open = { from: new Date(p.t.getTime() + (s.t.getTime() - p.t.getTime()) * f), fromEdge: 'rise' };
       }
       open.peak = s.alt; open.peakAz = s.az; open.peakT = s.t;
+      /* Reopening after a shallow dip: fold this back into the interval before it rather than
+         starting a new one, and keep the earlier interval's own opening edge. */
+      const prev = out[out.length - 1];
+      if (prev && (-dip) < grazeDeg && (open.from - prev.to) < grazeMs) {
+        out.pop();
+        open.from = prev.from; open.fromEdge = prev.fromEdge;
+        if (prev.peak > open.peak) { open.peak = prev.peak; open.peakAz = prev.peakAz; open.peakT = prev.peakT; }
+      }
+      dip = 0;
     } else if (v > 0 && open) {
       if (s.alt > open.peak) { open.peak = s.alt; open.peakAz = s.az; open.peakT = s.t; }
-    } else if (v <= 0 && open) {
-      const p = samples[i - 1], pv = val(p);
-      const f = pv === v ? 1 : pv / (pv - v);
-      open.to = new Date(p.t.getTime() + (s.t.getTime() - p.t.getTime()) * f);
-      open.toEdge = 'set';
-      out.push(open); open = null;
+    } else if (v <= 0) {
+      if (v < dip) dip = v;             // how far under the line this excursion actually went
+      if (open) {
+        const p = samples[i - 1], pv = val(p);
+        const f = pv === v ? 1 : pv / (pv - v);
+        open.to = new Date(p.t.getTime() + (s.t.getTime() - p.t.getTime()) * f);
+        open.toEdge = 'set';
+        out.push(open); open = null;
+      }
     }
   }
   if (open) { open.to = samples[samples.length - 1].t; open.toEdge = 'still'; out.push(open); }
   return out;
+}
+
+/* How much the skyline actually varies over a stretch of azimuths. The word "ridge" has to earn
+   itself: on the Fens the answer is a tenth of a degree, and nothing there should be called one. */
+function reliefBetween(profile, obs, azFrom, azTo){
+  let lo = 90, hi = -90;
+  const span = ((azTo - azFrom + 540) % 360) - 180;
+  const steps = Math.max(2, Math.ceil(Math.abs(span) / 2));
+  for (let i = 0; i <= steps; i++) {
+    const a = azFrom + span * (i / steps);
+    const v = effectiveAt(profile, obs, a);
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  return { lo, hi, range: hi - lo };
 }
 
 /* ---------------- storage ----------------
@@ -471,12 +514,20 @@ const DRIFT_LIMIT_M = 50;
 /* A sentence describing the skyline, for the tile that reports it. Reads the profile rather than
    asserting anything: the highest point, roughly where it is, and how enclosed the site is. */
 function summary(profile, obs){
-  if (!profile) return null;
-  const n = profile.alt.length;
+  /* Either layer alone is a horizon. The ground may be missing because nobody has read it, and on
+     flat land the user's own obstruction layer IS the whole skyline: a treeline declared at ten
+     degrees with no ground profile behind it is exactly the configuration the Fens want, and
+     returning null for it told the app the horizon was flat when it is nothing of the kind. */
+  const hasObs = !!(obs && (obs.all || (Array.isArray(obs.sectors) && obs.sectors.some(v => v != null && v > 0))));
+  if (!profile && !hasObs) return null;
+  const n = (profile && profile.alt && profile.alt.length) ? profile.alt.length : RAYS;
   let hi = -90, hiAz = 0, sum = 0, open = 0;
   for (let i = 0; i < n; i++) {
-    const a = Math.max(profile.alt[i] / 100, sectorAlt(obs, i * 360 / n));
-    if (a > hi) { hi = a; hiAz = i * 360 / n; }
+    const az = i * 360 / n;
+    // length checked as well as presence: a zero-length alt array would read NaN all the way down
+    const ground = (profile && profile.alt && profile.alt.length) ? profile.alt[i] / 100 : 0;
+    const a = Math.max(ground, sectorAlt(obs, az));
+    if (a > hi) { hi = a; hiAz = az; }
     sum += a;
     if (a < 1) open++;
   }
@@ -485,7 +536,7 @@ function summary(profile, obs){
 
 window.NoctoTerrain = {
   profileFor, plan, sizeLine, groundAt, altAt, distAt, effectiveAt, horizonFn, sectorAlt, SECTORS,
-  clearIntervals, encode, decode, driftM, DRIFT_LIMIT_M, summary, ringsFor,
+  clearIntervals, reliefBetween, encode, decode, driftM, DRIFT_LIMIT_M, summary, ringsFor,
   RANGE_M, RAYS, TILE_BASE, R_EFF, EYE_M,
 };
 })();
