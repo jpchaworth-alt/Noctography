@@ -2135,6 +2135,66 @@ const AURORA_CAL = {
    one-line change. */
 const HP30_RELAY = 'https://hp30.jpchaworth.workers.dev/';
 const KP_EST_URL = 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json';
+/* The last few nights of measured Hp30, which the live relay cannot give: it carries about
+   twelve hours, enough for tonight's chart and nothing like enough for a scrollback. GFZ publish
+   the archive itself as JSON over a date range, so the scrollback asks them directly and keeps the
+   result for the session. If it cannot be reached the app says so rather than drawing an empty
+   scrubber that looks like it is working. */
+/* GFZ send no CORS headers, so a browser cannot read their archive however well-formed the
+   request is. It needs a relay, exactly as the live Hp30 feed already does. The URL is set by the
+   app rather than baked in here, because the relay that serves it is the sightings worker, and
+   that is the one piece of infrastructure this project owns. Unset means unavailable, said plainly
+   rather than attempted and failed. */
+let hpArchiveUrl = null;
+function setHpArchiveUrl(u){ hpArchiveUrl = u || null; }
+async function loadHpArchive(days){
+  const n = Math.max(1, Math.min(14, days || 6));
+  if(state.hpArchive && state.hpArchive.at && Date.now() - state.hpArchive.at < 30 * 60000
+     && state.hpArchive.days >= n && state.hpArchive.ok) return true;
+  if(!hpArchiveUrl){
+    state.hpArchive = { series: [], at: Date.now(), days: n, ok: false, reason: 'no-relay' };
+    return false;
+  }
+  try{
+    const r = await fetch(hpArchiveUrl + (hpArchiveUrl.indexOf('?') < 0 ? '?' : '&') + 'days=' + n);
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const series = (j.series || []).filter(p => isFinite(p.t) && isFinite(p.v));
+    if(!series.length) throw new Error('no rows');
+    state.hpArchive = { series, at: Date.now(), days: n, ok: true };
+    return true;
+  }catch(e){
+    state.hpArchive = { series: [], at: Date.now(), days: n, ok: false, reason: 'unreachable', err: (e && e.message) || 'failed' };
+    return false;
+  }
+}
+/* One place answers "what was the index at this instant", whichever feed holds it. The archive is
+   tried first because it is the measured record; the live relay fills in the last few hours, which
+   the archive publishes a little behind. */
+function hpAt(ms){
+  const pools = [];
+  if(state.hpArchive && state.hpArchive.series && state.hpArchive.series.length) pools.push(state.hpArchive.series);
+  if(state.hp30 && state.hp30.series && state.hp30.series.length) pools.push(state.hp30.series);
+  let best = null, bestD = Infinity;
+  for(const pool of pools){
+    for(let i = 0; i < pool.length; i++){
+      const d = Math.abs(pool[i].t - ms);
+      if(d < bestD){ bestD = d; best = pool[i]; }
+    }
+  }
+  return (best && bestD < 2 * 3600000) ? { t: best.t, v: best.v } : null;
+}
+/* Whether a measured record exists for a span at all, which is a different question from whether
+   a particular instant has a reading, and the one the night chips need. */
+function hpCoverage(from, to){
+  const a = (state.hpArchive && state.hpArchive.series) || [];
+  const b = (state.hp30 && state.hp30.series) || [];
+  let n = 0;
+  for(const p of a) if(p.t >= from && p.t <= to) n++;
+  for(const p of b) if(p.t >= from && p.t <= to) n++;
+  return n;
+}
+
 async function loadHp30(){
   try{
     if(!HP30_RELAY) throw new Error('no relay configured');
@@ -3201,6 +3261,11 @@ function conjunctions(nights, lat, lon, opts){
     const t0 = n.slots[0].t.getTime(), t1 = n.slots[n.slots.length - 1].t.getTime();
     const STEP_MS = 20 * 60000;
     const best = new Map();
+    /* The tightest instant is not always the one you shoot. A pair can close to its minimum while
+       it is still scraping the horizon and then hold almost the same separation as it climbs, so
+       the highest sample at which the pair is still within range is tracked alongside the closest
+       one. That is what decides whether an open-horizon warning is honest. */
+    const top = new Map();
     for (let t = t0; t <= t1; t += STEP_MS){
       const jd = 2440587.5 + t / 86400000;
       const sun = sunPos(jd);
@@ -3222,21 +3287,25 @@ function conjunctions(nights, lat, lon, opts){
           const sep = angSep(A.dec, A.ra, B.dec, B.ra);
           if (sep > maxSep) continue;
           const key = A.name + '|' + B.name;
+          const samp = { sep, t: new Date(t), altA: A.alt, altB: B.alt, az: (A.az + B.az) / 2,
+                         magA: A.mag, magB: B.mag, twilight: sunAlt > -12 };
           const prev = best.get(key);
-          if (!prev || sep < prev.sep){
-            best.set(key, { sep, t: new Date(t), altA: A.alt, altB: B.alt, az: (A.az + B.az) / 2,
-                            magA: A.mag, magB: B.mag, twilight: sunAlt > -12 });
-          }
+          if (!prev || sep < prev.sep) best.set(key, samp);
+          const hi = top.get(key);
+          if (!hi || Math.min(samp.altA, samp.altB) > Math.min(hi.altA, hi.altB)) top.set(key, samp);
         }
       }
     }
     best.forEach((v, key) => {
       const names = key.split('|');
+      const hi = top.get(key) || v;
       out.push({
         night: n, date: n.slots[0].t, a: names[0], b: names[1],
         pair: names.join(' and '), sep: v.sep, sepText: v.sep.toFixed(1) + '\u00b0',
         closeness: pairLabel(v.sep), at: v.t, alt: Math.min(v.altA, v.altB), az: v.az,
         magA: v.magA, magB: v.magB, twilight: v.twilight,
+        topAlt: Math.min(hi.altA, hi.altB), topAt: hi.t, topAz: hi.az,
+        topSep: hi.sep, topSepText: hi.sep.toFixed(1) + '\u00b0', topTwilight: hi.twilight,
         hasMoon: names.indexOf('Moon') >= 0,
       });
     });
@@ -3264,7 +3333,7 @@ window.NoctoEngine = {
   loadNearbyScan, DRIVE_RADIUS_KM,
   TIDE_STATIONS, nearestTideStation, loadTide, tideTrend, tideHarmonics, tideFit, tideEvents, harmEval,
   loadAlerts, watchFor, gToKp, loadOutlook27, outlookKp, recurrenceAhead,
-  AURORA_CAL, loadHp30, hpNow, loadHemiPower, windDerived, newell,
+  AURORA_CAL, loadHp30, hpNow, loadHpArchive, setHpArchiveUrl, hpAt, hpCoverage, loadHemiPower, windDerived, newell,
   PLANETS, PLANET_ORDER, planetPos, skyBodies, conjunctions, pairLabel,
   personalBands, chanceAt, chanceMarginal, tenNights, chanceWord, CHANCE_LADDER, capWord, liftWord, wordRung,
   auroraGlowBortle, moonHitAurora, lowMidCover, nightCurve, couplingState,

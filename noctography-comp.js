@@ -384,7 +384,12 @@ function download(blob, name) {
 
    Which is also why this is worth having. Scout a barn once in September and the app can tell you
    every night for the next year that the sky stands where you saw it, with the moon out of the
-   way, and the sun properly down. */
+   way, and the sun properly down.
+
+   One asymmetry in the moon rules is deliberate. "Moon down" means exactly that. The brightness
+   rule means "out of the way": a moon below the horizon is already out of the way whatever its
+   phase, so it passes regardless of illuminated fraction, and the fraction only decides nights
+   when the moon is actually up. A full moon that has set does not spoil a frame. */
 function recur(rec, opts, E) {
   if (!rec || !E) return [];
   const o = opts || {};
@@ -434,7 +439,7 @@ function recur(rec, opts, E) {
     const sep = angSep(dec, ra, m.dec, m.ra);
     const darkOk = sunAlt <= sunMax;
     const moonOk = moonRule === 'down' ? mh.alt <= 0
-      : moonRule === 'dim' ? frac <= dimMax
+      : moonRule === 'dim' ? (mh.alt <= 0 || frac <= dimMax)
       : true;
     out.push({
       at: t, date: d, sunAlt, moonAlt: mh.alt, moonAz: mh.az, moonFrac: frac, moonSep: sep,
