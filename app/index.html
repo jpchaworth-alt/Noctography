@@ -191,15 +191,15 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=1.3.6"></script>
-<script src="../noctography-sat.js?v=1.3.6"></script>
-<script src="../noctography-plan.js?v=1.3.6"></script>
-<script src="../noctography-ar.js?v=1.3.6"></script>
-<script src="../noctography-log.js?v=1.3.6"></script>
-<script src="../noctography-terrain.js?v=1.3.6"></script>
-<script src="../noctography-comp.js?v=1.3.6"></script>
-<script src="../noctography-sightings.js?v=1.3.6"></script>
-<script src="../noctography-backup.js?v=1.3.6"></script>
+<script src="../noctography-engine.js?v=1.3.7"></script>
+<script src="../noctography-sat.js?v=1.3.7"></script>
+<script src="../noctography-plan.js?v=1.3.7"></script>
+<script src="../noctography-ar.js?v=1.3.7"></script>
+<script src="../noctography-log.js?v=1.3.7"></script>
+<script src="../noctography-terrain.js?v=1.3.7"></script>
+<script src="../noctography-comp.js?v=1.3.7"></script>
+<script src="../noctography-sightings.js?v=1.3.7"></script>
+<script src="../noctography-backup.js?v=1.3.7"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -3363,7 +3363,7 @@ window.noctoTrack = function (name) {
             <span style="font-size: 13.5px; line-height: 1.4; color: var(--accent); text-wrap: pretty;">Now tap the {{ arAlignWord }} where you can see it on the screen. One tap sets the whole overlay. Never look at the sun through a viewfinder or with the naked eye: work from the screen.</span>
           </sc-if>
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--accent);">compass {{ arCalNudge }}</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--accent);">compass {{ arCalNudge }} &middot; {{ arHoldWord }}</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: rgba(240,236,228,.6);">in the way {{ arCalSector }}</span>
           </div>
           <button type="button" onClick="{{ arCalReset }}" style="justify-self: start; min-height: 44px; padding: 0 14px; border: 1px solid rgba(240,236,228,.2); border-radius: 999px; background: none; color: rgba(240,236,228,.7); font-family: 'Barlow', sans-serif; font-size: 12.5px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Start again</button>
@@ -3383,6 +3383,24 @@ window.noctoTrack = function (name) {
           </div>
           <input type="range" min="10" max="120" step="1" value="{{ arHfov }}" onInput="{{ onArHfov }}" aria-label="Camera field of view" style="width: 100%; height: 26px; accent-color: var(--accent);">
           <span style="font-size: 13px; line-height: 1.4; color: rgba(240,236,228,.5); text-wrap: pretty;">Widen or narrow until a known star sits on the real one. Some cameras simply won't see the stars.</span>
+          <div style="display: grid; gap: 5px; margin-top: 2px; padding-top: 9px; border-top: 1px solid rgba(240,236,228,.1);">
+            <span style="font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(240,236,228,.5);">What the aim is built from</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent);">{{ arDiagAim }}</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: rgba(240,236,228,.7);">{{ arDiagLens }}</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: rgba(240,236,228,.45);">{{ arDiagTrack }}</span>
+            <sc-if value="{{ arDiagAuto }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 13px; line-height: 1.4; color: rgba(240,236,228,.6); text-wrap: pretty;">This camera switches lens by itself and does not say when, so the field above may not be the field on screen. Pick a lens by name if the phone offers one.</span>
+            </sc-if>
+            <sc-if value="{{ arDiagUncal }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 13px; line-height: 1.4; color: rgba(240,236,228,.6); text-wrap: pretty;">{{ arDiagUncalLine }}</span>
+            </sc-if>
+            <sc-if value="{{ arAlignedOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span style="flex: 1; min-width: 180px; font-size: 13px; line-height: 1.4; color: rgba(240,236,228,.6); text-wrap: pretty;">{{ arAlignedLine }}</span>
+                <button type="button" onClick="{{ arClearAlign }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 13px; border: 1px solid rgba(240,236,228,.2); border-radius: 999px; background: none; color: rgba(240,236,228,.7); font-family: 'Barlow', sans-serif; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Use compass</button>
+              </div>
+            </sc-if>
+          </div>
         </div>
       </sc-if>
 
@@ -3739,8 +3757,23 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '1.3.6';
+  VERSION = '1.3.7';
   BUILDS = [
+    {
+      v: '1.3.7', date: '2026-09-20', silent: true,
+      title: 'Sky AR holds the line-up you give it',
+      intro: 'The compass work, after a night in a field where the overlay would not agree with ground I know:',
+      bullets: [
+        'Lining up on the sun or the moon now holds. The overlay used to re-derive its bearing from the phone compass on nearly every frame, with your line-up added on top as a correction, so it was a correction sitting on a base that kept moving: set it in the south, turn to the north-east, and the magnetometer error over there quietly replaced the one you had just measured.',
+        'Before any line-up, the bearing is only taken while the phone is held still, and the compass is now filtered the same way as the rest of the motion. Panning used to write the filter\'s own lag straight into the bearing, and whatever the last frame before you stopped happened to work out was what stuck.',
+        'The telephoto was being drawn at the wrong scale. It assumed a 3x lens, so on a 5x phone the overlay\'s angular scale was out by more than half and everything away from the middle of the frame landed in the wrong place. All three lens figures are corrected, and anything you had measured yourself is kept.',
+        'Sky AR now opens a named lens where the phone offers one, rather than the camera that switches lens by itself and says nothing when it does.',
+        'Smoothing follows the view: heavier when the phone is still, lighter when you turn, and tighter as you zoom in, so a narrow view no longer swims.',
+        'Setting the compass on the sun brings the clock back to now in the same tap. Nobody calibrates against a sky six months away.',
+        'Tune shows what the aim is actually built from: compass, applied offset and its age, the lens and its assumed field, and which camera really opened.',
+      ],
+      foot: 'Everything is still worked out on your own device. A report leaves it only when you make one.',
+    },
     {
       v: '1.3.6', date: '2026-09-12', silent: true,
       title: 'The map works on a phone, and a big screen gets the big layout',
@@ -4862,7 +4895,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=1.3.6';
+    s.src = '../pano-calculator.js?v=1.3.7';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -7269,6 +7302,16 @@ class Component extends DCLogic {
     };
     this._arRaf = requestAnimationFrame(step);
   }
+  /* Reaching for the sun is a statement about now: nobody sets the compass against a sky six
+     months away, and the app knowingly aligns against the real sun whatever the slider says. So
+     the clock comes back to live in the same tap rather than leaving a scrubbed time on screen
+     for the user to notice and undo. */
+  arBeginAlign(mode) {
+    const off = this.state.arAligning === mode;
+    if (this._arLive) this._arLive.scrub = null;
+    this.setState({ arAligning: off ? false : mode, arScrub: null, arDate: null },
+      () => { this.arSyncInputs(); this.drawAr(); });
+  }
   /* AR is used in daylight to scout a composition for a night months away, so the clock has to
      reach any moment, not just tonight's dark hours. The window is noon to noon, which puts a whole
      night in the middle of the slider instead of splitting it across the two ends. */
@@ -8651,8 +8694,8 @@ class Component extends DCLogic {
         if (!P || E.state.lat == null) return false;
         try { return P.skyAt(new Date(), E.state.lat, E.state.lon).moon.alt > 3; } catch (err) { return false; }
       })(),
-      arAlignSun: () => this.setState({ arAligning: st.arAligning === 'sun' ? false : 'sun' }),
-      arAlignMoon: () => this.setState({ arAligning: st.arAligning === 'moon' ? false : 'moon' }),
+      arAlignSun: () => this.arBeginAlign('sun'),
+      arAlignMoon: () => this.arBeginAlign('moon'),
       arScrub: st.arScrub == null ? this.arNowScrub() : st.arScrub,
       onArScrub: e => this.arDragSlider('scrub', Number(e.target.value)),
       onArScrubDone: () => this.arCommitSlider('scrub'),
@@ -8705,6 +8748,7 @@ class Component extends DCLogic {
       })(),
       arCalReset: () => {
         AR.setNudge(0);
+        if (AR.clearAlign) AR.clearAlign();
         const i = this._calSector;
         if (i != null) this.setObs(i, 0);
         this.setState({ arTick: st.arTick + 1 });
@@ -8716,6 +8760,41 @@ class Component extends DCLogic {
       arHfov: Math.round(AR.hfov()),
       arHfovLabel: Math.round(AR.hfov()) + '\u00b0 wide \u00b7 ' + AR.lensLabel(),
       onArHfov: e => { AR.setHfov(Number(e.target.value)); this.setState({ arHfov: Number(e.target.value) }); },
+      /* What the aim is actually being built from, said in numbers. When the overlay and the sky
+         disagree in a field there is no way to tell a wrong compass from a wrong field of view
+         from the wrong camera having opened, and all three have been the answer at some point.
+         Four short lines make the next trip produce evidence instead of a hunch. */
+      ...(() => {
+        /* Guarded: the app and its modules are deployed as separate files, and one can be a
+           version behind the other for as long as a cache holds. */
+        const d = AR.diag ? AR.diag() : { compass: null, offset: 0, aligned: false, offAge: null,
+          lens: AR.lens ? AR.lens() : 'wide', baseHfov: AR.hfov(), effHfov: AR.effHfov(),
+          nominal: 62, calibrated: true, zoom: AR.zoom(), hwZoom: 1, label: '', auto: false,
+          rate: 0, still: true, alignedAt: 0 };
+        const wrap = v => (v > 180 ? v - 360 : v);
+        const sgn = v => (v > 0 ? '+' : '') + v.toFixed(1) + '\u00b0';
+        const clock = t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return {
+          arDiagAim: (d.compass == null ? 'compass \u2013' : 'compass ' + d.compass.toFixed(1) + '\u00b0')
+            + ' \u00b7 offset ' + sgn(wrap(d.offset))
+            + (d.aligned ? ' \u00b7 held' : d.offAge == null ? ' \u00b7 waiting' : ' \u00b7 set ' + d.offAge + 's ago'),
+          arDiagLens: d.lens + ' \u00b7 ' + d.baseHfov.toFixed(0) + '\u00b0 base \u00b7 '
+            + d.effHfov.toFixed(1) + '\u00b0 shown \u00b7 ' + d.zoom.toFixed(1) + 'x'
+            + (d.hwZoom > 1.01 ? ' (' + d.hwZoom.toFixed(1) + 'x real)' : ''),
+          arDiagTrack: (d.label || 'camera off') + ' \u00b7 '
+            + (d.still ? 'held still' : d.rate + '\u00b0/s'),
+          arDiagAuto: !!d.auto,
+          arDiagUncal: !d.calibrated && !!d.label,
+          arDiagUncalLine: 'This lens is on its nominal ' + d.nominal.toFixed(0)
+            + '\u00b0, not a measured one. Set it once against a known star or a distant edge and it is remembered.',
+          arAlignedOn: !!d.aligned,
+          arAlignedLine: d.alignedAt
+            ? 'Held from a line-up at ' + clock(d.alignedAt) + '. The compass is not being asked.'
+            : 'Held. The compass is not being asked.',
+          arHoldWord: d.aligned ? 'held' : 'following compass',
+          arClearAlign: () => { if (AR.clearAlign) AR.clearAlign(); this.setState({ arTick: st.arTick + 1 }); },
+        };
+      })(),
       /* The lens being planned, changeable without leaving the sky. Kept to the focal lengths the
          Kit tab offers, with a link through to it for anything else. */
       ...(() => {
