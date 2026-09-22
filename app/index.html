@@ -191,15 +191,16 @@ window.noctoTrack = function (name) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=1.3.7"></script>
-<script src="../noctography-sat.js?v=1.3.7"></script>
-<script src="../noctography-plan.js?v=1.3.7"></script>
-<script src="../noctography-ar.js?v=1.3.7"></script>
-<script src="../noctography-log.js?v=1.3.7"></script>
-<script src="../noctography-terrain.js?v=1.3.7"></script>
-<script src="../noctography-comp.js?v=1.3.7"></script>
-<script src="../noctography-sightings.js?v=1.3.7"></script>
-<script src="../noctography-backup.js?v=1.3.7"></script>
+<script src="../noctography-engine.js?v=1.4.0"></script>
+<script src="../noctography-sat.js?v=1.4.0"></script>
+<script src="../noctography-plan.js?v=1.4.0"></script>
+<script src="../noctography-ar.js?v=1.4.0"></script>
+<script src="../noctography-log.js?v=1.4.0"></script>
+<script src="../noctography-terrain.js?v=1.4.0"></script>
+<script src="../noctography-scout.js?v=1.4.0"></script>
+<script src="../noctography-comp.js?v=1.4.0"></script>
+<script src="../noctography-sightings.js?v=1.4.0"></script>
+<script src="../noctography-backup.js?v=1.4.0"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -2184,7 +2185,7 @@ window.noctoTrack = function (name) {
 
             <div style="display: flex; gap: 8px; align-items: stretch;">
               <div style="position: relative; flex: 1; min-width: 0; border-radius: 10px; overflow: hidden; border: 1px solid rgba(var(--line-rgb),.14);">
-                <canvas ref="{{ setFrameCanvas }}" width="760" height="620" style="display: block; width: 100%; height: auto; aspect-ratio: 760 / 620; touch-action: none;"></canvas>
+                <canvas ref="{{ setFrameCanvas }}" width="760" height="620" onPointerDown="{{ frameDown }}" onPointerMove="{{ frameMove }}" onPointerUp="{{ frameUp }}" onPointerCancel="{{ frameUp }}" style="display: block; width: 100%; height: auto; aspect-ratio: 760 / 620; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;"></canvas>
                 <span style="position: absolute; left: 10px; top: 9px; font-size: 10.5px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--faint);">{{ frameLook }}</span>
                 <span style="position: absolute; right: 10px; top: 9px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--accent);">{{ frameClock }}</span>
               </div>
@@ -2193,6 +2194,20 @@ window.noctoTrack = function (name) {
                 <input type="range" data-vert="1" min="-15" max="85" value="{{ framePitch }}" onInput="{{ onPitch }}" aria-label="Pitch the camera up or down" style="flex: 1 1 auto; width: 26px; min-height: 140px; margin: 6px 0; accent-color: var(--accent);">
                 <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; color: var(--faint);">down</span>
               </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 44px 1fr 44px; gap: 6px; align-items: stretch;">
+              <button type="button" onClick="{{ frameBack15 }}" aria-label="Back 15 minutes" style="min-height: 64px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: none; color: var(--text2); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; cursor: pointer;">&minus;15</button>
+              <div ref="{{ setFrameStrip }}" style="position: relative; height: 64px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; overflow: hidden; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none;">
+                <canvas style="position: absolute; inset: 0; width: 100%; height: 100%; display: block;"></canvas>
+              </div>
+              <button type="button" onClick="{{ frameFwd15 }}" aria-label="Forward 15 minutes" style="min-height: 64px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: none; color: var(--text2); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; cursor: pointer;">+15</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <sc-for list="{{ frameEventChips }}" as="ev" hint-placeholder-count="4">
+                <button type="button" onClick="{{ ev.go }}" style="min-height: 36px; padding: 0 11px; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; cursor: pointer; display: flex; gap: 7px; align-items: baseline;"><span>{{ ev.label }}</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent);">{{ ev.time }}</span></button>
+              </sc-for>
+              <span style="margin-left: auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">{{ frameGroundLine }}</span>
             </div>
 
             <div style="display: grid; gap: 7px;">
@@ -2214,12 +2229,6 @@ window.noctoTrack = function (name) {
                 <button type="button" onClick="{{ frameDayFwd }}" aria-label="A day later" style="flex: 0 0 auto; width: 40px; height: 40px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: none; color: var(--text2); font-size: 17px; line-height: 1; cursor: pointer;">›</button>
                 <button type="button" onClick="{{ frameTonight }}" data-nv-active="{{ frameTonightOn }}" style="flex: 0 0 auto; min-height: 40px; padding: 0 13px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Tonight</button>
               </div>
-              <input type="range" min="0" max="100" value="{{ frameScrub }}" onInput="{{ onScrub }}" aria-label="Time through the night" style="width: 100%; height: 26px; accent-color: var(--accent);">
-              <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--faint);">
-                <span>{{ frameSFrom }}</span>
-                <span>{{ frameClock }}</span>
-                <span>{{ frameSTo }}</span>
-              </div>
             </div>
 
             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
@@ -2229,8 +2238,14 @@ window.noctoTrack = function (name) {
             </div>
 
             <div style="display: flex; gap: 6px;">
-              <sc-for list="{{ frameToggles }}" as="g" hint-placeholder-count="3">
+              <sc-for list="{{ frameToggles }}" as="g" hint-placeholder-count="4">
                 <button type="button" onClick="{{ g.go }}" data-nv-active="{{ g.on }}" style="flex: 1; min-height: 46px; border: 1px solid {{ g.bd }}; border-radius: 8px; background: {{ g.bg }}; color: {{ g.fg }}; font-family: 'Barlow', sans-serif; font-size: 13.5px; cursor: pointer;">{{ g.label }}</button>
+              </sc-for>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span style="flex: 0 0 auto; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--faint);">Star map</span>
+              <sc-for list="{{ frameMapChips }}" as="g" hint-placeholder-count="4">
+                <button type="button" onClick="{{ g.go }}" data-nv-active="{{ g.on }}" style="flex: 1; min-height: 44px; border: 1px solid {{ g.bd }}; border-radius: 8px; background: {{ g.bg }}; color: {{ g.fg }}; font-family: 'Barlow', sans-serif; font-size: 13px; cursor: pointer;">{{ g.label }}</button>
               </sc-for>
             </div>
 
@@ -2973,7 +2988,12 @@ window.noctoTrack = function (name) {
           <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">AWS Terrain Tiles elevation</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">elevation-tiles-prod.s3.amazonaws.com</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The ground behind Your skyline, and the height at the pin. Roughly 30 m. Mapzen and Nextzen, from USGS 3DEP, SRTM, CDEM, EU-DEM, ArcticDEM and GEBCO.</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The ground behind Your skyline, the landscape in the framing view, and the height at the pin. Roughly 30 m. Mapzen and Nextzen, from USGS 3DEP, SRTM, CDEM, EU-DEM, ArcticDEM and GEBCO.</span>
+          </a>
+          <a href="https://github.com/ofrohn/d3-celestial" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">d3-celestial star catalogue</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">cdn.jsdelivr.net/gh/ofrohn/d3-celestial</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The star map: stars to magnitude 6 from the HYG catalogue, constellation figures, IAU boundaries and names. Olaf Frohn, BSD licence. Fetched once, only when you switch a layer on.</span>
           </a>
           <a href="https://www.swpc.noaa.gov/products/planetary-k-index" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">NOAA SWPC, planetary K index</span>
@@ -3295,7 +3315,9 @@ window.noctoTrack = function (name) {
 
     <sc-if value="{{ arHudOn }}" hint-placeholder-val="{{ false }}">
       <div data-nv-bar="1" style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: grid; gap: 7px; padding: 12px 16px calc(10px + env(safe-area-inset-bottom)); background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.82));">
-        <input type="range" min="0" max="100" step="0.05" defaultValue="{{ arScrub }}" data-ar-slider="scrub" onInput="{{ onArScrub }}" onPointerUp="{{ onArScrubDone }}" onPointerCancel="{{ onArScrubDone }}" onKeyUp="{{ onArScrubDone }}" aria-label="Time of day" style="width: 100%; height: 30px; accent-color: var(--accent); touch-action: pan-x;">
+        <div ref="{{ setArStrip }}" aria-label="Time of day" style="position: relative; height: 58px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; overflow: hidden; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none;">
+          <canvas style="position: absolute; inset: 0; width: 100%; height: 100%; display: block;"></canvas>
+        </div>
         <div style="display: flex; align-items: center; gap: 7px;">
           <span data-ar-clock="1" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; white-space: nowrap; color: var(--accent);"></span>
           <button type="button" onClick="{{ arNow }}" data-nv-active="{{ arLiveOn }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 12px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Now</button>
@@ -3411,11 +3433,13 @@ window.noctoTrack = function (name) {
           <button type="button" onClick="{{ arDayFwd }}" aria-label="A day later" style="flex: 0 0 auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-size: 18px; line-height: 1; cursor: pointer;">›</button>
           <button type="button" onClick="{{ arNow }}" data-nv-active="{{ arLiveOn }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 14px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(var(--accent-rgb),.16); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Now</button>
         </div>
-        <input type="range" min="0" max="100" step="0.05" defaultValue="{{ arScrub }}" data-ar-slider="scrub" onInput="{{ onArScrub }}" onPointerUp="{{ onArScrubDone }}" onPointerCancel="{{ onArScrubDone }}" onKeyUp="{{ onArScrubDone }}" aria-label="Time of day" style="width: 100%; height: 30px; accent-color: var(--accent); touch-action: pan-x;">
-        <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: rgba(240,236,228,.45);">
-          <span>noon</span>
-          <span data-ar-clock="1" style="color: var(--accent);"></span>
-          <span>noon next day</span>
+        <div style="display: grid; grid-template-columns: 44px 1fr 44px; gap: 6px; align-items: stretch;">
+          <button type="button" onClick="{{ arBack15 }}" aria-label="Back 15 minutes" style="min-height: 56px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; cursor: pointer;">&minus;15</button>
+          <div ref="{{ setArStrip }}" aria-label="Time of day" style="position: relative; height: 56px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; overflow: hidden; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none;">
+            <canvas style="position: absolute; inset: 0; width: 100%; height: 100%; display: block;"></canvas>
+            <span data-ar-clock="1" style="position: absolute; left: 6px; top: 4px; padding: 1px 5px; border-radius: 4px; background: rgba(6,6,7,.75); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--accent); pointer-events: none; white-space: nowrap;"></span>
+          </div>
+          <button type="button" onClick="{{ arFwd15 }}" aria-label="Forward 15 minutes" style="min-height: 56px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; background: none; color: rgba(240,236,228,.8); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; cursor: pointer;">+15</button>
         </div>
       </div>
 
@@ -3445,6 +3469,13 @@ window.noctoTrack = function (name) {
       <div style="display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;">
         <sc-for list="{{ arSubjectChips }}" as="c" hint-placeholder-count="4">
           <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 13px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 13px; white-space: nowrap; cursor: pointer;">{{ c.label }}</button>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <span style="flex: 0 0 auto; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: rgba(240,236,228,.45);">Star map</span>
+        <sc-for list="{{ arMapChips }}" as="c" hint-placeholder-count="4">
+          <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 1; min-height: 44px; padding: 0 2px; border: 1px solid {{ c.bd }}; border-radius: 8px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; cursor: pointer;">{{ c.label }}</button>
         </sc-for>
       </div>
 
@@ -3668,7 +3699,9 @@ class Component extends DCLogic {
     trailRecipe: null, trailHours: 2.5, trailStartOff: 30, showTrailLen: false,
     skyView: 'list', skySel: null, showSkyOut: false, showNpfInfo: false, skyScrub: null,
     filmSecs: 10, showTl: false,
-    framePitch: 34, frameScrub: 40, frameAz: null, frameThirds: true, frameLabels: true, frameElements: true,
+    framePitch: 34, frameScrub: 40, frameMin: null, frameAz: null, frameThirds: true, frameLabels: true, frameElements: true,
+    frameGround: true, frameMap: { stars: true, lines: true, bounds: false, names: false }, frameGroundLoad: null,
+    arMap: { stars: false, lines: false, bounds: false, names: false },
     frameExposure: 100, frameDate: null,
     calView: null, calOffset: 0, calSel: null, kitReturn: null,
     nearbyOpen: false, nearbyDrive: null, nearbyStatus: 'idle', nbView: null, noticeDone: {}, buildsOpen: false,
@@ -3757,8 +3790,21 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '1.3.7';
+  VERSION = '1.4.0';
   BUILDS = [
+    {
+      v: '1.4.0', date: '2026-09-22', silent: false,
+      title: 'The framing view shows the real ground',
+      intro: 'Three new things:',
+      bullets: [
+        'The framing view now draws the actual landscape around your pin: hills, valley, coast, from the same elevation data as your skyline with satellite imagery over it, lit by whatever moon is up. Drag on the picture to aim. It still cannot see trees or buildings, so Line up remains the place for those.',
+        'A star map, in the framing view and in Sky AR: stars to sixth magnitude, constellation figures, boundaries and names, each on its own switch.',
+        'Time is a strip you drag, in both views, with marks for sunset, full dark, moonrise and the core clearing your skyline. Flick it and it coasts. Sky AR paints the twilight colours in when you scrub away from now.',
+        'The zodiacal light is now honest about the moon: it is only ever offered for a moonless dusk or dawn window, and says which.',
+        'Also squashed some bugs.',
+      ],
+      foot: 'Everything is still worked out on your own device. A report leaves it only when you make one.',
+    },
     {
       v: '1.3.7', date: '2026-09-20', silent: true,
       title: 'Sky AR holds the line-up you give it',
@@ -4895,7 +4941,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=1.3.7';
+    s.src = '../pano-calculator.js?v=1.4.0';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -6193,24 +6239,27 @@ class Component extends DCLogic {
     this.setState({ skyView: 'frame',
       frameAz: b ? b.az : 180,
       framePitch: b ? Math.round(Math.max(5, Math.min(80, b.alt))) : 34,
-      frameScrub: b ? this.scrubFor(b.t) : 40 });
+      frameMin: b ? this.minsFor(b.t) : 10 * 60 }, () => this.scoutEnsure());
   }
-  scrubFor(when) {
-    const t = this.state.t;
-    if (!t || !t.darkWin) return 40;
-    const a = t.darkWin.from.getTime(), b = t.darkWin.to.getTime();
-    return Math.round(((when.getTime() - a) / (b - a)) * 100);
+  /* The frame's day runs noon to noon, so a whole night sits in the middle of the strip. Without a
+     chosen date it is the day tonight's dark window starts in. */
+  frameBase() {
+    const st = this.state;
+    if (st.frameDate) { const b = new Date(st.frameDate + 'T12:00:00'); if (!isNaN(b)) return b; }
+    const t = st.t, ref = (t && t.darkWin) ? t.darkWin.from : new Date();
+    const b = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate(), 12);
+    if (ref.getTime() < b.getTime()) b.setDate(b.getDate() - 1);
+    return b;
+  }
+  minsFor(when) {
+    return Math.max(0, Math.min(1439, Math.round((when.getTime() - this.frameBase().getTime()) / 60000)));
+  }
+  frameMins() {
+    if (this._frameMinLive != null) return this._frameMinLive;
+    return this.state.frameMin == null ? this.minsFor(new Date()) : this.state.frameMin;
   }
   frameTime() {
-    const st = this.state;
-    if (st.frameDate) {
-      const base = new Date(st.frameDate + 'T12:00:00');
-      if (!isNaN(base)) return new Date(base.getTime() + (st.frameScrub / 100) * 86400000);
-    }
-    const t = st.t;
-    if (!t || !t.darkWin) return new Date();
-    const a = t.darkWin.from.getTime(), b = t.darkWin.to.getTime();
-    return new Date(a + (st.frameScrub / 100) * (b - a));
+    return new Date(this.frameBase().getTime() + this.frameMins() * 60000);
   }
   /* Framing is a scouting job, not just a tonight job: the Milky Way core out of season, or a
      shower's radiant before it rises for the year, both want to be checked by picking the date
@@ -6222,15 +6271,101 @@ class Component extends DCLogic {
     return this.arDateStr(t && t.darkWin ? t.darkWin.from : new Date());
   }
   frameShiftDay(n) {
-    const base = this.state.frameDate ? new Date(this.state.frameDate + 'T12:00:00') : this.frameTime();
+    const base = this.state.frameDate ? new Date(this.state.frameDate + 'T12:00:00') : this.frameBase();
     base.setDate(base.getDate() + n);
-    this.setState({ frameDate: this.arDateStr(base), frameScrub: this.state.frameScrub == null ? 50 : this.state.frameScrub });
+    this.setState({ frameDate: this.arDateStr(base), frameMin: this.frameMins() });
   }
   frameGoTonight() {
-    this.setState({ frameDate: null, frameScrub: this.scrubFor(new Date()) });
+    this.setState({ frameDate: null }, () => this.setState({ frameMin: this.minsFor(new Date()) }));
   }
 
   setFrameCanvas = el => { this._frameEl = el; if (el) setTimeout(() => this.drawFrame(), 0); };
+
+  /* ---- the ground in the framing view ----
+     One scene, reloaded when the pin moves more than fifty metres. Rings render as they land. */
+  S() { return window.NoctoScout; }
+  scoutScene() {
+    const S = this.S(); if (!S) return null;
+    if (!this._scout) { this._scout = new S.Scene(document.createElement('canvas')); }
+    return this._scout;
+  }
+  scoutEnsure() {
+    const E = this.E(), S = this.S(), st = this.state;
+    if (!E || !S || !st.frameGround || E.state.lat == null) return;
+    const sc = this.scoutScene(); if (!sc || !sc.ok) return;
+    const lat = E.state.lat, lon = E.state.lon;
+    const key = lat.toFixed(4) + ',' + lon.toFixed(4);
+    if (this._scoutKey === key) return;
+    this._scoutKey = key;
+    this.setState({ frameGroundLoad: { done: 0, total: S.plan(lat, lon).tiles } });
+    sc.load(lat, lon,
+      (d, t) => { if (this._scoutKey === key) this.setState({ frameGroundLoad: { done: d, total: t } }); },
+      () => { if (this._scoutKey === key) { this._frameEvKey = null; this.drawFrame(); } })
+      .then(() => { if (this._scoutKey === key) { this.setState({ frameGroundLoad: null }); this._frameEvKey = null; this.drawFrame(); } })
+      .catch(() => { if (this._scoutKey === key) this.setState({ frameGroundLoad: null }); });
+  }
+  scoutReady() { const sc = this._scout; return !!(sc && sc.ok && sc.rings.some(Boolean)); }
+  /* drag on the picture to aim: written live, committed on release */
+  frameDown(e) {
+    const el = e.currentTarget; el.setPointerCapture(e.pointerId);
+    const st = this.state;
+    this._frameDrag = { x: e.clientX, y: e.clientY, az: st.frameAz == null ? 180 : st.frameAz, alt: st.framePitch, moved: false };
+  }
+  frameMove(e) {
+    const dg = this._frameDrag; if (!dg) return;
+    const P = this.P(); if (!P) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const d = P.kitDerived(this.kit());
+    const scale = Math.min(760 / (d.across * 1.5), 620 / (d.down * 1.5));
+    const viewAcross = 760 / scale, viewDown = 620 / scale;
+    const dx = e.clientX - dg.x, dy = e.clientY - dg.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) dg.moved = true;
+    this._frameLive = {
+      az: ((dg.az - dx / r.width * viewAcross) % 360 + 360) % 360,
+      alt: Math.max(-15, Math.min(85, dg.alt + dy / r.height * viewDown)),
+    };
+    this.drawFrame();
+  }
+  frameUp() {
+    const dg = this._frameDrag; this._frameDrag = null;
+    const live = this._frameLive; this._frameLive = null;
+    if (dg && dg.moved && live) this.setState({ frameAz: Math.round(live.az), framePitch: Math.round(live.alt) });
+    else this.drawFrame();
+  }
+  frameEvents() {
+    const E = this.E(), S = this.S(); if (!E || !S) return [];
+    const base = this.frameBase().getTime();
+    const key = [base, E.state.lat, E.state.lon, this._hzFn ? 1 : 0, this.scoutReady() ? 1 : 0].join('|');
+    if (this._frameEvKey !== key) {
+      this._frameEvKey = key;
+      const sc = this._scout;
+      const hz = az => Math.max(this.hzAt(az), (sc && this.scoutReady()) ? ((sc.skylineAt(az, 1.6) || { alt: -90 }).alt) : -90);
+      this._frameEvents = S.nightEvents(base, E.state.lat, E.state.lon, hz);
+    }
+    return this._frameEvents;
+  }
+  setFrameStrip = el => {
+    if (this._frameStripOff) { this._frameStripOff(); this._frameStripOff = null; }
+    this._frameStrip = el ? el.querySelector('canvas') : null;
+    if (!el) return;
+    const S = this.S(); if (!S) return;
+    this._frameStripOff = S.stripGestures(el, {
+      get: () => this.frameMins(),
+      events: () => this.frameEvents(),
+      set: m => { this._frameMinLive = m; this._frameDragging = true; this.drawFrame(); },
+      commit: m => { this._frameMinLive = null; this._frameDragging = false; this.setState({ frameMin: Math.round(m) }); },
+    });
+    setTimeout(() => this.drawFrame(), 0);
+  };
+  paintFrameStrip() {
+    const S = this.S(), E = this.E(), cv = this._frameStrip;
+    if (!S || !E || !cv || E.state.lat == null) return;
+    const pal = this.PALETTES[this.state.pal] || this.PALETTES.obsidian;
+    const base = this.frameBase().getTime();
+    S.paintStrip(cv, { minutes: this.frameMins(), baseMs: base, lat: E.state.lat, lon: E.state.lon,
+      events: this.frameEvents(), nv: !!this.state.nv, accent: pal.accent,
+      liveMinutes: (Date.now() - base) / 60000 });
+  }
 
   frameVals(sel) {
     const E = this.E(), P = this.P(), st = this.state;
@@ -6249,16 +6384,25 @@ class Component extends DCLogic {
     if (sel && sel.best) aimChips.push(this.chip('On target', false, () => this.setState({ frameAz: sel.best.az, framePitch: Math.round(Math.max(5, Math.min(80, sel.best.alt))) })));
     return {
       setFrameCanvas: this.setFrameCanvas,
-      framePitch: pitch, frameScrub: st.frameScrub,
+      frameDown: e => this.frameDown(e), frameMove: e => this.frameMove(e), frameUp: e => this.frameUp(e),
+      setFrameStrip: this.setFrameStrip,
+      frameBack15: () => this.setState({ frameMin: Math.max(0, Math.round(this.frameMins() / 15) * 15 - 15) }),
+      frameFwd15: () => this.setState({ frameMin: Math.min(1439, Math.round(this.frameMins() / 15) * 15 + 15) }),
+      frameEventChips: this.frameEvents().map(ev => ({ label: ev.label,
+        time: this.hhmm(new Date(this.frameBase().getTime() + ev.m * 60000)),
+        go: () => this.setState({ frameMin: Math.round(ev.m) }) })),
+      frameGroundLine: !st.frameGround ? ''
+        : st.frameGroundLoad ? 'reading the ground \u00b7 ' + st.frameGroundLoad.done + ' of ' + st.frameGroundLoad.total
+        : this.scoutReady() ? 'bare earth, ' + Math.round(this._scout.ground) + ' m at the pin' : '',
+      framePitch: pitch,
       frameAzVal: Math.round(((az % 360) + 360) % 360),
       onPan: e => this.setState({ frameAz: Number(e.target.value) }),
       panLabel: 'facing ' + E.compass(az) + ' \u00b7 ' + Math.round(((az % 360) + 360) % 360) + '\u00b0',
       onPitch: e => this.setState({ framePitch: Number(e.target.value) }),
-      onScrub: e => this.setState({ frameScrub: Number(e.target.value) }),
       frameDateValue: this.frameDateValue(),
       onFrameDate: e => {
         const v = e.target.value;
-        this.setState({ frameDate: v || null, frameScrub: v ? (st.frameScrub == null ? 50 : st.frameScrub) : this.scrubFor(new Date()) });
+        this.setState({ frameDate: v || null, frameMin: this.frameMins() });
       },
       frameDayBack: () => this.frameShiftDay(-1),
       frameDayFwd: () => this.frameShiftDay(1),
@@ -6267,8 +6411,6 @@ class Component extends DCLogic {
       frameClock: (st.frameDate
         ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][when.getDay()] + ' ' + when.getDate() + ' ' + E.MONTHS[when.getMonth()] + ', '
         : '') + this.hhmm(when),
-      frameSFrom: st.frameDate ? 'noon' : (st.t && st.t.darkWin ? this.hhmm(st.t.darkWin.from) : '\u2013'),
-      frameSTo: st.frameDate ? 'noon next day' : (st.t && st.t.darkWin ? this.hhmm(st.t.darkWin.to) : '\u2013'),
       frameLook: 'Looking ' + E.compass(az),
       frameFov: kit.focal + 'mm \u00b7 ' + P.SENSORS[kit.sensor].label + ' \u00b7 '
         + (kit.orient === 'port' ? 'portrait' : 'landscape') + ' \u00b7 '
@@ -6279,10 +6421,17 @@ class Component extends DCLogic {
         : 'frame spans ' + Math.round(bottomAlt) + '\u00b0 to ' + Math.round(topAlt) + '\u00b0',
       aimChips,
       frameToggles: [
+        this.chip('Ground', st.frameGround, () => this.setState({ frameGround: !st.frameGround }, () => this.scoutEnsure())),
         this.chip('Thirds', st.frameThirds, () => this.setState({ frameThirds: !st.frameThirds })),
         this.chip('Labels', st.frameLabels, () => this.setState({ frameLabels: !st.frameLabels })),
         this.chip('Subjects', st.frameElements, () => this.setState({ frameElements: !st.frameElements })),
       ],
+      frameMapChips: [['stars', 'Stars'], ['lines', 'Figures'], ['bounds', 'Bounds'], ['names', 'Names']].map(([k, l]) =>
+        this.chip(l, !!(st.frameMap || {})[k], () => {
+          const map = Object.assign({ stars: true, lines: true, bounds: false, names: false }, st.frameMap, { [k]: !(st.frameMap || {})[k] });
+          if (map[k] && this.S()) this.S().loadSkyData(() => this.drawFrame());
+          this.setState({ frameMap: map });
+        })),
       frameExposure: st.frameExposure,
       onFrameExposure: e => this.setState({ frameExposure: Number(e.target.value) }),
       framingLine: kit.focal + 'mm \u00b7 ' + (kit.orient === 'port' ? 'portrait' : 'landscape') + ' \u00b7 '
@@ -6305,6 +6454,7 @@ class Component extends DCLogic {
   drawFrame() {
     const el = this._frameEl, E = this.E(), P = this.P(), st = this.state;
     if (!el || !E || !P || st.tab !== 'sky' || st.skyView !== 'frame') return;
+    this.scoutEnsure();
     const ctx = el.getContext('2d');
     if (!ctx) return;
     const W = el.width, H = el.height;
@@ -6318,7 +6468,13 @@ class Component extends DCLogic {
 
     const when = this.frameTime();
     const sky = P.skyAt(when, E.state.lat, E.state.lon);
-    const aimAlt = st.framePitch, aimAz = st.frameAz == null ? 180 : st.frameAz;
+    const liveAim = this._frameLive;
+    const aimAlt = liveAim ? liveAim.alt : st.framePitch, aimAz = liveAim ? liveAim.az : (st.frameAz == null ? 180 : st.frameAz);
+    const S = this.S();
+    const sunAlt = sky.sun.alt;
+    /* how dark it is: stars and the band fade in through nautical twilight */
+    const dark = Math.max(0, Math.min(1, (-sunAlt - 6) / 8));
+    const skyGain = 0.25 + (st.frameExposure / 100) * 1.5;
     /* One angular scale for both axes, so a portrait frame draws as a portrait rectangle inside
        the same canvas rather than being stretched to fill it. */
     const margin = 1.5;
@@ -6328,6 +6484,7 @@ class Component extends DCLogic {
 
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    if (S) S.skyBackground(ctx, W, H, aimAlt, aimAz, viewAcross, viewDown, sky.sun.az, sunAlt, skyGain, { nv });
 
     /* ALL canvas text goes through one queue, drawn after the geometry in priority order against a
        single registry. Nothing is painted straight to the canvas, so no label can mutilate another,
@@ -6367,8 +6524,8 @@ class Component extends DCLogic {
     // the source image is still loading.
     const lst = E.lstOf(E.jdFrom(when), E.state.lon);
     if (!this._frameBand) this._frameBand = { cv: null, t: 0 };
-    const bandGain = Math.max(0, Math.min(1, (st.frameExposure / 100) * 1.5 - 0.06)) * 0.95;
-    const frameBandCv = bandGain > 0.01 ? this.bandLayer(this._frameBand, pr, E.state.lat, lst, W, H, 80, 40, null) : null;
+    const bandGain = Math.max(0, Math.min(1, (st.frameExposure / 100) * 1.5 - 0.06)) * 0.95 * dark;
+    const frameBandCv = bandGain > 0.01 ? this.bandLayer(this._frameBand, pr, E.state.lat, lst, W, H, this._frameDrag || this._frameDragging ? 40 : 80, this._frameDrag || this._frameDragging ? 20 : 40, null) : null;
     if (frameBandCv) {
       ctx.save();
       // the lift now lives in the texture itself, so all this has left to do is the red mapping
@@ -6394,13 +6551,13 @@ class Component extends DCLogic {
     }
 
     // stars, sized by magnitude
-    sky.stars.forEach(s => {
+    if (dark > 0) sky.stars.forEach(s => {
       if (s.alt < -2) return;
       const p = pr(s.alt, s.az);
       if (!p || p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) return;
       const r = Math.max(1.2, (3.2 - s.mag) * 1.5);
       ctx.fillStyle = ink;
-      ctx.globalAlpha = Math.max(0.35, Math.min(1, 1.1 - s.mag / 3));
+      ctx.globalAlpha = dark * Math.max(0.35, Math.min(1, 1.1 - s.mag / 3));
       ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.2832); ctx.fill();
       ctx.globalAlpha = 1;
       if (st.frameLabels && s.name && s.mag < 1.3)
@@ -6422,6 +6579,7 @@ class Component extends DCLogic {
       if (nv) ctx.filter = 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(.6)';
       ctx.globalCompositeOperation = 'lighter';
       frames.forEach(fr => {
+        if (dark <= 0) return;
         const o = fr.o;
         const v = [Math.sin(fr.az * FD) * Math.cos(fr.alt * FD), Math.cos(fr.az * FD) * Math.cos(fr.alt * FD), Math.sin(fr.alt * FD)];
         if (v[0] * aimV[0] + v[1] * aimV[1] + v[2] * aimV[2] < cullCos) return;   // cull in angles first
@@ -6499,6 +6657,25 @@ class Component extends DCLogic {
       }
     }
 
+    // the catalogue layers: over the band and the bright stars, under the ground
+    const fm = st.frameMap || {};
+    if (S && (fm.stars || fm.lines || fm.bounds || fm.names))
+      S.drawStarMap(ctx, pr, E.state.lat, lst, W, H, { stars: fm.stars, lines: fm.lines, bounds: fm.bounds, names: fm.names,
+        dark, gain: st.frameExposure / 100, nv, dpr: W / 534 });
+
+    /* The real ground, where it has been read: the heightfield rendered through the same gnomonic
+       lens, lit by the moon that is up, drawn over the sky so a ridge hides what is behind it. */
+    let groundDrawn = false;
+    if (st.frameGround && this.scoutReady()) {
+      const sc = this._scout, gcv = sc.canvas;
+      if (gcv.width !== W || gcv.height !== H) { gcv.width = W; gcv.height = H; }
+      sc.render({ az: aimAz, alt: aimAlt, hfov: viewAcross, vfov: viewDown, eyeM: 1.6 }, {
+        sunAz: sky.sun.az, sunAlt, moonAz: sky.moon.az, moonAlt: sky.moon.alt, moonFrac: sky.moon.frac,
+        gain: skyGain, hazeKm: 60, haze: 0.85, nv });
+      ctx.drawImage(gcv, 0, 0, W, H);
+      groundDrawn = true;
+    }
+
     // the ground: shaded and hatched so it reads as solid earth, not just an empty dark area
     const pts = [];
     for (let a = -95; a <= 95; a += 2.5) {
@@ -6507,6 +6684,7 @@ class Component extends DCLogic {
     }
     if (pts.length > 1) {
       const topY = Math.min.apply(null, pts.map(p => p.y));
+      if (!groundDrawn) {
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
@@ -6528,8 +6706,9 @@ class Component extends DCLogic {
         ctx.beginPath(); ctx.moveTo(x, topY - 20); ctx.lineTo(x + H + 60, H + 40); ctx.stroke();
       }
       ctx.restore();
-      ctx.strokeStyle = nv ? 'rgba(255,59,24,.55)' : 'rgba(' + pal.brightRgb + ',.34)';
-      ctx.lineWidth = 2.5;
+      }
+      ctx.strokeStyle = groundDrawn ? (nv ? 'rgba(255,59,24,.3)' : 'rgba(' + pal.brightRgb + ',.18)') : (nv ? 'rgba(255,59,24,.55)' : 'rgba(' + pal.brightRgb + ',.34)');
+      ctx.lineWidth = groundDrawn ? 1.5 : 2.5;
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
       pts.forEach(p => ctx.lineTo(p.x, p.y));
@@ -6583,6 +6762,7 @@ class Component extends DCLogic {
       say('zenith', 12, zp.y + 22, efont, dim, 5.5);
     }
     drawTexts();
+    this.paintFrameStrip();
   }
 
   kitVals() {
@@ -6758,11 +6938,15 @@ class Component extends DCLogic {
       const cx = cv.getContext('2d', { willReadFrequently: true });
       if (!cx) return null;
       cx.drawImage(img, 0, 0, w, h);
+      /* Black point first, then the lift. The panorama's sky is not one level of dark: JPEG blocks
+         and the mosaic's seams sit a few counts above zero, and a bare gamma lift multiplied that
+         into mottling that read as peeling paint. Everything under the cut becomes one black, and
+         the arms still come up. */
+      const B0 = 16;
       const lut = new Uint8ClampedArray(256);
       for (let i = 0; i < 256; i++) {
-        // gamma 0.52 with a small black-point cut: the arms roughly double, the core holds short
-        // of clipping so the Great Rift keeps its edge
-        lut[i] = Math.max(0, Math.min(1, Math.pow(i / 255, 0.52) * 1.06 - 0.012)) * 255;
+        const x = Math.max(0, (i - B0) / (255 - B0));
+        lut[i] = Math.min(1, Math.pow(x, 0.58) * 1.04) * 255;
       }
       const strip = Math.max(1, Math.floor(2097152 / w));
       for (let y = 0; y < h; y += strip) {
@@ -7251,6 +7435,47 @@ class Component extends DCLogic {
   }
   arPaintClock() {
     this.arSay('[data-ar-clock]', this.arClockText());
+    this.arPaintStrips();
+  }
+  /* ---- the time strip in Sky AR: the same strip as the framing view, driving arScrub ---- */
+  arMins() {
+    const s = this.arScrubVal();
+    return (s == null ? this.arNowScrub() : s) / 100 * 1440;
+  }
+  arEvents() {
+    const E = this.E(), S = this.S(); if (!E || !S) return [];
+    const base = this.arDayBase().getTime();
+    const key = [base, E.state.lat, E.state.lon, this._hzFn ? 1 : 0].join('|');
+    if (this._arEvKey !== key) { this._arEvKey = key; this._arEvents = S.nightEvents(base, E.state.lat, E.state.lon, az => this.hzAt(az)); }
+    return this._arEvents;
+  }
+  setArStrip = el => {
+    if (!this._arStrips) this._arStrips = new Map();
+    if (!el) return;
+    const S = this.S(); if (!S || this._arStrips.has(el)) return;
+    const off = S.stripGestures(el, {
+      get: () => this.arMins(),
+      events: () => this.arEvents(),
+      set: m => { this.arDragSlider('scrub', m / 14.4); this.arPaintStrips(true); },
+      commit: m => { this.arDragSlider('scrub', m / 14.4); this.arCommitSlider('scrub'); },
+    });
+    this._arStrips.set(el, off);
+    setTimeout(() => this.arPaintStrips(true), 0);
+  };
+  arPaintStrips(force) {
+    const S = this.S(), E = this.E();
+    if (!S || !E || !this._arStrips || E.state.lat == null) return;
+    const now = Date.now();
+    if (!force && !this._arDragging && this._arStripAt && now - this._arStripAt < 250) return;
+    this._arStripAt = now;
+    const pal = this.PALETTES[this.state.pal] || this.PALETTES.obsidian;
+    const base = this.arDayBase().getTime();
+    const o = { minutes: this.arMins(), baseMs: base, lat: E.state.lat, lon: E.state.lon, events: this.arEvents(),
+      nv: !!this.state.nv && !this._arNoNv, accent: pal.accent, liveMinutes: (now - base) / 60000 };
+    for (const [el, off] of this._arStrips) {
+      if (!el.isConnected) { off(); this._arStrips.delete(el); continue; }
+      S.paintStrip(el.querySelector('canvas'), o);
+    }
   }
   /* Is the phone being moved? Read off the aim itself rather than the motion events, so a pinch
      counts too. A tenth of a degree between frames is hand tremor; anything more is a pan, and
@@ -8252,6 +8477,17 @@ class Component extends DCLogic {
     ctx.save();
     if (skyClip) ctx.clip(skyClip);
 
+    /* The sky's own colour: when the clock is away from now, or there is no camera, the real sky
+       behind the overlay is the wrong sky, so the one for that moment is painted in: golden and
+       blue at the sun's bearing through twilight, the pink belt opposite, dark by full night. */
+    const S = this.S();
+    const liveNow = this.arScrubVal() == null && !st.arDate;
+    if (S && (!camOn || !liveNow)) {
+      const bv0 = AR.basis();
+      S.skyBackground(ctx, W, H, bv0.alt, bv0.az, pr.hfovDeg, pr.vfovDeg, sky.sun.az, sky.sun.alt,
+        0.25 + (this.arExpVal() / 100) * 1.5, { nv, alpha: camOn ? 0.72 : 1 });
+    }
+
     /* Same discipline as the framing view: no text is painted during the geometry passes. Every
        string is queued, then laid out once against one registry, so nothing overprints. */
     const labels = [];
@@ -8297,6 +8533,12 @@ class Component extends DCLogic {
       if (run) ctx.stroke();
       ctx.restore();
     }
+
+    // the catalogue layers, when any are switched on
+    const am = st.arMap || {};
+    if (S && (am.stars || am.lines || am.bounds || am.names))
+      S.drawStarMap(ctx, pr, E.state.lat, lst, W, H, { stars: am.stars, lines: am.lines, bounds: am.bounds, names: am.names,
+        dark: 1, gain: Math.max(0.4, bandT), nv, dpr: scale });
 
     // star trails, when asked for
     const trails = this.arTrails(when);
@@ -8657,7 +8899,7 @@ class Component extends DCLogic {
       arNoticeBottom: st.arLandscape ? '124px' : '104px',
       arPanelOn: !st.arLandscape || !!st.arSheet,
       arPanelPos: st.arLandscape ? 'absolute' : 'static',
-      arPanelMax: st.arLandscape ? '86vh' : '44vh',
+      arPanelMax: st.arLandscape ? '86vh' : '50vh',
       arSheetOn: !!st.arSheet,
       arSheetLabel: st.arSheet ? 'Hide' : 'Controls',
       arToggleSheet: () => this.setState({ arSheet: !st.arSheet }),
@@ -8717,6 +8959,15 @@ class Component extends DCLogic {
         if (this._arLive) this._arLive.scrub = null;
         this.setState({ arScrub: null, arDate: null }, () => this.arSyncInputs());
       },
+      setArStrip: this.setArStrip,
+      arBack15: () => { const m = Math.max(0, Math.round(this.arMins() / 15) * 15 - 15); this.setState({ arScrub: m / 14.4 }, () => this.arPaintStrips(true)); },
+      arFwd15: () => { const m = Math.min(1439, Math.round(this.arMins() / 15) * 15 + 15); this.setState({ arScrub: m / 14.4 }, () => this.arPaintStrips(true)); },
+      arMapChips: [['stars', 'Stars'], ['lines', 'Figures'], ['bounds', 'Bounds'], ['names', 'Names']].map(([k, l]) =>
+        chip(l, !!(st.arMap || {})[k], () => {
+          const map = Object.assign({ stars: false, lines: false, bounds: false, names: false }, st.arMap, { [k]: !(st.arMap || {})[k] });
+          if (map[k] && this.S()) this.S().loadSkyData(() => {});
+          this.setState({ arMap: map });
+        })),
       arSubjectChips: [chip('Everything', st.arSubject === 'all', () => this.setState({ arSubject: 'all' }))]
         .concat(picks.map(p => chip(p.el.name, st.arSubject === p.el.id, () => this.setState({ arSubject: p.el.id })))),
       arTrailChips: [
@@ -8846,7 +9097,7 @@ class Component extends DCLogic {
       openArTrails: () => this.arOrFrame({ subject: 'all', trails: Math.min(4, Math.max(0.25, st.trailHours || 2)) }),
       frameNoteOn: !!st.frameNoteOn && !this.hasSensors(),
       frameNoteListOn: !!st.frameNoteOn && !this.hasSensors() && st.skyView !== 'frame',
-      frameNoteLine: 'No camera or compass here, so this is the framing view: the same sky, aimed with the two sliders instead of by pointing. Sky AR itself wants a phone.',
+      frameNoteLine: 'No camera or compass here, so this is the framing view: the same sky, aimed by dragging the picture instead of by pointing. Sky AR itself wants a phone.',
       frameNoteClose: () => this.setState({ frameNoteOn: false }),
       arCta: AR.supported() ? 'Point your phone' : 'AR needs a phone',
     };
