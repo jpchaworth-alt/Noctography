@@ -25,12 +25,14 @@
     if (k.focal) tick('pov-f' + nearestFocal(+k.focal));
     if (k.orient) tick(k.orient === 'port' ? 'pov-port' : 'pov-land');
     if (k.sensor && SENSOR_TO_ID[k.sensor]) tick(SENSOR_TO_ID[k.sensor]);
+    if (k.panoOv) tick('pov-ov' + k.panoOv);
   }
   function syncToKit(target){
     if (!target || target.type !== 'radio' || !target.id) return;
     if (target.name === 'pov-focal') writeKit({ focal: +target.id.slice(5) });
     else if (target.name === 'pov-orient') writeKit({ orient: target.id === 'pov-port' ? 'port' : 'land' });
     else if (target.name === 'pov-sensor' && ID_TO_SENSOR[target.id]) writeKit({ sensor: ID_TO_SENSOR[target.id] });
+    else if (target.name === 'pov-ov') writeKit({ panoOv: +target.id.slice(6) });
   }
 
   class PanoCalculator extends HTMLElement{
