@@ -402,7 +402,10 @@ function rankTonight(t, lat, lon, sky, kit){
       const cf = eng.clearFraction(s.cloud);
       const clear = cf == null ? 0.75 : cf;
       const sep = eng.eq2horiz ? angSep(pos.alt, pos.az, s.moonAlt, s.moonAz == null ? pos.az : s.moonAz) : 90;
-      const mp = moonPenalty(el.need, sep, s.illum, s.moonAlt);
+      /* The zodiacal light is the faintest thing in the list, and any moon above the horizon kills
+         it outright: no penalty curve, just zero, so its best moment can only ever fall after
+         moonset or before moonrise. */
+      const mp = (el.id === 'zodiacal' && s.moonAlt > 0 && s.illum > 0.03) ? 0 : moonPenalty(el.need, sep, s.illum, s.moonAlt);
       const framing = framingFactor(edge, band);
       const q = framing * mp * clear;
       if (!best || q > best.q) best = { q, t: s.t, alt: pos.alt, az: pos.az, edge, sep, moonPen: mp, clear, framing };
@@ -427,7 +430,7 @@ function rankTonight(t, lat, lon, sky, kit){
   /* The zodiacal light is not a "worth a try" subject: it needs a genuinely dark sky, no moon
      worth speaking of, and the cone standing up off the horizon. Anything less and offering it
      would be dishonest, so it is not offered at all. */
-  const moonOutOfTheWay = slots.some(s => (s.moonAlt < 0 || s.illum < 0.15) && zodSlot(s.t));
+  const moonOutOfTheWay = slots.some(s => (s.moonAlt < 0 || s.illum < 0.03) && zodSlot(s.t));
   const zodiacalOn = bortle <= 4 && moonOutOfTheWay && slots.some(s => zodSlot(s.t));
   /* Judged on its best moment inside the dusk and dawn windows, not on its peak across the whole
      night. The curve still peaks in the small hours, which is exactly the reading that used to let
@@ -482,6 +485,21 @@ function reasonFor(item, t, kit){
     return 'Never really gets high enough for typical conditions in the ' + dir + '.';
   if (item.skyOk < 0.6)
     return 'Sky conditions from here aren\u0027t ideal for this, so keep expectations modest: the bright parts will still come through.';
+  /* The zodiacal light gets its own sentence. It is ethereal and hard, and "holds up under the
+     moon" is never true of it: the only honest offer is the moonless window, named. */
+  if (el.id === 'zodiacal'){
+    if (b.moonPen <= 0)
+      return 'The moon is up through both of its windows tonight, and this needs a moonless sky. Not tonight.';
+    const mt = (eng.moonTimes && t && t.night) ? eng.moonTimes(t.night) : null;
+    const dawn = b.t.getHours() < 12;
+    const gate = dawn
+      ? (mt && mt.set && mt.set < b.t ? 'once the moon has set at ' + eng.fmtTime(mt.set) + ', ' : '')
+      : (mt && mt.rise && mt.rise > b.t ? 'before the moon rises at ' + eng.fmtTime(mt.rise) + ', ' : '');
+    return 'Ethereal and challenging: it needs a fully dark, moonless sky, and the cone only stands up in the '
+      + (dawn ? 'last hour before dawn' : 'first hour after dark') + '. Tonight that means ' + gate
+      + 'about ' + Math.round(b.alt) + '\u00b0 up in the ' + dir + ' at ' + when + ', leaning along the ecliptic at '
+      + k.focal + 'mm ' + (k.orient === 'port' ? 'portrait' : 'landscape') + '.' + (item.skyGap > 0 ? ' A Bortle ' + item.bortle + ' sky is already brighter than it wants.' : '');
+  }
   if (b.moonPen < 0.55)
     return 'The moon is ' + Math.round(b.sep) + '\u00b0 away and washing it out. Worth a look after moonset.';
   if (b.clear < 0.4)
