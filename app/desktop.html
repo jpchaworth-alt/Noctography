@@ -312,6 +312,10 @@ window.noctoTrack = function (name, every) {
   html[data-desk="on"] [data-app="col"] { max-width: 1380px !important; }
   html[data-desk="on"] [data-app="head"] { order: -2; }
   html[data-desk="on"] [data-app="bar"] { order: -1; position: static !important; margin: 0 !important; }
+  /* Sky AR upright on a phone: the rail stays, floating over the foot of the screen, so you leave
+     Sky AR the way you leave anywhere else */
+  [data-app="bar"][data-ar-rail="on"] { position: fixed !important; left: 8px; right: 8px; bottom: calc(6px + env(safe-area-inset-bottom)); z-index: 140 !important; margin: 0 !important; }
+  [data-app="bar"][data-ar-rail="on"] > *:not([data-nv-bar]) { display: none !important; }
   html[data-desk="on"] [data-app="foot"] { order: 2; }
   html[data-desk="on"] [data-app="bar"] [data-rail-arrow] { display: none !important; }
   html[data-desk="on"] [data-app="bar"] [data-rail-thumb] { display: none !important; }
@@ -641,7 +645,7 @@ window.noctoTrack = function (name, every) {
             <span style="font-size: 14px; color: var(--dim); line-height: 1.35;">{{ sunSub }}</span>
             <sc-if value="{{ terSunOn }}" hint-placeholder-val="{{ false }}">
               <span style="display: flex; align-items: baseline; gap: 7px; font-size: 13.5px; line-height: 1.35; color: var(--text2);">
-                <span style="flex: 0 0 auto; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent);">Scout</span>
+                <span style="flex: 0 0 auto; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent);">Terrain</span>
                 <span>{{ terSunLine }}</span>
               </span>
             </sc-if>
@@ -667,7 +671,7 @@ window.noctoTrack = function (name, every) {
             </sc-if>
             <sc-if value="{{ terMoonOn }}" hint-placeholder-val="{{ false }}">
               <span style="display: flex; align-items: baseline; gap: 7px; font-size: 13.5px; line-height: 1.35; color: var(--text2);">
-                <span style="flex: 0 0 auto; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent);">Scout</span>
+                <span style="flex: 0 0 auto; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent);">Terrain</span>
                 <span>{{ terMoonLine }}</span>
               </span>
             </sc-if>
@@ -2882,16 +2886,17 @@ window.noctoTrack = function (name, every) {
 
     <footer data-app="foot" style="display: grid; gap: 14px; margin-top: 10px; padding: 18px 0 4px; border-top: 1px solid rgba(var(--line-rgb),.14);">
       <a href="{{ coffeeHref }}" target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); font-size: 14px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;">Say thanks</a>
-      <a href="https://www.youtube.com/@nightscapejournals" target="_blank" rel="noopener" style="display: block; font-size: 16px; line-height: 1.35; color: var(--text2); text-wrap: pretty;">Follow my cinematic nightscape adventures at <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; color: var(--accent); white-space: nowrap;">youtube.com/@nightscapejournals</span></a>
+      
       <div style="display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(var(--line-rgb),.14);">
         <img src="../assets/logo-roundel.png" alt="" style="width: 40px; height: 40px; border-radius: 50%; flex: 0 0 40px; display: block;">
         <span style="display: grid; gap: 3px; margin-right: auto; font-size: 10px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Paul Haworth Nightscapes
           <a href="https://www.paulhaworthnightscapes.com" target="_blank" rel="noopener" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0; text-transform: none; color: var(--accent);">paulhaworthnightscapes.com</a>
+          <a href="https://www.youtube.com/@nightscapejournals" target="_blank" rel="noopener" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0; text-transform: none; color: var(--accent);">Follow on YouTube</a>
         </span>
       </div>
     </footer>
 
-    <div data-app="bar" style="position: sticky; bottom: 0; z-index: 20; display: grid; gap: 8px; margin-top: 6px;">
+    <div data-app="bar" ref="{{ setAppBar }}" data-ar-rail="{{ arRailWord }}" style="position: sticky; bottom: 0; z-index: 20; display: grid; gap: 8px; margin-top: 6px;">
 
 
       <div data-nv-bar="1" style="display: flex; align-items: center; gap: clamp(3px, 1vw, 4px); padding: 6px; background: rgba(var(--well-rgb),.86); backdrop-filter: blur(14px); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px;">
@@ -2975,6 +2980,9 @@ window.noctoTrack = function (name, every) {
   <div data-screen-label="AR" style="position: fixed; top: 0; left: 0; right: 0; height: {{ arVpHeight }}; z-index: 120; background: #000; display: grid; grid-template-rows: {{ arRows }}; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;">
 
     <div ref="{{ setArStage }}" onClick="{{ onArTap }}" onPointerDown="{{ arCalDown }}" onPointerMove="{{ arCalMove }}" onPointerUp="{{ arCalUp }}" onPointerCancel="{{ arCalUp }}" style="position: relative; overflow: hidden; min-height: 0; touch-action: none;">
+      <sc-if value="{{ arClockStageOn }}" hint-placeholder-val="{{ true }}">
+        <span data-ar-clock="1" style="position: absolute; left: 10px; bottom: 12px; z-index: 5; padding: 4px 8px; border-radius: 6px; background: rgba(6,6,7,.72); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--accent); pointer-events: none; white-space: nowrap;"></span>
+      </sc-if>
       <video ref="{{ setArVideo }}" playsinline="playsinline" muted="muted" autoplay="autoplay" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 50%; transform: {{ arCamTransform }}; opacity: {{ arVideoOpacity }}; filter: {{ arCamFilter }};"></video>
       <canvas ref="{{ setArImgCanvas }}" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; pointer-events: none; filter: {{ arVideoFilter }};"></canvas>
       <canvas ref="{{ setArCanvas }}" style="position: absolute; inset: 0; width: 100%; height: 100%;"></canvas>
@@ -2996,7 +3004,7 @@ window.noctoTrack = function (name, every) {
           <button type="button" onClick="{{ arGoTerrain }}" data-nv-active="{{ arTerrainOn }}" style="min-height: 44px; padding: 0 12px; border: 1px solid {{ arTerrBd }}; border-left: 0; border-radius: 0 999px 999px 0; background: {{ arTerrBg }}; color: {{ arTerrFg }}; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Scout</button>
         </div>
         <span data-ar-aim="1" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(240,236,228,.8);"></span>
-        <button type="button" onClick="{{ closeAr }}" onPointerUp="{{ closeAr }}" onPointerDown="{{ arStopPtr }}" aria-label="Close" style="margin-left: auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.28); border-radius: 999px; background: rgba(0,0,0,.5); color: rgba(240,236,228,.9); font-family: 'Barlow', sans-serif; font-size: 17px; line-height: 1; cursor: pointer;">✕</button>
+        <button type="button" onClick="{{ closeAr }}" onPointerDown="{{ arStopPtr }}" aria-label="Close" style="margin-left: auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.28); border-radius: 999px; background: rgba(0,0,0,.5); color: rgba(240,236,228,.9); font-family: 'Barlow', sans-serif; font-size: 17px; line-height: 1; cursor: pointer;">✕</button>
       </div>
 
       <sc-if value="{{ arNotice }}" hint-placeholder-val="{{ true }}">
@@ -3214,7 +3222,6 @@ window.noctoTrack = function (name, every) {
           
           <div ref="{{ setArStrip }}" aria-label="Time of day" style="flex: 1; min-width: 0; position: relative; height: 56px; border: 1px solid rgba(240,236,228,.18); border-radius: 8px; overflow: hidden; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none;">
             <canvas style="position: absolute; inset: 0; width: 100%; height: 100%; display: block;"></canvas>
-            <span data-ar-clock="1" style="position: absolute; left: 6px; top: 4px; padding: 1px 5px; border-radius: 4px; background: rgba(6,6,7,.75); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--accent); pointer-events: none; white-space: nowrap;"></span>
             
           </div>
           <sc-if value="{{ arNotLive }}" hint-placeholder-val="{{ false }}">
@@ -5291,7 +5298,7 @@ class Component extends DCLogic {
     const amber = 'var(--accent)';
 
     /* Trails and the panorama calculator live under Kit now, and the credits under More */
-    const home = { trails: 'kit', pano: 'kit', data: 'more' }[st.tab] || st.tab;
+    const home = st.arOpen ? 'sky' : ({ trails: 'kit', pano: 'kit', data: 'more' }[st.tab] || st.tab);
     const nav = k => ({ bg: home === k ? 'rgba(var(--accent-rgb),.16)' : 'transparent', fg: home === k ? amber : 'var(--dim)' });
     const n1 = nav('tonight'), nA = nav('aurora'), n2 = nav('meteors'), n3 = nav('pano'), n4 = nav('more');
     const rangeBtn = v => ({ bg: st.range === v ? amber : 'transparent', fg: st.range === v ? 'var(--ink)' : 'var(--dim)' });
@@ -5587,7 +5594,8 @@ class Component extends DCLogic {
   }
   goTab(key) {
     /* Sky is Sky AR itself: no page in between */
-    if (key === 'sky') { this.arOrFrame({ subject: 'all' }); return; }
+    if (key === 'sky') { if (!this.state.arOpen) this.arOrFrame({ subject: 'all' }); return; }
+    if (this.state.arOpen) this.closeAr();
     /* Where the Log was opened from, so its own way out lands back there rather than guessing at
        Tonight. The nav is not an obvious exit to someone who arrived by the field nudge. */
     if (key === 'log' && this.state.tab !== 'log') this.setState({ logFrom: this.state.tab });
@@ -6902,9 +6910,12 @@ class Component extends DCLogic {
     /* Leading ./ matters: the deploy copy rewrites ./ to ../ because the app is served from
        /app/ while its assets sit one level up. Without it this resolved to /app/assets/ live,
        which is why the band was missing everywhere except the project preview. */
-    img.src = '../assets/8k_stars_milky_way.jpg';
+    img.src = this.bandSrc();
     return null;
   }
+  /* A phone gets the 4096 panorama: a quarter of the download and of the memory to decode, and
+     nothing it can show is lost. The 8k one is for a desktop screen. */
+  bandSrc() { const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches; return coarse ? '../assets/4k_stars_milky_way.jpg' : '../assets/8k_stars_milky_way.jpg'; }
 
   /* The panorama is a photograph of a genuinely dark sky: the faint arms sit in the bottom
      twentieth of the range while the core is near the top. A linear multiply, which is what a
@@ -6916,7 +6927,8 @@ class Component extends DCLogic {
     try {
       const sw = img.naturalWidth || 0, sh = img.naturalHeight || 0;
       if (!sw || !sh) return null;
-      const w = Math.min(4096, sw), h = Math.max(1, Math.round(w * (sh / sw)));
+      const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      const w = Math.min(coarse ? 2048 : 4096, sw), h = Math.max(1, Math.round(w * (sh / sw)));
       const cv = document.createElement('canvas');
       cv.width = w; cv.height = h;
       const cx = cv.getContext('2d', { willReadFrequently: true });
@@ -7290,6 +7302,12 @@ class Component extends DCLogic {
 
   closeAr() {
     if (!this.state.arOpen) return;
+    /* Older iPhones deliver a second, synthesised click about 300 ms after the tap, at the same
+       spot. Once the overlay has gone that spot is the header's Sky AR button, so the app went to
+       Tonight and straight back in. Any click in the next half second is eaten. */
+    const eat = e => { e.stopPropagation(); e.preventDefault(); };
+    document.addEventListener('click', eat, true);
+    setTimeout(() => document.removeEventListener('click', eat, true), 500);
     this.lockPage(false);
     if (this._arStage && this._arStage._nArGest) { this._arStage._nArGest.ptrs.clear(); this._arStage._nArGest.pinch = null; }
     if (window.NoctoAR) window.NoctoAR.stop();
@@ -7639,7 +7657,7 @@ class Component extends DCLogic {
   arPanoRender() {
     const S = this.S(), E = this.E(), sc = this._scout, st = this.state;
     if (!S || !sc || !sc.ok || !st.arPano || !st.arOpen || E.state.lat == null) return;
-    S.loadBand('../assets/8k_stars_milky_way.jpg', () => { this._panoKey = null; });
+    S.loadBand(this.bandSrc(), () => { this._panoKey = null; });
     if (!this._panoCv) this._panoCv = document.createElement('canvas');
     const tok = this._panoTok = {};
     const o = this._panoOpts || (this._panoOpts = {});
@@ -7967,7 +7985,7 @@ class Component extends DCLogic {
        again with the landscape in it when the terrain has arrived. */
     const ground = this.scoutReady();
     if (!ground) { clearTimeout(this._ideaT); this._ideaT = setTimeout(() => this.arIdeasRender(), 1200); }
-    S.loadBand('../assets/8k_stars_milky_way.jpg', () => { this._ideaThumbs = {}; this._ideaGround = {}; this.arIdeasRender(); });
+    S.loadBand(this.bandSrc(), () => { this._ideaThumbs = {}; this._ideaGround = {}; this.arIdeasRender(); });
     const had = this._ideaGround || (this._ideaGround = {});
     const todo = (rk.picks || []).filter(p => { const k = this.arIdeaKey(p); return p.best && (!(this._ideaThumbs || {})[k] || (ground && !had[k])); });
     if (!todo.length) return;
@@ -8144,6 +8162,7 @@ class Component extends DCLogic {
     this.logWrite();
     this.setState({ arPanoSaved: 'Saved to the Log under the night of ' + nightWord + '. Fill in the rest on the night.' });
   }
+  arRailOn() { const st = this.state; const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches; return !!st.arOpen && !st.arLandscape && coarse; }
   arMoving() {
     const AR = this.arSrc();
     if (!AR) return false;
@@ -9200,6 +9219,14 @@ class Component extends DCLogic {
     return a => { const x = ((a % 360) + 360) % 360, i = Math.floor(x), f = x - i; return t[i] * (1 - f) + t[(i + 1) % 360] * f; };
   }
   drawAr() {
+    const t0 = performance.now();
+    const r = this.drawArFrame();
+    /* a running average of the frame cost decides whether this phone gets the lighter render */
+    const ms = performance.now() - t0;
+    if (ms > 1) this._arSlow = this._arSlow == null ? ms : this._arSlow * 0.85 + ms * 0.15;
+    return r;
+  }
+  drawArFrame() {
     const el = this._arCanvas, AR = this.arSrc(), P = this.P(), E = this.E(), st = this.state;
     if (!el || !AR || !P || !E || !st.arOpen) return;
     const virt = !!st.arVirtual;
@@ -9208,8 +9235,7 @@ class Component extends DCLogic {
     this.arPaintClock();
     this.arSay('[data-ar-dim-read]', this.arDimFilters(this.arDimVal() / 100).read);
     this.arSay('[data-ar-aim]', AR.live()
-      ? E.compass(AR.basis().az) + ' ' + Math.round(AR.basis().az) + '\u00b0 \u00b7 '
-        + Math.round(AR.basis().alt) + '\u00b0 up'
+      ? E.compass(AR.basis().az) + ' ' + Math.round(AR.basis().az) + '\u00b0'
         + (virt && st.frameGroundLoad ? ' \u00b7 reading the ground ' + st.frameGroundLoad.done + '/' + st.frameGroundLoad.total : '')
       : 'waiting for the sensors');
     if (virt && st.arPano) {
@@ -9227,7 +9253,10 @@ class Component extends DCLogic {
        them a frame, which is affordable standing still and not affordable while panning, so the
        moving pass renders at about half that and the still pass sharpens back up. */
     const moving = this.arMoving();
-    const dpr = moving ? Math.min(1.4, window.devicePixelRatio || 1) : Math.min(2, window.devicePixelRatio || 1);
+    /* A phone that cannot keep up (measured, below) draws at one pixel per point while moving and
+       a little more when still: the sky sharpens back the moment you stop. */
+    const lite = this._arSlow > 26;
+    const dpr = moving ? Math.min(lite ? 1 : 1.4, window.devicePixelRatio || 1) : Math.min(lite ? 1.5 : 2, window.devicePixelRatio || 1);
     const W = Math.round(cw * dpr), H = Math.round(ch * dpr);
     if (el.width !== W || el.height !== H) { el.width = W; el.height = H; }
     const ctx = el.getContext('2d');
@@ -9778,7 +9807,11 @@ class Component extends DCLogic {
          on iOS is the taller address-bar-hidden viewport and made the rows add up to more than the
          screen. */
       arRows: st.arLandscape ? '1fr' : 'minmax(54%, 1fr) auto',
-      arVpHeight: st.arVpH ? st.arVpH + 'px' : '100dvh',
+      arVpHeight: (() => { const rail = this.arRailOn() ? (this._appBarH || 66) + 12 : 0; return st.arVpH ? (st.arVpH - rail) + 'px' : 'calc(100dvh - ' + rail + 'px)'; })(),
+      arRailWord: this.arRailOn() ? 'on' : 'off',
+      /* upright, the time sits over the view; sideways it keeps its place in the strip's row */
+      arClockStageOn: !!st.arOpen && !st.arLandscape && !st.arPano,
+      setAppBar: el => { this._appBar = el; if (el) { const nb = el.querySelector('[data-nv-bar]'); const h = nb ? nb.offsetHeight : 0; if (h && h !== this._appBarH) { this._appBarH = h; if (this.state.arOpen) this.forceUpdate(); } } },
       /* The notice card sits at the bottom of the stage, which sideways is the same band the
          HUD strip claims. The card moves up over the strip rather than the strip standing down:
          the strip carries the only way into the controls, and "the compass is a guess" is a
@@ -9986,9 +10019,16 @@ class Component extends DCLogic {
               + ' \u00b7 ' + Math.round(eff) + '\u00b0 shown'
               + (total > 1.05 ? ' \u00b7 ' + total.toFixed(1) + '\u00d7' : '');
           })(),
-          arZoomOn: zoom > 1.02 || AR.lens() !== 'wide',
-          arZoomReset: () => this.applyArField(AR.fieldRange().wide),
-          arZoomFit: () => this.applyArLens(),
+          arZoomOn: st.arVirtual ? this.arV().hfov < 99 : (zoom > 1.02 || AR.lens() !== 'wide'),
+          /* In Scout there is no camera to zoom: Fit frames your lens with a margin round it, and
+             Wide opens right out, both on the drawn view itself */
+          arZoomReset: () => { if (st.arVirtual) { this.arV().hfov = 110; this._arDirty = true; this.drawAr(); this.forceUpdate(); } else this.applyArField(AR.fieldRange().wide); },
+          arZoomFit: () => {
+            if (!st.arVirtual) return this.applyArLens();
+            const d = this.P().kitDerived(this.kit());
+            this.arV().hfov = Math.max(8, Math.min(110, d.across / 0.72));
+            this._arDirty = true; this.drawAr(); this.forceUpdate();
+          },
           /* Kit and back again: the AR view is a fullscreen overlay, so leaving it has to be
              explicit, and coming back has to be one tap or nobody will risk the trip. */
           /* Terrain to the pin map and straight back, aim and moment kept */
