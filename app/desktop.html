@@ -191,16 +191,16 @@ window.noctoTrack = function (name, every) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=2.0.0"></script>
-<script src="../noctography-sat.js?v=2.0.0"></script>
-<script src="../noctography-plan.js?v=2.0.0"></script>
-<script src="../noctography-ar.js?v=2.0.0"></script>
-<script src="../noctography-log.js?v=2.0.0"></script>
-<script src="../noctography-terrain.js?v=2.0.0"></script>
-<script src="../noctography-scout.js?v=2.0.0"></script>
-<script src="../noctography-comp.js?v=2.0.0"></script>
-<script src="../noctography-sightings.js?v=2.0.0"></script>
-<script src="../noctography-backup.js?v=2.0.0"></script>
+<script src="../noctography-engine.js?v=2.0.1"></script>
+<script src="../noctography-sat.js?v=2.0.1"></script>
+<script src="../noctography-plan.js?v=2.0.1"></script>
+<script src="../noctography-ar.js?v=2.0.1"></script>
+<script src="../noctography-log.js?v=2.0.1"></script>
+<script src="../noctography-terrain.js?v=2.0.1"></script>
+<script src="../noctography-scout.js?v=2.0.1"></script>
+<script src="../noctography-comp.js?v=2.0.1"></script>
+<script src="../noctography-sightings.js?v=2.0.1"></script>
+<script src="../noctography-backup.js?v=2.0.1"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -327,6 +327,8 @@ window.noctoTrack = function (name, every) {
   html[data-desk="on"] [data-app="cards"] { grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); }
   html[data-desk="on"] section p { max-width: 66ch; }
   html[data-desk="on"] [data-app="aside"] p { max-width: none; }
+  html[data-desk="on"] [data-pin-map] { height: min(62vh, 580px) !important; }
+  html[data-desk="on"] [data-bortle-map] { max-height: 80vh; }
   @media (min-width: 1180px) {
       html:not([data-desk="off"]) [data-app="col"] { max-width: 1380px !important; }
       html:not([data-desk="off"]) [data-app="head"] { order: -2; }
@@ -342,6 +344,8 @@ window.noctoTrack = function (name, every) {
       html:not([data-desk="off"]) [data-app="cards"] { grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); }
       html:not([data-desk="off"]) section p { max-width: 66ch; }
       html:not([data-desk="off"]) [data-app="aside"] p { max-width: none; }
+      html:not([data-desk="off"]) [data-pin-map] { height: min(62vh, 580px) !important; }
+      html:not([data-desk="off"]) [data-bortle-map] { max-height: 80vh; }
   }
   @media (hover: hover) {
     [data-nav-rail] button:hover { background: rgba(var(--line-rgb),.1); }
@@ -621,6 +625,7 @@ window.noctoTrack = function (name, every) {
               </div>
               <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; color: var(--text);">{{ cloudVal }}</span>
               <span style="font-size: 13px; color: var(--dim); line-height: 1.3;">{{ cloudSub }}</span>
+              <button type="button" onClick="{{ cloudMapGo }}" style="justify-self: start; min-height: 44px; margin-top: 2px; padding: 0 14px; border: 1px solid rgba(var(--line-rgb),.2); border-radius: 999px; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Cloud map</button>
             </div>
             <div style="display: grid; gap: 6px; align-content: start; min-width: 0;">
               <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Air</span>
@@ -850,6 +855,54 @@ window.noctoTrack = function (name, every) {
               <span>Tonight is the highlighted column on the left. Scroll left for the last five nights, as they actually were; tap any date for the night in full.</span>
             </p>
           </sc-if>
+          <button type="button" onClick="{{ wxToggle }}" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; margin: 0; padding: 0 12px; background: {{ wxLineBg }}; border: 1px solid {{ wxLineEdge }}; border-radius: 6px; color: var(--text); font-family: 'Barlow', sans-serif; cursor: pointer; text-align: left;">
+            <span style="display: flex; align-items: baseline; gap: 10px; min-width: 0;">
+              <span style="flex: 0 0 auto; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: {{ wxLineInk }};">Model</span>
+              <span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{ wxLineVal }};">{{ wxLabel }}</span>
+            </span>
+            <span style="flex: 0 0 auto; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim);">{{ wxBtn }}</span>
+          </button>
+          <sc-if value="{{ wxOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; gap: 12px; padding: 12px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
+              <span style="font-size: 13px; color: var(--faint);">For {{ wxPlace }}</span>
+              <button type="button" onClick="{{ wxBest.pick }}" style="display: grid; gap: 4px; margin: 0; padding: 12px 14px; background: {{ wxBest.bg }}; border: 1px solid {{ wxBest.edge }}; border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif; text-align: left; cursor: pointer;">
+                <span style="display: flex; justify-content: space-between; gap: 10px;">
+                  <span style="font-size: 16px; font-weight: 600; color: {{ wxBest.ink }};">Best match</span>
+                  <span style="flex: 0 0 auto; white-space: nowrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{ wxBest.ink }};">16 d</span>
+                </span>
+                <span style="font-size: 13px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">The sharpest model that reaches here for each hour, then a global one further out. Leave this on if you are unsure.</span>
+              </button>
+              <sc-for list="{{ wxGroups }}" as="g" hint-placeholder-count="2">
+                <div style="display: grid; gap: 6px;">
+                  <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--faint);">{{ g.label }}</span>
+                  <div style="display: grid; gap: 4px;">
+                    <sc-for list="{{ g.models }}" as="m" hint-placeholder-count="3">
+                      <button type="button" onClick="{{ m.pick }}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; margin: 0; padding: 6px 14px; background: {{ m.bg }}; border: 1px solid {{ m.edge }}; border-radius: 6px; color: var(--text); font-family: 'Barlow', sans-serif; text-align: left; cursor: pointer;">
+                        <span style="display: grid; gap: 1px; min-width: 0;">
+                          <span style="font-size: 15px; font-weight: 600; color: {{ m.ink }};">{{ m.name }}</span>
+                          <span style="font-size: 12.5px; color: var(--faint);">{{ m.sub }}</span>
+                        </span>
+                        <span style="flex: 0 0 auto; white-space: nowrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{ m.specInk }};">{{ m.spec }}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+              <div style="display: grid; border-top: 1px solid rgba(var(--line-rgb),.12);">
+                <sc-for list="{{ wxSwitches }}" as="s" hint-placeholder-count="2">
+                  <button type="button" onClick="{{ s.flip }}" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 56px; margin: 0; padding: 0; background: none; border: 0; border-bottom: 1px solid rgba(var(--line-rgb),.08); color: var(--text); font-family: 'Barlow', sans-serif; text-align: left; cursor: pointer;">
+                    <span style="display: grid; gap: 2px; min-width: 0;">
+                      <span style="font-size: 15px; font-weight: 600;">{{ s.label }}</span>
+                      <span style="font-size: 12.5px; line-height: 1.35; color: var(--faint); text-wrap: pretty;">{{ s.sub }}</span>
+                    </span>
+                    <span style="flex: 0 0 auto; position: relative; width: 44px; height: 26px; box-sizing: border-box; border-radius: 999px; background: {{ s.track }}; border: 1px solid {{ s.edge }};">
+                      <span style="position: absolute; top: 3px; left: {{ s.knobX }}; width: 18px; height: 18px; border-radius: 50%; background: {{ s.knob }};"></span>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
           <sc-if value="{{ aheadNightsOn }}" hint-placeholder-val="{{ true }}">
 
           <div style="min-width: 0; padding: 12px 10px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
@@ -875,6 +928,12 @@ window.noctoTrack = function (name, every) {
             <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; padding-right: 6px; background: rgb(var(--card-rgb)); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Cloud</span>
             <sc-for list="{{ ahead }}" as="a" hint-placeholder-count="15">
               <span data-nv-active="{{ a.best }}" style="display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 6px; border-left: {{ a.edge }}; border-right: {{ a.edge2 }}; background: {{ a.bg }}; opacity: {{ a.dim }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; color: {{ a.cloudColour }};">{{ a.cloudLabel }}</span>
+            </sc-for>
+            <sc-for list="{{ aheadCmp }}" as="row" hint-placeholder-count="0">
+              <span data-nv-solid="1" title="{{ row.title }}" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; overflow: hidden; padding-right: 4px; background: rgb(var(--card-rgb)); white-space: nowrap; font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: {{ row.kc }};">{{ row.k }}</span>
+              <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="15">
+                <span style="display: flex; align-items: center; justify-content: center; height: 28px; border-radius: 6px; border-left: {{ c.edge }}; border-right: {{ c.edge2 }}; background: {{ c.bg }}; opacity: {{ c.dim }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; font-weight: {{ c.w }}; color: {{ c.c }};">{{ c.v }}</span>
+              </sc-for>
             </sc-for>
             <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; padding-right: 6px; background: rgb(var(--card-rgb)); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Moon</span>
             <sc-for list="{{ ahead }}" as="a" hint-placeholder-count="15">
@@ -939,6 +998,9 @@ window.noctoTrack = function (name, every) {
                   <span style="font-size: 14px; line-height: 1.35; color: var(--dim); text-wrap: pretty;">{{ dayWindowSub }}</span>
                 </div>
                 <p style="margin: 0; font-size: 15px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ dayCompare }}</p>
+                <sc-if value="{{ dayCloudMapOn }}" hint-placeholder-val="{{ false }}">
+                  <button type="button" onClick="{{ dayCloudMapGo }}" style="justify-self: start; min-height: 44px; padding: 0 16px; border: 1px solid rgba(var(--line-rgb),.2); border-radius: 999px; background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Cloud map for this night</button>
+                </sc-if>
                 <sc-if value="{{ dayConjOn }}" hint-placeholder-val="{{ false }}">
                   <p style="display: flex; align-items: baseline; gap: 10px; margin: 0; padding: 9px 11px; background: rgba(var(--line-rgb),.04); border-radius: 6px; font-size: 14px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">
                     <span style="flex: 0 0 auto; font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--accent);">Conj</span>
@@ -949,6 +1011,39 @@ window.noctoTrack = function (name, every) {
                   <div style="display: grid; gap: 8px; padding-top: 11px; border-top: 1px solid rgba(var(--line-rgb),.12);">
                     <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Across the night</span>
                     <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ detNote }}</span>
+                    <sc-if value="{{ cmpMsgOn }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ cmpMsg }}</span>
+                    </sc-if>
+                    <sc-if value="{{ cmpOn }}" hint-placeholder-val="{{ false }}">
+                      <p style="margin: 0; font-size: 14px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ cmpLine }}</p>
+                      <div style="min-width: 0; padding: 10px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
+                        <div style="overflow-x: auto; overflow-y: hidden;">
+                          <div style="display: grid; gap: 3px; min-width: max-content;">
+                            <div style="display: flex; gap: 3px;">
+                              <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; flex: 0 0 90px; padding-right: 8px; background: rgb(var(--card-rgb));"></span>
+                              <sc-for list="{{ detCols }}" as="col" hint-placeholder-count="8">
+                                <span style="flex: 0 0 54px; display: flex; align-items: center; justify-content: center; height: 20px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--dim);">{{ col.label }}</span>
+                              </sc-for>
+                            </div>
+                            <div style="display: flex; gap: 3px; padding-bottom: 5px; margin-bottom: 2px; border-bottom: 1px solid rgba(var(--line-rgb),.12);">
+                              <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; flex: 0 0 90px; display: flex; align-items: center; padding-right: 8px; background: rgb(var(--card-rgb)); white-space: nowrap; font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text2);">Clear</span>
+                              <sc-for list="{{ cmpAgree }}" as="c" hint-placeholder-count="8">
+                                <span style="flex: 0 0 54px; display: flex; align-items: center; justify-content: center; height: 25px; border-radius: 4px; background: {{ c.bg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 700; color: {{ c.c }};">{{ c.v }}</span>
+                              </sc-for>
+                            </div>
+                            <sc-for list="{{ cmpRows }}" as="row" hint-placeholder-count="4">
+                              <div style="display: flex; gap: 3px;">
+                                <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; flex: 0 0 90px; display: flex; align-items: center; padding-right: 8px; background: rgb(var(--card-rgb)); white-space: nowrap; font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--faint);">{{ row.k }}</span>
+                                <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="8">
+                                  <span style="flex: 0 0 54px; display: flex; align-items: center; justify-content: center; height: 25px; border-radius: 4px; background: rgba(var(--line-rgb),.04); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{ c.c }};">{{ c.v }}</span>
+                                </sc-for>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </div>
+                      </div>
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Total cloud. Clear is under 35%. The table below follows {{ wxName }}.</span>
+                    </sc-if>
                     <div style="min-width: 0; padding: 10px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
                       <div style="overflow-x: auto; overflow-y: hidden;">
                         <div style="display: grid; gap: 3px; min-width: max-content;">
@@ -2367,7 +2462,26 @@ window.noctoTrack = function (name, every) {
           <sc-if value="{{ pinPlaceOn }}" hint-placeholder-val="{{ true }}">
             <div style="display: grid; gap: 8px;">
               
-              {{ pinEl }}
+              <div data-cloud-map="1" style="position: relative; min-width: 0;">
+                {{ pinEl }}
+                <sc-if value="{{ mapBusy }}" hint-placeholder-val="{{ false }}">
+                  <span data-nv-bar="1" style="position: absolute; top: 10px; left: 10px; padding: 5px 10px; border-radius: 999px; background: rgba(var(--well-rgb),.86); border: 1px solid rgba(var(--line-rgb),.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--dim);">Reading the atlas…</span>
+                </sc-if>
+                <sc-if value="{{ compMapCardOn }}" hint-placeholder-val="{{ false }}">
+                  <div data-nv-bar="1" style="position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; align-items: stretch; gap: 11px; padding: 9px; background: rgba(var(--well-rgb),.94); border: 1px solid rgba(var(--accent-rgb),.5); border-radius: 12px;">
+                    <span style="flex: 0 0 auto; width: 50px; height: 66px; border-radius: 6px; background-color: rgba(var(--line-rgb),.06); background-image: url({{ compMapThumb }}); background-size: cover; background-position: center;"></span>
+                    <button type="button" onClick="{{ compMapOpen }}" style="flex: 1 1 auto; display: grid; gap: 2px; align-content: center; min-width: 0; padding: 0; text-align: left; background: none; border: 0; color: inherit; cursor: pointer;">
+                      <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; line-height: 1.1; color: var(--text);">{{ compMapName }}</span>
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--accent);">{{ compMapLine }}</span>
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--faint);">{{ compMapWalk }}</span>
+                    </button>
+                    <button type="button" onClick="{{ compMapClear }}" aria-label="Close" style="flex: 0 0 auto; align-self: start; width: 34px; height: 34px; border: 1px solid rgba(var(--line-rgb),.2); border-radius: 999px; background: none; color: var(--dim); font-size: 14px; cursor: pointer;">✕</button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ cloudBusyOn }}" hint-placeholder-val="{{ false }}">
+                  <span data-nv-bar="1" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; border-radius: 999px; background: rgba(var(--well-rgb),.86); border: 1px solid rgba(var(--line-rgb),.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--dim);">{{ cloudBusyLine }}</span>
+                </sc-if>
+              </div>
               <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
                 <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--text);">{{ pinCoord }}</span>
                 <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--faint); text-align: right;">{{ pinCredit }}</span>
@@ -2382,6 +2496,51 @@ window.noctoTrack = function (name, every) {
                 <button type="button" onClick="{{ pinZoomOut }}" aria-label="Zoom out" style="flex: 0 0 auto; min-width: 48px; min-height: 48px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">−</button>
                 <button type="button" onClick="{{ pinZoomIn }}" aria-label="Zoom in" style="flex: 0 0 auto; min-width: 48px; min-height: 48px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">+</button>
               </div>
+              <div style="display: flex; align-items: center; gap: 7px; flex-wrap: wrap;">
+                <button type="button" onClick="{{ mapLayerAtlas }}" data-nv-active="{{ mapAtlasOn }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ mapAtlasBg }}; color: {{ mapAtlasFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Sky brightness</button>
+                <button type="button" onClick="{{ mapLayerTonight }}" data-nv-active="{{ mapTonightOn }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ mapTonightBg }}; color: {{ mapTonightFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Real-world Bortle</button>
+                <button type="button" onClick="{{ pinCloudToggle }}" data-nv-active="{{ pinCloudOnW }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ pinCloudBg }}; color: {{ pinCloudFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Cloud</button>
+              </div>
+              <sc-if value="{{ pinLpOn }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; gap: 8px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 20px; line-height: 1.1; color: {{ mapBortleColour }};">{{ mapBortle }}</span>
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--dim);">{{ mapSqm }}</span>
+                  </div>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">At the crosshair · {{ mapCoord }}</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint);">B1</span>
+                    <i data-nv-grad="1" style="flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(to right, #2b3a42, #3a6a63, #98ac58, #e2962c, #f64618);"></i>
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint);">B9</span>
+                  </div>
+                  <span style="font-size: 14px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ mapLayerNote }}</span>
+                  <sc-if value="{{ mapDeltaOn }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.4; color: var(--accent); text-wrap: pretty;">{{ mapDeltaLine }}</span>
+                  </sc-if>
+                </div>
+              </sc-if>
+            <sc-if value="{{ cloudOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; gap: 8px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 17px; color: var(--text);">{{ cloudWhen }}</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ cloudRel }}</span>
+                </div>
+                <input type="range" min="0" max="{{ cloudMax }}" step="1" value="{{ cloudIdx }}" onInput="{{ onCloudSlider }}" aria-label="Forecast time" style="width: 100%; min-height: 44px; accent-color: var(--accent);">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                  <button type="button" onClick="{{ cloudGoNow }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Now</button>
+                  <button type="button" onClick="{{ cloudGoTonight }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Tonight</button>
+                  <span style="flex: 1; min-width: 12px;"></span>
+                  <button type="button" onClick="{{ cloudPickTotal }}" data-nv-active="{{ cloudTotalOn }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ cloudTotalBg }}; color: {{ cloudTotalFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">All cloud</button>
+                  <button type="button" onClick="{{ cloudPickLow }}" data-nv-active="{{ cloudLowOn }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ cloudLowBg }}; color: {{ cloudLowFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Low only</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint);">Clear</span>
+                  <i data-nv-grad="1" style="flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(to right, rgba(var(--well-rgb),1), rgba(198,206,232,.7));"></i>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint);">Overcast</span>
+                </div>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ cloudGridLine }}</span>
+              </div>
+            </sc-if>
             </div>
           </sc-if>
         </div>
@@ -2389,55 +2548,6 @@ window.noctoTrack = function (name, every) {
         </div>
 
         <sc-if value="{{ mapReady }}" hint-placeholder-val="{{ false }}">
-          <div style="display: grid; gap: 10px;">
-            
-            <div style="display: grid; gap: 6px; padding: 13px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-              
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(21px, 6.3vw, 26px); line-height: 1.1; color: {{ mapBortleColour }};">{{ mapBortle }}</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--dim);">{{ mapSqm }}</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--faint);">{{ mapCoord }}</span>
-              
-            </div>
-            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Sky brightness around you</span>
-            <div data-app="split" style="display: grid; gap: 10px; min-width: 0;">
-            <div style="display: grid; gap: 10px; min-width: 0;">
-            <div style="position: relative; min-width: 0;">
-              {{ mapEl }}
-              <sc-if value="{{ mapBusy }}" hint-placeholder-val="{{ false }}">
-                <span data-nv-bar="1" style="position: absolute; top: 10px; left: 10px; padding: 5px 10px; border-radius: 999px; background: rgba(var(--well-rgb),.86); border: 1px solid rgba(var(--line-rgb),.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--dim);">Reading the atlas…</span>
-              </sc-if>
-              <sc-if value="{{ compMapCardOn }}" hint-placeholder-val="{{ false }}">
-                <div data-nv-bar="1" style="position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; align-items: stretch; gap: 11px; padding: 9px; background: rgba(var(--well-rgb),.94); border: 1px solid rgba(var(--accent-rgb),.5); border-radius: 12px;">
-                  <span style="flex: 0 0 auto; width: 50px; height: 66px; border-radius: 6px; background-color: rgba(var(--line-rgb),.06); background-image: url({{ compMapThumb }}); background-size: cover; background-position: center;"></span>
-                  <button type="button" onClick="{{ compMapOpen }}" style="flex: 1 1 auto; display: grid; gap: 2px; align-content: center; min-width: 0; padding: 0; text-align: left; background: none; border: 0; color: inherit; cursor: pointer;">
-                    <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; line-height: 1.1; color: var(--text);">{{ compMapName }}</span>
-                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--accent);">{{ compMapLine }}</span>
-                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--faint);">{{ compMapWalk }}</span>
-                  </button>
-                  <button type="button" onClick="{{ compMapClear }}" aria-label="Close" style="flex: 0 0 auto; align-self: start; width: 34px; height: 34px; border: 1px solid rgba(var(--line-rgb),.2); border-radius: 999px; background: none; color: var(--dim); font-size: 14px; cursor: pointer;">✕</button>
-                </div>
-              </sc-if>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint);">B1</span>
-              <i data-nv-grad="1" style="flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(to right, #2b3a42, #3a6a63, #98ac58, #e2962c, #f64618);"></i>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint);">B9</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-              <button type="button" onClick="{{ mapLayerAtlas }}" data-nv-active="{{ mapAtlasOn }}" style="flex: 1 1 auto; min-height: 46px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ mapAtlasBg }}; color: {{ mapAtlasFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">The atlas</button>
-              <button type="button" onClick="{{ mapLayerTonight }}" data-nv-active="{{ mapTonightOn }}" style="flex: 1 1 auto; min-height: 46px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ mapTonightBg }}; color: {{ mapTonightFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Real-world Bortle</button>
-              <button type="button" onClick="{{ mapLayerOff }}" data-nv-active="{{ mapOffOn }}" style="flex: 0 1 auto; min-height: 46px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: {{ mapOffBg }}; color: {{ mapOffFg }}; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Off</button>
-              
-              
-            </div>
-            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">{{ mapKmLabel }}</span>
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--faint); text-align: right;">{{ mapCredit }}</span>
-            </div>
-            <span style="font-size: 14px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ mapLayerNote }}</span>
-            <sc-if value="{{ mapDeltaOn }}" hint-placeholder-val="{{ false }}">
-              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.4; color: var(--accent); text-wrap: pretty;">{{ mapDeltaLine }}</span>
-            </sc-if>
             <sc-if value="{{ hzOn }}" hint-placeholder-val="{{ false }}">
               <div data-hz-panel="1" style="display: grid; gap: 8px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -2491,20 +2601,6 @@ window.noctoTrack = function (name, every) {
                 </sc-if>
               </div>
             </sc-if>
-
-
-            </div>
-            <div data-app="aside" style="display: grid; gap: 10px; min-width: 0;">
-            
-
-
-
-            
-
-          
-            </div>
-          </div>
-          </div>
         </sc-if>
       </section>
     </sc-if>
@@ -3582,7 +3678,7 @@ window.noctoTrack = function (name, every) {
 <script type="text/x-dc" data-dc-script data-props="{&quot;coffeeUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;https://buymeacoffee.com/jpchaworthy&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Links&quot;},&quot;showAurora&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Home screen&quot;}}">
 class Component extends DCLogic {
   state = {
-    tab: 'tonight', ready: false, showLoc: false, mapView: null, mapLayer: 'atlas', mapBusy: false, pinView: null, pinOpen: false, query: '', results: [], coordHit: null, favName: '', pal: 'obsidian', showPal: false,
+    tab: 'tonight', ready: false, showLoc: false, mapView: null, mapLayer: 'off', mapBusy: false, pinView: null, pinOpen: false, query: '', results: [], coordHit: null, favName: '', pal: 'obsidian', showPal: false,
     place: '', skyMode: 'auto', range: 15, sel: null, open: { 0: true }, past: [], daySel: null, info: {}, aurTick: 0,
     kit: (window.NoctoPlan ? window.NoctoPlan.loadKit() : null),
     trailRecipe: null, trailHours: 2.5, trailStartOff: 30, showTrailLen: false,
@@ -3679,8 +3775,18 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '2.0.0';
+  VERSION = '2.0.1';
   BUILDS = [
+    {
+      v: '2.0.1', date: '2026-09-25', silent: true,
+      title: 'Noctography 2.0.1',
+      intro: '',
+      bullets: [
+        'Added option to switch and compare cloud forecast models',
+        'View cloud forecast over time on the map',
+        'Squashed a few bugs',
+      ],
+    },
     {
       v: '2.0.0', date: '2026-09-24', silent: false,
       title: 'Noctography 2.0',
@@ -4155,7 +4261,7 @@ class Component extends DCLogic {
        as there is a position to measure against rather than waiting out a timer that started
        before the engine had booted. */
     this.sightLiveCheck();
-    this.drawSkyline(); this.drawAurSkyline(); this.drawMap(); this.drawPin(); this.drawNearby(); this.drawCompMap();
+    this.drawSkyline(); this.drawAurSkyline(); this.drawPin(); this.drawNearby(); this.drawCompMap();
     this.drawSightMap();
     this.parkRail(); this.drawFrame();
     this.watchWind(this.state.tab === 'aurora');
@@ -4849,7 +4955,7 @@ class Component extends DCLogic {
     this._panoLoading = true;
     if (customElements.get('pano-calculator')) return;
     const s = document.createElement('script');
-    s.src = '../pano-calculator.js?v=2.0.0';
+    s.src = '../pano-calculator.js?v=2.0.1';
     s.async = true;
     document.head.appendChild(s);
   }
@@ -5073,7 +5179,9 @@ class Component extends DCLogic {
     await E.loadTiles();
     E.updateSky();
     this.setState({ sky: E.state.sky, wx: 'pending' });
+    E.state.wxModel = this.wxModelFor();
     await E.loadWeather();
+    if (this.wxCmpIsOn()) this.loadWxCmp();
     // Until half an hour before sunrise you are still out on last night, and tonight() stays
     // there. The night list has to start on the same night or the tiles and the outlook would
     // disagree about which one is "tonight". This has to come after the forecast, not before:
@@ -5312,6 +5420,8 @@ class Component extends DCLogic {
       isPano: st.tab === 'pano', isMore: st.tab === 'more', isData: st.tab === 'data',
       isTrails: st.tab === 'trails', isSky: st.tab === 'sky', isKit: st.tab === 'kit',
       isLog: st.tab === 'log', isMap: st.tab === 'map', isComps: st.tab === 'comps',
+      cloudMapGo: () => this.openCloudMap(),
+      ...this.safe('cloudMapVals'),
       ...this.logVals(),
       ...this.safe('compMapVals'),
       ...this.compVals(),
@@ -11487,7 +11597,7 @@ class Component extends DCLogic {
     if (this._tileRaf) return;
     this._tileRaf = requestAnimationFrame(() => {
       this._tileRaf = null;
-      this.drawMap(); this.drawPin(); this.drawNearby(); this.drawCompMap();
+      this.drawPin(); this.drawNearby(); this.drawCompMap();
     });
   }
   tileUrl(tpl, src, z, x, y) {
@@ -11572,7 +11682,7 @@ class Component extends DCLogic {
         }
       }
       ctx.save();
-      ctx.globalAlpha = nv ? 0.9 : 1;
+      ctx.globalAlpha = opts.lpAlpha != null ? opts.lpAlpha : (nv ? 0.9 : 1);
       ctx.imageSmoothingEnabled = true;
       ctx.drawImage(lp, 0, 0, bw, bh, 0, 0, W, H);
       ctx.restore();
@@ -11834,37 +11944,38 @@ class Component extends DCLogic {
     if (!E || E.state.lat == null) return null;
     return { lat: E.state.lat, lon: E.state.lon, z: 15, style: 'sat' };
   }
-
-  drawMap() {
-    if (this.state.tab !== 'map') return;
-    const v = this.mapView();
-    if (!v) return;
-    const E = this.E(), st = this.state;
-    const nv = !!st.nv, pal = this.pal();
-    /* Saved places, then the current site, then the compositions on top: the composition is the
-       most specific thing on the map, so it should not sit under a favourite pin. */
-    const markers = (st.favs || []).map(f => ({ lat: f.lat, lon: f.lon, r: 4,
-      colour: nv ? 'rgba(255,59,24,.8)' : 'rgba(245,245,245,.8)' }));
-    if (E && E.state.lat != null) markers.push({ lat: E.state.lat, lon: E.state.lon, r: 5.5,
-      colour: nv ? '#FF3B18' : pal.accent });
-    this.drawSlippy(this._mapCv, v, {
-      lp: st.mapLayer !== 'off',
-      crosshair: true,
-      markers,
-      after: (ctx, f) => this.drawCompPins(ctx, f),
-    });
+  /* Any layer on the Refine location map turns it into a map for looking: pans no longer move the
+     pin, and your site is marked separately from the crosshair. */
+  pinLook(st) { return !!st.pinCloud || (!!st.mapLayer && st.mapLayer !== 'off'); }
+  setPinLayers(patch, opts) {
+    const E = this.E(), st = this.state, v = this.pinView();
+    if (!E || E.state.lat == null || !v) return;
+    const next = { ...st, ...patch }, was = this.pinLook(st), now = this.pinLook(next), extra = {};
+    const home = { lat: E.state.lat, lon: E.state.lon };
+    /* The view is left exactly as it is: a layer is something you look through, not a reason to
+       move. The one exception is arriving from a Cloud map button, which asks for a wide view.
+       Turning the last layer off only re-centres on the pin, because a drag from there moves it. */
+    if (!was && now) clearTimeout(this._pinTimer);
+    if (opts && opts.z) extra.pinView = { ...v, ...home, z: opts.z };
+    else if (was && !now) extra.pinView = { ...v, ...home };
+    if (patch.pinCloud === false) { clearTimeout(this._cgTimer); extra.cloudBusy = null; }
+    this.setState({ ...patch, ...extra }, () => { this.drawPin(); if (next.mapLayer !== 'off') this.mapWarm(); });
   }
+
+  /* The brightness map is an overlay on the Refine location map now, so every old call to repaint
+     it repaints that one. */
+  drawMap() { this.drawPin(); }
 
   /* A composition pin carries the one thing a dot cannot: when the sky next stands where you saw
      it. Hidden when the view is wider than 50 km, because at that scale the pin is no longer
      pointing at a spot you could stand on and a cluster of them just hides the map. */
   COMP_PIN_KM = 50;
-  drawCompPins(ctx, f) {
+  drawCompPins(ctx, f, view) {
     const st = this.state, C = this.compC(), E = this.E();
     if (!st.compPins || !C) return;
     const list = st.comps || [];
     if (!list.length) return;
-    const v = this.mapView();
+    const v = view || this.mapView();
     if (!v) return;
     const kmWide = this.metresPerPx(v.lat, v.z) * (f.cssW || 320) / 1000;
     if (kmWide > this.COMP_PIN_KM) return;
@@ -11914,27 +12025,212 @@ class Component extends DCLogic {
     return val;
   }
 
+  /* ---- the cloud map ----
+     Forecast cloud for whatever the brightness map is showing, from one grid of points laid over
+     the view with a margin, so a small pan does not refetch. Spacing follows the zoom, never finer
+     than 4 km (below that the models have nothing more to say) and never more than 20 by 20, so a
+     whole country is 400 readings in four requests of a hundred. Best match only: four models times
+     four hundred points is not a request to make from a phone. Five days, hourly, total and low. */
+  CLOUD_HOURS = 120;
+  cloudViewBox() {
+    const v = this.pinView(), cv = this._pinCv;
+    if (!v || !cv) return null;
+    const src = this.TILE_SOURCES[v.style] || this.TILE_SOURCES.dark;
+    const cssW = cv.clientWidth || 320, cssH = cv.clientHeight || cssW;
+    const zf = Math.max(src.minZ || 3, Math.min(src.maxZ, v.z || 0)), z = Math.round(zf), k = Math.pow(2, zf - z);
+    const [wx, wy] = this.project(v.lat, v.lon, z);
+    const [n, w] = this.unproject(wx - cssW / k / 2, wy - cssH / k / 2, z);
+    const [s, e] = this.unproject(wx + cssW / k / 2, wy + cssH / k / 2, z);
+    return { n, s, w, e, km: this.metresPerPx(v.lat, v.z) * cssW / 1000 };
+  }
+  cloudEnsure() {
+    clearTimeout(this._cgTimer);
+    this._cgTimer = setTimeout(() => this.cloudFetch(), 650);
+  }
+  async cloudFetch() {
+    if (!this.state.pinCloud || this.state.tab !== 'map') return;
+    const b = this.cloudViewBox();
+    if (!b) return;
+    const spacing = Math.max(4, b.km / 16), g = this._cg;
+    if (g && g.s <= b.s && g.n >= b.n && g.w <= b.w && g.e >= b.e && g.spacing <= spacing * 1.6 && g.spacing >= spacing / 1.6
+      && Date.now() - g.at < 45 * 60000) return;
+    const pLat = (b.n - b.s) * 0.2, pLon = (b.e - b.w) * 0.2;
+    /* A close view is smaller than one model cell. Widen the grid round the centre to at least one
+       spacing either way, so a street-level view still reads a 4 km grid rather than four points
+       inside the same cell claiming a finer resolution than the forecast has. */
+    let s = Math.max(-80, b.s - pLat), n = Math.min(80, b.n + pLat), w = b.w - pLon, e = b.e + pLon;
+    const cLat = (s + n) / 2, cLon = (w + e) / 2, minLat = spacing / 111, minLon = spacing / (111 * Math.max(0.1, Math.cos(cLat * Math.PI / 180)));
+    if (n - s < 2 * minLat) { s = Math.max(-80, cLat - minLat); n = Math.min(80, cLat + minLat); }
+    if (e - w < 2 * minLon) { w = cLon - minLon; e = cLon + minLon; }
+    const mid = (s + n) / 2;
+    const ny = Math.min(20, Math.max(2, Math.ceil((n - s) * 111 / spacing) + 1));
+    const nx = Math.min(20, Math.max(2, Math.ceil((e - w) * 111 * Math.cos(mid * Math.PI / 180) / spacing) + 1));
+    const pts = [];
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) pts.push([s + (n - s) * j / (ny - 1), w + (e - w) * i / (nx - 1)]);
+    const seq = (this._cgSeq = (this._cgSeq || 0) + 1);
+    const batches = [];
+    for (let i = 0; i < pts.length; i += 100) batches.push(pts.slice(i, i + 100));
+    let done = 0;
+    this.setState({ cloudBusy: { done: 0, of: batches.length }, cloudErr: null });
+    const tot = new Array(pts.length), low = new Array(pts.length);
+    let t0 = null, hours = 0, failed = false;
+    const one = async (list, base) => {
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + list.map(p => p[0].toFixed(3)).join(',')
+        + '&longitude=' + list.map(p => (((p[1] + 540) % 360) - 180).toFixed(3)).join(',')
+        + '&hourly=cloud_cover,cloud_cover_low&forecast_hours=' + this.CLOUD_HOURS + '&timezone=UTC';
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json(), arr = Array.isArray(j) ? j : [j];
+      arr.forEach((o, i) => {
+        const hr = o && o.hourly;
+        if (!hr || !hr.time) return;
+        if (t0 == null) { t0 = Date.parse(hr.time[0] + ':00Z'); hours = hr.time.length; }
+        tot[base + i] = hr.cloud_cover; low[base + i] = hr.cloud_cover_low;
+      });
+      done++;
+      if (seq === this._cgSeq) this.setState({ cloudBusy: { done, of: batches.length } });
+    };
+    try {
+      for (let i = 0; i < batches.length; i += 2) {
+        await Promise.all(batches.slice(i, i + 2).map((l, q) => one(l, (i + q) * 100)));
+      }
+    } catch (err) { failed = true; }
+    if (seq !== this._cgSeq) return;
+    if (failed || t0 == null) {
+      this.setState({ cloudBusy: null, cloudErr: 'The forecast did not answer. Wide views ask for a lot at once: wait a minute, or zoom in and try again.' });
+      return;
+    }
+    this._cg = { s, n, w, e, nx, ny, tot, low, t0, hours, spacing: Math.max((n - s) * 111 / (ny - 1), 1), at: Date.now() };
+    this.setState({ cloudBusy: null, cloudGen: (this.state.cloudGen || 0) + 1 }, () => this.drawPin());
+  }
+  cloudSample(lat, lon, hf, useLow) {
+    const g = this._cg;
+    if (!g) return null;
+    const fx = (lon - g.w) / (g.e - g.w) * (g.nx - 1), fy = (lat - g.s) / (g.n - g.s) * (g.ny - 1);
+    if (fx < 0 || fy < 0 || fx > g.nx - 1 || fy > g.ny - 1) return null;
+    const src = useLow ? g.low : g.tot;
+    const h0 = Math.max(0, Math.min(g.hours - 1, Math.floor(hf))), h1 = Math.min(g.hours - 1, h0 + 1), ft = Math.max(0, Math.min(1, hf - h0));
+    const at = (i, j) => {
+      const a = src[j * g.nx + i];
+      if (!a) return null;
+      const x = a[h0], y = a[h1];
+      return x == null ? y : y == null ? x : x + (y - x) * ft;
+    };
+    const i0 = Math.min(g.nx - 2, Math.floor(fx)), j0 = Math.min(g.ny - 2, Math.floor(fy));
+    const u = fx - i0, v = fy - j0;
+    const c = [[at(i0, j0), (1 - u) * (1 - v)], [at(i0 + 1, j0), u * (1 - v)], [at(i0, j0 + 1), (1 - u) * v], [at(i0 + 1, j0 + 1), u * v]];
+    let sum = 0, wt = 0;
+    c.forEach(([val, k]) => { if (val != null) { sum += val * k; wt += k; } });
+    return wt > 0 ? sum / wt : null;
+  }
+  /* Grey haze over a dark map, the same language as the nearby-cloud wash: clear ground stays dark
+     and legible, cloud thickens over it. */
+  drawCloudGrid(ctx, f) {
+    const g = this._cg;
+    if (!g) return;
+    const st = this.state, hf = ((st.cloudAt || Date.now()) - g.t0) / 3600000;
+    const STEP = 8;
+    const bw = Math.max(1, Math.ceil(f.cssW / STEP)), bh = Math.max(1, Math.ceil(f.cssH / STEP));
+    if (!this._cgCv) this._cgCv = document.createElement('canvas');
+    const cv = this._cgCv;
+    if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
+    const cx = cv.getContext('2d');
+    cx.clearRect(0, 0, bw, bh);
+    for (let j = 0; j < bh; j++) {
+      for (let i = 0; i < bw; i++) {
+        const [lat, lon] = this.unproject(f.ox + (i + 0.5) * STEP / f.k, f.oy + (j + 0.5) * STEP / f.k, f.z);
+        const val = this.cloudSample(lat, lon, hf, !!st.cloudLow);
+        if (val == null) continue;
+        const a = Math.max(0, Math.min(1, val / 100)) * 0.7;
+        if (a < 0.015) continue;
+        cx.fillStyle = f.nv ? 'rgba(255,59,24,' + (a * 0.75).toFixed(3) + ')' : 'rgba(198,206,232,' + a.toFixed(3) + ')';
+        cx.fillRect(i, j, 1, 1);
+      }
+    }
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(cv, 0, 0, bw, bh, 0, 0, f.W, f.H);
+    ctx.restore();
+  }
+  /* While cloud is showing, the Refine location map is for looking, not for moving the pin: pinch
+     out to the whole country and a pan would otherwise carry your site with it. Your site is marked
+     instead of the crosshair, and turning cloud off puts the map back on it. */
+  cloudOnPin(on, at) {
+    if (on) this.track('place/cloudmap');
+    this.setPinLayers(on ? { pinCloud: true, cloudAt: at || this.state.cloudAt || Date.now() } : { pinCloud: false }, at ? { z: 7 } : null);
+  }
+  openCloudMap(at) {
+    const E = this.E();
+    if (!E || E.state.lat == null) return;
+    this.goTab('map');
+    setTimeout(() => { this.cloudOnPin(true, at || Date.now()); this.scrollSoon('[data-pin-card]'); }, 0);
+  }
+  cloudMapVals() {
+    const st = this.state, E = this.E();
+    if (!st.pinCloud || !E) return { cloudOn: false, cloudBusyOn: false };
+    const g = this._cg, now = Date.now();
+    const t0 = g ? g.t0 : Math.floor(now / 3600000) * 3600000, hours = g ? g.hours : this.CLOUD_HOURS;
+    const idx = Math.max(0, Math.min(hours - 1, Math.round(((st.cloudAt || now) - t0) / 3600000)));
+    const d = new Date(t0 + idx * 3600000), tz = E.tzOffset() * 60000;
+    const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const ld = new Date(d.getTime() + tz);
+    const hrs = Math.round((d.getTime() - now) / 3600000);
+    const rel = hrs <= 0 ? 'now' : hrs < 48 ? 'in ' + hrs + ' h' : 'in ' + Math.round(hrs / 24) + ' days';
+    const setAt = ms => this.setState({ cloudAt: ms }, () => this.drawPin());
+    const lowOn = !!st.cloudLow;
+    const pill = on => ({ bg: on ? 'rgba(var(--accent-rgb),.16)' : 'transparent', fg: on ? 'var(--accent)' : 'var(--dim)' });
+    const pT = pill(!lowOn), pL = pill(lowOn);
+    const tonight = () => {
+      const lm = now + tz, lh = new Date(lm).getUTCHours();
+      if (lh < 6 || lh >= 23) return now;
+      return Math.floor(lm / 86400000) * 86400000 + 23 * 3600000 - tz;
+    };
+    return {
+      cloudOn: true,
+      cloudWhen: DAYS[ld.getUTCDay()] + ' ' + ld.getUTCDate() + ' ' + E.MONTHS[ld.getUTCMonth()] + ' · ' + this.hhmm(d),
+      cloudRel: rel, cloudMax: hours - 1, cloudIdx: idx,
+      onCloudSlider: e => setAt(t0 + (+e.target.value) * 3600000),
+      cloudGoNow: () => setAt(now), cloudGoTonight: () => setAt(tonight()),
+      cloudPickTotal: () => this.setState({ cloudLow: false }, () => this.drawPin()),
+      cloudPickLow: () => this.setState({ cloudLow: true }, () => this.drawPin()),
+      cloudTotalOn: lowOn ? 'off' : 'on', cloudLowOn: lowOn ? 'on' : 'off',
+      cloudTotalBg: pT.bg, cloudTotalFg: pT.fg, cloudLowBg: pL.bg, cloudLowFg: pL.fg,
+      cloudBusyOn: !!st.cloudBusy,
+      cloudBusyLine: st.cloudBusy ? 'Reading the cloud… ' + st.cloudBusy.done + ' of ' + st.cloudBusy.of : '',
+      cloudGridLine: st.cloudErr ? st.cloudErr
+        : g ? 'Best match · a reading every ' + Math.round(g.spacing) + ' km · ' + (g.nx * g.ny) + ' points · hourly, 5 days'
+        : 'Fetching the forecast for this view…',
+    };
+  }
+
   drawPin() {
     if (this.state.tab !== 'map') return;
     const v = this.pinView();
     if (!v) return;
-    this.drawSlippy(this._pinCv, v, { lp: false, crosshair: true, markers: [] });
+    const st = this.state, cloud = !!st.pinCloud, look = this.pinLook(st), E = this.E(), nv = !!st.nv, pal = this.pal();
+    this.drawSlippy(this._pinCv, v, {
+      lp: st.mapLayer && st.mapLayer !== 'off', lpAlpha: nv ? 0.65 : 0.7, crosshair: true,
+      markers: look && E && E.state.lat != null ? [{ lat: E.state.lat, lon: E.state.lon, r: 5.5, colour: nv ? '#FF3B18' : pal.accent }] : [],
+      wash: cloud ? (ctx, f) => this.drawCloudGrid(ctx, f) : null,
+      after: look ? (ctx, f) => this.drawCompPins(ctx, f, v) : null,
+    });
+    if (cloud) this.cloudEnsure();
   }
 
   /* One place decides how much atlas is needed: the view itself. */
   mapWarm() {
-    const E = this.E(), v = this.mapView();
-    if (!E || !v) return;
+    const E = this.E(), v = this.pinView();
+    if (!E || !v || !this.state.mapLayer || this.state.mapLayer === 'off') return;
     const km = Math.max(60, this.metresPerPx(v.lat, v.z) * 900 / 1000);
     this.setState({ mapBusy: true });
     E.loadTiles(v.lat, v.lon, km).then(() => {
-      this.setState({ mapBusy: false }, () => this.drawMap());
+      this.setState({ mapBusy: false }, () => this.drawPin());
     }).catch(() => this.setState({ mapBusy: false }));
   }
 
   mapVals() {
     const E = this.E(), st = this.state;
-    const v = this.mapView();
+    const v = this.pinView();
     if (!E || !v) return { mapReady: false };
     const src = this.TILE_SOURCES[v.style];
     const t = E.tileSky(v.lat, v.lon) || E.atlasSky(v.lat, v.lon);
@@ -11946,6 +12242,7 @@ class Component extends DCLogic {
       mapEl: React.createElement('canvas', {
         ref: el => { this._mapCv = el; if (el) requestAnimationFrame(() => this.drawMap()); },
         ...this.slippyHandlers(v, set, true, this.compTap),
+        'data-bortle-map': '1',
         style: { display: 'block', width: '100%', height: 'auto', aspectRatio: '1 / 1',
           borderRadius: '10px', touchAction: 'none', cursor: 'grab' },
       }),
@@ -11960,9 +12257,10 @@ class Component extends DCLogic {
          one level away. */
       mapZoomIn: () => { const c = this.mapView(); if (c) set({ ...c, z: Math.min(this.TILE_SOURCES[c.style].maxZ, Math.floor(c.z) + 1) }); },
       mapZoomOut: () => { const c = this.mapView(); if (c) set({ ...c, z: Math.max(this.TILE_SOURCES[c.style].minZ || 3, Math.ceil(c.z) - 1) }); },
-      mapLayerAtlas: () => this.setState({ mapLayer: 'atlas' }, () => this.drawMap()),
-      mapLayerTonight: () => this.setState({ mapLayer: 'tonight' }, () => this.drawMap()),
-      mapLayerOff: () => this.setState({ mapLayer: 'off' }, () => this.drawMap()),
+      mapLayerAtlas: () => this.setPinLayers({ mapLayer: st.mapLayer === 'atlas' ? 'off' : 'atlas' }),
+      mapLayerTonight: () => this.setPinLayers({ mapLayer: st.mapLayer === 'tonight' ? 'off' : 'tonight' }),
+      mapLayerOff: () => this.setPinLayers({ mapLayer: 'off' }),
+      pinLpOn: !!st.mapLayer && st.mapLayer !== 'off',
       mapAtlasOn: st.mapLayer === 'atlas' ? 'on' : 'off',
       mapTonightOn: st.mapLayer === 'tonight' ? 'on' : 'off',
       mapOffOn: st.mapLayer === 'off' ? 'on' : 'off',
@@ -11983,7 +12281,7 @@ class Component extends DCLogic {
         return d < -1.5 ? head + ' It swamps the difference between places, so tonight the drive buys you very little.' : head;
       })(),
       mapLayerNote: st.mapLayer === 'atlas'
-        ? 'Light pollution atlas reading \u2013 before tonight\u0027s moon and haze.'
+        ? 'Sky brightness from the light pollution atlas, before tonight\u0027s moon and haze. Pans look around without moving your pin.'
         : st.mapLayer === 'tonight'
           ? 'The same shading with tonight\u0027s moon and haze counted in, as measured at your own site.'
           : 'All shading off.',
@@ -12054,7 +12352,7 @@ class Component extends DCLogic {
     const src = this.TILE_SOURCES[v.style];
     const set = nv => this.setState({ pinView: nv }, () => {
       clearTimeout(this._pinTimer);
-      this._pinTimer = setTimeout(() => this.commitPin(nv), 900);
+      if (!this.pinLook(this.state)) this._pinTimer = setTimeout(() => this.commitPin(nv), 900);
     });
     const moved = E.state.lat == null ? 0 : this.haversineM(E.state.lat, E.state.lon, v.lat, v.lon);
     return {
@@ -12066,19 +12364,24 @@ class Component extends DCLogic {
       pinToggleLabel: st.pinOpen ? 'Done' : 'Refine location',
       pinEl: React.createElement('canvas', {
         ref: el => { this._pinCv = el; if (el) requestAnimationFrame(() => this.drawPin()); },
-        ...this.slippyHandlers(v, set),
-        style: { display: 'block', width: '100%', height: '260px',
+        ...this.slippyHandlers(v, set, undefined, this.pinLook(st) ? this.compTap : undefined),
+        'data-pin-map': '1',
+        style: { display: 'block', width: '100%', height: this.pinLook(st) ? '380px' : '260px',
           borderRadius: '8px', touchAction: 'none', cursor: 'grab' },
       }),
       pinCoord: v.lat.toFixed(5) + ', ' + v.lon.toFixed(5)
         + (st.pinElev == null ? '' : ' \u00b7 ' + st.pinElev + ' m above sea level'),
-      pinMovedOn: moved >= 5,
+      pinMovedOn: moved >= 5 && !this.pinLook(st),
       pinMovedLine: moved >= 5
         ? Math.round(moved) + ' m from where the forecast was reading'
         : 'Everything below is reading from this spot',
       pinCredit: src.credit,
       pinZoomIn: () => { const c = this.pinView(); if (c) set({ ...c, z: Math.min(this.TILE_SOURCES[c.style].maxZ, Math.floor(c.z) + 1) }); },
-      pinZoomOut: () => { const c = this.pinView(); if (c) set({ ...c, z: Math.max(8, Math.ceil(c.z) - 1) }); },
+      pinZoomOut: () => { const c = this.pinView(); if (c) set({ ...c, z: Math.max(this.pinLook(this.state) ? (this.TILE_SOURCES[c.style].minZ || 3) : 8, Math.ceil(c.z) - 1) }); },
+      pinCloudToggle: () => this.cloudOnPin(!st.pinCloud),
+      pinCloudOnW: st.pinCloud ? 'on' : 'off',
+      pinCloudBg: st.pinCloud ? 'rgba(var(--accent-rgb),.16)' : 'transparent',
+      pinCloudFg: st.pinCloud ? 'var(--accent)' : 'var(--dim)',
       pinStyleDetail: () => set({ ...v, style: 'detail' }),
       pinDetailBg: v.style === 'detail' ? 'rgba(var(--accent-rgb),.16)' : 'transparent',
       pinDetailFg: v.style === 'detail' ? 'var(--accent)' : 'var(--dim)',
@@ -14251,7 +14554,7 @@ class Component extends DCLogic {
       if (i >= 0) from = i;
     }
     const future = st.nights.slice(from, from + 10);
-    if (!future.length) return { ahead: [], aheadLead: '', aheadHint: '', dayOpen: false };
+    if (!future.length) return { ahead: [], aheadLead: '', aheadHint: '', dayOpen: false, aheadCmp: [], ...this.wxVals() };
     const hist = st.past || [];
     const nights = hist.concat(future);
     const kp = st.kp;
@@ -14347,6 +14650,7 @@ class Component extends DCLogic {
 
     return {
       ahead, aheadLead: lead, aheadHint: hint,
+      aheadCmp: this.wxAheadRows(rows, ahead), ...this.wxVals(),
       /* kept for the arrow keys, which walk this same list */
       ...(() => { this._aheadRows = rows; return {}; })(),
       ...this.dayVals(rows, DAYS),
@@ -14409,7 +14713,192 @@ class Component extends DCLogic {
       dayConjOn: !!conjLine, dayConjLine: conjLine,
       dayAccent: r.hist ? 'var(--moon)' : 'var(--accent)',
       closeDay: () => this.setState({ daySel: null }),
+      dayCloudMapOn: !r.hist && r.i <= 4 && !!s.darkWin,
+      dayCloudMapGo: () => { if (s.darkWin) this.openCloudMap((s.darkWin.from.getTime() + s.darkWin.to.getTime()) / 2); },
       ...this.nightDetail(r),
+    };
+  }
+
+  /* ---- forecast model ----
+     Best match is Open-Meteo's own choice, the sharpest model covering the site hour by hour, and
+     stays the default. The rest are the providers' seamless blends: each runs its regional model
+     where it reaches and its global one beyond, so a pick never leaves holes in the next few nights.
+     Boxes are the regional domains, approximate and deliberately a little tight: a provider whose
+     only models are regional is left out of the list where they do not reach. Open-Meteo does not
+     report which model Best match used, so the app never claims to know. */
+  WX_MODELS = [
+    { id: 'ukmo_seamless', name: 'UK Met Office', short: 'UKMO', reg: [[47.5, 61.5, -13, 5, '2 km']], glob: '10 km', range: '7 d' },
+    { id: 'icon_seamless', name: 'DWD ICON', short: 'ICON', reg: [[43.2, 58.1, -3.9, 20.3, '2 km'], [29.5, 70.5, -23.5, 62.5, '7 km']], glob: '11 km', range: '7 d' },
+    { id: 'meteofrance_seamless', name: 'Météo-France', short: 'Météo', reg: [[37.5, 55.4, -12, 16, '1.3 km'], [20, 72, -32, 42, '10 km']], glob: '25 km', range: '4 d' },
+    { id: 'knmi_seamless', name: 'KNMI Harmonie', short: 'KNMI', sub: 'then ECMWF', reg: [[49, 56, 0, 11, '2 km'], [39, 62, -12, 20, '5.5 km']], range: '10 d' },
+    { id: 'dmi_seamless', name: 'DMI Harmonie', short: 'DMI', sub: 'then ECMWF', reg: [[48, 72, -25, 30, '2 km']], range: '10 d' },
+    { id: 'metno_seamless', name: 'MET Norway', short: 'MetNo', sub: 'then ECMWF', reg: [[53, 72, 0, 35, '1 km']], range: '10 d' },
+    { id: 'gfs_seamless', name: 'NOAA GFS', short: 'GFS', reg: [[21, 53, -134, -60, '3 km']], glob: '13 km', range: '16 d' },
+    { id: 'gem_seamless', name: 'Environment Canada', short: 'GEM', reg: [[27, 70, -152, -40, '2.5 km']], glob: '15 km', range: '10 d' },
+    { id: 'jma_seamless', name: 'JMA', short: 'JMA', reg: [[22, 48, 120, 150, '5 km']], range: '11 d' },
+    { id: 'bom_access_global', name: 'BOM ACCESS', short: 'ACCESS', reg: [[-50, -5, 105, 180, '15 km']], range: '10 d' },
+    { id: 'ecmwf_ifs', name: 'ECMWF IFS', short: 'ECMWF', glob: '9 km', range: '15 d' },
+    { id: 'ecmwf_aifs025_single', name: 'ECMWF AIFS', short: 'AIFS', sub: 'machine learning', glob: '25 km', range: '15 d' },
+  ];
+  wxMeta(id) { return this.WX_MODELS.find(m => m.id === id) || { id, name: 'Best match', short: 'Best' }; }
+  wxHere() {
+    const E = this.E(), lat = E.state.lat, lon = E.state.lon, out = [];
+    this.WX_MODELS.forEach(m => {
+      const hit = (m.reg || []).find(b => lat >= b[0] && lat <= b[1] && lon >= b[2] && lon <= b[3]);
+      if (hit) out.push({ m, near: true, res: hit[4] });
+      else if (m.glob) out.push({ m, near: false, res: m.glob });
+    });
+    return out;
+  }
+  wxKey() { const E = this.E(); return this.favKey(E.state.lat, E.state.lon); }
+  wxKept() {
+    try { const v = JSON.parse(localStorage.getItem('noctography.wxModels') || '{}'); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; }
+  }
+  wxStoreKept(map) { try { localStorage.setItem('noctography.wxModels', JSON.stringify(map)); } catch (e) {} }
+  wxModelFor() {
+    const k = this.wxKey(), p = this.state.wxPick;
+    const id = p && p.key === k ? p.id : (this.wxKept()[k] || 'best_match');
+    return id === 'best_match' || this.WX_MODELS.some(m => m.id === id) ? id : 'best_match';
+  }
+  wxCmpIsOn() {
+    if (this.state.wxCmpOn != null) return this.state.wxCmpOn;
+    try { return localStorage.getItem('noctography.wxCompare') === 'on'; } catch (e) { return false; }
+  }
+  wxCmpIds() {
+    const cur = this.E().state.wxModel, here = this.wxHere(), ids = [];
+    const add = id => { if (id && id !== 'best_match' && ids.indexOf(id) < 0 && here.some(x => x.m.id === id)) ids.push(id); };
+    add(cur);
+    here.filter(x => x.near).slice(0, 2).forEach(x => add(x.m.id));
+    ['ecmwf_ifs', 'icon_seamless', 'gfs_seamless', 'meteofrance_seamless'].forEach(add);
+    return ids.slice(0, 4);
+  }
+  async loadWxCmp() {
+    const E = this.E(), ids = this.wxCmpIds();
+    if (!ids.length) return;
+    this.setState({ wxCmpLoading: true });
+    await E.loadWeatherCompare(ids);
+    this.setState({ wxCmpLoading: false, tick: this.state.tick + 1 });
+  }
+  async reloadWx() {
+    const E = this.E();
+    E.state.wxModel = this.wxModelFor();
+    this.setState({ wx: 'pending' });
+    await E.loadWeather();
+    E.computeAll();
+    this.setState({ nights: E.state.nights.slice(), past: (E.state.past || []).slice(), t: E.tonight(), wx: E.state.weatherStatus, tick: this.state.tick + 1 }, () => this.drawRibbon && this.drawRibbon());
+    if (this.wxCmpIsOn()) this.loadWxCmp();
+  }
+  wxPickModel(id) {
+    const k = this.wxKey(), kept = this.wxKept();
+    if (kept[k]) { if (id === 'best_match') delete kept[k]; else kept[k] = id; this.wxStoreKept(kept); }
+    this.track('wx/model');
+    this.setState({ wxPick: { key: k, id } }, () => this.reloadWx());
+  }
+  wxVals() {
+    const E = this.E(), id = E.state.wxModel || 'best_match', def = id === 'best_match';
+    const open = !!this.state.wxOpen, cmpOn = this.wxCmpIsOn(), k = this.wxKey(), kept = !!this.wxKept()[k];
+    const name = def ? 'Best match' : this.wxMeta(id).name;
+    const n = cmpOn && E.state.wxCmp ? E.state.wxCmp.models.length : 0;
+    const SEL = { bg: 'rgba(var(--accent-rgb),.14)', edge: 'var(--accent)', ink: 'var(--accent)' };
+    const OFF = { bg: 'none', edge: 'rgba(var(--line-rgb),.12)', ink: 'var(--text)' };
+    const here = this.wxHere();
+    const row = x => ({ ...(x.m.id === id ? SEL : OFF), specInk: x.m.id === id ? 'var(--accent)' : 'var(--dim)',
+      name: x.m.name, sub: x.m.sub || (x.near && x.m.glob ? 'then ' + x.m.glob + ' global' : ''),
+      spec: x.res + ' · ' + x.m.range, pick: () => this.wxPickModel(x.m.id) });
+    const groups = [
+      { label: 'Sharpest here, next few nights', models: here.filter(x => x.near).map(row) },
+      { label: 'Global, the week ahead', models: here.filter(x => !x.near).map(row) },
+    ].filter(g => g.models.length);
+    const sw = (on, label, sub, flip) => ({ label, sub, flip,
+      track: on ? 'rgba(var(--accent-rgb),.3)' : 'rgba(var(--line-rgb),.12)', edge: on ? 'var(--accent)' : 'rgba(var(--line-rgb),.2)',
+      knob: on ? 'var(--accent)' : 'var(--dim)', knobX: on ? '21px' : '3px' });
+    const switches = [sw(cmpOn, 'Compare models', 'Up to four side by side in Looking ahead and each night, as far as each one reaches', () => {
+      const on = !cmpOn;
+      try { localStorage.setItem('noctography.wxCompare', on ? 'on' : 'off'); } catch (e) {}
+      if (on) this.track('wx/compare');
+      this.setState({ wxCmpOn: on }, () => { if (on) this.loadWxCmp(); });
+    })];
+    if (!def) switches.push(sw(kept, 'Keep for ' + (this.state.place || 'this site'), 'Otherwise the next site you open uses Best match', () => {
+      const map = this.wxKept();
+      if (kept) delete map[k]; else map[k] = id;
+      this.wxStoreKept(map); this.forceUpdate();
+    }));
+    return {
+      wxName: name, wxOpen: open, wxPlace: this.state.place || 'this site',
+      wxLabel: name + (n ? ' · comparing ' + n : ''), wxBtn: open ? 'Done' : 'Change',
+      wxLineBg: def && !n ? 'rgba(var(--line-rgb),.04)' : 'rgba(var(--accent-rgb),.14)',
+      wxLineEdge: def && !n ? 'rgba(var(--line-rgb),.12)' : 'rgba(var(--accent-rgb),.6)',
+      wxLineInk: def && !n ? 'var(--faint)' : 'var(--accent)', wxLineVal: def && !n ? 'var(--text2)' : 'var(--accent)',
+      wxToggle: () => this.setState({ wxOpen: !open }),
+      wxBest: { ...(def ? SEL : OFF), pick: () => this.wxPickModel('best_match') },
+      wxGroups: groups, wxSwitches: switches,
+    };
+  }
+  /* One row per model across the outlook, each night's dark hours averaged, under a row counting
+     how many agree on clear sky. Past nights have no forecast to compare, and each model stops at
+     its own range, so those cells are a dash rather than a guess. */
+  wxAheadRows(rows, ahead) {
+    const E = this.E(), c = E.state.wxCmp;
+    if (!this.wxCmpIsOn() || !c || c.lat !== E.state.lat || c.lon !== E.state.lon || !c.models.length) return [];
+    const CLEAR = 35, key = d => d.toISOString().slice(0, 13);
+    const vals = c.models.map(id => rows.map(r => {
+      if (r.hist || !r.n || !r.n.slots) return null;
+      let sum = 0, k = 0;
+      r.n.slots.forEach(s => { if (s.sunAlt >= -6) return; const v = c.data[id][key(s.t)]; if (v != null) { sum += v; k++; } });
+      return k ? sum / k : null;
+    }));
+    const col = i => { const a = ahead[i] || {}; return { edge: a.edge, edge2: a.edge2, bg: a.bg, dim: a.dim }; };
+    const agree = rows.map((r, i) => {
+      const got = vals.map(v => v[i]).filter(v => v != null);
+      if (got.length < 2) return { ...col(i), v: '–', c: 'var(--faint)', w: '400' };
+      const k = got.filter(v => v < CLEAR).length, all = k === got.length;
+      return { ...col(i), v: k + '/' + got.length, w: '700',
+        c: all ? 'var(--ink)' : k * 2 >= got.length ? 'var(--cool)' : 'var(--dim)', ...(all ? { bg: 'var(--cool)' } : {}) };
+    });
+    const out = [{ k: 'Clear', kc: 'var(--text2)', title: 'How many models have that night under 35% cloud', cells: agree }];
+    c.models.forEach((id, m) => {
+      const meta = this.wxMeta(id);
+      out.push({ k: meta.short, kc: 'var(--faint)', title: meta.name, cells: vals[m].map((v, i) => ({ ...col(i), w: '400',
+        v: v == null ? '–' : Math.round(v) + '%',
+        c: v == null ? 'var(--faint)' : v < CLEAR ? 'var(--cool)' : v < 70 ? 'var(--accent)' : 'var(--moon-dim)' })) });
+    });
+    return out;
+  }
+  wxCompareVals(groups, mean, C) {
+    const E = this.E(), c = E.state.wxCmp, none = { cmpOn: false, cmpMsgOn: false, cmpRows: [], cmpAgree: [], cmpLine: '', cmpMsg: '' };
+    if (!this.wxCmpIsOn()) return none;
+    if (this.state.wxCmpLoading) return { ...none, cmpMsgOn: true, cmpMsg: 'Fetching the other models…' };
+    if (!c || c.lat !== E.state.lat || c.lon !== E.state.lon || !c.models.length) return { ...none, cmpMsgOn: true, cmpMsg: 'The other models did not answer. The table below still works.' };
+    const key = s => s.t.toISOString().slice(0, 13);
+    const rows = c.models.map(id => ({ id, meta: this.wxMeta(id), vals: groups.map(g => mean(g, s => { const v = c.data[id][key(s)]; return v == null ? null : v; })) }));
+    if (!rows.some(r => r.vals.some(v => v != null))) return { ...none, cmpMsgOn: true, cmpMsg: 'None of the compared models reach this night.' };
+    const n = rows.length, CLEAR = 35;
+    const cmpAgree = groups.map((g, i) => {
+      const got = rows.filter(r => r.vals[i] != null);
+      if (!got.length) return { v: '–', c: C.FAINT, bg: 'rgba(var(--line-rgb),.04)' };
+      const k = got.filter(r => r.vals[i] < CLEAR).length, all = k === got.length;
+      return { v: k + '/' + got.length, c: all ? 'var(--ink)' : k * 2 >= got.length ? C.COOL : C.DIM, bg: all ? C.COOL : 'rgba(var(--line-rgb),.04)' };
+    });
+    let best = null, cur = null;
+    groups.forEach((g, i) => {
+      const ok = rows.every(r => r.vals[i] != null && r.vals[i] < CLEAR);
+      if (!ok) { cur = null; return; }
+      cur = cur ? { a: cur.a, b: i } : { a: i, b: i };
+      if (!best || cur.b - cur.a > best.b - best.a) best = { ...cur };
+    });
+    const word = n === 1 ? 'It is' : n === 2 ? 'Both' : n === 3 ? 'All three' : 'All four';
+    let line = best
+      ? word + ' clear from ' + this.hhmm(groups[best.a][0].t) + ' to ' + this.hhmm(new Date(groups[best.b][groups[best.b].length - 1].t.getTime() + E.STEP * 60000)) + '.'
+      : n > 1 ? 'No stretch where all ' + n + ' agree on a clear sky.' : 'No clear stretch in this model.';
+    if (n > 2) {
+      const avg = rows.map(r => { const v = r.vals.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; });
+      let hi = -1; avg.forEach((v, i) => { if (v != null && (hi < 0 || v > avg[hi])) hi = i; });
+      const rest = avg.filter((v, i) => i !== hi && v != null);
+      if (hi >= 0 && rest.length && avg[hi] - rest.reduce((a, b) => a + b, 0) / rest.length >= 15) line += ' ' + rows[hi].meta.name + ' is the cloudiest of them.';
+    }
+    return {
+      ...none, cmpOn: true, cmpAgree, cmpLine: line,
+      cmpRows: rows.map(r => ({ k: r.meta.short, cells: r.vals.map(v => v == null ? { v: '–', c: C.FAINT } : { v: Math.round(v) + '%', c: v < CLEAR ? C.COOL : v < 70 ? C.ACC : C.MDIM }) })),
     };
   }
 
@@ -14555,9 +15044,10 @@ class Component extends DCLogic {
     const mt = r.s ? r.s.mt : null;
     const moonWhen = mt ? [mt.rise ? 'rises ' + this.hhmmOn(mt.rise, n) : null,
                            mt.set ? 'sets ' + this.hhmmOn(mt.set, n) : null].filter(Boolean).join(', ') : '';
+    const cmp = this.wxCompareVals(groups, mean, { FAINT, DIM, COOL, ACC, MDIM });
     return {
-      detOn: true, detCols, detRows,
-      detNote: src + 'Moon ' + pct + '% ' + phase + (moonWhen ? ', ' + moonWhen + '.' : '.') + shower,
+      detOn: true, detCols, detRows, ...cmp,
+      detNote: (E.state.wxModel && E.state.wxModel !== 'best_match' ? this.wxMeta(E.state.wxModel).name + ' forecast. ' : '') + src + 'Moon ' + pct + '% ' + phase + (moonWhen ? ', ' + moonWhen + '.' : '.') + shower,
     };
   }
 

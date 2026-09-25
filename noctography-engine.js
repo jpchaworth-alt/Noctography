@@ -604,6 +604,7 @@ const state={
   start:null, selected:null, weather:null, weatherStatus:'pending',
   assumedCloud:'typical', focal:'24', range:60, clim:null, climStatus:'idle', nights:[], past:[],
   wind:null, windStatus:'idle', ovationGrid:null, ovationAt:0, ovationStatus:'idle',
+  wxModel:'best_match', wxCmp:null,
   northCloud:null, northCloudStatus:'idle', alerts:[], alertStatus:'idle', outlook27:[], outlookStatus:'idle'
 };
 const STEP=15; // minutes per sample
@@ -626,7 +627,8 @@ async function loadWeather(){
   const url='https://api.open-meteo.com/v1/forecast?latitude='+state.lat.toFixed(4)+
     '&longitude='+state.lon.toFixed(4)+
     '&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,temperature_2m,dew_point_2m,wind_speed_10m,wind_gusts_10m,visibility'+
-    '&past_days=' + HISTORY_NIGHTS + '&forecast_days=16&timezone=auto';
+    '&past_days=' + HISTORY_NIGHTS + '&forecast_days=16&timezone=auto'+
+    (state.wxModel && state.wxModel!=='best_match' ? '&models='+encodeURIComponent(state.wxModel) : '');
   try{
     const res=await fetch(url);
     if(!res.ok) throw new Error('HTTP '+res.status);
@@ -635,6 +637,9 @@ async function loadWeather(){
     state.tzOffset=off;
     const map={};
     j.hourly.time.forEach((t,i)=>{
+      /* A chosen model runs out before sixteen days. Its empty hours are left out, so beyond its
+         range the night falls back to typical cloud exactly as it does past the forecast. */
+      if(j.hourly.cloud_cover[i]==null) return;
       const utc=new Date(new Date(t+':00Z').getTime()-off*60000);
       map[utc.toISOString().slice(0,13)]={
         total:j.hourly.cloud_cover[i],low:j.hourly.cloud_cover_low[i],
@@ -649,6 +654,26 @@ async function loadWeather(){
   }catch(e){
     state.weather=null; state.weatherStatus='unavailable';
   }
+}
+/* Several models side by side, total cloud only, one request. Open-Meteo suffixes each variable
+   with the model id when more than one is asked for. Keyed by UTC hour, like state.weather. */
+async function loadWeatherCompare(models){
+  const url='https://api.open-meteo.com/v1/forecast?latitude='+state.lat.toFixed(4)+
+    '&longitude='+state.lon.toFixed(4)+'&hourly=cloud_cover&models='+models.map(encodeURIComponent).join(',')+
+    '&forecast_days=16&timezone=UTC';
+  try{
+    const res=await fetch(url); if(!res.ok) throw new Error('HTTP '+res.status);
+    const j=await res.json(), out={};
+    models.forEach(m=>{
+      const arr=j.hourly['cloud_cover_'+m]||(models.length===1?j.hourly.cloud_cover:null);
+      if(!arr) return;
+      const map={};
+      j.hourly.time.forEach((t,i)=>{ if(arr[i]!=null) map[t.slice(0,13)]=arr[i]; });
+      out[m]=map;
+    });
+    state.wxCmp={lat:state.lat,lon:state.lon,models:models.filter(m=>out[m]),data:out};
+    return state.wxCmp;
+  }catch(e){ state.wxCmp=null; return null; }
 }
 /* Beyond the forecast horizon, fall back to what this location actually does at this time of
    year: mean night-time cloud for the same calendar dates over the last three years, from the
@@ -3319,7 +3344,7 @@ window.NoctoEngine = {
   loadAtlas, atlasSky, updateSky, nelmFor, bortleFor,
   ATLAS, TILES, loadTiles, tileSky, tileStatus, tileIndex,
   set onTilesReady(fn){TILES.onready=fn;}, get onTilesReady(){return TILES.onready;},
-  loadWeather, loadClimatology, computeNight, computeAll,
+  loadWeather, loadWeatherCompare, loadClimatology, computeNight, computeAll,
   sunPos, moonPos, moonIllum, lstOf, eq2horiz, jdFrom, clamp, norm,
   clearFraction, veilFraction, rateFor, sampleSky, scoreOf, alphaOf, limitingMag,
   localParts, fmtTime, fmtDate, toUTC, pad, MONTHS, compass, tzOffset: () => state.tzOffset,
