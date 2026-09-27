@@ -3775,8 +3775,16 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '2.0.1';
+  VERSION = '2.0.2';
   BUILDS = [
+    {
+      v: '2.0.2', date: '2026-09-27', silent: true,
+      title: 'Noctography 2.0.2',
+      intro: '',
+      bullets: [
+        'Maps zoom in as far as you like',
+      ],
+    },
     {
       v: '2.0.1', date: '2026-09-25', silent: true,
       title: 'Noctography 2.0.1',
@@ -9008,7 +9016,7 @@ class Component extends DCLogic {
         const on = cur === id;
         return { label, on: on ? 'on' : 'off',
           bd: on ? 'var(--accent)' : 'rgba(240,236,228,.28)', bg: on ? 'rgba(6,6,7,.82)' : 'rgba(6,6,7,.6)', fg: on ? 'var(--accent)' : 'rgba(240,236,228,.85)',
-          go: () => { const src = this.TILE_SOURCES[id]; const vv = this.compMapView(); const z = Math.max(src.minZ || 3, Math.min(src.maxZ, vv ? vv.z : 10));
+          go: () => { const src = this.TILE_SOURCES[id]; const vv = this.compMapView(); const z = Math.max(src.minZ || 3, Math.min(22, vv ? vv.z : 10));
             this.setState({ compMapStyle: id, compMapV: vv ? Object.assign({}, vv, { z, style: id }) : null }, () => this.drawCompMap()); } };
       }),
       compMapEl: React.createElement('canvas', {
@@ -11621,7 +11629,9 @@ class Component extends DCLogic {
     /* Zoom is fractional now, because a pinch lands between levels. Tiles are still fetched and
        drawn at whole levels, at their own resolution, and scaled the remaining part of a level:
        worst case a 1.41x resample, against a map that used to snap while your fingers moved. */
-    const zf = Math.max(src.minZ || 3, Math.min(src.maxZ, view.z || 0));
+    /* the view may zoom past the source's last level (to 22): its sharpest tiles are then scaled up
+       rather than the map springing back out */
+    const zf = Math.max(src.minZ || 3, Math.min(22, view.z || 0));
     const z = Math.max(src.minZ || 3, Math.min(src.maxZ, Math.round(zf)));
     const k = Math.pow(2, zf - z);
     const S = k * dpr;                          // world pixels at level z, into device pixels
@@ -11742,7 +11752,7 @@ class Component extends DCLogic {
   slippyHandlers(view, set, warm, onTap) {
     const src = this.TILE_SOURCES[view.style] || this.TILE_SOURCES.dark;
     const lo = src.minZ || 3;
-    const clampZ = z => Math.max(lo, Math.min(src.maxZ, z));
+    const clampZ = z => Math.max(lo, Math.min(22, z));
     const offset = (e, el) => {
       const r = (el || e.currentTarget).getBoundingClientRect();
       return [e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)];
@@ -12037,7 +12047,7 @@ class Component extends DCLogic {
     if (!v || !cv) return null;
     const src = this.TILE_SOURCES[v.style] || this.TILE_SOURCES.dark;
     const cssW = cv.clientWidth || 320, cssH = cv.clientHeight || cssW;
-    const zf = Math.max(src.minZ || 3, Math.min(src.maxZ, v.z || 0)), z = Math.round(zf), k = Math.pow(2, zf - z);
+    const zf = Math.max(src.minZ || 3, Math.min(22, v.z || 0)), z = Math.min(src.maxZ, Math.round(zf)), k = Math.pow(2, zf - z);
     const [wx, wy] = this.project(v.lat, v.lon, z);
     const [n, w] = this.unproject(wx - cssW / k / 2, wy - cssH / k / 2, z);
     const [s, e] = this.unproject(wx + cssW / k / 2, wy + cssH / k / 2, z);
@@ -12255,7 +12265,7 @@ class Component extends DCLogic {
       /* Read from state at the moment of the tap, not from the view these values were built
          against: three quick taps used to compute three times from the same stale zoom and land
          one level away. */
-      mapZoomIn: () => { const c = this.mapView(); if (c) set({ ...c, z: Math.min(this.TILE_SOURCES[c.style].maxZ, Math.floor(c.z) + 1) }); },
+      mapZoomIn: () => { const c = this.mapView(); if (c) set({ ...c, z: Math.min(22, Math.floor(c.z) + 1) }); },
       mapZoomOut: () => { const c = this.mapView(); if (c) set({ ...c, z: Math.max(this.TILE_SOURCES[c.style].minZ || 3, Math.ceil(c.z) - 1) }); },
       mapLayerAtlas: () => this.setPinLayers({ mapLayer: st.mapLayer === 'atlas' ? 'off' : 'atlas' }),
       mapLayerTonight: () => this.setPinLayers({ mapLayer: st.mapLayer === 'tonight' ? 'off' : 'tonight' }),
@@ -12376,7 +12386,7 @@ class Component extends DCLogic {
         ? Math.round(moved) + ' m from where the forecast was reading'
         : 'Everything below is reading from this spot',
       pinCredit: src.credit,
-      pinZoomIn: () => { const c = this.pinView(); if (c) set({ ...c, z: Math.min(this.TILE_SOURCES[c.style].maxZ, Math.floor(c.z) + 1) }); },
+      pinZoomIn: () => { const c = this.pinView(); if (c) set({ ...c, z: Math.min(22, Math.floor(c.z) + 1) }); },
       pinZoomOut: () => { const c = this.pinView(); if (c) set({ ...c, z: Math.max(this.pinLook(this.state) ? (this.TILE_SOURCES[c.style].minZ || 3) : 8, Math.ceil(c.z) - 1) }); },
       pinCloudToggle: () => this.cloudOnPin(!st.pinCloud),
       pinCloudOnW: st.pinCloud ? 'on' : 'off',
@@ -12704,7 +12714,7 @@ class Component extends DCLogic {
         ? 'The crosshair is on your own site · ' + clearWord
         : Math.round(km) + ' km ' + E.compass(this.brgTo(home.lat, home.lon, v.lat, v.lon))
           + ' · roughly ' + Math.max(5, Math.round(km * 1.2 / 5) * 5) + ' min · ' + clearWord,
-      nbZoomIn: () => set({ ...v, z: Math.min(src.maxZ, v.z + 1) }),
+      nbZoomIn: () => set({ ...v, z: Math.min(22, v.z + 1) }),
       nbZoomOut: () => set({ ...v, z: Math.max(src.minZ, v.z - 1) }),
       nbCredit: src.credit,
       /* Moving the site is the whole point of the map: the crosshair becomes the place the app
@@ -13615,7 +13625,7 @@ class Component extends DCLogic {
     const SRC = () => this.TILE_SOURCES[getView().style] || this.TILE_SOURCES.dark;
     const clampZ = z => {
       const s = SRC();
-      return Math.max(s.minZ || 3, Math.min(s.maxZ, z));
+      return Math.max(s.minZ || 3, Math.min(22, z));
     };
     const mid = ts => {
       const r = el.getBoundingClientRect();
