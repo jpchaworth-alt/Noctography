@@ -146,7 +146,7 @@ window.noctoTrack = function (name, every) {
      used to claim exactly that while the code only ever read DESK_BUILD, so app/index.html stayed
      narrow on a 27 inch monitor and the wide layout was reachable only by knowing the desktop URL
      or finding the override. */
-  var DESK_BUILD = false;
+  var DESK_BUILD = true;
   function noctoAutoWide() {
     try { return Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0) >= 1000; }
     catch (e) { return false; }
