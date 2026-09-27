@@ -1,1077 +1,397 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-GB">
 <head>
 <meta charset="utf-8">
-<title>Noctography Scout (test)</title>
-<meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
-</head>
-<body>
-<x-dc>
-<helmet>
-  <link rel="stylesheet" href="../scout-ds/fonts.css">
-  <script src="../scout-ds/_ds_bundle.js"></script>
-  <script src="../noctography-engine.js?v=2.0.1"></script>
-  <script src="../noctography-plan.js?v=2.0.1"></script>
-  <script src="../noctography-scout.js?v=2.0.1"></script>
-  <script src="../noctography-offline.js?v=1"></script>
-  <script src="../noctography-surfaces.js?v=22"></script>
-  <script src="../noctography-scout-hd.js?v=22"></script>
-  <style>
-    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-    a { color: #D6B368; } a:hover { color: #E8C98A; }
-    input[type="range"] { accent-color: #D6B368; }
-  </style>
-</helmet>
-<div style="position: fixed; inset: 0; overflow: auto; background: #000; color: #F3F0EA; font-family: 'Barlow', sans-serif; user-select: none;">
-<div style="position: relative; width: 100%; height: 100%; min-width: 1100px; min-height: 700px;">
-  <div style="position: absolute; inset: 0;">
-    <canvas ref="{{ viewRef }}" onDoubleClick="{{ viewJump }}" onPointerDown="{{ viewDown }}" onPointerMove="{{ viewMove }}" onPointerUp="{{ viewUp }}" onPointerCancel="{{ viewUp }}" style="display: block; width: 100%; height: 100%; touch-action: none; cursor: grab;"></canvas>
-  </div>
-  <sc-if value="{{ mapOn }}" hint-placeholder-val="{{ false }}">
-    <div style="position: absolute; inset: 0; background: #050508;">
-      <canvas ref="{{ mapRef }}" onPointerDown="{{ mapDown }}" onPointerMove="{{ mapMove }}" onPointerUp="{{ mapUp }}" onPointerCancel="{{ mapUp }}" onDoubleClick="{{ mapDbl }}" style="display: block; width: 100%; height: 100%; touch-action: none; cursor: {{ mapCursor }};"></canvas>
-    </div>
-  </sc-if>
+<title>Noctography: plan the night, frame the shot</title>
+<meta name="description" content="Plan the night, frame the shot. Free nightscape planning: tonight's conditions, live aurora, meteors, comets, and Sky AR, the real sky over your camera or over the real terrain of any spot on Earth, with panorama framing. No account, in your browser.">
+<link rel="canonical" href="https://www.noctography.net/">
+<link rel="alternate" type="text/plain" href="https://www.noctography.net/llms.txt" title="Plain-text summary of Noctography for AI tools">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="author" content="Paul Haworth">
+<meta name="theme-color" content="#0A0A0B">
 
-  <div style="position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 22px 28px 56px; background: linear-gradient(to bottom, rgba(0,0,0,.78), rgba(0,0,0,0)); pointer-events: none;">
-    <div style="flex: 1 1 0; display: grid; align-content: start; gap: 10px; pointer-events: auto; min-width: 0;">
-      <span style="font-size: 11px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #ADA79B;">Scout · full screen</span>
-      <div style="display: grid; gap: 2px;">
-        <span style="font-size: 26px; font-weight: 600; line-height: 1.1;">{{ placeName }}</span>
-        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: #918B81;">{{ placeLine }}</span>
-        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{ detailInk }}; text-wrap: pretty;">{{ detailLine }}</span>
-        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #918B81; text-wrap: pretty;">{{ detailLine2 }}</span>
-      </div>
-      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-        <button type="button" onClick="{{ mapToggle }}" aria-pressed="{{ mapPressed }}" style="display: flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px 0 10px; border-radius: 999px; border: 1px solid {{ mapBtnEdge }}; background: {{ mapBtnBg }}; color: {{ mapBtnFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">
-          <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="{{ mapBtnIcon }}" size="{{ 16 }}" hint-size="16px,16px"></x-import>
-          <span>{{ mapBtnLabel }}</span>
-        </button>
-        <sc-if value="{{ backOn }}" hint-placeholder-val="{{ false }}">
-          <button type="button" onClick="{{ goBack }}" style="display: flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px 0 8px; border-radius: 999px; border: 1px solid #D6B368; background: rgba(214,179,104,.16); color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; white-space: nowrap; cursor: pointer;">
-            <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="chevron-left" size="{{ 16 }}" hint-size="16px,16px"></x-import>
-            <span>Back</span>
-          </button>
-        </sc-if>
-        <sc-for list="{{ places }}" as="p" hint-placeholder-count="3">
-          <button type="button" onClick="{{ p.pick }}" style="min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ p.edge }}; background: {{ p.bg }}; color: {{ p.fg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; white-space: nowrap; cursor: pointer;">{{ p.area }}</button>
-        </sc-for>
-      </div>
-      <sc-if value="{{ mapOn }}" hint-placeholder-val="{{ false }}">
-        <div style="justify-self: start; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding: 8px 14px; border-radius: 12px; background: rgba(10,10,11,.82); border: 1px solid rgba(240,236,228,.14);">
-          <span style="font-size: 13px; color: #DCD7CC; white-space: nowrap;">Tap or click to stand there</span>
-          <span style="width: 3px; height: 3px; border-radius: 50%; background: #918B81;"></span>
-          <span style="font-size: 13px; color: #DCD7CC; white-space: nowrap;">Drag the gold wedge to aim</span>
-          <span style="width: 3px; height: 3px; border-radius: 50%; background: #918B81;"></span>
-          <span style="font-size: 13px; color: #DCD7CC; white-space: nowrap;">Double-tap to stand there and look</span>
-          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #918B81;">M</span>
-        </div>
-      </sc-if>
-    </div>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Noctography">
+<meta property="og:title" content="Noctography: plan the night, frame the shot">
+<meta property="og:description" content="Plan the night, frame the shot. Tonight's conditions, live aurora, meteors and comets, and Sky AR: the real sky over the real ground of any spot, from anywhere, with panorama framing and saved compositions. Free, in your browser.">
+<meta property="og:url" content="https://www.noctography.net/">
+<meta property="og:locale" content="en_GB">
+<meta property="og:image:secure_url" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Noctography: plan the night, frame the shot">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Noctography: plan the night, frame the shot">
+<meta name="twitter:description" content="Plan the night, frame the shot. Tonight's conditions, live aurora, meteors and comets, and Sky AR: the real sky over the real ground of any spot, from anywhere. Free, in your browser.">
+<meta name="twitter:image" content="https://www.noctography.net/noctography-link-preview.png?v=2026-09-06">
 
-    <div style="flex: 0 0 auto; display: grid; justify-items: center; gap: 4px; padding-top: 4px;">
-      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: -.01em;">{{ timeLabel }}</span>
-      <span style="font-size: 13px; color: #ADA79B;">{{ dateLabel }}</span>
-      <div style="display: flex; gap: 6px 18px; flex-wrap: wrap; justify-content: center; margin-top: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: #DCD7CC; white-space: nowrap;">
-        <span>{{ sunLine }}</span>
-        <span>{{ moonLine }}</span>
-        <span>{{ coreLine }}</span>
-      </div>
-    </div>
+<link rel="icon" type="image/png" sizes="512x512" href="favicon.png?v=2026-09-06">
+<link rel="apple-touch-icon" href="assets/noctography-icon.png?v=2026-09-06">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:wght@400&family=JetBrains+Mono:wght@400&display=swap">
 
-    <div style="flex: 1 1 0; display: grid; justify-items: end; align-content: start; gap: 10px; pointer-events: auto; min-width: 0;">
-      <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-        <sc-for list="{{ grounds }}" as="g" hint-placeholder-count="3">
-          <button type="button" onClick="{{ g.pick }}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid {{ g.edge }}; background: {{ g.bg }}; color: {{ g.fg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ g.label }}</button>
-        </sc-for>
-      </div>
-      <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-        <sc-for list="{{ toggles }}" as="t" hint-placeholder-count="2">
-          <button type="button" onClick="{{ t.flip }}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid {{ t.edge }}; background: {{ t.bg }}; color: {{ t.fg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ t.label }}</button>
-        </sc-for>
-      </div>
-      <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-        <button type="button" onClick="{{ saveFrame }}" style="display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: rgba(10,10,11,.6); color: #DCD7CC; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">
-          <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="download" size="{{ 16 }}" hint-size="16px,16px"></x-import>
-          <span>Save frame</span>
-        </button>
-        <button type="button" onClick="{{ recToggle }}" style="display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid {{ recEdge }}; background: {{ recBg }}; color: {{ recFg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">
-          <span style="width: 9px; height: 9px; border-radius: 50%; background: {{ recDot }};"></span>
-          <span>{{ recLabel }}</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <sc-if value="{{ loadOn }}" hint-placeholder-val="{{ false }}">
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 10px 16px; border-radius: 999px; background: rgba(10,10,11,.86); border: 1px solid rgba(240,236,228,.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: #ADA79B;">{{ loadLine }}</div>
-  </sc-if>
-
-  <div style="position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 14px; padding: 64px 28px 20px; background: linear-gradient(to top, rgba(0,0,0,.86) 55%, rgba(0,0,0,0));">
-    <div style="display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
-      <button type="button" onClick="{{ playToggle }}" aria-label="{{ playAria }}" style="display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; border: 0; background: #D6B368; color: #14110A; cursor: pointer;">
-        <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="{{ playIcon }}" size="{{ 24 }}" hint-size="24px,24px"></x-import>
-      </button>
-      <div style="display: grid; gap: 5px;">
-        <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Speed</span>
-        <div style="display: flex; gap: 4px;">
-          <sc-for list="{{ speeds }}" as="s" hint-placeholder-count="4">
-            <button type="button" onClick="{{ s.pick }}" style="min-height: 34px; padding: 0 10px; border-radius: 6px; border: 1px solid {{ s.edge }}; background: {{ s.bg }}; color: {{ s.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; cursor: pointer;">{{ s.label }}</button>
-          </sc-for>
-        </div>
-      </div>
-      <div style="display: grid; gap: 5px;">
-        <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Night</span>
-        <div style="display: flex; align-items: center; gap: 4px;">
-          <button type="button" onClick="{{ dayPrev }}" aria-label="Night before" style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 6px; border: 1px solid rgba(240,236,228,.2); background: none; color: #ADA79B; cursor: pointer;">
-            <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="chevron-left" size="{{ 16 }}" hint-size="16px,16px"></x-import>
-          </button>
-          <span style="min-width: 118px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: #DCD7CC;">{{ nightLabel }}</span>
-          <button type="button" onClick="{{ dayNext }}" aria-label="Night after" style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 6px; border: 1px solid rgba(240,236,228,.2); background: none; color: #ADA79B; cursor: pointer;">
-            <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="chevron-right" size="{{ 16 }}" hint-size="16px,16px"></x-import>
-          </button>
-        </div>
-      </div>
-      <div style="display: grid; gap: 5px; width: 180px;">
-        <span style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;"><span>Exposure</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0;">{{ expLabel }}</span></span>
-        <input type="range" min="0" max="100" step="1" value="{{ exp }}" onInput="{{ onExp }}" aria-label="Exposure" style="width: 100%; margin: 0; height: 34px;">
-      </div>
-      <sc-if value="{{ haOn }}" hint-placeholder-val="{{ false }}">
-        <div style="display: grid; gap: 5px; width: 150px;">
-          <span style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #E07A86;"><span>H-alpha</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0;">{{ haLabel }}</span></span>
-          <input type="range" min="0" max="100" step="1" value="{{ haStr }}" onInput="{{ onHa }}" aria-label="Hydrogen-alpha strength" style="width: 100%; margin: 0; height: 34px; accent-color: #E07A86;">
-        </div>
-      </sc-if>
-      <div style="display: grid; gap: 5px; width: 180px;">
-        <span style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;"><span>Haze</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0; text-transform: none; white-space: nowrap;">{{ hazeLabel }}</span></span>
-        <input type="range" min="0" max="100" step="1" value="{{ haze }}" onInput="{{ onHaze }}" aria-label="Haze" style="width: 100%; margin: 0; height: 34px;">
-      </div>
-      <span style="flex: 1; min-width: 12px;"></span>
-      <div style="display: grid; gap: 5px;">
-        <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Lens · full frame</span>
-        <div style="display: flex; gap: 4px;">
-          <sc-for list="{{ lenses }}" as="l" hint-placeholder-count="5">
-            <button type="button" onClick="{{ l.pick }}" style="min-height: 34px; padding: 0 10px; border-radius: 6px; border: 1px solid {{ l.edge }}; background: {{ l.bg }}; color: {{ l.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; cursor: pointer;">{{ l.label }}</button>
-          </sc-for>
-          <button type="button" onClick="{{ orientFlip }}" style="min-height: 34px; padding: 0 10px; border-radius: 6px; border: 1px solid rgba(240,236,228,.2); background: none; color: #ADA79B; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;">{{ orientLabel }}</button>
-        </div>
-      </div>
-      <div style="display: grid; gap: 5px; justify-items: end;">
-        <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Aim</span>
-        <span style="display: flex; align-items: center; min-height: 34px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: #DCD7CC; white-space: nowrap;">{{ aimLine }}</span>
-      </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 8px; align-items: stretch;">
-      <div style="display: grid; grid-template-rows: 36px 14px 14px; row-gap: 4px; padding-top: 34px; font-size: 10px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #918B81;">
-        <span style="display: flex; align-items: center;">Sky</span>
-        <span style="display: flex; align-items: center;">Moon</span>
-        <span style="display: flex; align-items: center;">Core</span>
-      </div>
-      <div style="display: grid; gap: 0;">
-        <div ref="{{ evRef }}" style="position: relative; height: 34px;">
-          <sc-for list="{{ events }}" as="e" hint-placeholder-count="4">
-            <span style="position: absolute; left: {{ e.left }}; top: {{ e.top }}; white-space: nowrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: {{ e.c }};">{{ e.label }}</span>
-          </sc-for>
-        </div>
-        <canvas ref="{{ stripRef }}" onPointerDown="{{ stripDown }}" onPointerMove="{{ stripMove }}" onPointerUp="{{ stripUp }}" onPointerCancel="{{ stripUp }}" style="display: block; width: 100%; height: 72px; border-radius: 6px; touch-action: none; cursor: ew-resize;"></canvas>
-      </div>
-    </div>
-    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 6px 16px; flex-wrap: wrap;">
-      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: #918B81;">Drag the view to aim · scroll to zoom · double-click the ground to walk there · drag the strip to scrub · space to play</span>
-      <span style="font-size: 11px; color: #918B81; text-align: right;">{{ credits }}</span>
-    </div>
-  </div>
-</div>
-</div>
-</x-dc>
-<script type="text/x-dc" data-dc-script>
-class Component extends DCLogic {
-  /* date: the evening the night starts on; at: minutes after that noon to open on */
-  PLACES = [
-    { name: 'Catstye Cam from Helvellyn', area: 'Helvellyn', lat: 54.5271, lon: -3.0164, az: 48, alt: 2, hfov: 84, date: [2026, 2, 23], at: 900 },
-    { name: 'Cygnus over Catstye Cam', area: 'Red Tarn', lat: 54.5271, lon: -3.0164, az: 50, alt: 9, hfov: 84, date: [2027, 2, 7], at: 880, ha: true, exp: 72 },
-    { name: 'Snowdon horseshoe', area: 'Llyn Mymbyr', lat: 53.0935, lon: -3.9460, az: 250, alt: 4, hfov: 84, date: [2026, 9, 10] },
-    { name: 'Haystacks', area: 'Buttermere', lat: 54.5360, lon: -3.26875, az: 155, alt: 3, hfov: 72, date: [2026, 9, 10] },
-    { name: 'Bamburgh Castle', area: 'Bamburgh', lat: 55.6040, lon: -1.7065, az: 337, alt: 2, hfov: 50, date: [2026, 9, 10] },
-    { name: 'Matterhorn from Riffelsee', area: 'Zermatt', lat: 45.9853, lon: 7.7542, az: 247, alt: 6, hfov: 50, date: [2026, 6, 15] },
-    { name: 'Teide from Roques de Garc\u00eda', area: 'Tenerife', lat: 28.2208, lon: -16.6280, az: 345, alt: 5, hfov: 60, date: [2026, 6, 15] },
-    { name: 'Cologne Cathedral', area: 'Cologne', lat: 50.9385, lon: 6.9635, az: 330, alt: 8, hfov: 60, date: [2026, 9, 10] },
-    { name: 'Mont Saint-Michel', area: 'Normandy', lat: 48.6260, lon: -1.5095, az: 180, alt: 4, hfov: 50, date: [2026, 6, 15] },
-    { name: 'Moraine Lake', area: 'Banff', lat: 51.3242, lon: -116.1835, az: 190, alt: 8, hfov: 70, date: [2026, 6, 15] },
-    { name: '50.0738, \u22125.7022', area: 'Sennen', lat: 50.07378276, lon: -5.70221494, az: 270, alt: 1, hfov: 84, date: [2026, 9, 10], at: 400 },
-    { name: 'Pallastunturi', area: 'Lapland', lat: 68.0602, lon: 24.0427, az: 90, alt: 1, hfov: 84, date: [2026, 9, 10], at: 330 },
-    { name: '58.0176, 14.1427', area: 'Sm\u00e5land', lat: 58.01762, lon: 14.14270, az: 90, alt: 2, hfov: 84, date: [2026, 9, 10], at: 380 },
-    { name: 'Jbel Tidirhine', area: 'Rif', lat: 34.844871, lon: -4.529429, az: 330, alt: 0, hfov: 84, date: [2026, 9, 10], at: 380 },
-    { name: 'Buachaille Etive M\u00f2r', area: 'Glencoe', lat: 56.6497, lon: -4.8436, az: 258, alt: 4, hfov: 84, date: [2026, 9, 10] },
-  ];
-  GROUNDS = [['lit', 'Night lit'], ['true', 'True colour'], ['sil', 'Silhouette']];
-  SPEEDS = [2, 5, 15, 30];
-  LENSES = [14, 20, 24, 35, 50];
-  state = { ha: false, haStr: 40, place: 0, day: 0, min: 570, playing: false, speed: 5, lens: 20, portrait: false, ground: 'lit', trails: false, frame: true, exp: 45, haze: 35, domes: true, detail: null, view: null, load: null, rec: false, strip: null, hud: null };
-
-  constructor(p) {
-    super(p);
-    this.viewRef = el => { this._cv = el; };
-    this.stripRef = el => { this._sv = el; };
-    this.mapRef = el => {
-      this._mc = el;
-      if (el && !el._wheel) {
-        el._wheel = true;
-        el.addEventListener('wheel', e => {
-          e.preventDefault();
-          const b = el.getBoundingClientRect(), mv = this._mv; if (!mv) return;
-          const dz = e.deltaY > 0 ? -0.25 : 0.25, z2 = Math.max(4, Math.min(19, mv.z + dz));
-          const ax = e.clientX - b.left - b.width / 2, ay = e.clientY - b.top - b.height / 2;
-          const [cx, cy] = this.mapPx(mv.lat, mv.lon, mv.z), k = Math.pow(2, z2 - mv.z);
-          const [la, lo] = this.mapLL((cx + ax) * k - ax, (cy + ay) * k - ay, z2);
-          this._mv = { lat: la, lon: lo, z: z2 }; this.drawMapView();
-        }, { passive: false });
-      }
-      if (el) this.drawMapView();
-    };
-    this.evRef = el => { this._ev = el; };
-  }
-  componentDidMount() {
-    window.__scout = this;
-    this._min = this.state.min;
-    this._boot = setInterval(() => {
-      if (window.NoctoEngine && window.NoctoPlan && window.NoctoScout) { clearInterval(this._boot); this.init(); }
-    }, 50);
-  }
-  componentWillUnmount() {
-    clearInterval(this._boot); cancelAnimationFrame(this._raf);
-    if (this._ro) this._ro.disconnect();
-    window.removeEventListener('keydown', this._key);
-  }
-  init() {
-    const E = this.E = window.NoctoEngine, S = this.S = window.NoctoScout;
-    /* the desktop scene if the browser has WebGL2, the phone one if not */
-    const HD = window.NoctoScoutHD;
-    this.sc = HD ? new HD.Scene(document.createElement('canvas')) : null;
-    this.hd = !!(this.sc && this.sc.ok);
-    if (!this.hd) this.sc = new S.Scene(document.createElement('canvas'));
-    if (E.loadAtlas) E.loadAtlas().then(() => this.computeDomes()).catch(() => {});
-    ['_sky', '_tr', '_comp'].forEach(k => { this[k] = document.createElement('canvas'); });
-    /* a tablet gets the 4k sky: the 8k one decodes to 128 MB, which iPadOS may close the tab over */
-    this.touch = navigator.maxTouchPoints > 1;
-    S.loadBand(this.touch ? '../assets/4k_stars_milky_way.jpg' : '../assets/8k_stars_milky_way.jpg', () => this.dirty());
-    S.loadSkyData(() => this.dirty());
-    /* Hα: Finkbeiner's all-sky composite, plate carrée in RA and Dec, RA increasing to the left from
-       360 at the left edge. Kept as one byte a pixel. */
-    const ha = new Image();
-    ha.onload = () => {
-      const c = document.createElement('canvas'); c.width = ha.width; c.height = ha.height;
-      const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(ha, 0, 0);
-      const d = g.getImageData(0, 0, c.width, c.height).data, out = new Uint8Array(c.width * c.height);
-      for (let i = 0; i < out.length; i++) out[i] = d[i * 4];
-      this._ha = { W: c.width, H: c.height, px: out };
-      if (this.state.ha) { this.resetTrails(); this.dirty(); }
-    };
-    ha.src = '../assets/halpha_finkbeiner_4k.png';
-    this._ro = new ResizeObserver(() => { this.resetTrails(); this.dirty(); const w = this._ev ? this._ev.clientWidth : 0; if (w && w !== this.state.evW) this.setState({ evW: w }); });
-    if (this._cv) this._ro.observe(this._cv);
-    if (this._sv) this._ro.observe(this._sv);
-    if (this._cv) this._cv.addEventListener('wheel', e => {
-      e.preventDefault();
-      const v = this._view;
-      v.hfov = Math.max(12, Math.min(120, v.hfov * (e.deltaY > 0 ? 1.08 : 1 / 1.08)));
-      this.resetTrails(); this.dirty(); this.syncView();
-    }, { passive: false });
-    this._key = e => {
-      if (e.target.tagName === 'INPUT') return;
-      if (e.code === 'Space') { e.preventDefault(); this.togglePlay(); }
-      else if (e.code === 'KeyM' && !e.metaKey && !e.ctrlKey) this.setMap(!this.state.mapOn);
-    };
-    window.addEventListener('resize', () => { if (this.state.mapOn) this.drawMapView(); });
-    window.addEventListener('keydown', this._key);
-    this.pickPlace(0);
-    const tick = t => {
-      const dt = this._last ? Math.min(100, t - this._last) : 0; this._last = t;
-      const st = this.state, sp = this._strip;
-      if (st.playing && sp) {
-        this._min += st.speed * dt / 1000;
-        if (this._min > sp.end) { this._min = sp.start; this.resetTrails(); }
-        this._dirty = true;
-        if (t - (this._pushed || 0) > 120) { this._pushed = t; this.setState({ min: this._min, hud: this._hud }); }
-      }
-      /* while sharp tiles land, repaint a few times a second so they show */
-      if (this.hd && this.sc.sharpening && t - (this._sharpAt || 0) > 250) { this._sharpAt = t; this._dirty = true; }
-      if (this._dirty) { this._dirty = false; if (!this.state.mapOn) this.draw(); this.drawStrip(); }
-      this._raf = requestAnimationFrame(tick);
-    };
-    this._raf = requestAnimationFrame(tick);
-  }
-  dirty() { this._dirty = true; }
-  resetTrails() { this._trailsFresh = true; }
-  syncView() { clearTimeout(this._vs); this._vs = setTimeout(() => this.setState({ view: { ...this._view } }), 80); }
-  /* UK clocks: BST from 01:00 UTC on the last Sunday of March to the last Sunday of October */
-  tzAt(ms) {
-    const y = new Date(ms).getUTCFullYear();
-    const last = m => { const d = new Date(Date.UTC(y, m + 1, 0, 1)); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.getTime(); };
-    return ms >= last(2) && ms < last(9) ? 60 : 0;
-  }
-  noon() { const dt = this.PLACES[this.state.place].date, g = Date.UTC(dt[0], dt[1], dt[2] + this.state.day, 12, 0); return g - this.tzAt(g) * 60000; }
-  hazeKm() { return 150 * Math.pow(8 / 150, this.state.haze / 100); }
-  computeDomes() {
-    const HD = window.NoctoScoutHD, p = this.loc();
-    if (!HD) return;
-    this._domes = HD.domeProfile(p.lat, p.lon);
-    this._lpArt = this._domes ? this._domes.art : 0;
-    this.dirty();
-  }
-  hhmm(ms) { const d = new Date(ms + this.tzAt(ms) * 60000); return String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0'); }
-
-  pickPlace(i) {
-    const p = this.PLACES[i];
-    this._view = { az: p.az, alt: p.alt, hfov: p.hfov };
-    this.setState({ place: i, here: null, trail: [], day: 0, view: { ...this._view }, load: { d: 0, t: 1 }, detail: null, ...(p.ha != null ? { ha: p.ha } : {}), ...(p.exp != null ? { exp: p.exp } : {}) }, () => {
-      this.computeStrip(true);
-      this.loadHere();
-    });
-  }
-  loc() { return this.state.here || this.PLACES[this.state.place]; }
-  loadHere(label) {
-    const p = this.loc(), E = this.E;
-    this.computeDomes();
-    if (E.loadTiles) E.loadTiles(p.lat, p.lon, 200).then(() => this.computeDomes()).catch(() => {});
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
     {
-      const tok = this._loadTok = {};
-      this.setState({ surf: null });
-      const onProgress = (d, t) => { if (this._loadTok === tok) this.setState({ load: { d, t, label } }); };
-      const onRing = () => { this.resetTrails(); this.dirty(); };
-      const job = this.hd
-        ? this.sc.load(p.lat, p.lon, { onProgress, onRing,
-          onSurface: info => { if (this._loadTok === tok) { this.setState({ surf: info }); this.resetTrails(); this.dirty(); } },
-          onDetail: (d, t) => {
-            if (this._loadTok !== tok) return;
-            const now = performance.now();
-            if (d === t || now - (this._detPush || 0) > 400) { this._detPush = now; this.setState({ detail: { d, t } }); }
-          } })
-        : this.sc.load(p.lat, p.lon, onProgress, onRing);
-      job.then(() => { if (this._loadTok === tok) this.setState({ load: null }); this.dirty(); })
-        .catch(() => this.setState({ load: null }));
-    }
-  }
-  /* Where a direction from the eye meets the ground: marched out through the loaded heights, with
-     the same curvature drop the mesh carries, then narrowed down between the last two steps. */
-  groundHit(az, alt) {
-    const sc = this.sc; if (!sc || sc.lat == null) return null;
-    const R = 6371000, REFF = R * 7 / 6, D = Math.PI / 180, h0 = sc.ground + 1.6, t = Math.tan(alt * D);
-    const dest = d => {
-      const dr = d / R, br = az * D, la = sc.lat * D, lo = sc.lon * D;
-      const la2 = Math.asin(Math.sin(la) * Math.cos(dr) + Math.cos(la) * Math.sin(dr) * Math.cos(br));
-      const lo2 = lo + Math.atan2(Math.sin(br) * Math.sin(dr) * Math.cos(la), Math.cos(dr) - Math.sin(la) * Math.sin(la2));
-      return [la2 / D, lo2 / D];
-    };
-    const under = d => { const q = dest(d), th = sc.heightAt(q[0], q[1]); return th == null ? null : th >= h0 + d * t + d * d / (2 * REFF); };
-    let prev = 4;
-    for (let d = 8; d < 60000; d *= 1.015) {
-      const u = under(d);
-      if (u) {
-        let a = prev, b = d;
-        for (let k = 0; k < 14; k++) { const m = (a + b) / 2; if (under(m)) b = m; else a = m; }
-        const q = dest(b);
-        return { lat: q[0], lon: q[1], d: b };
-      }
-      if (u != null) prev = d;
-    }
-    return null;
-  }
-  jumpAt(e) {
-    const cv = this._cv, sc = this.sc, v = this._view;
-    if (!cv || !sc || !v || !sc.rings.some(Boolean) || this.state.load) return;
-    const b = cv.getBoundingClientRect(), W = b.width, H = b.height, R = Math.PI / 180;
-    const vfov = 2 * Math.atan(Math.tan(v.hfov / 2 * R) * H / W) / R;
-    const dir = this.S.projector(v.alt, v.az, v.hfov, vfov, W, H).unproject(e.clientX - b.left, e.clientY - b.top);
-    const hit = this.groundHit(dir.az, dir.alt);
-    if (!hit) { this.toast('That is sky. Double-click the ground to walk there.'); return; }
-    this.walkTo(hit.lat, hit.lon, 'Walking ' + (hit.d < 1000 ? Math.round(hit.d / 10) * 10 + ' m' : (hit.d / 1000).toFixed(1) + ' km') + ' ' + ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round((((dir.az % 360) + 360) % 360) / 45) % 8]);
-  }
-  /* stand somewhere else: named by where it is from the preset, added to the trail for Back */
-  walkTo(lat, lon, label) {
-    const v = this._view;
-    const origin = this.PLACES[this.state.place], D = Math.PI / 180, hit = { lat, lon };
-    const la0 = origin.lat * D, la1 = hit.lat * D, dl = (hit.lon - origin.lon) * D;
-    const br = Math.atan2(Math.sin(dl) * Math.cos(la1), Math.cos(la0) * Math.sin(la1) - Math.sin(la0) * Math.cos(la1) * Math.cos(dl)) / D;
-    const dist = 6371000 * Math.acos(Math.min(1, Math.sin(la0) * Math.sin(la1) + Math.cos(la0) * Math.cos(la1) * Math.cos(dl)));
-    const km = m => m < 1000 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(m < 10000 ? 1 : 0) + ' km';
-    const pt = a => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round((((a % 360) + 360) % 360) / 45) % 8];
-    const name = dist < 30 ? origin.name : km(dist) + ' ' + pt(br) + ' of ' + origin.area;
-    this.track && this.track('scout/jump');
-    v.alt = Math.max(1, Math.min(10, v.alt));
-    this.resetTrails();
-    this.setState({ here: { ...origin, at: null, name, lat: hit.lat, lon: hit.lon }, trail: [...(this.state.trail || []), this.loc()], view: { ...v } },
-      () => { this.loadHere(label); this.drawMapView(); });
-  }
-
-  /* ---- the map ----
-     The same satellite imagery the ground is draped in, as a flat map. It shows where you stand,
-     which way you look (the gold wedge, as wide as the view), the way you walked, and the square
-     that has the detailed ground in it. Clicking stands you there; dragging the wedge aims. */
-  mapPx(lat, lon, z) { const n = 256 * Math.pow(2, z), s = Math.sin(lat * Math.PI / 180); return [(lon + 180) / 360 * n, (1 - Math.log((1 + s) / (1 - s)) / (2 * Math.PI)) / 2 * n]; }
-  mapLL(x, y, z) { const n = 256 * Math.pow(2, z), lon = x / n * 360 - 180, yy = Math.PI * (1 - 2 * y / n); return [Math.atan(Math.sinh(yy)) * 180 / Math.PI, lon]; }
-  setMap(on) {
-    if (on) { const p = this.loc(); if (!this._mv || this._mvFor !== p) { this._mv = { lat: p.lat, lon: p.lon, z: this._mv ? this._mv.z : 15 }; this._mvFor = p; } this.track && this.track('scout/map'); }
-    this.setState({ mapOn: on }, () => { if (on) this.drawMapView(); else { this.resetTrails(); this.dirty(); } });
-  }
-  mapTile(z, x, y) {
-    const key = z + '/' + x + '/' + y, T = this._tiles || (this._tiles = new Map());
-    let t = T.get(key);
-    if (!t) {
-      const HD = window.NoctoScoutHD, tpl = (HD && HD.config().imagery) || 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-      t = new Image(); t.crossOrigin = 'anonymous';
-      t.onload = () => { t.ok = true; this.drawMapSoon(); };
-      t.src = tpl.replace('{z}', z).replace('{y}', y).replace('{x}', x);
-      T.set(key, t);
-      if (T.size > 600) T.delete(T.keys().next().value);
-    }
-    return t;
-  }
-  drawMapSoon() { if (this._mapRaf) return; this._mapRaf = requestAnimationFrame(() => { this._mapRaf = 0; this.drawMapView(); }); }
-  drawMapView() {
-    const cv = this._mc, mv = this._mv;
-    if (!cv || !mv || !this.state.mapOn) return;
-    const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
-    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
-    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = '#050508'; ctx.fillRect(0, 0, W, H);
-    const zt = Math.max(3, Math.min(19, Math.floor(mv.z))), k = Math.pow(2, mv.z - zt);
-    const [cx, cy] = this.mapPx(mv.lat, mv.lon, zt), N = Math.pow(2, zt);
-    const x0 = cx - W / 2 / k, y0 = cy - H / 2 / k;
-    const tx0 = Math.floor(x0 / 256), ty0 = Math.floor(y0 / 256), tx1 = Math.floor((x0 + W / k) / 256), ty1 = Math.floor((y0 + H / k) / 256);
-    ctx.imageSmoothingQuality = 'high';
-    for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
-      if (ty < 0 || ty >= N) continue;
-      const wx = ((tx % N) + N) % N, dx = (tx * 256 - x0) * k, dy = (ty * 256 - y0) * k, sz = 256 * k;
-      const t = this.mapTile(zt, wx, ty);
-      if (t.ok) { ctx.drawImage(t, dx, dy, sz + 0.5, sz + 0.5); continue; }
-      /* a coarser tile already loaded stands in until this one arrives */
-      for (let up = 1; up <= 4; up++) {
-        const pz = zt - up; if (pz < 3) break;
-        const f = Math.pow(2, up), px = Math.floor(wx / f), py = Math.floor(ty / f), p = this.mapTile(pz, px, py);
-        if (!p.ok) continue;
-        const sx = (wx - px * f) * 256 / f, sy = (ty - py * f) * 256 / f;
-        ctx.drawImage(p, sx, sy, 256 / f, 256 / f, dx, dy, sz + 0.5, sz + 0.5); break;
-      }
-    }
-    /* a little darker, so the marks read and the eye stays adapted */
-    ctx.fillStyle = 'rgba(5,5,8,.28)'; ctx.fillRect(0, 0, W, H);
-    const at = (la, lo) => { const [x, y] = this.mapPx(la, lo, zt); return [(x - x0) * k, (y - y0) * k]; };
-    /* the square with the detailed ground */
-    const r0 = this.sc && this.sc.rings && this.sc.rings[0] && this.sc.rings[0].r;
-    if (r0) {
-      const a = this.mapLL(r0.x0 * 256, r0.y0 * 256, r0.z), b = this.mapLL((r0.x0 + r0.n) * 256, (r0.y0 + r0.n) * 256, r0.z);
-      const [ax, ay] = at(a[0], a[1]), [bx, by] = at(b[0], b[1]);
-      ctx.save(); ctx.setLineDash([6, 5]); ctx.strokeStyle = 'rgba(240,236,228,.45)'; ctx.lineWidth = 1; ctx.strokeRect(ax, ay, bx - ax, by - ay); ctx.restore();
-      /* label inside the square's lower edge, kept clear of the panels top and bottom */
-      const lx = Math.max(24, Math.min(W - 150, ax + 8)), ly = Math.max(300, Math.min(H - 350, by - 8));
-      if (by > 300 && ay < H - 350) { ctx.fillStyle = 'rgba(240,236,228,.75)'; ctx.font = '600 11px "JetBrains Mono", monospace'; ctx.fillText('Edge of detailed ground', lx, ly); }
-    }
-    /* the walk */
-    const tr = [...(this.state.trail || []), this.loc()];
-    if (tr.length > 1) {
-      ctx.save(); ctx.setLineDash([3, 5]); ctx.strokeStyle = 'rgba(214,179,104,.7)'; ctx.lineWidth = 2; ctx.beginPath();
-      tr.forEach((p, i) => { const [x, y] = at(p.lat, p.lon); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); ctx.stroke(); ctx.restore();
-      tr.slice(0, -1).forEach(p => { const [x, y] = at(p.lat, p.lon); ctx.beginPath(); ctx.arc(x, y, 3.5, 0, 6.2832); ctx.fillStyle = '#D6B368'; ctx.fill(); });
-    }
-    /* the preset, if you have walked away from it */
-    const o = this.PLACES[this.state.place];
-    if (this.state.here) { const [x, y] = at(o.lat, o.lon); ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.2832); ctx.strokeStyle = 'rgba(240,236,228,.8)'; ctx.lineWidth = 1.5; ctx.stroke(); }
-    /* you, and the view */
-    const p = this.loc(), v = this._view || { az: 0, hfov: 60 }, [px, py] = at(p.lat, p.lon), R = 88, D = Math.PI / 180;
-    const a0 = (v.az - v.hfov / 2 - 90) * D, a1 = (v.az + v.hfov / 2 - 90) * D;
-    const g = ctx.createRadialGradient(px, py, 0, px, py, R);
-    g.addColorStop(0, 'rgba(214,179,104,.55)'); g.addColorStop(1, 'rgba(214,179,104,0)');
-    ctx.beginPath(); ctx.moveTo(px, py); ctx.arc(px, py, R, a0, a1); ctx.closePath(); ctx.fillStyle = g; ctx.fill();
-    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos((v.az - 90) * D) * R, py + Math.sin((v.az - 90) * D) * R);
-    ctx.strokeStyle = 'rgba(232,201,138,.9)'; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.beginPath(); ctx.arc(px, py, 7, 0, 6.2832); ctx.fillStyle = '#D6B368'; ctx.fill();
-    ctx.lineWidth = 2; ctx.strokeStyle = '#0A0A0B'; ctx.stroke();
-    this._mapMe = { x: px, y: py, R };
-    /* scale */
-    const mpp = 156543.03 * Math.cos(mv.lat * D) / Math.pow(2, mv.z);
-    const nice = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000].find(m => m / mpp >= 70) || 20000;
-    const label = nice >= 1000 ? nice / 1000 + ' km' : nice + ' m';
-    if (label !== this.state.mapScaleLabel) this.setState({ mapScaleLabel: label });
-    const sw = nice / mpp, sx = W - 36 - sw, sy = 214;
-    ctx.fillStyle = 'rgba(10,10,11,.82)'; ctx.fillRect(sx - 8, sy - 20, sw + 16, 30);
-    ctx.strokeStyle = '#DCD7CC'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, sy - 4); ctx.lineTo(sx, sy); ctx.lineTo(sx + sw, sy); ctx.lineTo(sx + sw, sy - 4); ctx.stroke();
-    ctx.fillStyle = '#DCD7CC'; ctx.font = '500 11px "JetBrains Mono", monospace'; ctx.fillText(label, sx, sy - 8);
-  }
-  toast(msg) {
-    clearTimeout(this._toastT);
-    this.setState({ toast: msg });
-    this._toastT = setTimeout(() => this.setState({ toast: null }), 2600);
-  }
-  computeStrip(resetTime) {
-    const E = this.E, P = window.NoctoPlan, p = this.loc(), noon = this.noon();
-    const N = 289, sun = [], moon = [], mfrac = [], core = [];
-    for (let i = 0; i < N; i++) {
-      const d = new Date(noon + i * 5 * 60000), sky = P.skyAt(d, p.lat, p.lon);
-      sun.push(sky.sun.alt); moon.push(sky.moon.alt); mfrac.push(sky.moon.frac);
-      core.push(E.eq2horiz(E.MW_RA, E.MW_DEC, p.lat, E.lstOf(E.jdFrom(d), p.lon)).alt);
-    }
-    const cross = (arr, lv, up) => {
-      for (let i = 1; i < N; i++) {
-        const a = arr[i - 1], b = arr[i];
-        if (up ? (a < lv && b >= lv) : (a >= lv && b < lv)) return (i - 1 + (lv - a) / (b - a)) * 5;
-      }
-      return null;
-    };
-    const set = cross(sun, -0.83, false), rise = cross(sun, -0.83, true);
-    const start = Math.max(0, (set == null ? 300 : set) - 30), end = Math.min(1440, (rise == null ? 1140 : rise) + 30);
-    const ev = [
-      ['Sunset', set, '#ADA79B'], ['Dark', cross(sun, -18, false), '#DCD7CC'], ['Dawn', cross(sun, -18, true), '#DCD7CC'], ['Sunrise', rise, '#ADA79B'],
-      ['Moonrise', cross(moon, 0, true), '#C9CBD2'], ['Moonset', cross(moon, 0, false), '#C9CBD2'],
-      ['Core up', cross(core, 0, true), '#D6B368'], ['Core down', cross(core, 0, false), '#D6B368'],
-    ].filter(e => e[1] != null && e[1] >= start && e[1] <= end);
-    this._strip = { sun, moon, mfrac, core, start, end, ev };
-    const dark = cross(sun, -18, false);
-    if (resetTime && p.at != null) this._min = p.at;
-    else if (resetTime || this._min < start || this._min > end) this._min = Math.min(end, (dark == null ? start : dark) + 45);
-    this.resetTrails();
-    this.setState({ strip: { start, end, ev: ev.map(e => ({ label: e[0], at: e[1], c: e[2] })) }, min: this._min });
-    this.dirty();
-  }
-
-  frameRect(W, H, hfov, vfov) {
-    const st = this.state, f = st.lens, R = Math.PI / 180;
-    let a = 2 * Math.atan(18 / f) / R, d = 2 * Math.atan(12 / f) / R;
-    if (st.portrait) { const t = a; a = d; d = t; }
-    const fw = W * Math.tan(a / 2 * R) / Math.tan(hfov / 2 * R), fh = H * Math.tan(d / 2 * R) / Math.tan(vfov / 2 * R);
-    return { x: (W - fw) / 2, y: (H - fh) / 2, w: fw, h: fh, a, d, fits: fw <= W + 1 && fh <= H + 1 };
-  }
-  draw() {
-    const cv = this._cv, S = this.S, sc = this.sc;
-    if (!cv || !S || !this._view) return;
-    const st = this.state, p = this.loc();
-    const dpr = window.devicePixelRatio || 1;
-    const W = Math.max(2, Math.round(cv.clientWidth * dpr)), H = Math.max(2, Math.round(cv.clientHeight * dpr));
-    [cv, this._sky, this._tr, this._comp].forEach(c => { if (c.width !== W || c.height !== H) { c.width = W; c.height = H; this._trailsFresh = true; } });
-    const R = Math.PI / 180, v = this._view;
-    const vfov = 2 * Math.atan(Math.tan(v.hfov / 2 * R) * H / W) / R;
-    const view = { az: v.az, alt: v.alt, hfov: v.hfov, vfov, eyeM: 1.6 };
-    const when = new Date(this.noon() + this._min * 60000);
-    const gain = 0.25 + st.exp / 100 * 1.5;
-    const sx = this._sky.getContext('2d');
-    sx.setTransform(1, 0, 0, 1, 0, 0); sx.globalAlpha = 1; sx.globalCompositeOperation = 'source-over';
-    const r = S.drawSky(sx, W, H, view, when, p.lat, p.lon, { gain, dpr, coarse: st.playing, map: S.skyDataReady() ? { stars: true } : null });
-    if (st.ha && this._ha) this.drawHa(sx, W, H, view, when, p, r.sky, gain);
-    /* the moon's own wash over the sky, and the towns' domes on the horizon */
-    const HD = window.NoctoScoutHD, extras = { gain, domes: st.domes ? this._domes : null };
-    if (HD) HD.skyExtras(sx, W, H, view, r.sky, extras);
-    const cx = this._comp.getContext('2d');
-    cx.globalCompositeOperation = 'source-over';
-    if (st.trails) {
-      const tx = this._tr.getContext('2d');
-      if (this._trailsFresh) { tx.globalCompositeOperation = 'source-over'; tx.drawImage(this._sky, 0, 0); this._trailsFresh = false; }
-      else { tx.globalCompositeOperation = 'lighten'; tx.drawImage(this._sky, 0, 0); }
-      cx.drawImage(this._tr, 0, 0);
-    } else cx.drawImage(this._sky, 0, 0);
-    if (sc && sc.ok && sc.rings.some(Boolean)) {
-      const g = sc.canvas;
-      if (g.width !== W || g.height !== H) { g.width = W; g.height = H; }
-      const s = r.sky;
-      sc.render(view, { sunAz: s.sun.az, sunAlt: s.sun.alt, moonAz: s.moon.az, moonAlt: s.moon.alt, moonFrac: s.moon.frac,
-        gain, hazeKm: this.hazeKm(), haze: this.hd ? 0.9 : 0.85, nv: false, trueCol: st.ground === 'true',
-        mode: st.ground, lpArt: this._lpArt || 0, hazeRow: this.hd && HD ? HD.hazeRow(view, s, extras) : null });
-      cx.save(); if (st.ground === 'sil' && !this.hd) cx.filter = 'brightness(0)';
-      cx.drawImage(g, 0, 0, W, H); cx.restore();
-    }
-    const ctx = cv.getContext('2d');
-    ctx.drawImage(this._comp, 0, 0);
-    const fr = this.frameRect(W, H, v.hfov, vfov);
-    this._fr = fr;
-    if (st.frame && fr.fits) {
-      ctx.save();
-      ctx.fillStyle = 'rgba(0,0,0,.5)';
-      ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.rect(fr.x, fr.y, fr.w, fr.h); ctx.fill('evenodd');
-      ctx.strokeStyle = 'rgba(240,236,228,.14)'; ctx.lineWidth = dpr;
-      ctx.beginPath();
-      [1, 2].forEach(k => {
-        ctx.moveTo(fr.x + fr.w * k / 3, fr.y); ctx.lineTo(fr.x + fr.w * k / 3, fr.y + fr.h);
-        ctx.moveTo(fr.x, fr.y + fr.h * k / 3); ctx.lineTo(fr.x + fr.w, fr.y + fr.h * k / 3);
-      });
-      ctx.stroke();
-      ctx.strokeStyle = '#D6B368'; ctx.lineWidth = 1.5 * dpr;
-      ctx.strokeRect(fr.x, fr.y, fr.w, fr.h);
-      ctx.fillStyle = '#D6B368'; ctx.font = '600 ' + Math.round(12 * dpr) + 'px "JetBrains Mono", monospace';
-      /* the label sits above the frame; when the frame reaches the top panel it would print over the
-         place name, and the lens is on its button anyway */
-      if (fr.y > 200 * dpr) ctx.fillText(st.lens + ' mm \u00b7 ' + Math.round(fr.a) + '\u00b0 \u00d7 ' + Math.round(fr.d) + '\u00b0', fr.x, fr.y - 8 * dpr);
-      ctx.restore();
-    }
-    if (this._rec) {
-      const rc = this._rec.cv, crop = this._rec.crop;
-      rc.getContext('2d').drawImage(this._comp, crop.x, crop.y, crop.w, crop.h, 0, 0, rc.width, rc.height);
-    }
-    const s = r.sky, E = this.E;
-    const core = E.eq2horiz(E.MW_RA, E.MW_DEC, p.lat, E.lstOf(E.jdFrom(when), p.lon)).alt;
-    this._hud = { sun: s.sun.alt, moon: s.moon.alt, frac: s.moon.frac, core };
-    /* the readout follows whatever the view shows, not only play and scrub */
-    const q = x => x ? [Math.round(x.sun * 10), Math.round(x.moon), Math.round(x.frac * 100), Math.round(x.core)].join('|') : '';
-    if (q(this.state.hud) !== q(this._hud) && !this._hudPending) {
-      this._hudPending = true;
-      Promise.resolve().then(() => { this._hudPending = false; this.setState({ hud: this._hud }); });
-    }
-  }
-  drawStrip() {
-    const cv = this._sv, sp = this._strip;
-    if (!cv || !sp) return;
-    const dpr = window.devicePixelRatio || 1;
-    const W = Math.max(2, Math.round(cv.clientWidth * dpr)), H = Math.max(2, Math.round(cv.clientHeight * dpr));
-    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
-    const ctx = cv.getContext('2d');
-    ctx.clearRect(0, 0, W, H);
-    const span = sp.end - sp.start, xOf = m => (m - sp.start) / span * W;
-    const skyH = 36 * dpr, gap = 4 * dpr, rowH = 14 * dpr, yM = skyH + gap, yC = yM + rowH + gap;
-    const lerp = (a, b, t) => Math.round(a + (b - a) * t);
-    for (let i = 0; i < sp.sun.length - 1; i++) {
-      const m0 = i * 5, m1 = m0 + 5;
-      if (m1 < sp.start || m0 > sp.end) continue;
-      const x0 = xOf(m0), x1 = xOf(m1) + 1;
-      const t = Math.max(0, Math.min(1, (sp.sun[i] + 18) / 18)), e = t * t;
-      ctx.fillStyle = 'rgb(' + lerp(14, 92, e) + ',' + lerp(14, 104, e) + ',' + lerp(18, 128, e) + ')';
-      ctx.fillRect(x0, 0, x1 - x0, skyH);
-      ctx.fillStyle = 'rgba(240,236,228,.05)'; ctx.fillRect(x0, yM, x1 - x0, rowH); ctx.fillRect(x0, yC, x1 - x0, rowH);
-      if (sp.moon[i] > 0) { ctx.fillStyle = 'rgba(201,203,210,' + (0.2 + 0.6 * sp.mfrac[i]).toFixed(2) + ')'; ctx.fillRect(x0, yM, x1 - x0, rowH); }
-      if (sp.core[i] > 0) { ctx.fillStyle = 'rgba(214,179,104,' + (0.35 + 0.6 * (1 - t)).toFixed(2) + ')'; ctx.fillRect(x0, yC, x1 - x0, rowH); }
-    }
-    ctx.strokeStyle = 'rgba(240,236,228,.22)'; ctx.lineWidth = dpr;
-    sp.ev.forEach(e => { const x = Math.round(xOf(e[1])) + 0.5; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, skyH); ctx.stroke(); });
-    const px = xOf(this._min);
-    ctx.fillStyle = '#D6B368'; ctx.fillRect(px - dpr, 0, 2 * dpr, H);
-    ctx.beginPath(); ctx.arc(px, skyH / 2, 5 * dpr, 0, 6.2832); ctx.fill();
-  }
-
-  togglePlay() {
-    if (!this.state.playing) { this.resetTrails(); this._last = 0; }
-    this.setState({ playing: !this.state.playing, min: this._min }, () => this.dirty());
-  }
-  stripAt(e) {
-    const sp = this._strip, cv = this._sv; if (!sp || !cv) return;
-    const b = cv.getBoundingClientRect();
-    this._min = sp.start + Math.max(0, Math.min(1, (e.clientX - b.left) / b.width)) * (sp.end - sp.start);
-    this.resetTrails(); this.dirty();
-    this.setState({ min: this._min, hud: this._hud });
-  }
-  startRec() {
-    const fr = this._fr, st = this.state;
-    const crop = st.frame && fr && fr.fits ? { x: Math.round(fr.x), y: Math.round(fr.y), w: Math.round(fr.w), h: Math.round(fr.h) } : { x: 0, y: 0, w: this._comp.width, h: this._comp.height };
-    const cv = document.createElement('canvas');
-    const k = Math.min(1, 3840 / crop.w); cv.width = Math.round(crop.w * k / 2) * 2; cv.height = Math.round(crop.h * k / 2) * 2;
-    if (!cv.captureStream || !window.MediaRecorder) return;
-    const type = ['video/webm;codecs=vp9', 'video/webm', 'video/mp4'].find(t => MediaRecorder.isTypeSupported(t));
-    const mr = new MediaRecorder(cv.captureStream(30), type ? { mimeType: type, videoBitsPerSecond: 24e6 } : undefined);
-    const chunks = [];
-    mr.ondataavailable = ev => { if (ev.data.size) chunks.push(ev.data); };
-    mr.onstop = () => this.download(new Blob(chunks, { type: mr.mimeType || 'video/webm' }), 'timelapse.' + ((mr.mimeType || '').indexOf('mp4') >= 0 ? 'mp4' : 'webm'));
-    this._rec = { cv, crop, mr };
-    mr.start(500);
-    this.resetTrails();
-    this.setState({ rec: true, playing: true }, () => this.dirty());
-  }
-  stopRec() { if (this._rec) { this._rec.mr.stop(); this._rec = null; } this.setState({ rec: false, playing: false }); }
-  download(blob, suffix) {
-    const a = document.createElement('a'), p = this.PLACES[this.state.place];
-    a.href = URL.createObjectURL(blob);
-    a.download = 'noctography-' + p.area.toLowerCase().replace(/\s+/g, '-') + '-' + this.hhmm(this.noon() + this._min * 60000).replace(':', '') + '-' + suffix;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  }
-
-  /* Labels sit at their time, placed left to right in two lanes: each goes in the first lane where it
-     clears the previous label, and is clamped inside the strip rather than centred off its ends. */
-  eventLabels(sp) {
-    if (!sp) return [];
-    const W = this.state.evW || (this._ev && this._ev.clientWidth) || 900, CH = 6.9, GAP = 10;
-    const ends = [-1e9, -1e9];
-    return sp.ev.slice().sort((a, b) => a.at - b.at).map(e => {
-      const label = e.label + ' ' + this.hhmm(this.noon() + e.at * 60000);
-      const w = label.length * CH, cx = (e.at - sp.start) / (sp.end - sp.start) * W;
-      const x = Math.max(0, Math.min(W - w, cx - w / 2));
-      let lane = ends.findIndex(end => x >= end + GAP);
-      if (lane < 0) lane = ends[0] <= ends[1] ? 0 : 1;
-      ends[lane] = x + w;
-      return { label, c: e.c, left: x.toFixed(1) + 'px', top: lane ? '17px' : '0px' };
-    });
-  }
-  detailVals() {
-    const st = this.state;
-    if (!this.hd) return { detailLine: this.sc ? 'Phone detail: this browser has no WebGL2' : '', detailLine2: '', detailInk: '#918B81' };
-    const res = this.sc.resolution();
-    const m = v => v < 10 ? v.toFixed(1) + ' m' : Math.round(v) + ' m';
-    const spec = res.length ? m(res[0].m) + ' to ' + res[0].km.toFixed(1) + ' km \u00b7 ' + m(res[1].m) + ' to ' + Math.round(res[1].km) + ' km \u00b7 ' + m(res[2].m) + ' to ' + Math.round(res[2].km) + ' km' : '';
-    const dt = st.detail;
-    const sf = st.surf;
-    const surfLine = !sf ? '' : sf.state === 'loading' ? 'Reading trees and buildings \u00b7 ' + sf.name
-      : sf.state === 'on' ? 'Trees and buildings \u00b7 ' + sf.name + ' \u00b7 ' + sf.m.toFixed(1) + ' m to ' + (sf.km / 2).toFixed(1) + ' km'
-      : sf.failed ? 'Trees and buildings \u00b7 ' + sf.name + ' did not answer' : 'Trees and buildings \u00b7 no survey here yet';
-    if (dt && dt.d < dt.t) return { detailLine: 'Sharpening the ground \u00b7 ' + dt.d + ' of ' + dt.t + ' tiles', detailLine2: surfLine, detailInk: '#D6B368' };
-    return { detailLine: spec ? 'Ground ' + spec : '', detailLine2: surfLine, detailInk: '#918B81' };
-  }
-  /* The Hα layer: every pixel of a small canvas is turned back into RA and Dec, read from the map,
-     and added over the sky in the deep red a modified camera records. Strength follows the slider,
-     the darkness of the sky and the air near the horizon. The map is soft (about 6 arcmin), so a
-     quarter-width canvas scaled up loses nothing. */
-  drawHa(ctx, W, H, view, when, p, sky, gain) {
-    const E = this.E, S = this.S, M = this._ha, D = Math.PI / 180;
-    const dark = Math.max(0, Math.min(1, (-sky.sun.alt - 10) / 8));
-    const moon = sky.moon.alt > 0 ? 1 - 0.7 * sky.moon.frac * Math.min(1, sky.moon.alt / 20) : 1;
-    const k = this.state.haStr / 100 * dark * moon * Math.min(1.6, gain);
-    if (k <= 0.01) return;
-    const w = this.state.playing ? 400 : Math.min(1100, Math.round(W / 1.8)), h = Math.max(2, Math.round(w * H / W));
-    if (!this._haCv) this._haCv = document.createElement('canvas');
-    const cv = this._haCv;
-    /* the layer only changes with the view, the time, the strength and the cut-outs, so the ground
-       sharpening behind it (which redraws the scene many times) does not recompute it */
-    const ready = (this._haCuts || []).filter(q => q.ready).length;
-    const key = [w, h, view.az.toFixed(3), view.alt.toFixed(3), view.hfov.toFixed(3), when.getTime(), k.toFixed(3), ready].join('|');
-    if (key === this._haKey) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(cv, 0, 0, W, H); ctx.restore(); return; }
-    this._haKey = key;
-    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-    const g = cv.getContext('2d'), img = g.createImageData(w, h), o = img.data;
-    const pr = S.projector(view.alt, view.az, view.hfov, view.vfov, w, h);
-    const lst = E.lstOf(E.jdFrom(when), p.lon) * D, sl = Math.sin(p.lat * D), cl = Math.cos(p.lat * D);
-    const toEq = dir => {
-      const a = dir.alt * D, z = dir.az * D, sa = Math.sin(a), ca = Math.cos(a);
-      const dec = Math.asin(sa * sl + ca * cl * Math.cos(z));
-      const ha = Math.atan2(-Math.sin(z) * ca, cl * sa - sl * ca * Math.cos(z));
-      let ra = (lst - ha) / D; ra = ((ra % 360) + 360) % 360;
-      return [ra, dec / D];
-    };
-    { const c = pr.unproject(w / 2, h / 2); if (c) { const [ra0, de0] = toEq(c); this.haEnsure(ra0, de0, view.hfov); } }
-    const cuts = (this._haCuts || []).filter(q => q.ready);
-    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
-      const dir = pr.unproject(i + 0.5, j + 0.5);
-      if (!dir || dir.alt < -1) continue;
-      const eq = toEq(dir), ra = eq[0], dec = eq[1] * D;
-      const x = Math.min(M.W - 1, Math.max(0, Math.floor((360 - ra) / 360 * M.W))), y = Math.min(M.H - 1, Math.max(0, Math.floor((90 - eq[1]) / 180 * M.H)));
-      let v = M.px[y * M.W + x] / 255;
-      /* sharper survey where one covers this point, feathered into the all-sky map at its edges */
-      for (let q = 0; q < cuts.length; q++) {
-        const C = cuts[q], dr = (ra - C.ra0) * D, cd = Math.cos(dec), sd2 = Math.sin(dec), cdr = Math.cos(dr);
-        const cosc = C.sd0 * sd2 + C.cd0 * cd * cdr;
-        if (cosc <= 0.05) continue;
-        const px = C.W / 2 - (cd * Math.sin(dr) / cosc) / D / C.cdelt, py = C.H / 2 - ((C.cd0 * sd2 - C.sd0 * cd * cdr) / cosc) / D / C.cdelt;
-        if (px < 0 || py < 0 || px >= C.W - 1 || py >= C.H - 1) continue;
-        const ix = px | 0, iy = py | 0, k0 = iy * C.W + ix, wt = C.wt[k0];
-        if (wt <= 0) continue;
-        const fx = px - ix, fy = py - iy, V = C.val;
-        const dv = (V[k0] * (1 - fx) + V[k0 + 1] * fx) * (1 - fy) + (V[k0 + C.W] * (1 - fx) + V[k0 + C.W + 1] * fx) * fy;
-        v = v * (1 - wt) + dv * wt;
-        break;
-      }
-      /* a gentle curve: faint loops (the Veil, Barnard's Loop) show without the bright regions
-         saturating; the slider sets the rest */
-      v = Math.max(0, (v - 0.06) / 0.94); v = Math.pow(v, 0.9);
-      const air = Math.max(0, Math.min(1, (dir.alt + 1) / 14));
-      const q = v * k * air, n = (j * w + i) * 4;
-      o[n] = Math.min(255, 255 * q * 1.05); o[n + 1] = Math.min(255, 255 * q * 0.16); o[n + 2] = Math.min(255, 255 * q * 0.3); o[n + 3] = 255;
-    }
-    g.putImageData(img, 0, 0);
-    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(cv, 0, 0, W, H); ctx.restore();
-  }
-  /* Sharper Hα, everywhere: the Digitized Sky Survey's red plate (which carries Hα) less its
-     near-infrared plate (continuum only), after the stars are taken out of both: each 2 by 2 block
-     keeps its second-darkest pixel, then a 3 by 3 median and a light blur. What is left is nebula.
-     Everything broader than about a degree is taken from the all-sky map instead, so plate joins
-     and the red-minus-infrared balance never show; only the fine structure comes from DSS, scaled
-     to match the all-sky map's own contrast. Fetched around the view when zoomed past about 24 mm. */
-  HA_SURVEYS = [{ id: 'DSS', name: 'DSS2', credit: 'DSS2 red and near-infrared (STScI, Palomar, UK Schmidt)', dec: [-90, 90] }];
-  haEnsure(ra, dec, hfov) {
-    if (hfov > 75) return;
-    const fov = Math.min(90, 8 * Math.pow(1.25, Math.ceil(Math.log(Math.max(8, hfov * 1.2) / 8) / Math.log(1.25))));
-    const w = Math.min(1400, Math.ceil(fov / Math.max(1.2 / 60, fov / 1400))), step = fov / 5;
-    const kr = Math.round(ra / step) * step, kd = Math.max(-85, Math.min(85, Math.round(dec / step) * step));
-    const list = this._haCuts || (this._haCuts = []);
-    const key = 'dss|' + kr.toFixed(2) + '|' + kd.toFixed(2) + '|' + fov.toFixed(1) + '|' + w;
-    const hit = list.find(q => q.key === key);
-    if (hit) { hit.used = Date.now(); return; }
-    const q = { key, survey: this.HA_SURVEYS[0], ra0: kr, dec0: kd, fov, W: w, H: w, cdelt: fov / w, sd0: Math.sin(kd * Math.PI / 180), cd0: Math.cos(kd * Math.PI / 180), used: Date.now(), ready: false };
-    list.unshift(q);
-    while (list.length > 4) { const i = list.reduce((m, x, j) => x.used < list[m].used ? j : m, 0); list.splice(i, 1); }
-    this.haFetch(q);
-  }
-  async haFetch(q) {
-    this.setState({ haBusy: (this.state.haBusy || 0) + 1 });
-    const S = 2, w = q.W, BW = w * S, N = w * w, D = Math.PI / 180;
-    const band = async id => {
-      const url = 'https://alasky.cds.unistra.fr/hips-image-services/hips2fits?projection=TAN&coordsys=icrs&format=png&cmap=Greys_r&stretch=linear&min_cut=1%25&max_cut=99.9%25&hips=' +
-        encodeURIComponent(id) + '&ra=' + q.ra0.toFixed(4) + '&dec=' + q.dec0.toFixed(4) + '&fov=' + q.fov.toFixed(3) + '&width=' + BW + '&height=' + BW;
-      const O = window.NoctoOffline;
-      let buf = O ? await O.get(url) : null;
-      if (!buf) { const r = await fetch(url); if (!r.ok) throw new Error(r.status); buf = await r.arrayBuffer(); if (O) O.put(url, buf); }
-      const bm = await createImageBitmap(new Blob([buf]));
-      const c = document.createElement('canvas'); c.width = BW; c.height = BW;
-      const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(bm, 0, 0, BW, BW);
-      const d = g.getImageData(0, 0, BW, BW).data;
-      /* stars out */
-      const blk = new Float32Array(N), b4 = new Float32Array(S * S);
-      for (let y = 0; y < w; y++) for (let x = 0; x < w; x++) {
-        let k = 0; for (let dy = 0; dy < S; dy++) for (let dx = 0; dx < S; dx++) b4[k++] = d[((y * S + dy) * BW + x * S + dx) * 4];
-        b4.sort(); blk[y * w + x] = b4[1] / 255;
-      }
-      const med = new Float32Array(N), b9 = new Float32Array(9);
-      for (let y = 0; y < w; y++) for (let x = 0; x < w; x++) {
-        let k = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) b9[k++] = blk[Math.min(w - 1, Math.max(0, y + dy)) * w + Math.min(w - 1, Math.max(0, x + dx))];
-        b9.sort(); med[y * w + x] = b9[4];
-      }
-      return { med, blk };
-    };
-    const boxBlur = (src, R) => {
-      const t = new Float32Array(N), out = new Float32Array(N), n = 2 * R + 1;
-      for (let y = 0; y < w; y++) { let s = 0; for (let x = -R - 1; x < w; x++) { if (x + R < w) s += src[y * w + Math.max(0, x + R)]; else s += src[y * w + w - 1]; if (x - R - 1 >= 0) s -= src[y * w + x - R - 1]; else s -= src[y * w]; if (x >= 0) t[y * w + x] = s / n; } }
-      for (let x = 0; x < w; x++) { let s = 0; for (let y = -R - 1; y < w; y++) { if (y + R < w) s += t[Math.max(0, y + R) * w + x]; else s += t[(w - 1) * w + x]; if (y - R - 1 >= 0) s -= t[(y - R - 1) * w + x]; else s -= t[x]; if (y >= 0) out[y * w + x] = s / n; } }
-      return out;
-    };
-    try {
-      const [R0, N0] = await Promise.all([band('CDS/P/DSS2/red'), band('CDS/P/DSS2/NIR')]);
-      const red = R0.med, nir = N0.med;
-      await new Promise(r => setTimeout(r, 0));
-      /* stars the block filter missed are bright in the infrared plate as well; nebula is not.
-         Anything standing out in the infrared, grown by two pixels, is filled from its surroundings. */
-      /* only the brightest few percent: in a dense Milky Way field a fixed threshold flags nearly
-         everything and smooths the nebula away with the stars */
-      const nlo = boxBlur(N0.blk, 4), ex = new Float32Array(N), mk = new Uint8Array(N);
-      for (let i = 0; i < N; i++) ex[i] = N0.blk[i] - nlo[i];
-      const exs = []; for (let i = 0; i < N; i += 13) exs.push(ex[i]); exs.sort((u, v) => u - v);
-      const thr = Math.max(0.05, exs[Math.floor(exs.length * 0.97)]);
-      for (let i = 0; i < N; i++) if (ex[i] > thr) mk[i] = 1;
-      const mk2 = new Float32Array(N);
-      /* bright stars bloom on the plates, so they are grown further */
-      for (let y = 0; y < w; y++) for (let x = 0; x < w; x++) { const i = y * w + x; if (!mk[i]) continue; const r = ex[i] > thr * 4 ? 4 : ex[i] > thr * 2 ? 2 : 1; for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const yy = y + dy, xx = x + dx; if (yy >= 0 && xx >= 0 && yy < w && xx < w) mk2[yy * w + xx] = 1; } }
-      { let s = 0; for (let i = 0; i < N; i += 7) s += mk2[i]; q.masked = s / (N / 7); }
-      /* continuum: red as a straight-line function of infrared, fitted across the cut */
-      let sx = 0, sy = 0, sxx = 0, sxy = 0, n = 0;
-      for (let i = 0; i < N; i += 5) { const x = nir[i], y = red[i]; sx += x; sy += y; sxx += x * x; sxy += x * y; n++; }
-      const k = (n * sxy - sx * sy) / Math.max(1e-9, n * sxx - sx * sx), a0 = (sy - k * sx) / n;
-      const res = new Float32Array(N); for (let i = 0; i < N; i++) res[i] = red[i] - (a0 + k * nir[i]);
-      {
-        const keep = new Float32Array(N), rk = new Float32Array(N);
-        for (let i = 0; i < N; i++) { keep[i] = 1 - mk2[i]; rk[i] = res[i] * keep[i]; }
-        const num = boxBlur(rk, 5), den = boxBlur(keep, 5);
-        for (let i = 0; i < N; i++) if (mk2[i]) res[i] = den[i] > 0.05 ? num[i] / den[i] : 0;
-      }
-      /* the all-sky map on the same grid */
-      const M = this._ha, F = new Float32Array(N);
-      for (let y = 0; y < w; y++) for (let x = 0; x < w; x++) {
-        const X = -(x + 0.5 - w / 2) * q.cdelt * D, Y = -(y + 0.5 - w / 2) * q.cdelt * D, rho = Math.hypot(X, Y);
-        let ra = q.ra0, dec = q.dec0;
-        if (rho > 0) { const cc = Math.atan(rho), sc = Math.sin(cc), co = Math.cos(cc);
-          dec = Math.asin(co * q.sd0 + Y * sc * q.cd0 / rho) / D;
-          ra = q.ra0 + Math.atan2(X * sc, rho * q.cd0 * co - Y * q.sd0 * sc) / D; }
-        ra = ((ra % 360) + 360) % 360;
-        const fx = Math.min(M.W - 1, Math.floor((360 - ra) / 360 * M.W)), fy = Math.min(M.H - 1, Math.max(0, Math.floor((90 - dec) / 180 * M.H)));
-        F[y * w + x] = M.px[fy * M.W + fx] / 255;
-      }
-      await new Promise(r => setTimeout(r, 0));
-      /* broad from the map, fine from DSS; contrast matched on the scales both can see (6' to 1°) */
-      /* the broad split sits at about 20': a photographic plate join then only touches a narrow
-         strip, and the all-sky map is still sharper than that */
-      const RL = Math.max(3, Math.round((20 / 60) / q.cdelt / 2)), RM = Math.max(1, Math.round((6 / 60) / q.cdelt / 2));
-      /* the broad part of DSS by a median, not a mean: a median follows a plate join's step exactly,
-         so the step never reaches the fine layer, and it ignores thin bright arcs, so they all do */
-      const medLow = src => {
-        /* blocks of about 10' and a 5 by 5 median: a 50' window, where a 10' arc is a minority */
-        const B = Math.max(2, Math.round((10 / 60) / q.cdelt)), sw = Math.ceil(w / B), sm = new Float32Array(sw * sw);
-        for (let y = 0; y < sw; y++) for (let x = 0; x < sw; x++) { let s = 0, c = 0; for (let dy = 0; dy < B; dy++) for (let dx = 0; dx < B; dx++) { const yy = y * B + dy, xx = x * B + dx; if (yy < w && xx < w) { s += src[yy * w + xx]; c++; } } sm[y * sw + x] = s / c; }
-        const md = new Float32Array(sw * sw), win = new Float32Array(25);
-        for (let y = 0; y < sw; y++) for (let x = 0; x < sw; x++) { let c = 0; for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) win[c++] = sm[Math.min(sw - 1, Math.max(0, y + dy)) * sw + Math.min(sw - 1, Math.max(0, x + dx))]; win.sort(); md[y * sw + x] = win[12]; }
-        const out = new Float32Array(N);
-        for (let y = 0; y < w; y++) for (let x = 0; x < w; x++) {
-          const fx = Math.min(sw - 1.001, Math.max(0, (x + 0.5) / B - 0.5)), fy = Math.min(sw - 1.001, Math.max(0, (y + 0.5) / B - 0.5));
-          const x0 = fx | 0, y0 = fy | 0, u = fx - x0, v = fy - y0, x1 = Math.min(sw - 1, x0 + 1), y1 = Math.min(sw - 1, y0 + 1);
-          out[y * w + x] = (md[y0 * sw + x0] * (1 - u) + md[y0 * sw + x1] * u) * (1 - v) + (md[y1 * sw + x0] * (1 - u) + md[y1 * sw + x1] * u) * v;
-        }
-        return out;
-      };
-      const Flp = boxBlur(boxBlur(F, RL), RL), Rlp = medLow(res), Rm = boxBlur(res, RM);
-      const aF = [], aR = [];
-      for (let i = 0; i < N; i += 29) { aF.push(Math.abs(F[i] - Flp[i])); aR.push(Math.abs(Rm[i] - Rlp[i])); }
-      const qt = (a, p) => { a.sort((u, v) => u - v); return a[Math.min(a.length - 1, Math.floor(p * a.length))]; };
-      const g = Math.max(0.5, Math.min(12, qt(aF, 0.95) / Math.max(1e-4, qt(aR, 0.95))));
-      q.g = g; q.fineP95 = qt(aR, 0.95);
-      /* plate joins are straight steps; where the fine layer has a broad one-sided excess across a
-         wide strip (a join), it is damped, so only structure narrower than a few arcminutes passes */
-      const val = new Float32Array(N);
-      for (let i = 0; i < N; i++) val[i] = Math.max(0, Math.min(1.1, Flp[i] + Math.max(-0.06, Math.min(0.5, g * (res[i] - Rlp[i])))));
-      /* fade out over the last 6% of the cut, so its square edge never shows */
-      const wt = new Float32Array(N), m = w * 0.06;
-      for (let y = 0; y < w; y++) for (let x = 0; x < w; x++) { const e = Math.min(x, y, w - 1 - x, w - 1 - y); wt[y * w + x] = Math.max(0, Math.min(1, e / m)); }
-      q.val = val; q.wt = wt; q.ready = true;
-      this.resetTrails(); this.dirty();
-    } catch (e) { q.failed = true; }
-    finally { this.setState({ haBusy: Math.max(0, (this.state.haBusy || 1) - 1) }); }
-  }
-  creditsLine() {
-    const sf = this.state.surf;
-    const sharp = this.state.ha ? [...new Set((this._haCuts || []).filter(q => q.ready).map(q => q.survey.credit))] : [];
-    return (this.state.ha ? 'H\u03b1: Finkbeiner (2003)' + (sharp.length ? ', ' + sharp.join(', ') : '') + ' via CDS \u00b7 ' : '') + 'Imagery \u00a9 Esri, Vantor, Earthstar Geographics \u00b7 Powered by Esri \u00b7 Terrain: Mapzen Terrarium' + (sf && sf.state === 'on' ? ' \u00b7 ' + sf.credit : '');
-  }
-  renderVals() {
-    const st = this.state, p = this.loc(), hud = st.hud, sp = st.strip;
-    const ms = this.noon() + st.min * 60000;
-    const d = new Date(ms + this.tzAt(ms) * 60000), n = new Date(this.noon() + this.tzAt(this.noon()) * 60000);
-    const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const ON = { bg: 'rgba(214,179,104,.16)', edge: '#D6B368', fg: '#D6B368' }, OFF = { bg: 'rgba(10,10,11,.6)', edge: 'rgba(240,236,228,.2)', fg: '#ADA79B' };
-    const deg = v => (v < 0 ? '\u2212' : '') + Math.abs(v).toFixed(1) + '\u00b0';
-    const v = st.view || { az: p.az, alt: p.alt, hfov: p.hfov };
-    const set = (k, val) => () => this.setState({ [k]: val }, () => { this.resetTrails(); this.dirty(); });
-    const fl = this.hhmm(ms);
-    return {
-      placeName: p.name,
-      placeLine: p.area + ' \u00b7 ' + p.lat.toFixed(4) + ', ' + p.lon.toFixed(4),
-      places: this.PLACES.map((q, i) => ({ area: q.area, ...(i === st.place && !st.here ? ON : OFF), pick: () => this.pickPlace(i) })),
-      backOn: !!(st.trail && st.trail.length),
-      goBack: () => {
-        const tr = (st.trail || []).slice(), prev = tr.pop(); if (!prev) return;
-        const home = prev === this.PLACES[st.place];
-        this.resetTrails();
-        this.setState({ here: home ? null : prev, trail: tr }, () => this.loadHere('Walking back'));
-      },
-      viewJump: e => this.jumpAt(e),
-      mapOn: !!st.mapOn, mapRef: this.mapRef, mapPressed: st.mapOn ? 'true' : 'false',
-      mapToggle: () => this.setMap(!st.mapOn),
-      mapBtnLabel: st.mapOn ? '3D view' : 'Map', mapBtnIcon: st.mapOn ? 'mountain' : 'map',
-      mapBtnBg: st.mapOn ? 'rgba(214,179,104,.16)' : 'rgba(10,10,11,.6)', mapBtnEdge: st.mapOn ? '#D6B368' : 'rgba(240,236,228,.2)', mapBtnFg: st.mapOn ? '#D6B368' : '#DCD7CC',
-      mapCursor: st.mapAim ? 'crosshair' : 'pointer',
-      mapDown: e => {
-        const b = e.currentTarget.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top, me = this._mapMe;
-        e.currentTarget.setPointerCapture(e.pointerId);
-        const P = this._mp || (this._mp = new Map()); P.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        if (P.size === 2) { const [p1, p2] = [...P.values()]; this._mpinch = { d: Math.hypot(p1.x - p2.x, p1.y - p2.y), mv: { ...this._mv } }; this._md = null; return; }
-        const r = me ? Math.hypot(x - me.x, y - me.y) : 1e9;
-        const inWedge = me && r < me.R && r > 10 && (() => { const a = (Math.atan2(y - me.y, x - me.x) * 180 / Math.PI + 90 + 360) % 360, d = Math.abs(((a - this._view.az + 540) % 360) - 180); return d < this._view.hfov / 2 + 8; })();
-        this._md = { x, y, sx: e.clientX, sy: e.clientY, mv: { ...this._mv }, aim: inWedge || (me && r <= 10), moved: false };
-        if (this._md.aim) this.setState({ mapAim: true });
-      },
-      mapMove: e => {
-        const P = this._mp; if (P && P.has(e.pointerId)) P.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        if (this._mpinch && P && P.size === 2) {
-          const [p1, p2] = [...P.values()], d = Math.hypot(p1.x - p2.x, p1.y - p2.y), s = this._mpinch;
-          this._mv = { ...s.mv, z: Math.max(4, Math.min(19, s.mv.z + Math.log2(Math.max(1, d) / Math.max(1, s.d)))) };
-          this.drawMapSoon(); return;
-        }
-        const m = this._md; if (!m) return;
-        const b = e.currentTarget.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top;
-        if (Math.hypot(e.clientX - m.sx, e.clientY - m.sy) > 4) m.moved = true;
-        if (m.aim) {
-          const me = this._mapMe; if (!me || !m.moved) return;
-          this._view.az = (Math.atan2(y - me.y, x - me.x) * 180 / Math.PI + 90 + 360) % 360;
-          this.syncView(); this.drawMapSoon(); return;
-        }
-        if (!m.moved) return;
-        const zt = Math.floor(m.mv.z), k = Math.pow(2, m.mv.z - zt), [cx, cy] = this.mapPx(m.mv.lat, m.mv.lon, zt);
-        const [la, lo] = this.mapLL(cx - (e.clientX - m.sx) / k, cy - (e.clientY - m.sy) / k, zt);
-        this._mv = { lat: la, lon: lo, z: m.mv.z }; this.drawMapSoon();
-      },
-      mapUp: e => {
-        if (this._mp) this._mp.delete(e.pointerId);
-        if (this._mpinch) { if (!this._mp || this._mp.size === 0) this._mpinch = null; this._md = null; return; }
-        const m = this._md; this._md = null;
-        if (m && m.aim) { this.setState({ mapAim: false }); if (m.moved) { this.resetTrails(); this.dirty(); return; } }
-        if (!m || m.moved) return;
-        const b = e.currentTarget.getBoundingClientRect(), mv = this._mv, zt = Math.floor(mv.z), k = Math.pow(2, mv.z - zt), [cx, cy] = this.mapPx(mv.lat, mv.lon, zt);
-        const [la, lo] = this.mapLL(cx + (e.clientX - b.left - b.width / 2) / k, cy + (e.clientY - b.top - b.height / 2) / k, zt);
-        clearTimeout(this._mapClickT);
-        /* a second tap soon after, for touch, which sends no double-click */
-        const t = performance.now(), l = this._mapTap;
-        if (e.pointerType !== 'mouse' && l && t - l.t < 320 && Math.hypot(e.clientX - l.x, e.clientY - l.y) < 30) {
-          this._mapTap = null; this.walkTo(la, lo, 'Walking from the map'); this.setMap(false); return;
-        }
-        this._mapTap = { t, x: e.clientX, y: e.clientY };
-        /* wait a moment in case it is the first half of a double-click */
-        this._mapClickT = setTimeout(() => this.walkTo(la, lo, 'Walking from the map'), 330);
-        this._mapClickAt = [la, lo];
-      },
-      mapDbl: () => {
-        clearTimeout(this._mapClickT);
-        const p = this._mapClickAt; if (!p) return;
-        this.walkTo(p[0], p[1], 'Walking from the map');
-        this.setMap(false);
-      },
-      credits: this.creditsLine(),
-      timeLabel: fl,
-      dateLabel: DAYS[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ' ' + d.getUTCFullYear() + ' \u00b7 ' + (this.tzAt(ms) ? 'BST' : 'GMT'),
-      sunLine: hud ? 'Sun ' + deg(hud.sun) : 'Sun \u2013',
-      moonLine: hud ? 'Moon ' + Math.round(hud.frac * 100) + '% ' + (hud.moon > 0 ? deg(hud.moon) : 'down') : 'Moon \u2013',
-      coreLine: hud ? 'Core ' + (hud.core > 0 ? deg(hud.core) : 'down') : 'Core \u2013',
-      grounds: this.GROUNDS.map(([k, label]) => ({ label, ...(st.ground === k ? ON : { ...OFF, bg: 'rgba(10,10,11,.6)' }), pick: set('ground', k) })),
-      toggles: [
-        { label: 'Frame', ...(st.frame ? ON : OFF), flip: set('frame', !st.frame) },
-        { label: 'Star trails', ...(st.trails ? ON : OFF), flip: set('trails', !st.trails) },
-        { label: 'Light domes', ...(st.domes ? ON : OFF), flip: set('domes', !st.domes) },
-        { label: 'H-alpha', ...(st.ha ? { bg: 'rgba(224,122,134,.16)', edge: '#E07A86', fg: '#E07A86' } : OFF), flip: set('ha', !st.ha) },
+      "@type": "WebSite",
+      "@id": "https://www.noctography.net/#website",
+      "url": "https://www.noctography.net/",
+      "name": "Noctography",
+      "alternateName": "Noctography nightscape planner",
+      "description": "Free browser tools for planning nightscape and landscape astrophotography, anywhere in the world.",
+      "inLanguage": "en-GB",
+      "publisher": { "@id": "https://www.noctography.net/#paul" },
+      "about": [
+        { "@type": "Thing", "name": "Astrophotography" },
+        { "@type": "Thing", "name": "Nightscape photography" },
+        { "@type": "Thing", "name": "Aurora forecasting" },
+        { "@type": "Thing", "name": "Light pollution" },
+        { "@type": "Thing", "name": "Meteor showers" }
+      ]
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://www.noctography.net/#app",
+      "name": "Noctography",
+      "url": "https://www.noctography.net/app/",
+      "description": "Free browser tools for nightscape and landscape astrophotography: tonight's observing conditions, live aurora watch with community reports, a sixty-night meteor outlook, comets worth a camera, and Sky AR, the real sky drawn over the camera or over the real terrain and satellite imagery of any location, with panorama framing, saved compositions and a log.",
+      "applicationCategory": "Photography",
+      "applicationSubCategory": "Astrophotography and nightscape planning",
+      "installUrl": "https://www.noctography.net/app/",
+      "availableOnDevice": "Smartphone, tablet or desktop browser",
+      "permissions": "Optional location, camera and motion sensors, used on the device only",
+      "isPartOf": { "@id": "https://www.noctography.net/#website" },
+      "keywords": "nightscape photography, astrophotography planning, Milky Way, aurora forecast, meteor shower rates, star trails, light pollution, Bortle scale, NPF rule, timelapse, panorama overlap",
+      "operatingSystem": "Any (web browser)",
+      "browserRequirements": "Requires JavaScript",
+      "inLanguage": "en-GB",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+      "featureList": [
+        "Tonight's best window for astrophotography at your location",
+        "Cloud cover, humidity, dew point and wind through the dark hours",
+        "Moon phase, moonrise and moonset, with eclipse detection",
+        "Astronomical darkness window and Milky Way core altitude",
+        "Real-world Bortle: sky darkness with moonlight, haze and cloud-lit glow counted",
+        "All-sky light pollution map for your site, by compass direction",
+        "Fifteen-night forecast grid with five nights of hindsight and star ratings",
+        "Sixty-night meteor shower outlook with hourly rates",
+        "Live aurora watch: L1 solar wind, OVATION probability, arc geometry and storm watches",
+        "Noctilucent cloud season windows",
+        "Star trail patterns with aim, session planning and moon-in-frame checking",
+        "Sky AR Scout: the real ground and satellite imagery of any location under the real sky, for planning a shot from anywhere",
+        "Panorama framing on the real horizon, with frame counts for your lens and overlap and a flat preview of the stitch",
+        "Saved compositions with the nights they come round again, on a map",
+        "Tonight's ideas drawn as the actual view at each subject's best moment",
+        "Comets worth photographing, from observed brightness, surface brightness and placement",
+        "Your own skyline in colour, from elevation data and satellite imagery, with light pollution by direction",
+        "Timelapse planning from the same frames: shutter, interval and frame count",
+        "Ranked sky subjects for tonight, scored for framing, moon, cloud and light pollution",
+        "Framing view: real star positions against your lens, with pan, pitch and time",
+        "Live AR overlay: hold the phone up and the subjects, trails and your frame land on the real sky",
+        "Kit profile: sensor, megapixels, lens and aperture, with NPF exposure limits",
+        "Visible ISS and recent Starlink train passes",
+        "Mist and fog risk warning",
+        "Panorama rotation calculator by focal length, sensor and overlap",
+        "Six colour schemes and a red night-vision mode for use in the dark"
       ],
-      ...this.detailVals(),
-      haze: st.haze, hazeLabel: Math.round(this.hazeKm()) + ' km',
-      onHaze: e => this.setState({ haze: +e.target.value }, () => { this.resetTrails(); this.dirty(); }),
-      saveFrame: () => {
-        const fr = this._fr, c = this._comp; if (!c) return;
-        const crop = st.frame && fr && fr.fits ? fr : { x: 0, y: 0, w: c.width, h: c.height };
-        const o = document.createElement('canvas'); o.width = Math.round(crop.w); o.height = Math.round(crop.h);
-        o.getContext('2d').drawImage(c, crop.x, crop.y, crop.w, crop.h, 0, 0, o.width, o.height);
-        o.toBlob(b => b && this.download(b, 'frame.png'), 'image/png');
-      },
-      recToggle: () => (st.rec ? this.stopRec() : this.startRec()),
-      recLabel: st.rec ? 'Stop recording' : 'Record',
-      recDot: st.rec ? '#E5484D' : '#918B81',
-      recBg: st.rec ? 'rgba(229,72,77,.14)' : 'rgba(10,10,11,.6)', recEdge: st.rec ? '#E5484D' : 'rgba(240,236,228,.2)', recFg: st.rec ? '#F3F0EA' : '#DCD7CC',
-      loadOn: !!st.load || !!st.toast,
-      loadLine: st.toast || (st.load ? (st.load.label || 'Reading the ground') + ' \u00b7 ' + st.load.d + ' of ' + st.load.t + ' tiles' : ''),
-      playToggle: () => this.togglePlay(),
-      playIcon: st.playing ? 'pause' : 'play', playAria: st.playing ? 'Pause' : 'Play',
-      speeds: this.SPEEDS.map(s => ({ label: s + ' min/s', ...(st.speed === s ? ON : OFF), pick: () => this.setState({ speed: s }) })),
-      nightLabel: DAYS[n.getUTCDay()] + ' ' + n.getUTCDate() + ' ' + MON[n.getUTCMonth()],
-      dayPrev: () => this.setState({ day: st.day - 1 }, () => this.computeStrip(false)),
-      dayNext: () => this.setState({ day: st.day + 1 }, () => this.computeStrip(false)),
-      exp: st.exp, expLabel: st.exp + '%',
-      haOn: !!st.ha, haStr: st.haStr, haLabel: st.haBusy ? 'sharpening' : st.haStr + '%',
-      onHa: e => this.setState({ haStr: +e.target.value }, () => { this.resetTrails(); this.dirty(); }),
-      onExp: e => this.setState({ exp: +e.target.value }, () => { this.resetTrails(); this.dirty(); }),
-      lenses: this.LENSES.map(f => ({ label: f + 'mm', ...(st.lens === f ? ON : OFF), pick: set('lens', f) })),
-      orientFlip: set('portrait', !st.portrait), orientLabel: st.portrait ? 'Portrait' : 'Landscape',
-      aimLine: Math.round(((v.az % 360) + 360) % 360) + '\u00b0 \u00b7 ' + (v.alt >= 0 ? '+' : '\u2212') + Math.abs(v.alt).toFixed(0) + '\u00b0 \u00b7 view ' + Math.round(v.hfov) + '\u00b0',
-      events: this.eventLabels(sp),
-      viewRef: this.viewRef, stripRef: this.stripRef, evRef: this.evRef,
-      viewDown: e => {
-        e.currentTarget.setPointerCapture(e.pointerId);
-        const P = this._vp || (this._vp = new Map()); P.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        if (P.size === 2) { const [a, b] = [...P.values()]; this._pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), hfov: this._view.hfov }; this._drag = null; return; }
-        /* iPadOS does not send double-clicks for touch: two taps close together count as one */
-        if (e.pointerType !== 'mouse') {
-          const t = performance.now(), l = this._tap;
-          if (l && t - l.t < 320 && Math.hypot(e.clientX - l.x, e.clientY - l.y) < 30) { this._tap = null; this._drag = null; this.jumpAt(e); return; }
-          this._tap = { t, x: e.clientX, y: e.clientY };
+      "screenshot": "https://www.noctography.net/noctography-link-preview.png?v=2026-09-06",
+      "author": { "@id": "https://www.noctography.net/#paul" },
+      "publisher": { "@id": "https://www.noctography.net/#paul" }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://www.noctography.net/#paul",
+      "name": "Paul Haworth",
+      "jobTitle": "Landscape astrophotographer and filmmaker",
+      "description": "Award-winning landscape astrophotographer and filmmaker based in the Cambridgeshire Fens, speaking to camera clubs, astronomy societies and dark sky sites.",
+      "url": "https://www.paulhaworthnightscapes.com",
+      "sameAs": [
+        "https://www.paulhaworthnightscapes.com",
+        "https://www.youtube.com/@nightscapejournals"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.noctography.net/#faq",
+      "url": "https://www.noctography.net/",
+      "inLanguage": "en-GB",
+      "isPartOf": { "@id": "https://www.noctography.net/#website" },
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the best time to photograph the Milky Way?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You need three things at once: full astronomical darkness, with the Sun more than 18 degrees below the horizon; no moon in the sky, or a thin crescent low down; and the galactic core actually above the horizon. When that happens depends entirely on where you are. From the northern mid-latitudes the core season runs from roughly February to October and the core stays fairly low; from the southern hemisphere it climbs far higher and the season shifts. Noctography works out all three for your own location and shows the hours when they overlap."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What does the Bortle scale mean?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The Bortle scale runs from 1 to 9 and describes how much artificial light pollutes the night sky at a site. Bortle 1 is a genuinely pristine sky, Bortle 4 is a rural transition zone typical of open countryside within reach of towns, and Bortle 8 or 9 is an inner city. The published class describes a site on a perfect, moonless night, which is not usually the night you are standing in."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is real-world Bortle?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Real-world Bortle is Noctography's measure of what a site actually performs like on a given night, rather than at its theoretical best. It starts from the light pollution atlas value for your location, then adds the brightening from moonlight, haze from humidity, and town glow scattered back down by thin cloud, and converts the result back into a Bortle class. A Bortle 3 site under a gibbous moon genuinely performs like a Bortle 5 one, and that is the number worth planning against."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long an exposure before the stars trail?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Longer than the old 500 rule suggests on some cameras and a good deal shorter on others, because it depends on your pixel pitch as well as your focal length. Noctography uses the NPF rule, which takes aperture and pixel size into account, and offers two readings: pin-sharp, meaning no trailing at all, and relaxed, meaning trailing you are unlikely to notice in normal viewing and printing. In the framing view, where the app knows where you are pointing, the figure is corrected for the fastest star actually in your frame, which near the pole is worth a stop or more for nothing."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How many meteors will I actually see during a meteor shower?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Far fewer than the quoted ZHR. The zenithal hourly rate assumes a perfect observer under a perfect sky with the radiant directly overhead. The real figure falls with the radiant's height above the horizon, with any moonlight or light pollution, and with cloud. Noctography evaluates the standard relation every 15 minutes through the night for each active shower, so a shower quoted at 100 per hour might realistically be 25 per hour from a rural site at mid latitudes, and less again if the radiant never climbs high from where you are."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Will I see the aurora, or only photograph it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Often only photograph it. A dark-adapted eye runs on rod vision, which is colour-blind and roughly five to ten times less sensitive than a camera sensor, so a camera will frequently detect an aurora before you do, and sometimes it never gets bright enough to see by eye at all. Noctography shows two separate thresholds, one for the camera and one for the eye, and moves both with the moonlight, cloud and haze on the night."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I see where the Milky Way will be before it gets dark?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, and without being there. Noctography's Sky AR draws the sky over the phone's camera using the compass and tilt, so you can scout a spot in daylight. Its Scout mode replaces the camera with the real landscape of any location, built from elevation data with satellite imagery over it, so you can plan the Milky Way over a ridge you have never stood on, for any night, with your own lens drawn over the top."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How far should I rotate the camera between panorama frames?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It depends on your focal length, sensor size, whether the camera is portrait or landscape, and how much overlap you want. As a rule of thumb, 30 percent overlap is the minimum for reliable stitching and 40 to 50 percent is safer for night skies, where there is little detail for the stitcher to lock onto. A 24mm lens on full frame in portrait orientation with 40 percent overlap needs roughly 44 degrees between frames. Noctography's panorama calculator gives the exact figure for your combination."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why do clear nights sometimes end up misty?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Radiation fog forms on exactly the nights that look most promising. A clear sky lets the ground radiate its heat away, the air cools to its dew point, and with almost no wind to mix it there is nothing to stop mist forming at ground level. Noctography warns when those three conditions line up: air close to the dew point, wind under about 10 km/h, and little cloud. Damp low ground, river valleys and coastal plains are the classic places for it."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Noctography free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. It is free, needs no account, and runs entirely in your browser. There is a Buy Me a Coffee link if it saves you a cold hour working something out."
+          }
         }
-        this._drag = { x: e.clientX, y: e.clientY, az: this._view.az, alt: this._view.alt }; e.currentTarget.style.cursor = 'grabbing';
-      },
-      viewMove: e => {
-        const P = this._vp; if (P && P.has(e.pointerId)) P.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        if (this._pinch && P && P.size === 2) {
-          const [a, b] = [...P.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
-          this._view.hfov = Math.max(12, Math.min(120, this._pinch.hfov * this._pinch.d / Math.max(1, d)));
-          this.resetTrails(); this.dirty(); this.syncView(); return;
-        }
-        const g = this._drag, cv = this._cv; if (!g || !cv) return;
-        const R = Math.PI / 180, vw = this._view, W = cv.clientWidth, H = cv.clientHeight;
-        const vf = 2 * Math.atan(Math.tan(vw.hfov / 2 * R) * H / W) / R;
-        vw.az = g.az - (e.clientX - g.x) * vw.hfov / W;
-        vw.alt = Math.max(-15, Math.min(80, g.alt + (e.clientY - g.y) * vf / H));
-        this.resetTrails(); this.dirty(); this.syncView();
-      },
-      viewUp: e => { if (this._vp) this._vp.delete(e.pointerId); if (!this._vp || this._vp.size < 2) this._pinch = null; this._drag = null; e.currentTarget.style.cursor = 'grab'; },
-      stripDown: e => { e.currentTarget.setPointerCapture(e.pointerId); this._sdrag = true; if (st.playing) this.setState({ playing: false }); this.stripAt(e); },
-      stripMove: e => { if (this._sdrag) this.stripAt(e); },
-      stripUp: () => { this._sdrag = false; },
-    };
-  }
+      ]
+    }
+  ]
 }
 </script>
+
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #0A0A0B; }
+  body {
+    color: #F3F0EA;
+    font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 18px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  a { color: #D6B368; text-decoration: none; }
+  a:hover { color: #E8C98A; text-decoration: underline; text-underline-offset: 3px; }
+  .wrap { width: 100%; max-width: 780px; margin: 0 auto; padding: 0 20px; }
+  h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; letter-spacing: -.01em; text-wrap: pretty; }
+  h1 { font-size: 54px; line-height: 1.02; margin: 0 0 14px; }
+  h2 { font-size: 34px; line-height: 1.1; margin: 56px 0 14px; }
+  h3 { font-size: 22px; line-height: 1.2; margin: 0 0 6px; font-family: 'Barlow', sans-serif; font-weight: 600; }
+  p { margin: 0 0 16px; max-width: 62ch; text-wrap: pretty; }
+  .eyebrow { font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #ADA79B; }
+  .cta {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 56px; padding: 0 30px; border-radius: 999px;
+    background: #D6B368; color: #14110A; font-size: 15px; font-weight: 600;
+    letter-spacing: .16em; text-transform: uppercase;
+  }
+  .cta:hover { background: #E8C98A; color: #14110A; text-decoration: none; }
+  .cta.ghost { background: transparent; color: #D6B368; border: 1px solid #D6B368; }
+  .cta.ghost:hover { background: rgba(214,179,104,.14); color: #E8C98A; }
+  .card { padding: 22px; background: #15151A; border: 1px solid rgba(240,236,228,.14); border-radius: 12px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .tab { font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #D6B368; display: block; margin-bottom: 8px; }
+  header.site { display: flex; align-items: center; gap: 12px; padding: 20px 0; border-bottom: 1px solid rgba(240,236,228,.14); }
+  footer.site { margin-top: 72px; padding: 28px 0 40px; border-top: 1px solid rgba(240,236,228,.14); color: #ADA79B; font-size: 16px; }
+  @media (max-width: 600px) { h1 { font-size: 40px; } h2 { font-size: 28px; } body { font-size: 17px; } }
+</style>
+<script data-goatcounter="https://noctography.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap" style="display: flex; align-items: center; gap: 12px;">
+    <img src="assets/noctography-icon-128.png?v=2026-09-06" alt="Noctography" width="44" height="44" style="border-radius: 10px; display: block;">
+    <span style="display: grid; gap: 3px; margin-right: auto;">
+      <span style="font-size: 15px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase;">Noctography</span>
+      <span class="mono" style="font-size: 11px; color: #ADA79B;">Paul Haworth Nightscapes</span>
+    </span>
+    <a class="cta" href="app/index.html" style="min-height: 44px; padding: 0 20px; font-size: 13px;">Get the app</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section style="padding: 56px 0 8px;">
+    <p class="eyebrow" style="margin-bottom: 18px;">Free · no account · works offline once loaded</p>
+    <h1>Plan the night, frame the shot.</h1>
+    <p style="font-size: 21px; color: #DCD7CC; max-width: 46ch;">Is tonight worth the drive, and if it is, what should you point at? Noctography answers both, for anywhere in the world. And now it will show you the shot itself: the real sky over the real ground of a spot you have never stood on.</p>
+    <p style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px;">
+      <a class="cta" href="app/index.html">Open Noctography</a>
+      <a class="cta ghost" href="#what">What it does</a>
+    </p>
+    <p class="mono" style="font-size: 14px; color: #918B81; margin-top: 18px;">Add it to your home screen and it behaves like an app.</p>
+  </section>
+
+  <section id="what">
+    <h2>What it does</h2>
+    <p>A handful of tools that talk to each other. Everything is worked out on your own device from public forecast, orbital and elevation data: there is no server deciding things for you, and nothing to sign up to.</p>
+
+    <div class="grid" style="margin-top: 28px;">
+      <article class="card">
+        <span class="tab">Tonight</span>
+        <h3>Is it worth going out?</h3>
+        <p style="margin: 0; font-size: 16px; color: #ADA79B;">A straight answer first, then the best window of the night and the tiles that explain why: cloud through the dark hours, air and wind, sunset and moonrise, the darkness window, real-world Bortle, meteors, aurora, airglow, the Milky Way core, bright ISS and Starlink passes, and a comet when there is one genuinely worth a camera. Looking ahead shows the next fortnight night by night, or as a month of moons.</p>
+      </article>
+      <article class="card">
+        <span class="tab">Sky AR</span>
+        <h3>The real sky, over the real ground</h3>
+        <p style="margin: 0; font-size: 16px; color: #ADA79B;">Hold the phone up and the sky is drawn over the camera, so you can scout a spot in daylight. Or switch to Scout and the camera is replaced by the actual landscape around your pin, built from elevation data with satellite imagery laid over it, lit by whatever moon is up. Aim with a finger, scroll the time from one night into the next, and plan a shot at a place you have never been. Stars, constellations, coloured trails and your lens, all in the right place.</p>
+      </article>
+      <article class="card">
+        <span class="tab">Sky AR</span>
+        <h3>Frame a panorama</h3>
+        <p style="margin: 0; font-size: 16px; color: #ADA79B;">Open the whole horizon from the zenith to well below your feet, laid flat the way a stitch prints. Draw the box, or let it fit the Milky Way arch for you, and it counts the frames for your lens and overlap, row by row. Turn the frames off and what is left is roughly the picture you would come home with.</p>
+      </article>
+      <article class="card">
+        <span class="tab">Sky AR</span>
+        <h3>Need ideas?</h3>
+        <p style="margin: 0; font-size: 16px; color: #ADA79B;">Tonight’s best subjects, each shown as a small picture of the actual view at its best moment from where you are standing, through your lens. Tap one and you are there.</p>
+      </article>
+      <article class="card">
+        <span class="tab">Log</span>
+        <h3>Compositions that come back</h3>
+        <p style="margin: 0; font-size: 16px; color: #ADA79B;">Press the shutter in Sky AR, in the field or from your sofa, and the frame is kept with its aim, lens and moment. Every composition tells you the next nights the sky returns to it, and they all sit on a map, so the good ones do not get forgotten. Alongside it, a simple log of the nights you went out and what you shot.</p>
+      </article>
+      <article class="card">
+        <span class="tab">Aurora</span>
+        <h3>Live, from the solar wind</h3>
+        <p style="margin: 0; font-size: 16px; color: #ADA79B;">Solar wind measured at L1 and refreshed every minute, the measured geomagnetic index, where the arc would stand from your spot and how high, your own skyline in the poleward direction, and separate thresholds for the camera and the eye. Plus live reports from other people, which are worth more than any of it.</p>
+      </article>
+      <article class="card">
+        <span class="tab">Meteors</span>
+        <h3>Sixty nights, honest rates</h3>
+        <p style="margin: 0; font-size: 16px; color: #ADA79B;">Shower activity against moon, cloud and sky darkness, with an hour-by-hour chart of the night. The headline figure is what you can realistically expect to see, not the theoretical rate on the poster.</p>
+      </article>
+      <article class="card">
+        <span class="tab">Place</span>
+        <h3>Where you are, and what is in the way</h3>
+        <p style="margin: 0; font-size: 16px; color: #ADA79B;">Pin your spot to the metre on satellite imagery. See the sky brightness around you, or tonight’s real-world Bortle with the moon and haze counted in. And your own skyline, in colour, with the light pollution washed in behind it by direction.</p>
+      </article>
+      <article class="card">
+        <span class="tab">Kit</span>
+        <h3>Your camera, once</h3>
+        <p style="margin: 0; font-size: 16px; color: #ADA79B;">Sensor, lens and aperture, saved to your device. It gives you your field of view and how long you can hold the shutter before the stars trail, and every other screen reads it. Star trail planning and the panorama calculator live here too.</p>
+      </article>
+    </div>
+
+    <p style="margin-top: 24px;"><strong style="font-weight: 600;">Six colour schemes, and night vision throughout.</strong> Obsidian and gold leaf by default, with five alternatives a tap away. One more tap turns the whole app red on black so it does not wreck your dark adaptation, canvas and charts included. It remembers both between visits.</p>
+  </section>
+
+  <section>
+    <h2>Why I built it</h2>
+    <p>I am Paul Haworth, a landscape astrophotographer and filmmaker based in the Cambridgeshire Fens, in the east of England. I spend a lot of nights standing in fields waiting for the sky to do something worth photographing.</p>
+    <p>The problem was never a shortage of information. It was that the information lived in six different places: one site for cloud, another for the moon, a light pollution map, a meteor calendar, a satellite tracker, and none of them answered the only question that matters at five o'clock on a Tuesday afternoon: <em>is tonight worth it?</em></p>
+    <p>So I built the thing I wanted. It pulls the forecast, works out the astronomy on your phone, and gives you a straight answer. Then, if you are going out, it tells you when the sky will be darkest, what is worth pointing at, whether it will fit your lens, whether to pack dew straps, and whether the mist is going to ruin it anyway.</p>
+    <p>It works anywhere. Give it a location and it reads the light pollution atlas, the forecast and the sky for that spot, in either hemisphere: the only thing that is particularly British about it is me.</p>
+    <p>It is free because it was always for me and my friends first. If it saves you a cold hour working something out on the back of your hand, you can <a href="https://buymeacoffee.com/jpchaworthy" rel="noopener">buy me a coffee</a>.</p>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <p>Nothing here is guesswork dressed up as data. Sun, moon, star and meteor radiant positions are computed in your browser. Cloud, humidity, temperature, dew point, wind and visibility come from <a href="https://open-meteo.com" rel="noopener">Open-Meteo</a>. Sky darkness comes from <a href="https://djlorenz.github.io/astronomy/" rel="noopener">David Lorenz's 2025 light pollution atlas</a>, baked into the app. Aurora comes from the <a href="https://www.swpc.noaa.gov/products/planetary-k-index" rel="noopener">NOAA Space Weather Prediction Center</a>: the planetary K index, the OVATION model, and real-time solar wind measured at the L1 point. Shower parameters are hand-encoded from the <a href="https://www.imo.net" rel="noopener">International Meteor Organization</a> working list. Satellite passes are propagated with SGP4 against <a href="https://celestrak.org" rel="noopener">CelesTrak</a> orbital elements, on your device. The ground in Scout and your skyline come from <a href="https://registry.opendata.aws/terrain-tiles/" rel="noopener">AWS Terrain Tiles</a> with Esri World Imagery over the top, and comets from the observers of <a href="https://cobs.si" rel="noopener">COBS</a>.</p>
+    <p>Every source is listed and credited inside the app, under More, Credits and privacy. If I have got something wrong, and I am sure I have somewhere, <a href="mailto:jpchaworth@gmail.com?subject=Noctography%20Feedback">do tell me</a>.</p>
+  </section>
+
+  <section>
+    <h2>Common questions</h2>
+
+    <h3 style="margin-top: 28px;">What is the best time to photograph the Milky Way?</h3>
+    <p>You need three things at once: full astronomical darkness, no moon, and the galactic core above the horizon. When that happens depends on where you are: north of the equator the core season runs roughly February to October and the core stays fairly low in the south; from the southern hemisphere it climbs far higher, and the season shifts. Noctography works all three out for your own location and shows where they overlap.</p>
+
+    <h3>What is real-world Bortle?</h3>
+    <p>The published Bortle class for a site describes a perfect, moonless night, which is rarely the night you are standing in. Real-world Bortle starts from the atlas value for your location, then adds moonlight, haze from humidity, and town glow scattered back down by thin cloud, and converts the result back to a Bortle class. A Bortle 3 site under a gibbous moon genuinely performs like a Bortle 5 one.</p>
+
+    <h3>How long an exposure before the stars trail?</h3>
+    <p>It depends on your pixel pitch as much as your focal length, which is why the old 500 rule is generous on a dense sensor. Noctography uses the NPF rule and gives you two readings: pin-sharp, meaning no trailing at all, and relaxed, meaning trailing you will not notice in normal viewing and printing. In the framing view it goes further and corrects for the fastest star actually in your frame, which near the pole is worth a stop or more for nothing.</p>
+
+    <h3>Will I see the aurora, or only photograph it?</h3>
+    <p>Often only photograph it. A dark-adapted eye runs on rod vision, which is colour-blind and roughly five to ten times less sensitive than a camera sensor, so your camera will frequently detect an aurora before you do, and sometimes it never gets bright enough to see by eye. Noctography draws the camera threshold and the eye threshold separately, and moves both with the moonlight, cloud and haze on the night.</p>
+
+    <h3>How many meteors will I actually see?</h3>
+    <p>Far fewer than the quoted ZHR, which assumes a perfect observer under a perfect sky with the radiant overhead. The real number falls with radiant height, moonlight, light pollution and cloud. A shower quoted at 100 an hour might realistically be 25 from a rural site at mid latitudes, and less again where the radiant never climbs high. Noctography will tell you which you are getting.</p>
+
+    <h3>Can I see where the Milky Way will be before it gets dark?</h3>
+    <p>Yes, and you do not even need to be there. Hold your phone up and Sky AR draws the sky over the camera, so you can scout in daylight. Or use Scout, which draws the real landscape of any location from elevation data and satellite imagery, and scroll the clock to the night you want. The core, the arch, the moon and your lens all sit where they will actually be.</p>
+
+    <h3>How far should I rotate between panorama frames?</h3>
+    <p>It depends on focal length, sensor, orientation and overlap. Thirty percent overlap is the minimum for reliable stitching; forty to fifty is safer for night skies, where there is little detail for the stitcher to grip. A 24mm lens on full frame, portrait, at forty percent overlap needs about 44 degrees between frames.</p>
+
+    <h3>Why do clear nights sometimes end up misty?</h3>
+    <p>Radiation fog forms on exactly the nights that look most promising: a clear sky lets the ground radiate its heat away, the air cools to its dew point, and with no wind to mix it, mist forms at ground level. Noctography warns when those three line up.</p>
+
+    <h3>Is it free?</h3>
+    <p>Yes, and there is no account. It runs in your browser and keeps your location on your own device.</p>
+  </section>
+
+  <section style="margin-top: 64px; padding: 32px; background: #15151A; border: 1px solid rgba(214,179,104,.4); border-radius: 14px; text-align: center;">
+    <h2 style="margin: 0 0 10px;">Have a look at tonight</h2>
+    <p style="margin: 0 auto 22px; color: #DCD7CC;">It takes about five seconds to tell you whether to bother.</p>
+    <a class="cta" href="app/index.html">Open Noctography</a>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>Follow my cinematic nightscape adventures at <a href="https://www.youtube.com/@nightscapejournals" rel="me noopener">youtube.com/@nightscapejournals</a>, or see prints, talks and free downloads at <a href="https://www.paulhaworthnightscapes.com" rel="me noopener">paulhaworthnightscapes.com</a>.</p>
+    <p style="margin-top: 22px;"><a class="cta ghost" href="https://buymeacoffee.com/jpchaworthy" rel="noopener" style="min-height: 48px; padding: 0 24px; font-size: 13px;">Say thanks</a></p>
+    <p style="display: flex; align-items: center; gap: 10px; margin-top: 20px;">
+      <img src="assets/logo-roundel.png" alt="" width="40" height="40" loading="lazy" decoding="async" style="border-radius: 50%; display: block;">
+      <span class="eyebrow">Paul Haworth Nightscapes</span>
+    </p>
+  </div>
+</footer>
+
 </body>
 </html>
