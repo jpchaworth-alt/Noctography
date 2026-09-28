@@ -762,7 +762,7 @@ class Scene {
         if (sm[k] > 0.3 || treeH[k] > 0) { const t = ss(330, 400, dd); H[k] = b + sm[k] * t; canopy[k] = ss(0.5, 4, sm[k]); }
       }
     }
-    x.data.canopy = canopy; x.data.bld = kind ? bldW : null;
+    x.data.canopy = canopy; x.data.bld = kind ? bldW : null; x.data.bare = bare || null;
     /* one tree for every few square metres of wood, spaced by height, none within 12 m of the eye.
        Conifers become more likely to the north and higher up; the data does not say which is which. */
     {
@@ -803,7 +803,10 @@ class Scene {
   shadowPass(sl){
     const G = this.G, gl = G.gl, S = G.shadow;
     if (!S || !S.ok) return false;
-    const key = this.version + '|' + sl.az.toFixed(2) + '|' + sl.alt.toFixed(2);
+    /* while a timelapse plays the light is followed in whole degrees: shadows step a little, but are
+       not redrawn every frame */
+    const st = sl.step || 0, qd = v => (st ? Math.round(v / st) * st : v).toFixed(2);
+    const key = this.version + '|' + qd(sl.az) + '|' + qd(sl.alt);
     if (S.key === key) return true;
     const alt = Math.min(sl.alt, 88), Ld = dirOf(sl.az, alt), D = 200000;
     const g = this.ground;
@@ -839,6 +842,20 @@ class Scene {
     S.key = key;
     return true;
   }
+  /* the ground itself, without roofs or treetops: the national bare-earth model where there is one,
+     else the terrain as first loaded. For climbs and walking, not for the view. */
+  groundAt(lat, lon){
+    for (const x of this.rings) {
+      if (!x) continue;
+      const r = x.r, W = x.data.W;
+      const fx = (lonToX(lon, r.z) - r.x0) * TILE, fy = (latToY(lat, r.z) - r.y0) * TILE;
+      if (fx < 0 || fy < 0 || fx >= W || fy >= W) continue;
+      const i = Math.floor(fy) * W + Math.floor(fx), b = x.data.bare && x.data.bare[i];
+      if (b === b && b != null && b !== 0) return b;
+      return (x.data.base || x.data.heights)[i];
+    }
+    return null;
+  }
   heightAt(lat, lon){
     for (const x of this.rings) {
       if (!x) continue;
@@ -855,6 +872,7 @@ class Scene {
     const G = this.G; if (!G) return;
     const gl = G.gl, cv = this.canvas;
     const sl = this.rings.some(Boolean) ? this.shadowLight(light) : null;
+    if (sl && light.shadowStep) sl.step = light.shadowStep;
     const shOn = sl ? this.shadowPass(sl) : false;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, cv.width, cv.height);
@@ -971,6 +989,10 @@ function skyExtras(ctx, W, H, view, sky, o){
   const mUp = clamp(sky.moon.alt / 8, 0, 1) * Math.pow(sky.moon.frac, 1.5) * (1 - day);
   const dm = o.domes, domeK = dm ? dm.art * night * g : 0;
   if (mUp < 0.004 && domeK < 0.0005) return;
+  const q = v => Math.round(v * 2) / 2;
+  const ck = [view.az.toFixed(2), view.alt.toFixed(2), view.hfov.toFixed(2), view.vfov.toFixed(2), q(sky.moon.az), q(sky.moon.alt), sky.moon.frac.toFixed(2), q(sa), g.toFixed(2), dm ? dm.art.toFixed(3) + ':' + (dm.rel && dm.rel.length) : 0].join('|');
+  if (cv.__key !== ck) {
+  cv.__key = ck;
   const pr = S.projector(view.alt, view.az, view.hfov, view.vfov, gw, gh);
   const md = dirOf(sky.moon.az, sky.moon.alt);
   const cx = cv.getContext('2d'), id = cx.createImageData(gw, gh), px = id.data;
@@ -993,6 +1015,7 @@ function skyExtras(ctx, W, H, view, sky, o){
     px[k] = Math.min(255, r * 255); px[k + 1] = Math.min(255, gg * 255); px[k + 2] = Math.min(255, b * 255); px[k + 3] = 255;
   }
   cx.putImageData(id, 0, 0);
+  }
   ctx.save();
   ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1;
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
@@ -1003,8 +1026,12 @@ function skyExtras(ctx, W, H, view, sky, o){
    stars, with the moon's wash and the domes. */
 let hazeCv = null, hazeRows = null, hazeKey = '';
 const HAZE_W = 128, HAZE_H = 72;
+let hazeMemo = { key: '', out: null };
 function hazeRow(view, sky, o){
   const S = window.NoctoScout; if (!S) return null;
+  const q = v => Math.round(v * 2) / 2, dm = o && o.domes;
+  const mk = [view.az.toFixed(2), view.alt.toFixed(2), view.hfov.toFixed(2), view.vfov.toFixed(2), q(sky.sun.az), q(sky.sun.alt), q(sky.moon.az), q(sky.moon.alt), sky.moon.frac.toFixed(2), (o && o.gain != null ? o.gain : 1).toFixed(2), dm ? dm.art.toFixed(3) : 0].join('|');
+  if (hazeMemo.key === mk && hazeMemo.out) return hazeMemo.out;
   if (!hazeCv) { hazeCv = document.createElement('canvas'); hazeCv.width = HAZE_W; hazeCv.height = HAZE_H; }
   const cx = hazeCv.getContext('2d', { willReadFrequently: true });
   const g = o && o.gain != null ? o.gain : 1;
@@ -1026,6 +1053,7 @@ function hazeRow(view, sky, o){
     const k = (hazeRows[i] * HAZE_W + i) * 4;
     out[i * 4] = px[k]; out[i * 4 + 1] = px[k + 1]; out[i * 4 + 2] = px[k + 2]; out[i * 4 + 3] = 255;
   }
+  hazeMemo = { key: mk, out };
   return out;
 }
 

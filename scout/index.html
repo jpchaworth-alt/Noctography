@@ -19,7 +19,7 @@
   <script src="../noctography-comp.js?v=2.0.1"></script>
   <script src="../noctography-sync.js?v=1"></script>
   <script src="../noctography-surfaces.js?v=24"></script>
-  <script src="../noctography-scout-hd.js?v=25"></script>
+  <script src="../noctography-scout-hd.js?v=29"></script>
   <style>
     html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
     a { color: #D6B368; } a:hover { color: #E8C98A; }
@@ -173,6 +173,7 @@
           <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700; color: #F3F0EA; white-space: nowrap;">{{ panoCount }}</span>
           <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #ADA79B; white-space: nowrap;">{{ panoSize }}</span>
           <span style="font-size: 12px; color: #918B81; white-space: nowrap;">Drag the edges to size it</span>
+          <button type="button" onClick="{{ panoFramesFlip }}" aria-pressed="{{ panoFramesPressed }}" title="Show or hide each frame" style="height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ panoFramesEdge }}; background: {{ panoFramesBg }}; color: {{ panoFramesFg }}; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">Frames</button>
           <button type="button" onClick="{{ panoDetailToggle }}" style="height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid #D6B368; background: rgba(214,179,104,.14); color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">Shot plan</button>
         </div>
       </sc-if>
@@ -187,6 +188,7 @@
             <div style="display: grid; gap: 3px;">
               <sc-for list="{{ panoRows }}" as="r" hint-placeholder-count="2"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.45; color: #DCD7CC;">{{ r.v }}</span></sc-for>
             </div>
+            <button type="button" onClick="{{ panoFramesFlip }}" aria-pressed="{{ panoFramesPressed }}" style="justify-self: start; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ panoFramesEdge }}; background: {{ panoFramesBg }}; color: {{ panoFramesFg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;">{{ panoFramesLabel }}</button>
             <button type="button" onClick="{{ panoCentre }}" style="justify-self: start; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: none; color: #DCD7CC; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;">Centre on the view</button>
           </div>
           <div style="display: grid; gap: 10px;">
@@ -347,7 +349,7 @@ class Component extends DCLogic {
     if (this._cv) this._cv.addEventListener('wheel', e => {
       e.preventDefault();
       const v = this._view;
-      v.hfov = Math.max(12, Math.min(360, v.hfov * (e.deltaY > 0 ? 1.08 : 1 / 1.08)));
+      v.hfov = Math.max(12, Math.min(this.zoomMax(), v.hfov * (e.deltaY > 0 ? 1.08 : 1 / 1.08)));
       this.resetTrails(); this.dirty(); this.syncView();
     }, { passive: false });
     this._key = e => {
@@ -370,7 +372,7 @@ class Component extends DCLogic {
         this._min += st.speed * dt / 1000;
         if (this._min > sp.end) this.roll(true);
         this._dirty = true;
-        if (t - (this._pushed || 0) > 120) { this._pushed = t; this.setState({ min: this._min, hud: this._hud }); }
+        if (t - (this._pushed || 0) > 250) { this._pushed = t; this.setState({ min: this._min, hud: this._hud }); }
       }
       /* while sharp tiles land, repaint a few times a second so they show */
       if (this.hd && this.sc.sharpening && t - (this._sharpAt || 0) > 250) { this._sharpAt = t; this._dirty = true; }
@@ -447,7 +449,9 @@ class Component extends DCLogic {
     try { localStorage.setItem('noctography.scout.recent', JSON.stringify(list)); } catch (e) {}
   }
   /* the time zone comes with the forecast service's answer; the view faces the Milky Way's side */
-  async openPlace(p) {
+  /* a searched place opens on the map first: a search lands on a village or a summit's name, rarely
+     on the spot you will stand, and a 3D view from slightly the wrong place is disorientating */
+  async openPlace(p, opts) {
     const q = { az: p.lat >= 0 ? 180 : 0, alt: 2, hfov: 84, ...p };
     if (!q.tz) {
       try { const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + q.lat.toFixed(4) + '&longitude=' + q.lon.toFixed(4) + '&timezone=auto&forecast_days=1&daily=sunrise'); const j = await r.json(); if (j && j.timezone) q.tz = j.timezone; } catch (e) {}
@@ -457,7 +461,8 @@ class Component extends DCLogic {
     if (q.atMs && q.date) { const g = Date.UTC(q.date[0], q.date[1], q.date[2], 12); q.at = (q.atMs - (g - this.tzAt(g) * 60000)) / 60000; }
     this.remember(q);
     this.track && this.track('scout/search');
-    this.setState({ q: '', results: [], qOpen: false, mapOn: false }, () => this.pickPlace(0));
+    const map = !!(opts && opts.map);
+    this.setState({ q: '', results: [], qOpen: false, mapOn: false, arrived: map }, () => { this.pickPlace(0); if (map) { this._mv = null; this.setMap(true); if (this._mv) { this._mv.z = 16; this.drawMapView(); } } });
   }
   parseCoord(s) {
     const m = String(s).trim().match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);
@@ -602,6 +607,7 @@ class Component extends DCLogic {
   mapPx(lat, lon, z) { const n = 256 * Math.pow(2, z), s = Math.sin(lat * Math.PI / 180); return [(lon + 180) / 360 * n, (1 - Math.log((1 + s) / (1 - s)) / (2 * Math.PI)) / 2 * n]; }
   mapLL(x, y, z) { const n = 256 * Math.pow(2, z), lon = x / n * 360 - 180, yy = Math.PI * (1 - 2 * y / n); return [Math.atan(Math.sinh(yy)) * 180 / Math.PI, lon]; }
   setMap(on) {
+    if (!on && this.state.arrived) this.setState({ arrived: false });
     if (on) { const p = this.loc(); if (!this._mv || this._mvFor !== p) { this._mv = { lat: p.lat, lon: p.lon, z: this._mv ? this._mv.z : 15 }; this._mvFor = p; } this.track && this.track('scout/map'); }
     this.setState({ mapOn: on }, () => { if (on) this.drawMapView(); else { this.resetTrails(); this.dirty(); } });
   }
@@ -782,7 +788,7 @@ class Component extends DCLogic {
     clearTimeout(this._boxT); this._boxT = setTimeout(() => this.forceUpdate(), 60);
   }
   setPano(on) {
-    if (!on) { this.setState({ pano: false }, () => this.dirty()); return; }
+    if (!on) { if (this._view) this._view.hfov = Math.min(this._view.hfov, this.LENS_MAX); this.setState({ pano: false }, () => { this.syncView(); this.dirty(); }); return; }
     const b0 = this.state.panoBox, w = b0 ? b0.w : 120, lo = b0 ? b0.lo : -8, hi = b0 ? b0.hi : 40;
     const b = { az: this._view.az - w / 2, w, lo, hi };
     this.fitPano(b);
@@ -794,12 +800,16 @@ class Component extends DCLogic {
      one strip, zenith to 40 degrees down, made slice by slice from the same scene and sky, and
      shown degree for degree like the panorama view in the app. It is rebuilt when the moment, the
      place or the look changes; while it rebuilds the last one stays up and fills in. */
-  WIDE = 120;
-  wide() { return !!this._view && this._view.hfov > this.WIDE; }
+  WIDE = 120; LENS_MAX = 150;
+  wide() { return !!this._view && !!this.state.pano && this._view.hfov > this.WIDE; }
+  zoomMax() { return this.state.pano ? 360 : this.LENS_MAX; }
   wideStrip(when, p, gain, sharp) {
     const st = this.state, S = this.S, sc = this.sc;
     if (!S || !S.pano || !sc || !sc.ok) return;
-    const base = [Math.round(when.getTime() / 120000), p.lat.toFixed(4), p.lon.toFixed(4), st.exp, st.ground, st.haze, st.domes, st.ha ? st.haStr : 0, (sc.rings || []).filter(Boolean).length].join('|');
+    const cvw = this._cv ? this._cv.clientWidth * (window.devicePixelRatio || 1) : 2000;
+    const sPPD = cvw / Math.max(this.WIDE, this._view.hfov);
+    const ppdS = this.touch ? (sPPD > 7 ? 7 : 5) : (sPPD > 10 ? 10 : sPPD > 7 ? 8 : 6);
+    const base = [ppdS, Math.round(when.getTime() / 120000), p.lat.toFixed(4), p.lon.toFixed(4), st.exp, st.ground, st.haze, st.domes, st.ha ? st.haStr : 0, (sc.rings || []).filter(Boolean).length].join('|');
     /* a sharp strip stays until the moment or the look changes; then it is a draft again */
     const q = sharp || (this._wideSharpFor === base) ? 'sharp' : 'draft', key = base + '|' + q;
     if (key === this._wideKey || key === this._wideWant) return;
@@ -810,7 +820,10 @@ class Component extends DCLogic {
       const out = this._wideCv || (this._wideCv = document.createElement('canvas'));
       const extras = { gain, domes: st.domes ? this._domes : null };
       const draft = q === 'draft';
-      const o = { ppd: draft ? (this.touch ? 3 : 4) : (this.touch ? 5 : 6), sw: draft ? 45 : 30, coarse: false, starScale: 0.8,
+      const ppd = draft ? Math.max(4, Math.round(ppdS * 0.6)) : ppdS;
+      /* a star is drawn a set number of pixels across; blown up to the screen it would grow, so it is
+         drawn that much smaller in the strip to land at the same size as in the lens view */
+      const o = { ppd, sw: draft ? 45 : 30, coarse: false, starScale: 0.8 * Math.min(1, ppd / sPPD),
         tiers: draft ? [{ e: 0, lo: S.pano.BOT, hi: 42, vh: 47 }, { e: 64, lo: 42, hi: S.pano.TOP, vh: 32 }] : undefined,
         when, lat: p.lat, lon: p.lon, gain, trueCol: st.ground === 'true', map: S.skyDataReady() ? { stars: true } : null,
         afterSky: (g, W2, H2, pr, sky, view) => { if (st.ha && this._ha) this.drawHa(g, W2, H2, view, when, p, sky, gain); if (HD) HD.skyExtras(g, W2, H2, view, sky, extras); },
@@ -862,7 +875,7 @@ class Component extends DCLogic {
       const poly = (pts, close) => { for (let k = -1; k <= 1; k++) { ctx.beginPath(); pts.forEach(([az, alt], i) => { const x = X(az + k * 360), y = Y(alt); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); if (close) ctx.closePath(); ctx.stroke(); } };
       ctx.save();
       ctx.strokeStyle = 'rgba(240,236,228,.42)'; ctx.lineWidth = dpr;
-      g.rows.forEach(row => row.az.forEach(az => poly(S.pano.footprint(az, row.t, L), true)));
+      if (st.panoFrames !== false) g.rows.forEach(row => row.az.forEach(az => poly(S.pano.footprint(az, row.t, L), true)));
       ctx.strokeStyle = '#D6B368'; ctx.lineWidth = 2 * dpr;
       poly([[b.az, b.hi], [b.az + b.w, b.hi], [b.az + b.w, b.lo], [b.az, b.lo]], true);
       ctx.fillStyle = '#D6B368';
@@ -925,7 +938,9 @@ class Component extends DCLogic {
     const cv = this._cv, S = this.S, sc = this.sc;
     if (!cv || !S || !this._view) return;
     const st = this.state, p = this.loc();
-    const dpr = window.devicePixelRatio || 1;
+    /* a playing timelapse draws at fewer pixels on a sharp screen, so every frame keeps pace; paused,
+       it is back to full detail at once */
+    const fullDpr = window.devicePixelRatio || 1, dpr = st.playing ? Math.max(1, Math.min(fullDpr, fullDpr * 0.6)) : fullDpr;
     const W = Math.max(2, Math.round(cv.clientWidth * dpr)), H = Math.max(2, Math.round(cv.clientHeight * dpr));
     [cv, this._sky, this._tr, this._comp].forEach(c => { if (c.width !== W || c.height !== H) { c.width = W; c.height = H; this._trailsFresh = true; } });
     const R = Math.PI / 180, v = this._view;
@@ -934,7 +949,7 @@ class Component extends DCLogic {
     const when = new Date(this.noon() + this._min * 60000);
     const gain = 0.25 + st.exp / 100 * 1.5;
     if (this.wide()) { this.drawWide(cv, W, H, v, when, p, gain, dpr); return; }
-    if (v.hfov > 95 && !st.playing) this.wideStrip(when, p, gain);
+    if (st.pano && v.hfov > 95 && !st.playing) this.wideStrip(when, p, gain);
     const sx = this._sky.getContext('2d');
     sx.setTransform(1, 0, 0, 1, 0, 0); sx.globalAlpha = 1; sx.globalCompositeOperation = 'source-over';
     const r = S.drawSky(sx, W, H, view, when, p.lat, p.lon, { gain, dpr, coarse: st.playing, map: S.skyDataReady() ? { stars: true } : null });
@@ -955,7 +970,7 @@ class Component extends DCLogic {
       const s = r.sky;
       sc.render(view, { sunAz: s.sun.az, sunAlt: s.sun.alt, moonAz: s.moon.az, moonAlt: s.moon.alt, moonFrac: s.moon.frac,
         gain, hazeKm: this.hazeKm(), haze: this.hd ? 0.9 : 0.85, nv: false, trueCol: st.ground === 'true',
-        mode: st.ground, lpArt: this._lpArt || 0, hazeRow: this.hd && HD ? HD.hazeRow(view, s, extras) : null });
+        mode: st.ground, lpArt: this._lpArt || 0, hazeRow: this.hd && HD ? HD.hazeRow(view, s, extras) : null, shadowStep: 0 });
       cx.save(); if (st.ground === 'sil' && !this.hd) cx.filter = 'brightness(0)';
       cx.drawImage(g, 0, 0, W, H); cx.restore();
     }
@@ -988,7 +1003,7 @@ class Component extends DCLogic {
       const line = (pts, close) => { ctx.beginPath(); let pen = false; pts.forEach(([az, alt]) => { const q = pr(alt, az); if (!q) { pen = false; return; } if (pen) ctx.lineTo(q.x, q.y); else { ctx.moveTo(q.x, q.y); pen = true; } }); if (close && pen) { const q = pr(pts[0][1], pts[0][0]); if (q) ctx.lineTo(q.x, q.y); } ctx.stroke(); };
       ctx.save();
       ctx.strokeStyle = 'rgba(240,236,228,.38)'; ctx.lineWidth = dpr;
-      g.rows.forEach(row => row.az.forEach(az => line(S.pano.footprint(az, row.t, L), true)));
+      if (st.panoFrames !== false) g.rows.forEach(row => row.az.forEach(az => line(S.pano.footprint(az, row.t, L), true)));
       const edge = [], A = b.az, Z = b.az + b.w;
       for (let a = A; a <= Z; a += 1.5) edge.push([a, b.hi]);
       for (let e = b.hi; e >= b.lo; e -= 1.5) edge.push([Z, e]);
@@ -1404,6 +1419,9 @@ class Component extends DCLogic {
       panoOn: true, panoPillOn: !st.panoDetail, panoDetailOn: !!st.panoDetail,
       panoSize: Math.round(b.w) + '\u00b0 \u00d7 ' + Math.round(b.hi - b.lo) + '\u00b0',
       panoDetailToggle: () => this.setState({ panoDetail: !st.panoDetail }),
+      ...(() => { const on = st.panoFrames !== false; return { panoFramesPressed: on ? 'true' : 'false', panoFramesLabel: on ? 'Hide the frames' : 'Show the frames',
+        panoFramesEdge: on ? '#D6B368' : 'rgba(240,236,228,.2)', panoFramesBg: on ? 'rgba(214,179,104,.14)' : 'none', panoFramesFg: on ? '#D6B368' : '#ADA79B',
+        panoFramesFlip: () => this.setState({ panoFrames: !on }, () => this.dirty()) }; })(),
       panoCount: g.total + (g.total === 1 ? ' frame' : ' frames') + (g.rows.length > 1 ? ' \u00b7 ' + g.rows.length + ' rows' : ''),
       panoCover: Math.round(b.w) + '\u00b0 \u00d7 ' + Math.round(b.hi - b.lo) + '\u00b0 \u00b7 ' + a360(b.az) + '\u00b0' + cmp(b.az) + ' to ' + a360(b.az + b.w) + '\u00b0' + cmp(b.az + b.w),
       panoRows: g.rows.map((r, i) => ({ v: 'Row ' + (i + 1) + ' \u00b7 tilt ' + dg(r.t) + ' \u00b7 ' + r.n + ' \u00d7 ' + r.step.toFixed(1) + '\u00b0 \u00b7 from ' + a360(r.az[0]) + '\u00b0' })),
@@ -1543,43 +1561,72 @@ class Component extends DCLogic {
     const pw = pad / Math.cos(to.lat * D), w = Math.min(sLon, to.lon) - pw, e = Math.max(sLon, to.lon) + pw;
     const q = '[out:json][timeout:25];way[highway~"^(footway|path|track|bridleway|steps|cycleway|pedestrian|living_street|residential|service|unclassified|tertiary|secondary|primary)$"](' + [s, w, n, e].map(v => v.toFixed(5)).join(',') + ');(._;>;);out skel qt;';
     const NS = window.NoctoSurfaces, proxy = NS && NS.config ? NS.config().proxy : '';
-    let j = null;
-    /* the open map tiles first: quick, and never busy. Their lines are joined where they meet. */
-    try {
-      const lines = NS && NS.ofmPaths ? await NS.ofmPaths(s, w, n, e) : null;
-      if (lines && lines.length) {
-        const ids = new Map(), els = [], idOf = p => { const k = p[0].toFixed(5) + ',' + p[1].toFixed(5); let id = ids.get(k); if (id == null) { id = ids.size + 1; ids.set(k, id); els.push({ type: 'node', id, lat: p[0], lon: p[1] }); } return id; };
-        lines.forEach(L => els.push({ type: 'way', nodes: L.map(idOf) }));
-        j = { elements: els };
+    const overpass = async () => {
+      for (const u of [proxy ? proxy + '/overpass?data=' + encodeURIComponent(q) : null, 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q)].filter(Boolean)) {
+        try { const r = await fetch(u); if (r.ok) return await r.json(); } catch (err) {}
       }
-    } catch (err) {}
-    if (!j) for (const u of [proxy ? proxy + '/overpass?data=' + encodeURIComponent(q) : null, 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q)].filter(Boolean)) {
-      try { const r = await fetch(u); if (r.ok) { j = await r.json(); break; } } catch (err) {}
+      return null;
+    };
+    /* The open map tiles first: quick, and never busy. Their lines are cut at tile edges and their
+       points rounded, so a junction can arrive as two points a metre apart: points are merged on a
+       2 m grid, and every loose end is tied to anything within 6 m. */
+    const fromTiles = lines => {
+      const cos = Math.cos(to.lat * D), qy = 0.000018, qx = qy / cos, ids = new Map(), els = [];
+      const idOf = p => { const k = Math.round(p[0] / qy) + ',' + Math.round(p[1] / qx); let id = ids.get(k); if (id == null) { id = ids.size + 1; ids.set(k, id); els.push({ type: 'node', id, lat: p[0], lon: p[1] }); } return id; };
+      lines.forEach(L => { const nodes = L.map(idOf).filter((v, i, arr) => i === 0 || v !== arr[i - 1]); if (nodes.length > 1) els.push({ type: 'way', nodes }); });
+      return { elements: els, tiles: true };
+    };
+    let j = null;
+    try { const lines = NS && NS.ofmPaths ? await NS.ofmPaths(s, w, n, e) : null; if (lines && lines.length) j = fromTiles(lines); } catch (err) {}
+    if (!j) j = await overpass();
+    if (!j || !j.elements) { this._walkBusy = false; this.setState({ walkInfo: { line: 'The path map did not answer. Try again in a minute.', warn: true } }); return; }
+    const build = j => {
+      const node = new Map(), adj = new Map();
+      j.elements.forEach(el => { if (el.type === 'node') node.set(el.id, [el.lat, el.lon]); });
+      const link = (a, b) => { if (a === b) return; const pa = node.get(a), pb = node.get(b); if (!pa || !pb) return; const d = dist(pa, pb);
+        (adj.get(a) || adj.set(a, []).get(a)).push([b, d]); (adj.get(b) || adj.set(b, []).get(b)).push([a, d]); };
+      const ends = [];
+      j.elements.forEach(el => { if (el.type === 'way' && el.nodes) { for (let i = 1; i < el.nodes.length; i++) link(el.nodes[i - 1], el.nodes[i]); ends.push(el.nodes[0], el.nodes[el.nodes.length - 1]); } });
+      if (j.tiles) {
+        const cell = 0.0001, grid = new Map(), key = (la, lo) => Math.floor(la / cell) + ',' + Math.floor(lo / cell);
+        node.forEach((p, id) => { const k = key(p[0], p[1]); (grid.get(k) || grid.set(k, []).get(k)).push(id); });
+        ends.forEach(id => { const p = node.get(id), ci = Math.floor(p[0] / cell), cj = Math.floor(p[1] / cell);
+          for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) (grid.get((ci + di) + ',' + (cj + dj)) || []).forEach(o => { if (o !== id && dist(p, node.get(o)) < 6) link(id, o); }); });
+      }
+      return { node, adj };
+    };
+    /* Dijkstra from the start. Where you finish on the paths is the point that makes path plus open
+       ground cheapest, the open ground counted at eight times its length: going round by a road is
+       almost always right, and cutting across is only for where the paths truly give out. */
+    const route = G => {
+      const { node, adj } = G;
+      let s0 = null, sd = 1e12; adj.forEach((_, id) => { const d = dist(start, node.get(id)); if (d < sd) { sd = d; s0 = id; } });
+      let near = 1e12; adj.forEach((_, id) => { near = Math.min(near, dist(node.get(id), end)); });
+      const g = new Map([[s0, 0]]), prev = new Map(), heap = [[0, s0]], done = new Set();
+      const push = x => { heap.push(x); let i = heap.length - 1; while (i) { const p2 = (i - 1) >> 1; if (heap[p2][0] <= heap[i][0]) break; [heap[p2], heap[i]] = [heap[i], heap[p2]]; i = p2; } };
+      const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+      let best = s0, bestC = 8 * dist(node.get(s0), end);
+      while (heap.length) { const [c, u] = pop(); if (done.has(u)) continue; done.add(u);
+        const cc = c + 8 * dist(node.get(u), end); if (cc < bestC) { bestC = cc; best = u; }
+        (adj.get(u) || []).forEach(([v, d]) => { const nc = c + d; if (nc < (g.has(v) ? g.get(v) : Infinity)) { g.set(v, nc); prev.set(v, u); push([nc, v]); } }); }
+      return { node, adj, s0, sd, best, prev, g, off: dist(node.get(best), end), near };
+    };
+    let G = build(j);
+    if (!G.adj.size) { this._walkBusy = false; this.setState({ walkInfo: { line: 'No paths mapped here: it is open ground all the way.', warn: true } }); this._walk = { start, path: [start], off: [start, end] }; this.drawMapView(); return; }
+    let R2 = route(G);
+    /* the tiles left the paths in pieces that the route could not join: ask for the joined-up map */
+    if (j.tiles && R2.off > R2.near + 40) {
+      const j2 = await overpass();
+      if (j2 && j2.elements && j2.elements.length) { const G2 = build(j2); if (G2.adj.size) { const R3 = route(G2); if (R3.off < R2.off) { G = G2; R2 = R3; } } }
     }
     this._walkBusy = false;
-    if (!j || !j.elements) { this.setState({ walkInfo: { line: 'The path map did not answer. Try again in a minute.', warn: true } }); return; }
-    const node = new Map(), adj = new Map();
-    j.elements.forEach(el => { if (el.type === 'node') node.set(el.id, [el.lat, el.lon]); });
-    const link = (a, b) => { const pa = node.get(a), pb = node.get(b); if (!pa || !pb) return; const d = dist(pa, pb);
-      (adj.get(a) || adj.set(a, []).get(a)).push([b, d]); (adj.get(b) || adj.set(b, []).get(b)).push([a, d]); };
-    j.elements.forEach(el => { if (el.type === 'way' && el.nodes) for (let i = 1; i < el.nodes.length; i++) link(el.nodes[i - 1], el.nodes[i]); });
-    if (!adj.size) { this.setState({ walkInfo: { line: 'No paths mapped here: it is open ground all the way.', warn: true } }); this._walk = { start, path: [start], off: [start, end] }; this.drawMapView(); return; }
-    let s0 = null, sd = 1e12; adj.forEach((_, id) => { const d = dist(start, node.get(id)); if (d < sd) { sd = d; s0 = id; } });
-    /* Dijkstra from the start; the end of the paths is the node that makes path + open ground
-       cheapest, open ground counted at twice its length because it is slower and harder */
-    const g = new Map([[s0, 0]]), prev = new Map(), heap = [[0, s0]], done = new Set();
-    const push = x => { heap.push(x); let i = heap.length - 1; while (i) { const p2 = (i - 1) >> 1; if (heap[p2][0] <= heap[i][0]) break; [heap[p2], heap[i]] = [heap[i], heap[p2]]; i = p2; } };
-    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
-    let best = s0, bestC = 2 * dist(node.get(s0), end);
-    while (heap.length) { const [c, u] = pop(); if (done.has(u)) continue; done.add(u);
-      const cc = c + 2 * dist(node.get(u), end); if (cc < bestC) { bestC = cc; best = u; }
-      (adj.get(u) || []).forEach(([v, d]) => { const nc = c + d; if (nc < (g.has(v) ? g.get(v) : Infinity)) { g.set(v, nc); prev.set(v, u); push([nc, v]); } }); }
+    const { node, s0, sd, best, prev, g } = R2;
     const path = []; for (let u = best; u != null; u = prev.get(u)) path.push(node.get(u)); path.reverse();
     /* the stretch from where you clicked to the first path is open ground too, and drawn so */
     const onKm = (g.get(best) || 0) / 1000, off = dist(node.get(best), end);
     let gain = 0, last = null; const sc = this.sc, all = (sd > 15 ? [start] : []).concat(path, off > 15 ? [end] : []);
     for (let i = 1; i < all.length; i++) { const a = all[i - 1], b2 = all[i], steps = Math.max(1, Math.ceil(dist(a, b2) / 25));
-      for (let k2 = 0; k2 <= steps; k2++) { const t = k2 / steps, hh = sc && sc.heightAt ? sc.heightAt(a[0] + (b2[0] - a[0]) * t, a[1] + (b2[1] - a[1]) * t) : null; if (hh == null) continue; if (last != null && hh > last) gain += hh - last; last = hh; } }
+      for (let k2 = 0; k2 <= steps; k2++) { const t = k2 / steps, la2 = a[0] + (b2[0] - a[0]) * t, lo2 = a[1] + (b2[1] - a[1]) * t, hh = sc ? (sc.groundAt ? sc.groundAt(la2, lo2) : sc.heightAt ? sc.heightAt(la2, lo2) : null) : null; if (hh == null) continue; if (last == null) { last = hh; continue; } if (hh - last > 1) { gain += hh - last; last = hh; } else if (hh < last) last = hh; } }
     this._walk = { start, path, off: off > 15 ? [node.get(best), end] : null, offStart: sd > 15 ? [start, node.get(s0)] : null };
     const fmt = v => v < 1 ? Math.round(v * 1000) + ' m' : v.toFixed(1) + ' km';
     this.setState({ walkInfo: { warn: sd > 400, line: (sd > 15 ? Math.round(sd) + ' m to the first path, then ' : '') + fmt(onKm) + ' on paths' + (off > 15 ? ', then ' + Math.round(off) + ' m across open ground' : '') + (gain > 5 ? ' \u00b7 up ' + Math.round(gain / 10) * 10 + ' m' : '') } });
@@ -1591,8 +1638,8 @@ class Component extends DCLogic {
     return {
       walkToggle: () => { if (this._walk || st.walkPick) { this._walk = null; this.setState({ walkPick: false, walkInfo: null }, () => this.drawMapView()); } else this.setState({ walkPick: true, walkInfo: null }); },
       walkEdge: on ? ON.edge : OFF.edge, walkBg: on ? ON.bg : OFF.bg, walkFg: on ? ON.fg : OFF.fg,
-      walkLine: st.walkPick ? 'Click where you will start, such as where you park' : wi ? wi.line : 'Click to stand there \u00b7 drag the wedge to aim',
-      walkInk: st.walkPick ? '#D6B368' : wi && wi.warn ? '#E07A86' : wi ? '#F3F0EA' : '#ADA79B',
+      walkLine: st.walkPick ? 'Click where you will start, such as where you park' : wi ? wi.line : st.arrived ? 'Click the exact spot you will stand, then 3D' : 'Click to stand there \u00b7 drag the wedge to aim',
+      walkInk: st.walkPick || (st.arrived && !wi) ? '#D6B368' : wi && wi.warn ? '#E07A86' : wi ? '#F3F0EA' : '#ADA79B',
     };
   }
   /* A month at a time. Each day carries a dot for how bright the moon is that night, which is the
@@ -1739,14 +1786,14 @@ class Component extends DCLogic {
       onQ: e => { const v2 = e.target.value; this.setState({ q: v2, qOpen: true }); this.search(v2); },
       onQFocus: () => this.setState({ qOpen: true }),
       onQBlur: () => setTimeout(() => this.setState({ qOpen: false }), 150),
-      onQKey: e => { if (e.key === 'Enter' && (st.results || [])[0]) { const r = st.results[0]; this.openPlace({ name: r.name, area: r.coord ? 'Coordinates' : r.name, lat: r.lat, lon: r.lon }); } else if (e.key === 'Escape') { e.target.blur(); } },
+      onQKey: e => { if (e.key === 'Enter' && (st.results || [])[0]) { const r = st.results[0]; this.openPlace(r._recent || { name: r.name, area: r.coord ? 'Coordinates' : r.name, lat: r.lat, lon: r.lon }, { map: !r._recent }); } else if (e.key === 'Escape') { e.target.blur(); } },
       dropOn: !!st.qOpen && ((st.q || '').trim().length >= 2 || this.recentList().length > 0),
-      results: ((st.q || '').trim().length < 2 ? this.recentList().slice(0, 6).map(r => ({ name: r.name, sub: r.area && r.area !== r.name ? r.area : 'Recent', lat: r.lat, lon: r.lon, _recent: r })) : (st.results || [])).map((r, i) => ({ ...r, bg: i === 0 ? 'rgba(214,179,104,.1)' : 'transparent', pick: () => this.openPlace(r._recent || { name: r.name, area: r.coord ? 'Coordinates' : r.name, lat: r.lat, lon: r.lon }) })),
+      results: ((st.q || '').trim().length < 2 ? this.recentList().slice(0, 6).map(r => ({ name: r.name, sub: r.area && r.area !== r.name ? r.area : 'Recent', lat: r.lat, lon: r.lon, _recent: r })) : (st.results || [])).map((r, i) => ({ ...r, bg: i === 0 ? 'rgba(214,179,104,.1)' : 'transparent', pick: () => this.openPlace(r._recent || { name: r.name, area: r.coord ? 'Coordinates' : r.name, lat: r.lat, lon: r.lon }, { map: !r._recent }) })),
       noResults: (st.q || '').trim().length >= 2 && !(st.results || []).length, noResultsLine: st.qBusy ? 'Searching\u2026' : 'Nothing found. Try a nearby town, or paste coordinates.',
       locateMe: () => {
         if (!navigator.geolocation) { this.toast('This browser cannot share its location.'); return; }
         this.toast('Finding you\u2026');
-        navigator.geolocation.getCurrentPosition(pos => this.openPlace({ name: 'Where you are', area: 'Here', lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        navigator.geolocation.getCurrentPosition(pos => this.openPlace({ name: 'Where you are', area: 'Here', lat: pos.coords.latitude, lon: pos.coords.longitude }, { map: true }),
           () => this.toast('Location was not shared. Search for the place instead.'), { enableHighAccuracy: true, timeout: 12000 });
       },
       recents: this.recentList().slice(0, 5).map((r, i) => { const cur = this.PLACES[st.place], on = !st.here && cur && Math.abs(cur.lat - r.lat) < 0.002 && Math.abs(cur.lon - r.lon) < 0.002; return { area: r.area || r.name, ...(on ? ON : OFF), pick: () => this.openPlace(r) }; }),
@@ -1811,7 +1858,7 @@ class Component extends DCLogic {
         const P = this._vp; if (P && P.has(e.pointerId)) P.set(e.pointerId, { x: e.clientX, y: e.clientY });
         if (this._pinch && P && P.size === 2) {
           const [a, b] = [...P.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
-          this._view.hfov = Math.max(12, Math.min(360, this._pinch.hfov * this._pinch.d / Math.max(1, d)));
+          this._view.hfov = Math.max(12, Math.min(this.zoomMax(), this._pinch.hfov * this._pinch.d / Math.max(1, d)));
           this.resetTrails(); this.dirty(); this.syncView(); return;
         }
         if (this._boxDrag) { const bb = e.currentTarget.getBoundingClientRect(); this.boxDrag(e.clientX - bb.left, e.clientY - bb.top); return; }
