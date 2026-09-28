@@ -14,7 +14,7 @@
   <script src="../scout-ds/_ds_bundle.js"></script>
   <script src="../noctography-engine.js?v=2.0.1"></script>
   <script src="../noctography-plan.js?v=2.0.1"></script>
-  <script src="../noctography-scout.js?v=2.0.1"></script>
+  <script src="../noctography-scout.js?v=2.0.3"></script>
   <script src="../noctography-offline.js?v=1"></script>
   <script src="../noctography-comp.js?v=2.0.1"></script>
   <script src="../noctography-surfaces.js?v=24"></script>
@@ -139,6 +139,9 @@
     </div>
   </div>
 
+  <sc-if value="{{ sharpOn }}" hint-placeholder-val="{{ false }}">
+    <button type="button" onClick="{{ sharpGo }}" title="Redraw the panorama at full detail" style="position: absolute; top: 98px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: rgba(21,21,26,.94); border: 1px solid rgba(214,179,104,.6); color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="sparkles" size="{{ 14 }}" hint-size="14px,14px"></x-import><span>Sharpen</span></button>
+  </sc-if>
   <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}">
     <div style="position: absolute; top: 132px; left: 50%; transform: translateX(-50%); z-index: 8; padding: 9px 16px; border-radius: 999px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: rgba(214,179,104,.5); font-size: 13.5px; color: #F3F0EA; white-space: nowrap; pointer-events: none;">{{ toastLine }}</div>
   </sc-if>
@@ -154,10 +157,19 @@
           <button type="button" onClick="{{ trailsRestart }}" title="Start the trails at the time shown" style="min-height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: none; color: #ADA79B; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;">Restart</button>
         </div>
       </sc-if>
-      <sc-if value="{{ panoOn }}" hint-placeholder-val="{{ false }}">
-        <div style="display: flex; align-items: flex-start; gap: 22px; padding: 14px; max-height: var(--panel-max, 300px); overflow-y: auto; box-sizing: border-box; pointer-events: auto; border-radius: 10px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: rgba(214,179,104,.45);">
+      <sc-if value="{{ panoPillOn }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 6px 6px 6px 14px; border-radius: 999px; background: rgba(21,21,26,.94); border: 1px solid rgba(214,179,104,.45); pointer-events: auto;">
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700; color: #F3F0EA; white-space: nowrap;">{{ panoCount }}</span>
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #ADA79B; white-space: nowrap;">{{ panoSize }}</span>
+          <span style="font-size: 12px; color: #918B81; white-space: nowrap;">Drag the edges to size it</span>
+          <button type="button" onClick="{{ panoDetailToggle }}" style="height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid #D6B368; background: rgba(214,179,104,.14); color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">Shot plan</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ panoDetailOn }}" hint-placeholder-val="{{ false }}">
+        <div style="position: relative; display: flex; align-items: flex-start; gap: 22px; padding: 14px; max-height: var(--panel-max, 300px); overflow-y: auto; box-sizing: border-box; pointer-events: auto; border-radius: 10px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: rgba(214,179,104,.45);">
           <div style="display: grid; align-content: start; gap: 10px; min-width: 240px;">
             <div style="display: grid; gap: 2px;">
+              <button type="button" onClick="{{ panoDetailToggle }}" aria-label="Close the shot plan" title="Close" style="position: absolute; top: 8px; right: 8px; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: none; color: #ADA79B; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="x" size="{{ 14 }}" hint-size="14px,14px"></x-import></button>
               <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 18px; font-weight: 700; color: #F3F0EA;">{{ panoCount }}</span>
               <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #ADA79B;">{{ panoCover }}</span>
             </div>
@@ -342,6 +354,7 @@ class Component extends DCLogic {
     const shared = this.planDecode();
     if (shared && shared.length) this.planImport(shared); else this.pickPlace(0);
     this.planLoad();
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p => { if (!p) navigator.storage.persist(); }); } catch (e) {}
     const tick = t => {
       const dt = this._last ? Math.min(100, t - this._last) : 0; this._last = t;
       const st = this.state, sp = this._strip;
@@ -718,7 +731,41 @@ class Component extends DCLogic {
   setKit(patch) { const P = window.NoctoPlan, k = Object.assign({}, this.kit(), patch); if (P) P.saveKit(k); this.setState({ kit: k }, () => { this.resetTrails(); this.dirty(); }); }
   lens() { const P = window.NoctoPlan; if (P) { const d = P.kitDerived(this.kit()); return { across: d.across, down: d.down }; } return { across: 84, down: 62 }; }
   panoOv() { const v = +this.kit().panoOv; return (v >= 20 && v <= 80 ? v : 40) / 100; }
-  panoBox() { return this.state.panoBox || { az: this._view.az - 60, w: 120, lo: -8, hi: 40 }; }
+  panoBox() { return this._boxLive || this.state.panoBox || { az: this._view.az - 60, w: 120, lo: -8, hi: 40 }; }
+  /* where on the sky a point on screen is, in either view */
+  dirAt(x, y) {
+    const cv = this._cv, v = this._view; if (!cv || !v) return null;
+    const W = cv.clientWidth, H = cv.clientHeight;
+    if (this.wide()) { const dpp = v.hfov / W, top = v.alt + H * dpp / 2; return { az: v.az - v.hfov / 2 + x * dpp, alt: top - y * dpp, dpp }; }
+    const R = Math.PI / 180, vf = 2 * Math.atan(Math.tan(v.hfov / 2 * R) * H / W) / R;
+    const d = this.S.projector(v.alt, v.az, v.hfov, vf, W, H).unproject(x, y);
+    return d ? { az: d.az, alt: d.alt, dpp: v.hfov / W } : null;
+  }
+  boxHit(x, y) {
+    if (!this.state.pano) return null;
+    const d = this.dirAt(x, y); if (!d) return null;
+    const b = this.panoBox(), tol = 10 * d.dpp, un = a => { let q = a - b.az; q = ((q % 360) + 540) % 360 - 180; return q; };
+    const rel = un(d.az), inW = rel >= -tol && rel <= b.w + tol, inH = d.alt >= b.lo - tol && d.alt <= b.hi + tol;
+    if (!inW || !inH) return null;
+    const L = Math.abs(rel) < tol && b.w < 359, Rr = Math.abs(rel - b.w) < tol && b.w < 359, T = Math.abs(d.alt - b.hi) < tol, Bm = Math.abs(d.alt - b.lo) < tol;
+    const kind = (T ? 't' : Bm ? 'b' : '') + (L ? 'l' : Rr ? 'r' : '');
+    return { kind: kind || 'move', d, rel };
+  }
+  boxCursor(k) { return !k ? 'grab' : k === 'move' ? 'move' : k === 'l' || k === 'r' ? 'ew-resize' : k === 't' || k === 'b' ? 'ns-resize' : k === 'tl' || k === 'br' ? 'nwse-resize' : 'nesw-resize'; }
+  boxDrag(x, y) {
+    const g = this._boxDrag, d = this.dirAt(x, y); if (!g || !d) return;
+    const b0 = g.b0, b = Object.assign({}, b0), k = g.kind;
+    let da = d.az - g.d.az; da = ((da % 360) + 540) % 360 - 180; const de = d.alt - g.d.alt;
+    const TOP = 90, BOT = this.S.pano ? this.S.pano.BOT : -40;
+    if (k === 'move') { b.az = b0.az + da; const hgt = b0.hi - b0.lo; b.lo = Math.max(BOT, Math.min(TOP - hgt, b0.lo + de)); b.hi = b.lo + hgt; }
+    if (k.includes('l')) { const w = Math.max(20, Math.min(360, b0.w - da)); b.az = b0.az + b0.w - w; b.w = w; }
+    if (k.includes('r')) b.w = Math.max(20, Math.min(360, b0.w + da));
+    if (k.includes('t')) b.hi = Math.max(b.lo + 10, Math.min(TOP, b0.hi + de));
+    if (k.includes('b')) b.lo = Math.max(BOT, Math.min(b.hi - 10, b0.lo + de));
+    b.w = Math.round(b.w); b.lo = Math.round(b.lo); b.hi = Math.round(b.hi);
+    this._boxLive = b; this.dirty();
+    clearTimeout(this._boxT); this._boxT = setTimeout(() => this.forceUpdate(), 60);
+  }
   setPano(on) {
     if (!on) { this.setState({ pano: false }, () => this.dirty()); return; }
     const b0 = this.state.panoBox, w = b0 ? b0.w : 120, lo = b0 ? b0.lo : -8, hi = b0 ? b0.hi : 40;
@@ -734,27 +781,42 @@ class Component extends DCLogic {
      place or the look changes; while it rebuilds the last one stays up and fills in. */
   WIDE = 120;
   wide() { return !!this._view && this._view.hfov > this.WIDE; }
-  wideStrip(when, p, gain) {
+  wideStrip(when, p, gain, sharp) {
     const st = this.state, S = this.S, sc = this.sc;
     if (!S || !S.pano || !sc || !sc.ok) return;
-    const key = [Math.round(when.getTime() / 120000), p.lat.toFixed(4), p.lon.toFixed(4), st.exp, st.ground, (sc.rings || []).filter(Boolean).length, this.state.detail ? this.state.detail.d : 0].join('|');
+    const base = [Math.round(when.getTime() / 120000), p.lat.toFixed(4), p.lon.toFixed(4), st.exp, st.ground, st.haze, st.domes, st.ha ? st.haStr : 0, (sc.rings || []).filter(Boolean).length].join('|');
+    /* a sharp strip stays until the moment or the look changes; then it is a draft again */
+    const q = sharp || (this._wideSharpFor === base) ? 'sharp' : 'draft', key = base + '|' + q;
     if (key === this._wideKey || key === this._wideWant) return;
     this._wideWant = key;
     clearTimeout(this._wideT);
     this._wideT = setTimeout(() => {
-      const tok = this._wideTok = {};
+      const tok = this._wideTok = {}, HD = window.NoctoScoutHD;
       const out = this._wideCv || (this._wideCv = document.createElement('canvas'));
-      const o = this._wideOpts || (this._wideOpts = {});
-      Object.assign(o, { ppd: 6, when, lat: p.lat, lon: p.lon, gain, trueCol: st.ground === 'true', map: S.skyDataReady() ? { stars: true } : null,
-        startAz: this._view.az, cancelled: () => this._wideTok !== tok || !this.wide(), onTier: () => this.dirty() });
-      this.setState({ wideBusy: true });
-      S.pano.strip(sc, out, o).then(ok => { if (this._wideTok !== tok) return; if (ok) this._wideKey = key; this._wideWant = null; this.setState({ wideBusy: false }); this.dirty(); })
+      const extras = { gain, domes: st.domes ? this._domes : null };
+      const draft = q === 'draft';
+      const o = { ppd: draft ? (this.touch ? 3 : 4) : (this.touch ? 5 : 6), sw: draft ? 45 : 30, coarse: draft, starScale: 0.8,
+        tiers: draft ? [{ e: 0, lo: S.pano.BOT, hi: 42, vh: 47 }, { e: 64, lo: 42, hi: S.pano.TOP, vh: 32 }] : undefined,
+        when, lat: p.lat, lon: p.lon, gain, trueCol: st.ground === 'true', map: S.skyDataReady() ? { stars: true } : null,
+        afterSky: (g, W2, H2, pr, sky, view) => { if (st.ha && this._ha) this.drawHa(g, W2, H2, view, when, p, sky, gain); if (HD) HD.skyExtras(g, W2, H2, view, sky, extras); },
+        lightFor: (sky, view) => ({ sunAz: sky.sun.az, sunAlt: sky.sun.alt, moonAz: sky.moon.az, moonAlt: sky.moon.alt, moonFrac: sky.moon.frac,
+          gain, hazeKm: this.hazeKm(), haze: this.hd ? 0.9 : 0.85, nv: false, trueCol: st.ground === 'true', mode: st.ground, lpArt: this._lpArt || 0,
+          hazeRow: this.hd && HD ? HD.hazeRow(view, sky, extras) : null }),
+        startAz: this._view.az, cancelled: () => this._wideTok !== tok, onTier: () => { this._wideAny = true; this.dirty(); } };
+      this.setState({ wideBusy: q });
+      S.pano.strip(sc, out, o).then(ok => { if (this._wideTok !== tok) return; if (ok) { this._wideKey = key; this._wideAny = true; if (q === 'sharp') this._wideSharpFor = base; } this._wideWant = null; this.setState({ wideBusy: false }); this.dirty(); })
         .catch(() => { this._wideWant = null; this.setState({ wideBusy: false }); });
-    }, this._wideCv ? 160 : 0);
+    }, this._wideAny ? 180 : 0);
+  }
+  wideSharpen() {
+    const p = this.loc(), when = new Date(this.noon() + this._min * 60000), gain = 0.25 + this.state.exp / 100 * 1.5;
+    this.track && this.track('scout/sharpen');
+    this.wideStrip(when, p, gain, true);
   }
   drawWide(cv, W, H, v, when, p, gain, dpr) {
     const S = this.S, st = this.state, ctx = cv.getContext('2d');
     this.wideStrip(when, p, gain);
+    if (!this._wideAny) return;
     ctx.fillStyle = '#050508'; ctx.fillRect(0, 0, W, H);
     const TOP = S.pano ? S.pano.TOP : 90, BOT = S.pano ? S.pano.BOT : -40;
     const dpp = v.hfov / W, span = H * dpp;
@@ -786,6 +848,9 @@ class Component extends DCLogic {
       g.rows.forEach(row => row.az.forEach(az => poly(S.pano.footprint(az, row.t, L), true)));
       ctx.strokeStyle = '#D6B368'; ctx.lineWidth = 2 * dpr;
       poly([[b.az, b.hi], [b.az + b.w, b.hi], [b.az + b.w, b.lo], [b.az, b.lo]], true);
+      ctx.fillStyle = '#D6B368';
+      [[b.az, b.hi], [b.az + b.w, b.hi], [b.az + b.w, b.lo], [b.az, b.lo], [b.az + b.w / 2, b.hi], [b.az + b.w / 2, b.lo], [b.az, (b.lo + b.hi) / 2], [b.az + b.w, (b.lo + b.hi) / 2]]
+        .forEach(([az, alt]) => { for (let k = -1; k <= 1; k++) ctx.fillRect(X(az + k * 360) - 4 * dpr, Y(alt) - 4 * dpr, 8 * dpr, 8 * dpr); });
       ctx.restore();
     }
     const P = window.NoctoPlan, E = this.E;
@@ -844,6 +909,7 @@ class Component extends DCLogic {
     const when = new Date(this.noon() + this._min * 60000);
     const gain = 0.25 + st.exp / 100 * 1.5;
     if (this.wide()) { this.drawWide(cv, W, H, v, when, p, gain, dpr); return; }
+    if (v.hfov > 95 && !st.playing) this.wideStrip(when, p, gain);
     const sx = this._sky.getContext('2d');
     sx.setTransform(1, 0, 0, 1, 0, 0); sx.globalAlpha = 1; sx.globalCompositeOperation = 'source-over';
     const r = S.drawSky(sx, W, H, view, when, p.lat, p.lon, { gain, dpr, coarse: st.playing, map: S.skyDataReady() ? { stars: true } : null });
@@ -904,6 +970,9 @@ class Component extends DCLogic {
       for (let a = Z; a >= A; a -= 1.5) edge.push([a, b.lo]);
       for (let e = b.lo; e <= b.hi; e += 1.5) edge.push([A, e]);
       ctx.strokeStyle = '#D6B368'; ctx.lineWidth = 2 * dpr; line(edge, false);
+      ctx.fillStyle = '#D6B368';
+      [[A, b.hi], [Z, b.hi], [Z, b.lo], [A, b.lo], [(A + Z) / 2, b.hi], [(A + Z) / 2, b.lo], [A, (b.lo + b.hi) / 2], [Z, (b.lo + b.hi) / 2]]
+        .forEach(([az, alt]) => { const q = pr(alt, az); if (q) ctx.fillRect(q.x - 4 * dpr, q.y - 4 * dpr, 8 * dpr, 8 * dpr); });
       ctx.restore();
     }
     if (this._rec) {
@@ -1016,7 +1085,7 @@ class Component extends DCLogic {
   }
   statusVals() {
     const st = this.state, dt = st.detail, sf = st.surf;
-    const line = st.wideBusy && this.wide() ? 'Laying out the whole horizon\u2026'
+    const line = st.wideBusy === 'sharp' && this.wide() ? 'Sharpening the panorama\u2026' : st.wideBusy && this.wide() ? 'Laying out the whole horizon\u2026'
       : !this.hd ? 'This browser cannot draw the detailed ground'
       : dt && dt.d < dt.t ? 'Sharpening the ground \u00b7 ' + dt.d + ' of ' + dt.t
       : sf && sf.state === 'loading' ? 'Loading trees and buildings'
@@ -1259,13 +1328,15 @@ class Component extends DCLogic {
   }
   panoVals(ON, OFF) {
     const st = this.state, S = this.S;
-    if (!st.pano || !S || !S.pano || !this._view) return { panoOn: false, panoRows: [], panoWidths: [], panoTops: [], panoOvs: [] };
+    if (!st.pano || !S || !S.pano || !this._view) return { panoPillOn: false, panoDetailOn: false, panoOn: false, panoRows: [], panoWidths: [], panoTops: [], panoOvs: [] };
     const E = this.E, b = this.panoBox(), L = this.lens(), ov = this.panoOv(), g = S.pano.grid(b, L, ov);
     const a360 = a => Math.round(((a % 360) + 360) % 360), cmp = a => (E && E.compass ? ' ' + E.compass(((a % 360) + 360) % 360) : '');
     const dg = a => { const q = Math.round(a); return (q < 0 ? '\u2212' : '+') + Math.abs(q) + '\u00b0'; };
     const setBox = patch => { const nb = Object.assign({}, b, patch); if (patch.w != null) nb.az = b.az + b.w / 2 - patch.w / 2; this.fitPano(nb); this.setState({ panoBox: nb }, () => { this.syncView(); this.dirty(); }); };
     return {
-      panoOn: true,
+      panoOn: true, panoPillOn: !st.panoDetail, panoDetailOn: !!st.panoDetail,
+      panoSize: Math.round(b.w) + '\u00b0 \u00d7 ' + Math.round(b.hi - b.lo) + '\u00b0',
+      panoDetailToggle: () => this.setState({ panoDetail: !st.panoDetail }),
       panoCount: g.total + (g.total === 1 ? ' frame' : ' frames') + (g.rows.length > 1 ? ' \u00b7 ' + g.rows.length + ' rows' : ''),
       panoCover: Math.round(b.w) + '\u00b0 \u00d7 ' + Math.round(b.hi - b.lo) + '\u00b0 \u00b7 ' + a360(b.az) + '\u00b0' + cmp(b.az) + ' to ' + a360(b.az + b.w) + '\u00b0' + cmp(b.az + b.w),
       panoRows: g.rows.map((r, i) => ({ v: 'Row ' + (i + 1) + ' \u00b7 tilt ' + dg(r.t) + ' \u00b7 ' + r.n + ' \u00d7 ' + r.step.toFixed(1) + '\u00b0 \u00b7 from ' + a360(r.az[0]) + '\u00b0' })),
@@ -1575,6 +1646,8 @@ class Component extends DCLogic {
       dateLabel: DAYS[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ' ' + d.getUTCFullYear() + ' \u00b7 ' + this.zoneLabel(ms),
       ...this.calVals(ON, n), ...this.planVals(), ...this.walkVals(ON, OFF),
       compassDisp: st.mapOn ? 'none' : 'grid',
+      sharpOn: !st.mapOn && this.wide() && !st.wideBusy && !!this._wideKey && !/\|sharp$/.test(this._wideKey),
+      sharpGo: () => this.wideSharpen(),
       brandWord: (this.state.vw || window.innerWidth) >= 1080 ? 'inline' : 'none',
       speedLabel: st.speed + ' min/s',
       ...(() => { const c = this.cloudAt(ms); return { cloudNowOn: c != null, cloudNow: c == null ? '' : 'Cloud ' + Math.round(c) + '%' }; })(),
@@ -1647,7 +1720,7 @@ class Component extends DCLogic {
       events: this.eventLabels(sp),
       viewRef: this.viewRef, stripRef: this.stripRef, evRef: this.evRef,
       viewDown: e => {
-        e.currentTarget.setPointerCapture(e.pointerId);
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
         const P = this._vp || (this._vp = new Map()); P.set(e.pointerId, { x: e.clientX, y: e.clientY });
         if (P.size === 2) { const [a, b] = [...P.values()]; this._pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), hfov: this._view.hfov }; this._drag = null; return; }
         /* iPadOS does not send double-clicks for touch: two taps close together count as one */
@@ -1656,6 +1729,8 @@ class Component extends DCLogic {
           if (l && t - l.t < 320 && Math.hypot(e.clientX - l.x, e.clientY - l.y) < 30) { this._tap = null; this._drag = null; this.jumpAt(e); return; }
           this._tap = { t, x: e.clientX, y: e.clientY };
         }
+        { const bb = e.currentTarget.getBoundingClientRect(), hit = this.boxHit(e.clientX - bb.left, e.clientY - bb.top);
+          if (hit) { this._boxDrag = { kind: hit.kind, d: hit.d, b0: Object.assign({}, this.panoBox()) }; this._drag = null; e.currentTarget.style.cursor = this.boxCursor(hit.kind); return; } }
         this._drag = { x: e.clientX, y: e.clientY, az: this._view.az, alt: this._view.alt }; e.currentTarget.style.cursor = 'grabbing';
       },
       viewMove: e => {
@@ -1665,6 +1740,8 @@ class Component extends DCLogic {
           this._view.hfov = Math.max(12, Math.min(360, this._pinch.hfov * this._pinch.d / Math.max(1, d)));
           this.resetTrails(); this.dirty(); this.syncView(); return;
         }
+        if (this._boxDrag) { const bb = e.currentTarget.getBoundingClientRect(); this.boxDrag(e.clientX - bb.left, e.clientY - bb.top); return; }
+        if (!this._drag && this.state.pano && e.pointerType === 'mouse') { const bb = e.currentTarget.getBoundingClientRect(), hit = this.boxHit(e.clientX - bb.left, e.clientY - bb.top); e.currentTarget.style.cursor = this.boxCursor(hit && hit.kind); }
         const g = this._drag, cv = this._cv; if (!g || !cv) return;
         const R = Math.PI / 180, vw = this._view, W = cv.clientWidth, H = cv.clientHeight;
         const vf = this.wide() ? vw.hfov * H / W : 2 * Math.atan(Math.tan(vw.hfov / 2 * R) * H / W) / R;
@@ -1672,7 +1749,8 @@ class Component extends DCLogic {
         vw.alt = Math.max(-15, Math.min(80, g.alt + (e.clientY - g.y) * vf / H));
         this.resetTrails(); this.dirty(); this.syncView();
       },
-      viewUp: e => { if (this._vp) this._vp.delete(e.pointerId); if (!this._vp || this._vp.size < 2) this._pinch = null; this._drag = null; e.currentTarget.style.cursor = 'grab'; },
+      viewUp: e => { if (this._boxDrag) { this._boxDrag = null; const b = this._boxLive; this._boxLive = null; if (b) this.setState({ panoBox: b }, () => this.dirty()); }
+        if (this._vp) this._vp.delete(e.pointerId); if (!this._vp || this._vp.size < 2) this._pinch = null; this._drag = null; e.currentTarget.style.cursor = 'grab'; },
       stripDown: e => { e.currentTarget.setPointerCapture(e.pointerId); this._sdrag = true; this._sAnchor = null; if (st.playing) this.setState({ playing: false }); this.stripAt(e); },
       stripMove: e => { if (this._sdrag) this.stripAt(e, true); },
       stripUp: () => { this._sdrag = false; this._sAnchor = null; },

@@ -40,6 +40,7 @@ const KEYS = [
   { key: 'noctography.horizons',   label: 'skylines', kind: 'object' },
   { key: 'nocto.log.v1',           label: 'log',      kind: 'log' },
   { key: 'nocto-sightings-v1',     label: 'aurora notes', kind: 'array', idOf: v => (v && v.at) || null },
+  { key: 'noctography.scout.recent', label: 'places',  kind: 'array',  idOf: v => (v && v.lat != null) ? v.lat.toFixed(4) + ',' + v.lon.toFixed(4) : null },
 ];
 
 /* ------------------------------------------------------------------ zip out --- */
@@ -266,7 +267,8 @@ async function restore(file, opts) {
       if (th) rec.thumb = new Blob([th], { type: 'image/jpeg' });
       /* A record with no picture is not a composition, it is a row of numbers. Skipped rather
          than restored into a list of grey rectangles. */
-      if (!rec.img && !rec.thumb) { kept.comps++; continue; }
+      /* ...except a plan from Scout, which is numbers by design and redraws its own view */
+      if (!rec.img && !rec.thumb && rec.src !== 'scout') { kept.comps++; continue; }
       /* A composition without a place or a moment cannot be pinned, walked back to or asked when
          it comes round again, and a hand-edited backup is under nobody's control. Records that
          cannot answer those questions are counted rather than restored into something that half

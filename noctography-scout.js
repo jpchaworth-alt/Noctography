@@ -927,7 +927,8 @@ async function panoStrip(scene, out, o){
   if (!scene || !scene.ok) return false;
   /* thirty-degree slices, twelve to a tier: a third fewer renders and read-backs than twenty,
      which is most of the cost on a phone, and still well inside where gnomonic stays sharp */
-  const PPD = o.ppd || 5, k = PPD * R2D, half = 15, N = 12, SW = 30;
+  /* o.sw: wider slices for a quick draft, fewer renders at the cost of some stretch at their edges */
+  const SW = o.sw || 30, N = Math.round(360 / SW), PPD = o.ppd || 5, k = PPD * R2D, half = SW / 2;
   const OW = 360 * PPD, OH = (PANO_TOP - PANO_BOT) * PPD;
   if (out.width !== OW || out.height !== OH) { out.width = OW; out.height = OH; }
   const gcv = scene.canvas;
@@ -961,9 +962,10 @@ async function panoStrip(scene, out, o){
         scene.render(view, o.light);
         tctx.clearRect(0, 0, sw, sh); tctx.drawImage(gcv, 0, 0);
       } else {
-        const r = drawSky(sctx, sw, sh, view, o.when, o.lat, o.lon, { gain: o.gain, nv: !!o.nv, coarse: false, dpr: 1, map: o.map, starScale: 0.75 });
-        if (o.afterSky) o.afterSky(sctx, sw, sh, r.pr, r.sky);
-        scene.render(view, { sunAz: r.sky.sun.az, sunAlt: r.sky.sun.alt, moonAz: r.sky.moon.az, moonAlt: r.sky.moon.alt,
+        const r = drawSky(sctx, sw, sh, view, o.when, o.lat, o.lon, { gain: o.gain, nv: !!o.nv, coarse: !!o.coarse, dpr: 1, map: o.map, starScale: o.starScale != null ? o.starScale : 0.75 });
+        if (o.afterSky) o.afterSky(sctx, sw, sh, r.pr, r.sky, view);
+        /* o.lightFor lets a caller light every slice exactly as it lights its own view */
+        scene.render(view, o.lightFor ? o.lightFor(r.sky, view) : { sunAz: r.sky.sun.az, sunAlt: r.sky.sun.alt, moonAz: r.sky.moon.az, moonAlt: r.sky.moon.alt,
           moonFrac: r.sky.moon.frac, gain: o.gain, hazeKm: 60, haze: 0.85, nv: !!o.nv, trueCol: !!o.trueCol });
         tctx.clearRect(0, 0, sw, sh); tctx.drawImage(sky, 0, 0); tctx.drawImage(gcv, 0, 0);
       }
