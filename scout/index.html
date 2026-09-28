@@ -16,8 +16,9 @@
   <script src="../noctography-plan.js?v=2.0.1"></script>
   <script src="../noctography-scout.js?v=2.0.1"></script>
   <script src="../noctography-offline.js?v=1"></script>
-  <script src="../noctography-surfaces.js?v=22"></script>
-  <script src="../noctography-scout-hd.js?v=22"></script>
+  <script src="../noctography-comp.js?v=2.0.1"></script>
+  <script src="../noctography-surfaces.js?v=24"></script>
+  <script src="../noctography-scout-hd.js?v=25"></script>
   <style>
     html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
     a { color: #D6B368; } a:hover { color: #E8C98A; }
@@ -25,7 +26,7 @@
   </style>
 </helmet>
 <div style="position: fixed; inset: 0; overflow: auto; background: #000; color: #F3F0EA; font-family: 'Barlow', sans-serif; user-select: none;">
-<div style="position: relative; width: 100%; height: 100%; min-width: 1100px; min-height: 700px;">
+<div data-scout-root="1" style="position: relative; width: 100%; height: 100%; min-width: 900px; min-height: 700px;">
   <div style="position: absolute; inset: 0;">
     <canvas ref="{{ viewRef }}" onDoubleClick="{{ viewJump }}" onPointerDown="{{ viewDown }}" onPointerMove="{{ viewMove }}" onPointerUp="{{ viewUp }}" onPointerCancel="{{ viewUp }}" style="display: block; width: 100%; height: 100%; touch-action: none; cursor: grab;"></canvas>
   </div>
@@ -35,154 +36,188 @@
     </div>
   </sc-if>
 
-  <div style="position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 22px 28px 56px; background: linear-gradient(to bottom, rgba(0,0,0,.78), rgba(0,0,0,0)); pointer-events: none;">
-    <div style="flex: 1 1 0; display: grid; align-content: start; gap: 10px; pointer-events: auto; min-width: 0;">
-      <span style="font-size: 11px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #ADA79B;">Scout · full screen</span>
-      <div style="display: grid; gap: 2px;">
-        <span style="font-size: 26px; font-weight: 600; line-height: 1.1;">{{ placeName }}</span>
-        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: #918B81;">{{ placeLine }}</span>
-        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{ detailInk }}; text-wrap: pretty;">{{ detailLine }}</span>
-        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #918B81; text-wrap: pretty;">{{ detailLine2 }}</span>
-      </div>
-      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-        <button type="button" onClick="{{ mapToggle }}" aria-pressed="{{ mapPressed }}" style="display: flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px 0 10px; border-radius: 999px; border: 1px solid {{ mapBtnEdge }}; background: {{ mapBtnBg }}; color: {{ mapBtnFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">
-          <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="{{ mapBtnIcon }}" size="{{ 16 }}" hint-size="16px,16px"></x-import>
-          <span>{{ mapBtnLabel }}</span>
-        </button>
+  <div data-topbar="1" style="position: absolute; top: 0; left: 0; right: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 16px; padding: 16px 20px; pointer-events: none;">
+    <div style="display: grid; gap: 8px; justify-items: start; min-width: 0; pointer-events: auto;">
+      <div style="position: relative; display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%;">
+        <a href="{{ appHref }}" title="Back to Noctography" style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px 0 4px; border-radius: 10px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); text-decoration: none;">
+          <img src="../assets/noctography-icon-128.png" alt="" style="display: block; width: 32px; height: 32px; border-radius: 8px;">
+          <span style="display: {{ brandWord }}; font-size: 11px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #D6B368;">Scout</span>
+        </a>
+        <div style="flex: 0 1 260px; min-width: 130px; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; box-sizing: border-box; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: {{ qEdge }};">
+          <span style="display: flex; color: #918B81;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="map-pin" size="{{ 16 }}" hint-size="16px,16px"></x-import></span>
+          <input type="text" value="{{ q }}" onInput="{{ onQ }}" onKeyDown="{{ onQKey }}" onFocus="{{ onQFocus }}" onBlur="{{ onQBlur }}" placeholder="Search a place or paste coordinates" aria-label="Search for a place" style="flex: 1; min-width: 0; height: 38px; border: 0; outline: none; background: none; color: #F3F0EA; font-family: 'Barlow', sans-serif; font-size: 14px;">
+        </div>
+        <button type="button" onClick="{{ locateMe }}" aria-label="Use my location" title="Use my location" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); color: #DCD7CC; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="compass" size="{{ 18 }}" hint-size="18px,18px"></x-import></button>
+        <button type="button" onClick="{{ mapToggle }}" aria-pressed="{{ mapPressed }}" style="display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px 0 10px; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: {{ mapBtnEdge }}; color: {{ mapBtnFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="{{ mapBtnIcon }}" size="{{ 16 }}" hint-size="16px,16px"></x-import><span>{{ mapBtnLabel }}</span></button>
         <sc-if value="{{ backOn }}" hint-placeholder-val="{{ false }}">
-          <button type="button" onClick="{{ goBack }}" style="display: flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px 0 8px; border-radius: 999px; border: 1px solid #D6B368; background: rgba(214,179,104,.16); color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; white-space: nowrap; cursor: pointer;">
-            <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="chevron-left" size="{{ 16 }}" hint-size="16px,16px"></x-import>
-            <span>Back</span>
-          </button>
+          <button type="button" onClick="{{ goBack }}" title="Back to where you stood" style="display: flex; align-items: center; gap: 4px; height: 40px; padding: 0 12px 0 8px; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: #D6B368; color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="chevron-left" size="{{ 16 }}" hint-size="16px,16px"></x-import><span>Back</span></button>
         </sc-if>
-        <sc-for list="{{ places }}" as="p" hint-placeholder-count="3">
-          <button type="button" onClick="{{ p.pick }}" style="min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ p.edge }}; background: {{ p.bg }}; color: {{ p.fg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; white-space: nowrap; cursor: pointer;">{{ p.area }}</button>
-        </sc-for>
+        <sc-if value="{{ dropOn }}" hint-placeholder-val="{{ false }}">
+          <div data-pop="1" style="position: absolute; top: 46px; left: 0; width: 300px; max-width: calc(100vw - 40px); z-index: 6; display: grid; padding: 4px; border-radius: 8px; background: #121216; border: 1px solid rgba(240,236,228,.16); box-shadow: 0 16px 40px rgba(0,0,0,.6);">
+            <sc-for list="{{ results }}" as="r" hint-placeholder-count="0">
+              <button type="button" onMouseDown="{{ r.pick }}" style="display: grid; gap: 1px; padding: 8px 10px; border: 0; border-radius: 6px; background: {{ r.bg }}; color: #F3F0EA; font-family: 'Barlow', sans-serif; text-align: left; cursor: pointer;">
+                <span style="font-size: 14px; font-weight: 600;">{{ r.name }}</span>
+                <span style="font-size: 12px; color: #918B81;">{{ r.sub }}</span>
+              </button>
+            </sc-for>
+            <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+              <span style="padding: 8px 10px; font-size: 13px; color: #918B81;">{{ noResultsLine }}</span>
+            </sc-if>
+          </div>
+        </sc-if>
       </div>
+      <sc-if value="{{ statusOn }}" hint-placeholder-val="{{ false }}">
+        <span style="margin-top: 34px; white-space: nowrap; padding: 4px 10px; border-radius: 999px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: #D6B368;">{{ statusLine }}</span>
+      </sc-if>
       <sc-if value="{{ mapOn }}" hint-placeholder-val="{{ false }}">
-        <div style="justify-self: start; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding: 8px 14px; border-radius: 12px; background: rgba(10,10,11,.82); border: 1px solid rgba(240,236,228,.14);">
-          <span style="font-size: 13px; color: #DCD7CC; white-space: nowrap;">Tap or click to stand there</span>
-          <span style="width: 3px; height: 3px; border-radius: 50%; background: #918B81;"></span>
-          <span style="font-size: 13px; color: #DCD7CC; white-space: nowrap;">Drag the gold wedge to aim</span>
-          <span style="width: 3px; height: 3px; border-radius: 50%; background: #918B81;"></span>
-          <span style="font-size: 13px; color: #DCD7CC; white-space: nowrap;">Double-tap to stand there and look</span>
-          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #918B81;">M</span>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 999px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14);">
+          <div style="display: flex; gap: 4px;"><sc-for list="{{ mapBases }}" as="b" hint-placeholder-count="3"><button type="button" onClick="{{ b.pick }}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ b.edge }}; background: {{ b.bg }}; color: {{ b.fg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ b.label }}</button></sc-for></div>
+          <button type="button" onClick="{{ walkToggle }}" style="display: flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ walkEdge }}; background: {{ walkBg }}; color: {{ walkFg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="footprints" size="{{ 14 }}" hint-size="14px,14px"></x-import><span>Walk in</span></button>
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{ walkInk }}; white-space: nowrap;">{{ walkLine }}</span>
         </div>
       </sc-if>
     </div>
 
-    <div style="flex: 0 0 auto; display: grid; justify-items: center; gap: 4px; padding-top: 4px;">
-      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: -.01em;">{{ timeLabel }}</span>
-      <span style="font-size: 13px; color: #ADA79B;">{{ dateLabel }}</span>
-      <div style="display: flex; gap: 6px 18px; flex-wrap: wrap; justify-content: center; margin-top: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: #DCD7CC; white-space: nowrap;">
-        <span>{{ sunLine }}</span>
-        <span>{{ moonLine }}</span>
-        <span>{{ coreLine }}</span>
-      </div>
+    <div style="position: absolute; top: 60px; left: 0; right: 0; display: {{ compassDisp }}; pointer-events: none;">
+      <canvas ref="{{ tapeRef }}" style="display: block; width: 100%; height: 30px;"></canvas>
     </div>
 
-    <div style="flex: 1 1 0; display: grid; justify-items: end; align-content: start; gap: 10px; pointer-events: auto; min-width: 0;">
-      <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-        <sc-for list="{{ grounds }}" as="g" hint-placeholder-count="3">
-          <button type="button" onClick="{{ g.pick }}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid {{ g.edge }}; background: {{ g.bg }}; color: {{ g.fg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ g.label }}</button>
-        </sc-for>
-      </div>
-      <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-        <sc-for list="{{ toggles }}" as="t" hint-placeholder-count="2">
-          <button type="button" onClick="{{ t.flip }}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid {{ t.edge }}; background: {{ t.bg }}; color: {{ t.fg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ t.label }}</button>
-        </sc-for>
-      </div>
-      <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-        <button type="button" onClick="{{ saveFrame }}" style="display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: rgba(10,10,11,.6); color: #DCD7CC; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">
-          <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="download" size="{{ 16 }}" hint-size="16px,16px"></x-import>
-          <span>Save frame</span>
-        </button>
-        <button type="button" onClick="{{ recToggle }}" style="display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid {{ recEdge }}; background: {{ recBg }}; color: {{ recFg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">
-          <span style="width: 9px; height: 9px; border-radius: 50%; background: {{ recDot }};"></span>
-          <span>{{ recLabel }}</span>
-        </button>
-      </div>
+    <div style="position: relative; display: flex; justify-content: flex-end; align-items: center; gap: 6px; pointer-events: auto;">
+      <button type="button" onClick="{{ planSave }}" aria-label="Save this composition" title="Save this composition" style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #D6B368; background: {{ planShotBg }}; color: #D6B368; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="camera" size="{{ 20 }}" hint-size="20px,20px"></x-import></button>
+      <button type="button" onClick="{{ plansToggle }}" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 10px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: {{ plansEdge }}; color: {{ plansFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;"><span>Plans</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #D6B368;">{{ planCount }}</span></button>
+      <button type="button" onClick="{{ focalToggle }}" title="Lens" style="height: 40px; padding: 0 14px; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: {{ focalEdge }}; color: #F3F0EA; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer;">{{ focalLabel }}</button>
+      <button type="button" onClick="{{ viewToggle }}" style="display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px 0 10px; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: {{ viewEdge }}; color: {{ viewFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="layers" size="{{ 16 }}" hint-size="16px,16px"></x-import><span>View</span></button>
+      <button type="button" onClick="{{ saveFrame }}" aria-label="Save the frame as a picture" title="Save the frame as a picture" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); color: #DCD7CC; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="download" size="{{ 18 }}" hint-size="18px,18px"></x-import></button>
+      <button type="button" onClick="{{ recToggle }}" aria-label="{{ recLabel }}" title="{{ recLabel }}" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: {{ recEdge }}; cursor: pointer;"><span style="width: 12px; height: 12px; border-radius: 50%; background: {{ recDot }};"></span></button>
+      <sc-if value="{{ focalOpen }}" hint-placeholder-val="{{ false }}">
+        <div data-pop="1" style="position: absolute; top: 48px; right: 0; z-index: 6; display: grid; gap: 10px; width: 260px; padding: 12px; border-radius: 10px; background: rgb(21,21,26); border: 1px solid rgba(240,236,228,.16); box-shadow: 0 18px 44px rgba(0,0,0,.55);">
+          <div style="display: flex; gap: 4px; flex-wrap: wrap;"><sc-for list="{{ focals }}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{ c.pick }}" style="min-height: 32px; padding: 0 11px; border-radius: 6px; border: 1px solid {{ c.edge }}; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; cursor: pointer;">{{ c.label }}</button></sc-for></div>
+          <div style="display: flex; gap: 4px;"><sc-for list="{{ orients }}" as="o" hint-placeholder-count="3"><button type="button" onClick="{{ o.pick }}" style="min-height: 32px; padding: 0 11px; border-radius: 6px; border: 1px solid {{ o.edge }}; background: {{ o.bg }}; color: {{ o.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; cursor: pointer;">{{ o.label }}</button></sc-for></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ viewOpen }}" hint-placeholder-val="{{ false }}">
+        <div data-pop="1" style="position: absolute; top: 48px; right: 0; z-index: 6; display: grid; gap: 12px; width: 300px; max-height: var(--pop-max, 520px); overflow-y: auto; box-sizing: border-box; padding: 14px; border-radius: 10px; background: rgb(21,21,26); border: 1px solid rgba(240,236,228,.16); box-shadow: 0 18px 44px rgba(0,0,0,.55);">
+          <div style="display: grid; gap: 6px;"><span style="font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Ground</span><div style="display: flex; gap: 4px; flex-wrap: wrap;"><sc-for list="{{ grounds }}" as="g" hint-placeholder-count="3"><button type="button" onClick="{{ g.pick }}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ g.edge }}; background: {{ g.bg }}; color: {{ g.fg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ g.label }}</button></sc-for></div></div>
+          <div style="display: grid; gap: 6px;"><span style="font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Show</span><div style="display: flex; gap: 4px; flex-wrap: wrap;"><sc-for list="{{ toggles }}" as="t" hint-placeholder-count="3"><button type="button" onClick="{{ t.flip }}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ t.edge }}; background: {{ t.bg }}; color: {{ t.fg }}; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ t.label }}</button></sc-for></div></div>
+          <div style="display: grid; gap: 4px;"><span style="display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;"><span>Exposure</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0; text-transform: none;">{{ expLabel }}</span></span><input type="range" min="0" max="100" step="1" value="{{ exp }}" onInput="{{ onExp }}" aria-label="Exposure" style="width: 100%; margin: 0; height: 28px;"></div>
+          <div style="display: grid; gap: 4px;"><span style="display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;"><span>Haze</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0; text-transform: none;">{{ hazeLabel }}</span></span><input type="range" min="0" max="100" step="1" value="{{ haze }}" onInput="{{ onHaze }}" aria-label="Haze" style="width: 100%; margin: 0; height: 28px;"></div>
+          <sc-if value="{{ haOn }}" hint-placeholder-val="{{ false }}"><div style="display: grid; gap: 4px;"><span style="display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #E07A86;"><span>H-alpha</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0; text-transform: none;">{{ haLabel }}</span></span><input type="range" min="0" max="100" step="1" value="{{ haStr }}" onInput="{{ onHa }}" aria-label="Hydrogen-alpha strength" style="width: 100%; margin: 0; height: 28px; accent-color: #E07A86;"></div></sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ plansOpen }}" hint-placeholder-val="{{ false }}">
+        <div data-pop="1" style="position: absolute; top: 52px; right: 0; z-index: 6; display: grid; align-content: start; gap: 14px; width: 360px; max-height: var(--pop-max, 520px); overflow-y: auto; box-sizing: border-box; padding: 16px; border-radius: 10px; background: rgb(21,21,26); border: 1px solid rgba(240,236,228,.16); box-shadow: 0 18px 44px rgba(0,0,0,.55);">
+          <div style="display: grid; justify-items: start; gap: 8px;">
+            <span style="font-size: 11px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #918B81;">{{ planNightLabel }}</span>
+            <sc-if value="{{ planNightShareOn }}" hint-placeholder-val="{{ false }}">
+              <button type="button" onClick="{{ planNightShare }}" style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(214,179,104,.6); background: none; color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="share-2" size="{{ 14 }}" hint-size="14px,14px"></x-import><span>Share the night</span></button>
+            </sc-if>
+          </div>
+          <sc-if value="{{ planNoneOn }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 14px; line-height: 1.45; color: #ADA79B; text-wrap: pretty;">Frame a shot and press the camera. Plans are kept with the compositions in the app, and a shared link opens them on your phone.</span>
+          </sc-if>
+          <sc-for list="{{ planGroups }}" as="g" hint-placeholder-count="1">
+            <div style="display: grid; gap: 8px;">
+              <sc-if value="{{ g.headOn }}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #918B81;">{{ g.head }}</span></sc-if>
+              <sc-for list="{{ g.items }}" as="p" hint-placeholder-count="2">
+                <div style="display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 10px; padding: 8px; border-radius: 8px; background: rgba(240,236,228,.035); border: 1px solid {{ p.edge }};">
+                  <button type="button" onClick="{{ p.open }}" title="Open this plan" style="display: block; width: 104px; height: 60px; padding: 0; border: 0; border-radius: 6px; background: #0A0A0B center / cover no-repeat; background-image: {{ p.thumb }}; cursor: pointer;"></button>
+                  <div style="display: grid; align-content: start; gap: 3px; min-width: 0;">
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; font-weight: 700; color: #F3F0EA;">{{ p.time }}</span>
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: #ADA79B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.line }}</span>
+                    <div style="display: flex; gap: 4px; margin-top: 2px;">
+                      <button type="button" onClick="{{ p.open }}" style="height: 26px; padding: 0 9px; border-radius: 999px; border: 1px solid rgba(214,179,104,.6); background: none; color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;">Open</button>
+                      <button type="button" onClick="{{ p.share }}" style="height: 26px; padding: 0 9px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: none; color: #DCD7CC; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;">Share</button>
+                      <button type="button" onClick="{{ p.del }}" aria-label="Delete" title="Delete" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: none; color: #918B81; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="x" size="{{ 12 }}" hint-size="12px,12px"></x-import></button>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
     </div>
   </div>
 
+  <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: 132px; left: 50%; transform: translateX(-50%); z-index: 8; padding: 9px 16px; border-radius: 999px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: rgba(214,179,104,.5); font-size: 13.5px; color: #F3F0EA; white-space: nowrap; pointer-events: none;">{{ toastLine }}</div>
+  </sc-if>
   <sc-if value="{{ loadOn }}" hint-placeholder-val="{{ false }}">
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 10px 16px; border-radius: 999px; background: rgba(10,10,11,.86); border: 1px solid rgba(240,236,228,.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: #ADA79B;">{{ loadLine }}</div>
+    <div style="white-space: nowrap; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 10px 16px; border-radius: 999px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: #ADA79B;">{{ loadLine }}</div>
   </sc-if>
 
-  <div style="position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 14px; padding: 64px 28px 20px; background: linear-gradient(to top, rgba(0,0,0,.86) 55%, rgba(0,0,0,0));">
-    <div style="display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
-      <button type="button" onClick="{{ playToggle }}" aria-label="{{ playAria }}" style="display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; border: 0; background: #D6B368; color: #14110A; cursor: pointer;">
-        <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="{{ playIcon }}" size="{{ 24 }}" hint-size="24px,24px"></x-import>
-      </button>
-      <div style="display: grid; gap: 5px;">
-        <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Speed</span>
-        <div style="display: flex; gap: 4px;">
-          <sc-for list="{{ speeds }}" as="s" hint-placeholder-count="4">
-            <button type="button" onClick="{{ s.pick }}" style="min-height: 34px; padding: 0 10px; border-radius: 6px; border: 1px solid {{ s.edge }}; background: {{ s.bg }}; color: {{ s.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; cursor: pointer;">{{ s.label }}</button>
-          </sc-for>
-        </div>
-      </div>
-      <div style="display: grid; gap: 5px;">
-        <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Night</span>
-        <div style="display: flex; align-items: center; gap: 4px;">
-          <button type="button" onClick="{{ dayPrev }}" aria-label="Night before" style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 6px; border: 1px solid rgba(240,236,228,.2); background: none; color: #ADA79B; cursor: pointer;">
-            <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="chevron-left" size="{{ 16 }}" hint-size="16px,16px"></x-import>
-          </button>
-          <span style="min-width: 118px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: #DCD7CC;">{{ nightLabel }}</span>
-          <button type="button" onClick="{{ dayNext }}" aria-label="Night after" style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 6px; border: 1px solid rgba(240,236,228,.2); background: none; color: #ADA79B; cursor: pointer;">
-            <x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="chevron-right" size="{{ 16 }}" hint-size="16px,16px"></x-import>
-          </button>
-        </div>
-      </div>
-      <div style="display: grid; gap: 5px; width: 180px;">
-        <span style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;"><span>Exposure</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0;">{{ expLabel }}</span></span>
-        <input type="range" min="0" max="100" step="1" value="{{ exp }}" onInput="{{ onExp }}" aria-label="Exposure" style="width: 100%; margin: 0; height: 34px;">
-      </div>
-      <sc-if value="{{ haOn }}" hint-placeholder-val="{{ false }}">
-        <div style="display: grid; gap: 5px; width: 150px;">
-          <span style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #E07A86;"><span>H-alpha</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0;">{{ haLabel }}</span></span>
-          <input type="range" min="0" max="100" step="1" value="{{ haStr }}" onInput="{{ onHa }}" aria-label="Hydrogen-alpha strength" style="width: 100%; margin: 0; height: 34px; accent-color: #E07A86;">
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 10px; padding: 0 20px 14px; pointer-events: none;">
+    <div style="display: flex; align-items: flex-end; justify-content: flex-end; gap: 10px;">
+      <sc-if value="{{ trailsOn }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 12px; border-radius: 999px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); pointer-events: auto;">
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: #DCD7CC; white-space: nowrap;">{{ trailsLine }}</span>
+          <button type="button" onClick="{{ trailsRestart }}" title="Start the trails at the time shown" style="min-height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: none; color: #ADA79B; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;">Restart</button>
         </div>
       </sc-if>
-      <div style="display: grid; gap: 5px; width: 180px;">
-        <span style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;"><span>Haze</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0; text-transform: none; white-space: nowrap;">{{ hazeLabel }}</span></span>
-        <input type="range" min="0" max="100" step="1" value="{{ haze }}" onInput="{{ onHaze }}" aria-label="Haze" style="width: 100%; margin: 0; height: 34px;">
-      </div>
-      <span style="flex: 1; min-width: 12px;"></span>
-      <div style="display: grid; gap: 5px;">
-        <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Lens · full frame</span>
-        <div style="display: flex; gap: 4px;">
-          <sc-for list="{{ lenses }}" as="l" hint-placeholder-count="5">
-            <button type="button" onClick="{{ l.pick }}" style="min-height: 34px; padding: 0 10px; border-radius: 6px; border: 1px solid {{ l.edge }}; background: {{ l.bg }}; color: {{ l.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; cursor: pointer;">{{ l.label }}</button>
-          </sc-for>
-          <button type="button" onClick="{{ orientFlip }}" style="min-height: 34px; padding: 0 10px; border-radius: 6px; border: 1px solid rgba(240,236,228,.2); background: none; color: #ADA79B; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;">{{ orientLabel }}</button>
+      <sc-if value="{{ panoOn }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; align-items: flex-start; gap: 22px; padding: 14px; max-height: var(--panel-max, 300px); overflow-y: auto; box-sizing: border-box; pointer-events: auto; border-radius: 10px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: rgba(214,179,104,.45);">
+          <div style="display: grid; align-content: start; gap: 10px; min-width: 240px;">
+            <div style="display: grid; gap: 2px;">
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 18px; font-weight: 700; color: #F3F0EA;">{{ panoCount }}</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #ADA79B;">{{ panoCover }}</span>
+            </div>
+            <div style="display: grid; gap: 3px;">
+              <sc-for list="{{ panoRows }}" as="r" hint-placeholder-count="2"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.45; color: #DCD7CC;">{{ r.v }}</span></sc-for>
+            </div>
+            <button type="button" onClick="{{ panoCentre }}" style="justify-self: start; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: none; color: #DCD7CC; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;">Centre on the view</button>
+          </div>
+          <div style="display: grid; gap: 10px;">
+            <div style="display: grid; gap: 5px;"><span style="font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Width</span><div style="display: flex; gap: 4px; flex-wrap: wrap;"><sc-for list="{{ panoWidths }}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{ c.pick }}" style="min-height: 32px; padding: 0 11px; border-radius: 6px; border: 1px solid {{ c.edge }}; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; cursor: pointer;">{{ c.label }}</button></sc-for></div></div>
+            <div style="display: grid; gap: 5px;"><span style="font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Up to</span><div style="display: flex; gap: 4px; flex-wrap: wrap;"><sc-for list="{{ panoTops }}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{ c.pick }}" style="min-height: 32px; padding: 0 11px; border-radius: 6px; border: 1px solid {{ c.edge }}; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; cursor: pointer;">{{ c.label }}</button></sc-for></div></div>
+            <div style="display: grid; gap: 5px;"><span style="font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Overlap</span><div style="display: flex; gap: 4px; flex-wrap: wrap;"><sc-for list="{{ panoOvs }}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{ c.pick }}" style="min-height: 32px; padding: 0 11px; border-radius: 6px; border: 1px solid {{ c.edge }}; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; cursor: pointer;">{{ c.label }}</button></sc-for></div></div>
+          </div>
         </div>
-      </div>
-      <div style="display: grid; gap: 5px; justify-items: end;">
-        <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Aim</span>
-        <span style="display: flex; align-items: center; min-height: 34px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: #DCD7CC; white-space: nowrap;">{{ aimLine }}</span>
-      </div>
+      </sc-if>
     </div>
 
-    <div style="display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 8px; align-items: stretch;">
-      <div style="display: grid; grid-template-rows: 36px 14px 14px; row-gap: 4px; padding-top: 34px; font-size: 10px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #918B81;">
-        <span style="display: flex; align-items: center;">Sky</span>
-        <span style="display: flex; align-items: center;">Moon</span>
-        <span style="display: flex; align-items: center;">Core</span>
+    <div data-ctrlrow="1" style="position: relative; display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-radius: 12px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); pointer-events: auto;">
+      <button type="button" onClick="{{ playToggle }}" aria-label="{{ playAria }}" style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; border: 0; background: #D6B368; color: #14110A; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="{{ playIcon }}" size="{{ 20 }}" hint-size="20px,20px"></x-import></button>
+      <div style="flex: 0 0 auto; display: grid; gap: 2px; min-width: 128px;">
+        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 26px; font-weight: 700; line-height: 1;">{{ timeLabel }}</span>
+        <sc-if value="{{ cloudNowOn }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 204px; top: 12px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: #C9CBD2; white-space: nowrap;">{{ cloudNow }}</span></sc-if>
+        <button type="button" onClick="{{ calToggle }}" title="Pick a date" style="justify-self: start; display: flex; align-items: center; gap: 6px; padding: 2px 0; border: 0; background: none; color: {{ calFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; white-space: nowrap; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="calendar" size="{{ 14 }}" hint-size="14px,14px"></x-import><span>{{ dateLabel }}</span></button>
       </div>
-      <div style="display: grid; gap: 0;">
-        <div ref="{{ evRef }}" style="position: relative; height: 34px;">
-          <sc-for list="{{ events }}" as="e" hint-placeholder-count="4">
-            <span style="position: absolute; left: {{ e.left }}; top: {{ e.top }}; white-space: nowrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: {{ e.c }};">{{ e.label }}</span>
-          </sc-for>
+      <button type="button" onClick="{{ speedNext }}" title="Playback speed" style="flex: 0 0 auto; height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid rgba(240,236,228,.2); background: none; color: #DCD7CC; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; cursor: pointer;">{{ speedLabel }}</button>
+      <div style="flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 6px;">
+        <div style="display: grid; grid-template-rows: 30px 11px 11px 11px; row-gap: 3px; padding-top: 30px; font-size: 9.5px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: #918B81;">
+          <span style="display: flex; align-items: center;">Sky</span><span style="display: flex; align-items: center;">Moon</span><span style="display: flex; align-items: center;">Core</span><span style="display: flex; align-items: center;">Cloud</span>
         </div>
-        <canvas ref="{{ stripRef }}" onPointerDown="{{ stripDown }}" onPointerMove="{{ stripMove }}" onPointerUp="{{ stripUp }}" onPointerCancel="{{ stripUp }}" style="display: block; width: 100%; height: 72px; border-radius: 6px; touch-action: none; cursor: ew-resize;"></canvas>
+        <div style="display: grid; min-width: 0;">
+          <div ref="{{ evRef }}" style="position: relative; height: 30px;">
+            <sc-for list="{{ events }}" as="e" hint-placeholder-count="4"><span style="position: absolute; left: {{ e.left }}; top: {{ e.top }}; white-space: nowrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: {{ e.c }};">{{ e.label }}</span></sc-for>
+          </div>
+          <canvas ref="{{ stripRef }}" onPointerDown="{{ stripDown }}" onPointerMove="{{ stripMove }}" onPointerUp="{{ stripUp }}" onPointerCancel="{{ stripUp }}" title="Drag or scroll to move through the night, and on into the next" style="display: block; width: 100%; height: 72px; border-radius: 6px; touch-action: none; cursor: ew-resize;"></canvas>
+        </div>
       </div>
+      <sc-if value="{{ calOpen }}" hint-placeholder-val="{{ false }}">
+        <div data-pop="1" style="position: absolute; left: 60px; bottom: calc(100% + 8px); z-index: 7; display: grid; gap: 8px; width: 280px; padding: 12px; border-radius: 10px; background: rgb(21,21,26); border: 1px solid rgba(240,236,228,.16); box-shadow: 0 18px 44px rgba(0,0,0,.55);">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <button type="button" onClick="{{ calPrev }}" aria-label="Previous month" style="display: flex; width: 32px; height: 32px; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid rgba(240,236,228,.18); background: none; color: #ADA79B; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="chevron-left" size="{{ 16 }}" hint-size="16px,16px"></x-import></button>
+            <span style="font-size: 14px; font-weight: 600;">{{ calTitle }}</span>
+            <button type="button" onClick="{{ calNext }}" aria-label="Next month" style="display: flex; width: 32px; height: 32px; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid rgba(240,236,228,.18); background: none; color: #ADA79B; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="chevron-right" size="{{ 16 }}" hint-size="16px,16px"></x-import></button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;">
+            <sc-for list="{{ calHead }}" as="w" hint-placeholder-count="7"><span style="text-align: center; font-size: 10.5px; font-weight: 500; color: #918B81;">{{ w.t }}</span></sc-for>
+            <sc-for list="{{ calDays }}" as="c" hint-placeholder-count="35">
+              <button type="button" onClick="{{ c.pick }}" style="display: grid; justify-items: center; gap: 2px; height: 36px; padding: 4px 0 0; border-radius: 6px; border: 1px solid {{ c.edge }}; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; cursor: pointer; opacity: {{ c.op }};">
+                <span>{{ c.d }}</span>
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #C9CBD2; opacity: {{ c.moon }};"></span>
+              </button>
+            </sc-for>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11.5px; color: #918B81;">Dot: how bright the moon is</span>
+            <button type="button" onClick="{{ calTonight }}" style="height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: none; color: #DCD7CC; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;">Tonight</button>
+          </div>
+        </div>
+      </sc-if>
     </div>
-    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 6px 16px; flex-wrap: wrap;">
-      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: #918B81;">Drag the view to aim · scroll to zoom · double-click the ground to walk there · drag the strip to scrub · space to play</span>
-      <span style="font-size: 11px; color: #918B81; text-align: right;">{{ credits }}</span>
-    </div>
+    <span style="justify-self: end; font-size: 10.5px; color: rgba(145,139,129,.85); text-shadow: 0 1px 4px rgba(0,0,0,.9);">{{ credits }}</span>
   </div>
 </div>
 </div>
@@ -190,7 +225,10 @@
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
   /* date: the evening the night starts on; at: minutes after that noon to open on */
-  PLACES = [
+  /* the place Scout opens on the first time; after that it opens where you last were */
+  DEFAULT_PLACE = { name: 'Catstye Cam from Helvellyn', area: 'Helvellyn', lat: 54.5271, lon: -3.0164, az: 48, alt: 2, hfov: 84, tz: 'Europe/London' };
+  PLACES = [this.DEFAULT_PLACE];
+  PRESETS = [
     { name: 'Catstye Cam from Helvellyn', area: 'Helvellyn', lat: 54.5271, lon: -3.0164, az: 48, alt: 2, hfov: 84, date: [2026, 2, 23], at: 900 },
     { name: 'Cygnus over Catstye Cam', area: 'Red Tarn', lat: 54.5271, lon: -3.0164, az: 50, alt: 9, hfov: 84, date: [2027, 2, 7], at: 880, ha: true, exp: 72 },
     { name: 'Snowdon horseshoe', area: 'Llyn Mymbyr', lat: 53.0935, lon: -3.9460, az: 250, alt: 4, hfov: 84, date: [2026, 9, 10] },
@@ -207,15 +245,17 @@ class Component extends DCLogic {
     { name: 'Jbel Tidirhine', area: 'Rif', lat: 34.844871, lon: -4.529429, az: 330, alt: 0, hfov: 84, date: [2026, 9, 10], at: 380 },
     { name: 'Buachaille Etive M\u00f2r', area: 'Glencoe', lat: 56.6497, lon: -4.8436, az: 258, alt: 4, hfov: 84, date: [2026, 9, 10] },
   ];
-  GROUNDS = [['lit', 'Night lit'], ['true', 'True colour'], ['sil', 'Silhouette']];
+  GROUNDS = [['lit', 'Night lit'], ['true', 'True colour']];
+  PANO_W = [90, 120, 180, 240, 360]; PANO_TOP = [20, 30, 45, 60, 90]; PANO_OV = [20, 30, 40, 50, 60];
+  KIT_MP = [24, 33, 45.7, 61]; KIT_FOCAL = [14, 20, 24, 35, 50, 85, 135]; KIT_AP = [1.4, 1.8, 2.8, 4];
   SPEEDS = [2, 5, 15, 30];
-  LENSES = [14, 20, 24, 35, 50];
-  state = { ha: false, haStr: 40, place: 0, day: 0, min: 570, playing: false, speed: 5, lens: 20, portrait: false, ground: 'lit', trails: false, frame: true, exp: 45, haze: 35, domes: true, detail: null, view: null, load: null, rec: false, strip: null, hud: null };
+  state = { ha: false, haStr: 40, place: 0, day: 0, min: 570, playing: false, speed: 5, plans: [], planBusy: false, walkPick: false, walkInfo: null, pop: null, calMonth: null, ground: 'lit', pano: false, panoBox: null, kitOpen: false, mapBase: 'sat', kit: null, trails: false, frame: true, exp: 45, haze: 35, domes: true, detail: null, view: null, load: null, rec: false, strip: null, hud: null };
 
   constructor(p) {
     super(p);
     this.viewRef = el => { this._cv = el; };
     this.stripRef = el => { this._sv = el; };
+    this.tapeRef = el => { this._tape = el; };
     this.mapRef = el => {
       this._mc = el;
       if (el && !el._wheel) {
@@ -236,6 +276,9 @@ class Component extends DCLogic {
   }
   componentDidMount() {
     window.__scout = this;
+    if (/[?&]plan=/.test(location.search) && Math.min(screen.width, screen.height) < 700 && /\/scout\/?(index\.html)?$/.test(location.pathname)) {
+      location.replace(location.pathname.replace(/scout\/?(index\.html)?$/, 'app/') + location.search); return;
+    }
     this._min = this.state.min;
     this._boot = setInterval(() => {
       if (window.NoctoEngine && window.NoctoPlan && window.NoctoScout) { clearInterval(this._boot); this.init(); }
@@ -274,10 +317,18 @@ class Component extends DCLogic {
     this._ro = new ResizeObserver(() => { this.resetTrails(); this.dirty(); const w = this._ev ? this._ev.clientWidth : 0; if (w && w !== this.state.evW) this.setState({ evW: w }); });
     if (this._cv) this._ro.observe(this._cv);
     if (this._sv) this._ro.observe(this._sv);
+    if (this._sv) this._sv.addEventListener('wheel', e => {
+      e.preventDefault();
+      const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      this._min += d * 0.12; this.roll(); this.resetTrails(); this.dirty();
+      clearTimeout(this._wheelT); this._wheelT = setTimeout(() => this.setState({ min: this._min, hud: this._hud }), 60);
+    }, { passive: false });
+    { const root = document.querySelector('[data-scout-root]'); if (root) new ResizeObserver(() => this.fitPanels()).observe(root); }
+    window.addEventListener('resize', () => { this.fitPanels(); if (Math.abs((this.state.vw || 0) - window.innerWidth) > 20) this.setState({ vw: window.innerWidth }); });
     if (this._cv) this._cv.addEventListener('wheel', e => {
       e.preventDefault();
       const v = this._view;
-      v.hfov = Math.max(12, Math.min(120, v.hfov * (e.deltaY > 0 ? 1.08 : 1 / 1.08)));
+      v.hfov = Math.max(12, Math.min(360, v.hfov * (e.deltaY > 0 ? 1.08 : 1 / 1.08)));
       this.resetTrails(); this.dirty(); this.syncView();
     }, { passive: false });
     this._key = e => {
@@ -287,33 +338,142 @@ class Component extends DCLogic {
     };
     window.addEventListener('resize', () => { if (this.state.mapOn) this.drawMapView(); });
     window.addEventListener('keydown', this._key);
-    this.pickPlace(0);
+    { const r = this.recentList()[0]; this.PLACES = [r && isFinite(r.lat) ? r : this.DEFAULT_PLACE]; }
+    const shared = this.planDecode();
+    if (shared && shared.length) this.planImport(shared); else this.pickPlace(0);
+    this.planLoad();
     const tick = t => {
       const dt = this._last ? Math.min(100, t - this._last) : 0; this._last = t;
       const st = this.state, sp = this._strip;
       if (st.playing && sp) {
         this._min += st.speed * dt / 1000;
-        if (this._min > sp.end) { this._min = sp.start; this.resetTrails(); }
+        if (this._min > sp.end) this.roll();
         this._dirty = true;
         if (t - (this._pushed || 0) > 120) { this._pushed = t; this.setState({ min: this._min, hud: this._hud }); }
       }
       /* while sharp tiles land, repaint a few times a second so they show */
       if (this.hd && this.sc.sharpening && t - (this._sharpAt || 0) > 250) { this._sharpAt = t; this._dirty = true; }
-      if (this._dirty) { this._dirty = false; if (!this.state.mapOn) this.draw(); this.drawStrip(); }
+      if (t - (this._fitAt || 0) > 500) { this._fitAt = t; this.fitPanels(); }
+      if (this._dirty) { this._dirty = false; if (!this.state.mapOn) this.draw(); this.drawStrip(); this.drawTape(); }
       this._raf = requestAnimationFrame(tick);
     };
     this._raf = requestAnimationFrame(tick);
   }
   dirty() { this._dirty = true; }
+  fitPanels() {
+    const root = document.querySelector('[data-scout-root]'), bar = document.querySelector('[data-topbar]'), row = document.querySelector('[data-ctrlrow]');
+    if (!root || !bar || !row) return;
+    let low = 0;
+    bar.querySelectorAll('button, input').forEach(el => { if (el.closest('[data-pop]')) return; const b = el.getBoundingClientRect(); if (b.width > 0) low = Math.max(low, b.bottom); });
+    root.style.setProperty('--pop-max', Math.max(160, Math.floor(row.getBoundingClientRect().top - 80)) + 'px');
+    const room = Math.max(90, Math.floor(row.getBoundingClientRect().top - low - 24));
+    if (room !== this._panelRoom) { this._panelRoom = room; root.style.setProperty('--panel-max', room + 'px'); }
+  }
+  componentDidUpdate() { this.fitPanels(); }
   resetTrails() { this._trailsFresh = true; }
   syncView() { clearTimeout(this._vs); this._vs = setTimeout(() => this.setState({ view: { ...this._view } }), 80); }
   /* UK clocks: BST from 01:00 UTC on the last Sunday of March to the last Sunday of October */
   tzAt(ms) {
+    const z = this.PLACES && this.PLACES[this.state.place] && this.PLACES[this.state.place].tz;
+    if (z && z !== 'Europe/London') {
+      try {
+        const f = this._tzf && this._tzf.z === z ? this._tzf.f : (this._tzf = { z, f: new Intl.DateTimeFormat('en-GB', { timeZone: z, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' }) }).f;
+        const p = {}; f.formatToParts(new Date(ms)).forEach(x => { p[x.type] = +x.value; });
+        return Math.round((Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute) - Math.floor(ms / 60000) * 60000) / 60000);
+      } catch (e) {}
+    }
     const y = new Date(ms).getUTCFullYear();
     const last = m => { const d = new Date(Date.UTC(y, m + 1, 0, 1)); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.getTime(); };
     return ms >= last(2) && ms < last(9) ? 60 : 0;
   }
-  noon() { const dt = this.PLACES[this.state.place].date, g = Date.UTC(dt[0], dt[1], dt[2] + this.state.day, 12, 0); return g - this.tzAt(g) * 60000; }
+  baseDate() {
+    /* a searched place opens on tonight, where it is */
+    let dt = this.PLACES[this.state.place].date;
+    if (!dt) { const off = this.tzAt(Date.now()), l = new Date(Date.now() + off * 60000); dt = [l.getUTCFullYear(), l.getUTCMonth(), l.getUTCDate() - (l.getUTCHours() < 6 ? 1 : 0)]; }
+    return dt;
+  }
+  noon(day) {
+    const dt = this.baseDate(), g = Date.UTC(dt[0], dt[1], dt[2] + (day == null ? this.state.day : day), 12, 0); return g - this.tzAt(g) * 60000;
+  }
+  /* Time runs on: past dawn the strip rolls into the next night, before dusk into the one before,
+     whether you are playing, dragging or scrolling. */
+  roll() {
+    const sp = this._strip; if (!sp || this._rolling) return;
+    let dir = 0, over = 0;
+    if (this._min > sp.end) { dir = 1; over = this._min - sp.end; }
+    else if (this._min < sp.start) { dir = -1; over = this._min - sp.start; }
+    if (!dir) return;
+    this._rolling = true; this._rollOver = over;
+    this.setState({ day: this.state.day + dir }, () => { this.computeStrip(false); this._rolling = false; if (this._sdrag) this._sAnchor = null; });
+  }
+  zoneLabel(ms) {
+    const z = this.PLACES[this.state.place].tz || 'Europe/London';
+    try { const n = new Intl.DateTimeFormat('en-GB', { timeZone: z, timeZoneName: 'short' }).formatToParts(new Date(ms)).find(x => x.type === 'timeZoneName'); if (n) return n.value; } catch (e) {}
+    const o = this.tzAt(ms); return o ? 'UTC' + (o > 0 ? '+' : '\u2212') + Math.abs(o / 60) : 'GMT';
+  }
+  /* ---- places: search, recent, your location ---- */
+  recentList() { try { const v = JSON.parse(localStorage.getItem('noctography.scout.recent') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+  remember(p) {
+    const keep = { name: p.name, area: p.area, lat: +p.lat.toFixed(5), lon: +p.lon.toFixed(5), az: p.az, alt: p.alt, hfov: p.hfov, tz: p.tz };
+    const list = [keep, ...this.recentList().filter(q => Math.abs(q.lat - keep.lat) > 0.002 || Math.abs(q.lon - keep.lon) > 0.002)].slice(0, 6);
+    try { localStorage.setItem('noctography.scout.recent', JSON.stringify(list)); } catch (e) {}
+  }
+  /* the time zone comes with the forecast service's answer; the view faces the Milky Way's side */
+  async openPlace(p) {
+    const q = { az: p.lat >= 0 ? 180 : 0, alt: 2, hfov: 84, ...p };
+    if (!q.tz) {
+      try { const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + q.lat.toFixed(4) + '&longitude=' + q.lon.toFixed(4) + '&timezone=auto&forecast_days=1&daily=sunrise'); const j = await r.json(); if (j && j.timezone) q.tz = j.timezone; } catch (e) {}
+      if (!q.tz) q.tz = 'UTC';
+    }
+    this.PLACES = [q];
+    if (q.atMs && q.date) { const g = Date.UTC(q.date[0], q.date[1], q.date[2], 12); q.at = (q.atMs - (g - this.tzAt(g) * 60000)) / 60000; }
+    this.remember(q);
+    this.track && this.track('scout/search');
+    this.setState({ q: '', results: [], qOpen: false, mapOn: false }, () => this.pickPlace(0));
+  }
+  parseCoord(s) {
+    const m = String(s).trim().match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);
+    if (!m) return null;
+    const la = +m[1], lo = +m[2];
+    return Math.abs(la) <= 90 && Math.abs(lo) <= 180 ? { lat: la, lon: lo } : null;
+  }
+  search(v) {
+    clearTimeout(this._qt);
+    const c = this.parseCoord(v);
+    if (c) { this.setState({ results: [{ name: c.lat.toFixed(4) + ', ' + c.lon.toFixed(4), sub: 'Stand at these coordinates', lat: c.lat, lon: c.lon, coord: true }], qBusy: false }); return; }
+    if (v.trim().length < 2) { this.setState({ results: [], qBusy: false }); return; }
+    this.setState({ qBusy: true });
+    this._qt = setTimeout(async () => {
+      const here = this.loc();
+      const rs = await this.E.geocode(v.trim(), here ? { lat: here.lat, lon: here.lon } : null).catch(() => []);
+      if (this.state.q !== v) return;
+      this.setState({ qBusy: false, results: rs.slice(0, 7).map(r => ({ name: r.name, sub: [r.admin2, r.admin1, r.country].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(', '), lat: r.latitude, lon: r.longitude })) });
+    }, 320);
+  }
+  drawTape() {
+    const cv = this._tape, v = this._view; if (!cv || !v) return;
+    const dpr = window.devicePixelRatio || 1, W = Math.max(100, cv.clientWidth || 1000), H = 30;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== H * dpr) { cv.width = Math.round(W * dpr); cv.height = H * dpr; }
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    /* the tape spans exactly what the view shows, edge to edge */
+    const span = v.hfov, a0 = v.az - span / 2, px = W / span;
+    const STEPS = [1, 2, 5, 10, 15, 30, 45, 90];
+    const step = STEPS.find(s2 => s2 * px >= 9) || 90, lab = STEPS.find(s2 => s2 >= step && s2 * px >= 64) || 90;
+    const PT = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW' };
+    const fade = g.createLinearGradient(0, 0, 0, H); fade.addColorStop(0, 'rgba(0,0,0,.55)'); fade.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = fade; g.fillRect(0, 0, W, H);
+    for (let a = Math.ceil(a0 / step) * step; a <= a0 + span; a += step) {
+      const x = (a - a0) * px, n = ((a % 360) + 360) % 360, big = n % lab === 0, card = PT[n] != null;
+      g.fillStyle = card ? '#E8C98A' : big ? 'rgba(240,236,228,.75)' : 'rgba(240,236,228,.35)';
+      g.fillRect(Math.round(x) - 0.5, 0, 1, card ? 10 : big ? 7 : 4);
+      if ((card || big) && x > 12 && x < W - 12) {
+        g.font = (card ? '700 12px' : '500 10.5px') + ' "JetBrains Mono", monospace'; g.textAlign = 'center';
+        g.shadowColor = 'rgba(0,0,0,.9)'; g.shadowBlur = 4;
+        g.fillText(card ? PT[n] : String(n), x, 23); g.shadowBlur = 0;
+      }
+    }
+    g.fillStyle = '#D6B368'; g.fillRect(Math.round(W / 2) - 1, 0, 2, 12);
+  }
   hazeKm() { return 150 * Math.pow(8 / 150, this.state.haze / 100); }
   computeDomes() {
     const HD = window.NoctoScoutHD, p = this.loc();
@@ -418,10 +578,12 @@ class Component extends DCLogic {
     this.setState({ mapOn: on }, () => { if (on) this.drawMapView(); else { this.resetTrails(); this.dirty(); } });
   }
   mapTile(z, x, y) {
-    const key = z + '/' + x + '/' + y, T = this._tiles || (this._tiles = new Map());
+    const base = this.state.mapBase === 'map' ? 'map' : 'sat';
+    const key = base + '/' + z + '/' + x + '/' + y, T = this._tiles || (this._tiles = new Map());
     let t = T.get(key);
     if (!t) {
-      const HD = window.NoctoScoutHD, tpl = (HD && HD.config().imagery) || 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+      const HD = window.NoctoScoutHD;
+      const tpl = base === 'map' ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' : (HD && HD.config().imagery) || 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
       t = new Image(); t.crossOrigin = 'anonymous';
       t.onload = () => { t.ok = true; this.drawMapSoon(); };
       t.src = tpl.replace('{z}', z).replace('{y}', y).replace('{x}', x);
@@ -480,6 +642,18 @@ class Component extends DCLogic {
     /* the preset, if you have walked away from it */
     const o = this.PLACES[this.state.place];
     if (this.state.here) { const [x, y] = at(o.lat, o.lon); ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.2832); ctx.strokeStyle = 'rgba(240,236,228,.8)'; ctx.lineWidth = 1.5; ctx.stroke(); }
+    /* the walk in: along the paths in gold, the last stretch over open ground dashed */
+    const wk = this._walk;
+    if (wk) {
+      const line = (pts, dash) => { ctx.beginPath(); pts.forEach((q, i) => { const [x, y] = at(q[0], q[1]); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
+        ctx.setLineDash(dash ? [7, 6] : []); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.strokeStyle = 'rgba(10,10,11,.85)'; ctx.lineWidth = 6; ctx.stroke(); ctx.strokeStyle = '#E8C98A'; ctx.lineWidth = 3; ctx.stroke(); ctx.setLineDash([]); };
+      if (wk.path.length > 1) line(wk.path, false);
+      if (wk.off) line(wk.off, true);
+      if (wk.offStart) line(wk.offStart, true);
+      const [sx, sy] = at(wk.start[0], wk.start[1]);
+      ctx.beginPath(); ctx.arc(sx, sy, 7, 0, 6.2832); ctx.fillStyle = '#0A0A0B'; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#E8C98A'; ctx.stroke();
+    }
     /* you, and the view */
     const p = this.loc(), v = this._view || { az: 0, hfov: 60 }, [px, py] = at(p.lat, p.lon), R = 88, D = Math.PI / 180;
     const a0 = (v.az - v.hfov / 2 - 90) * D, a1 = (v.az + v.hfov / 2 - 90) * D;
@@ -530,6 +704,8 @@ class Component extends DCLogic {
     ].filter(e => e[1] != null && e[1] >= start && e[1] <= end);
     this._strip = { sun, moon, mfrac, core, start, end, ev };
     const dark = cross(sun, -18, false);
+    this.loadCloud();
+    if (this._rollOver != null && !resetTime) { this._min = this._rollOver > 0 ? start + this._rollOver : end + this._rollOver; this._rollOver = null; }
     if (resetTime && p.at != null) this._min = p.at;
     else if (resetTime || this._min < start || this._min > end) this._min = Math.min(end, (dark == null ? start : dark) + 45);
     this.resetTrails();
@@ -537,10 +713,121 @@ class Component extends DCLogic {
     this.dirty();
   }
 
+  /* the kit is the main app's own, kept in the same place, so a change in either shows in both */
+  kit() { const P = window.NoctoPlan; return this.state.kit || (P ? P.loadKit() : { sensor: 'ff', mp: 24, focal: 20, aperture: 2.8, orient: 'land', tol: 'sharp' }); }
+  setKit(patch) { const P = window.NoctoPlan, k = Object.assign({}, this.kit(), patch); if (P) P.saveKit(k); this.setState({ kit: k }, () => { this.resetTrails(); this.dirty(); }); }
+  lens() { const P = window.NoctoPlan; if (P) { const d = P.kitDerived(this.kit()); return { across: d.across, down: d.down }; } return { across: 84, down: 62 }; }
+  panoOv() { const v = +this.kit().panoOv; return (v >= 20 && v <= 80 ? v : 40) / 100; }
+  panoBox() { return this.state.panoBox || { az: this._view.az - 60, w: 120, lo: -8, hi: 40 }; }
+  setPano(on) {
+    if (!on) { this.setState({ pano: false }, () => this.dirty()); return; }
+    const b0 = this.state.panoBox, w = b0 ? b0.w : 120, lo = b0 ? b0.lo : -8, hi = b0 ? b0.hi : 40;
+    const b = { az: this._view.az - w / 2, w, lo, hi };
+    this.fitPano(b);
+    this.track && this.track('scout/pano');
+    this.setState({ pano: true, frame: false, panoBox: b }, () => { this.syncView(); this.dirty(); });
+  }
+  /* ---- the wide view ----
+     Past the widest a flat lens can go, the view becomes the panorama itself: the whole horizon as
+     one strip, zenith to 40 degrees down, made slice by slice from the same scene and sky, and
+     shown degree for degree like the panorama view in the app. It is rebuilt when the moment, the
+     place or the look changes; while it rebuilds the last one stays up and fills in. */
+  WIDE = 120;
+  wide() { return !!this._view && this._view.hfov > this.WIDE; }
+  wideStrip(when, p, gain) {
+    const st = this.state, S = this.S, sc = this.sc;
+    if (!S || !S.pano || !sc || !sc.ok) return;
+    const key = [Math.round(when.getTime() / 120000), p.lat.toFixed(4), p.lon.toFixed(4), st.exp, st.ground, (sc.rings || []).filter(Boolean).length, this.state.detail ? this.state.detail.d : 0].join('|');
+    if (key === this._wideKey || key === this._wideWant) return;
+    this._wideWant = key;
+    clearTimeout(this._wideT);
+    this._wideT = setTimeout(() => {
+      const tok = this._wideTok = {};
+      const out = this._wideCv || (this._wideCv = document.createElement('canvas'));
+      const o = this._wideOpts || (this._wideOpts = {});
+      Object.assign(o, { ppd: 6, when, lat: p.lat, lon: p.lon, gain, trueCol: st.ground === 'true', map: S.skyDataReady() ? { stars: true } : null,
+        startAz: this._view.az, cancelled: () => this._wideTok !== tok || !this.wide(), onTier: () => this.dirty() });
+      this.setState({ wideBusy: true });
+      S.pano.strip(sc, out, o).then(ok => { if (this._wideTok !== tok) return; if (ok) this._wideKey = key; this._wideWant = null; this.setState({ wideBusy: false }); this.dirty(); })
+        .catch(() => { this._wideWant = null; this.setState({ wideBusy: false }); });
+    }, this._wideCv ? 160 : 0);
+  }
+  drawWide(cv, W, H, v, when, p, gain, dpr) {
+    const S = this.S, st = this.state, ctx = cv.getContext('2d');
+    this.wideStrip(when, p, gain);
+    ctx.fillStyle = '#050508'; ctx.fillRect(0, 0, W, H);
+    const TOP = S.pano ? S.pano.TOP : 90, BOT = S.pano ? S.pano.BOT : -40;
+    const dpp = v.hfov / W, span = H * dpp;
+    /* the vertical aim keeps the strip on screen; a view taller than the strip is centred on it */
+    const top = span >= TOP - BOT ? (TOP + BOT) / 2 + span / 2 : Math.min(TOP, Math.max(BOT + span, v.alt + span / 2));
+    v.alt = top - span / 2;
+    const X = az => (az - (v.az - v.hfov / 2)) / dpp, Y = alt => (top - alt) / dpp;
+    const out = this._wideCv;
+    if (out && out.width) {
+      const PPD = out.width / 360, sw = 360 / dpp, y0 = Y(TOP), sh = (TOP - BOT) / dpp;
+      let x0 = X(0) % sw; if (x0 > 0) x0 -= sw;
+      ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      for (let x = x0; x < W; x += sw) ctx.drawImage(out, 0, 0, out.width, out.height, x, y0, sw, sh);
+      ctx.restore();
+    }
+    /* the horizon, faintly, and the compass points along it */
+    ctx.save();
+    ctx.strokeStyle = 'rgba(240,236,228,.18)'; ctx.lineWidth = dpr; ctx.beginPath(); ctx.moveTo(0, Y(0)); ctx.lineTo(W, Y(0)); ctx.stroke();
+    ctx.fillStyle = 'rgba(232,201,138,.85)'; ctx.font = '600 ' + Math.round(12 * dpr) + 'px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
+    const PT = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    for (let a = Math.ceil((v.az - v.hfov / 2) / 45) * 45; a <= v.az + v.hfov / 2; a += 45) ctx.fillText(PT[(((a / 45) % 8) + 8) % 8], X(a), Y(0) - 8 * dpr);
+    ctx.restore();
+    /* the panorama, frame by frame, laid on the strip: lines are straight in this projection */
+    if (st.pano && S.pano) {
+      const b = this.panoBox(), L = this.lens(), g = S.pano.grid(b, L, this.panoOv());
+      const poly = (pts, close) => { for (let k = -1; k <= 1; k++) { ctx.beginPath(); pts.forEach(([az, alt], i) => { const x = X(az + k * 360), y = Y(alt); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); if (close) ctx.closePath(); ctx.stroke(); } };
+      ctx.save();
+      ctx.strokeStyle = 'rgba(240,236,228,.42)'; ctx.lineWidth = dpr;
+      g.rows.forEach(row => row.az.forEach(az => poly(S.pano.footprint(az, row.t, L), true)));
+      ctx.strokeStyle = '#D6B368'; ctx.lineWidth = 2 * dpr;
+      poly([[b.az, b.hi], [b.az + b.w, b.hi], [b.az + b.w, b.lo], [b.az, b.lo]], true);
+      ctx.restore();
+    }
+    const P = window.NoctoPlan, E = this.E;
+    if (P) { const k = P.skyAt(when, p.lat, p.lon), core = E.eq2horiz(E.MW_RA, E.MW_DEC, p.lat, E.lstOf(E.jdFrom(when), p.lon)).alt;
+      this._hud = { sun: k.sun.alt, moon: k.moon.alt, frac: k.moon.frac, core }; }
+    this._fr = null;
+  }
+  fitPano(b) { const v = this._view; v.az = b.az + b.w / 2; v.alt = (b.lo + b.hi) / 2; v.hfov = Math.max(v.hfov, Math.min(360, b.w >= 359 ? 360 : b.w * 1.15 + 12)); }
+  /* Star trails, drawn as trails: every star's path from when the trails started to the time shown,
+     worked out rather than accumulated, so they stay put while you aim, zoom or scrub. */
+  drawTrails(g, W, H, view, t0, t1, p, sunAlt, dpr) {
+    const S = this.S, E = this.E, stars = S.skyStars && S.skyStars(); if (!stars) return;
+    const dark = Math.max(0, Math.min(1, (-sunAlt - 8) / 8)); if (dark <= 0) return;
+    const dL = (t1 - t0) / 86164091 * 360; if (dL < 0.05) return;
+    const D = Math.PI / 180, sl = Math.sin(p.lat * D), cl = Math.cos(p.lat * D);
+    const lst0 = E.lstOf(E.jdFrom(new Date(t0)), p.lon), N = Math.max(2, Math.min(140, Math.ceil(dL / 0.6)));
+    const pr = S.projector(view.alt, view.az, view.hfov, view.vfov, W, H);
+    const scale = Math.min(2.2, Math.max(0.6, pr.kx / (W / 2) / 1.2));
+    g.save(); g.globalCompositeOperation = 'lighter'; g.lineCap = 'round'; g.lineJoin = 'round';
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i]; if (!(s.mag <= 4.6)) continue;
+      const sd = Math.sin(s.dec * D), cd = Math.cos(s.dec * D);
+      g.beginPath(); let pen = false, any = false;
+      for (let k = 0; k <= N; k++) {
+        const ha = (lst0 + dL * k / N - s.ra) * D, ch = Math.cos(ha), sa = sd * sl + cd * cl * ch;
+        if (sa < -0.02) { pen = false; continue; }
+        const q = pr(Math.asin(sa) / D, Math.atan2(-cd * Math.sin(ha), sd * cl - cd * sl * ch) / D);
+        if (!q || q.x < -60 || q.x > W + 60 || q.y < -60 || q.y > H + 60) { pen = false; continue; }
+        if (pen) { g.lineTo(q.x, q.y); any = true; } else { g.moveTo(q.x, q.y); pen = true; }
+      }
+      if (!any) continue;
+      const bv = +s.bv;
+      g.strokeStyle = bv < 0 ? '#C9D6FF' : bv > 1.1 ? '#FFD4A3' : '#F3F0EA';
+      g.globalAlpha = dark * Math.max(0.16, Math.min(0.95, (6 - s.mag) / 4.5));
+      g.lineWidth = Math.max(0.7 * dpr, (5.2 - s.mag) * 0.42 * scale * dpr);
+      g.stroke();
+    }
+    g.restore();
+  }
   frameRect(W, H, hfov, vfov) {
-    const st = this.state, f = st.lens, R = Math.PI / 180;
-    let a = 2 * Math.atan(18 / f) / R, d = 2 * Math.atan(12 / f) / R;
-    if (st.portrait) { const t = a; a = d; d = t; }
+    const R = Math.PI / 180, L = this.lens();
+    const a = L.across, d = L.down;
     const fw = W * Math.tan(a / 2 * R) / Math.tan(hfov / 2 * R), fh = H * Math.tan(d / 2 * R) / Math.tan(vfov / 2 * R);
     return { x: (W - fw) / 2, y: (H - fh) / 2, w: fw, h: fh, a, d, fits: fw <= W + 1 && fh <= H + 1 };
   }
@@ -556,6 +843,7 @@ class Component extends DCLogic {
     const view = { az: v.az, alt: v.alt, hfov: v.hfov, vfov, eyeM: 1.6 };
     const when = new Date(this.noon() + this._min * 60000);
     const gain = 0.25 + st.exp / 100 * 1.5;
+    if (this.wide()) { this.drawWide(cv, W, H, v, when, p, gain, dpr); return; }
     const sx = this._sky.getContext('2d');
     sx.setTransform(1, 0, 0, 1, 0, 0); sx.globalAlpha = 1; sx.globalCompositeOperation = 'source-over';
     const r = S.drawSky(sx, W, H, view, when, p.lat, p.lon, { gain, dpr, coarse: st.playing, map: S.skyDataReady() ? { stars: true } : null });
@@ -565,12 +853,11 @@ class Component extends DCLogic {
     if (HD) HD.skyExtras(sx, W, H, view, r.sky, extras);
     const cx = this._comp.getContext('2d');
     cx.globalCompositeOperation = 'source-over';
+    cx.drawImage(this._sky, 0, 0);
     if (st.trails) {
-      const tx = this._tr.getContext('2d');
-      if (this._trailsFresh) { tx.globalCompositeOperation = 'source-over'; tx.drawImage(this._sky, 0, 0); this._trailsFresh = false; }
-      else { tx.globalCompositeOperation = 'lighten'; tx.drawImage(this._sky, 0, 0); }
-      cx.drawImage(this._tr, 0, 0);
-    } else cx.drawImage(this._sky, 0, 0);
+      if (this._trailFrom == null || this._min < this._trailFrom) this._trailFrom = this._min;
+      this.drawTrails(cx, W, H, view, this.noon() + this._trailFrom * 60000, when.getTime(), p, r.sky.sun.alt, dpr);
+    }
     if (sc && sc.ok && sc.rings.some(Boolean)) {
       const g = sc.canvas;
       if (g.width !== W || g.height !== H) { g.width = W; g.height = H; }
@@ -601,7 +888,22 @@ class Component extends DCLogic {
       ctx.fillStyle = '#D6B368'; ctx.font = '600 ' + Math.round(12 * dpr) + 'px "JetBrains Mono", monospace';
       /* the label sits above the frame; when the frame reaches the top panel it would print over the
          place name, and the lens is on its button anyway */
-      if (fr.y > 200 * dpr) ctx.fillText(st.lens + ' mm \u00b7 ' + Math.round(fr.a) + '\u00b0 \u00d7 ' + Math.round(fr.d) + '\u00b0', fr.x, fr.y - 8 * dpr);
+      if (fr.y > 200 * dpr) ctx.fillText(this.kit().focal + ' mm \u00b7 ' + Math.round(fr.a) + '\u00b0 \u00d7 ' + Math.round(fr.d) + '\u00b0', fr.x, fr.y - 8 * dpr);
+      ctx.restore();
+    }
+    if (st.pano && S.pano) {
+      const pr = S.projector(view.alt, view.az, view.hfov, view.vfov, W, H), b = this.panoBox(), L = this.lens();
+      const g = S.pano.grid(b, L, this.panoOv());
+      const line = (pts, close) => { ctx.beginPath(); let pen = false; pts.forEach(([az, alt]) => { const q = pr(alt, az); if (!q) { pen = false; return; } if (pen) ctx.lineTo(q.x, q.y); else { ctx.moveTo(q.x, q.y); pen = true; } }); if (close && pen) { const q = pr(pts[0][1], pts[0][0]); if (q) ctx.lineTo(q.x, q.y); } ctx.stroke(); };
+      ctx.save();
+      ctx.strokeStyle = 'rgba(240,236,228,.38)'; ctx.lineWidth = dpr;
+      g.rows.forEach(row => row.az.forEach(az => line(S.pano.footprint(az, row.t, L), true)));
+      const edge = [], A = b.az, Z = b.az + b.w;
+      for (let a = A; a <= Z; a += 1.5) edge.push([a, b.hi]);
+      for (let e = b.hi; e >= b.lo; e -= 1.5) edge.push([Z, e]);
+      for (let a = Z; a >= A; a -= 1.5) edge.push([a, b.lo]);
+      for (let e = b.lo; e <= b.hi; e += 1.5) edge.push([A, e]);
+      ctx.strokeStyle = '#D6B368'; ctx.lineWidth = 2 * dpr; line(edge, false);
       ctx.restore();
     }
     if (this._rec) {
@@ -627,7 +929,8 @@ class Component extends DCLogic {
     const ctx = cv.getContext('2d');
     ctx.clearRect(0, 0, W, H);
     const span = sp.end - sp.start, xOf = m => (m - sp.start) / span * W;
-    const skyH = 36 * dpr, gap = 4 * dpr, rowH = 14 * dpr, yM = skyH + gap, yC = yM + rowH + gap;
+    const skyH = 30 * dpr, gap = 3 * dpr, rowH = 11 * dpr, yM = skyH + gap, yC = yM + rowH + gap, yK = yC + rowH + gap;
+    const cl = this._cloud, nn = this.noon();
     const lerp = (a, b, t) => Math.round(a + (b - a) * t);
     for (let i = 0; i < sp.sun.length - 1; i++) {
       const m0 = i * 5, m1 = m0 + 5;
@@ -639,10 +942,14 @@ class Component extends DCLogic {
       ctx.fillStyle = 'rgba(240,236,228,.05)'; ctx.fillRect(x0, yM, x1 - x0, rowH); ctx.fillRect(x0, yC, x1 - x0, rowH);
       if (sp.moon[i] > 0) { ctx.fillStyle = 'rgba(201,203,210,' + (0.2 + 0.6 * sp.mfrac[i]).toFixed(2) + ')'; ctx.fillRect(x0, yM, x1 - x0, rowH); }
       if (sp.core[i] > 0) { ctx.fillStyle = 'rgba(214,179,104,' + (0.35 + 0.6 * (1 - t)).toFixed(2) + ')'; ctx.fillRect(x0, yC, x1 - x0, rowH); }
+      ctx.fillStyle = 'rgba(240,236,228,.05)'; ctx.fillRect(x0, yK, x1 - x0, rowH);
+      if (cl) { const k = Math.floor((nn + m0 * 60000 - cl.t0) / 3600000), c = k >= 0 && k < cl.v.length ? cl.v[k] : null;
+        if (c != null) { ctx.fillStyle = 'rgba(206,210,224,' + (0.08 + 0.8 * c / 100).toFixed(2) + ')'; ctx.fillRect(x0, yK, x1 - x0, rowH); } }
     }
     ctx.strokeStyle = 'rgba(240,236,228,.22)'; ctx.lineWidth = dpr;
     sp.ev.forEach(e => { const x = Math.round(xOf(e[1])) + 0.5; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, skyH); ctx.stroke(); });
     const px = xOf(this._min);
+    if (this.state.trails && this._trailFrom != null && this._trailFrom < this._min) { ctx.fillStyle = 'rgba(214,179,104,.28)'; const x0 = xOf(this._trailFrom); ctx.fillRect(x0, 0, px - x0, skyH); }
     ctx.fillStyle = '#D6B368'; ctx.fillRect(px - dpr, 0, 2 * dpr, H);
     ctx.beginPath(); ctx.arc(px, skyH / 2, 5 * dpr, 0, 6.2832); ctx.fill();
   }
@@ -651,10 +958,14 @@ class Component extends DCLogic {
     if (!this.state.playing) { this.resetTrails(); this._last = 0; }
     this.setState({ playing: !this.state.playing, min: this._min }, () => this.dirty());
   }
-  stripAt(e) {
+  stripAt(e, rel) {
     const sp = this._strip, cv = this._sv; if (!sp || !cv) return;
     const b = cv.getBoundingClientRect();
-    this._min = sp.start + Math.max(0, Math.min(1, (e.clientX - b.left) / b.width)) * (sp.end - sp.start);
+    if (rel) {
+      if (!this._sAnchor) this._sAnchor = { x: e.clientX, m: this._min };
+      this._min = this._sAnchor.m + (e.clientX - this._sAnchor.x) / b.width * (sp.end - sp.start);
+      this.roll();
+    } else { this._min = sp.start + Math.max(0, Math.min(1, (e.clientX - b.left) / b.width)) * (sp.end - sp.start); this._sAnchor = { x: e.clientX, m: this._min }; }
     this.resetTrails(); this.dirty();
     this.setState({ min: this._min, hud: this._hud });
   }
@@ -688,16 +999,29 @@ class Component extends DCLogic {
   eventLabels(sp) {
     if (!sp) return [];
     const W = this.state.evW || (this._ev && this._ev.clientWidth) || 900, CH = 6.9, GAP = 10;
-    const ends = [-1e9, -1e9];
-    return sp.ev.slice().sort((a, b) => a.at - b.at).map(e => {
+    /* most useful first: darkness, then the moon, then the core, then the sun; one that finds no room
+       in either lane is left out rather than printed over another */
+    const RANK = { Dark: 0, Dawn: 0, Moonrise: 1, Moonset: 1, 'Core up': 2, 'Core down': 2, Sunset: 3, Sunrise: 3 };
+    const placed = [[], []], out = [];
+    sp.ev.slice().sort((a, b) => (RANK[a.label] ?? 4) - (RANK[b.label] ?? 4)).forEach(e => {
       const label = e.label + ' ' + this.hhmm(this.noon() + e.at * 60000);
       const w = label.length * CH, cx = (e.at - sp.start) / (sp.end - sp.start) * W;
       const x = Math.max(0, Math.min(W - w, cx - w / 2));
-      let lane = ends.findIndex(end => x >= end + GAP);
-      if (lane < 0) lane = ends[0] <= ends[1] ? 0 : 1;
-      ends[lane] = x + w;
-      return { label, c: e.c, left: x.toFixed(1) + 'px', top: lane ? '17px' : '0px' };
+      const lane = placed.findIndex(L => L.every(([a, b]) => x + w + GAP <= a || x >= b + GAP));
+      if (lane < 0) return;
+      placed[lane].push([x, x + w]);
+      out.push({ label, c: e.c, left: x.toFixed(1) + 'px', top: lane ? '17px' : '0px' });
     });
+    return out;
+  }
+  statusVals() {
+    const st = this.state, dt = st.detail, sf = st.surf;
+    const line = st.wideBusy && this.wide() ? 'Laying out the whole horizon\u2026'
+      : !this.hd ? 'This browser cannot draw the detailed ground'
+      : dt && dt.d < dt.t ? 'Sharpening the ground \u00b7 ' + dt.d + ' of ' + dt.t
+      : sf && sf.state === 'loading' ? 'Loading trees and buildings'
+      : sf && sf.failed ? sf.name + ' did not answer: coarser ground for now' : '';
+    return { statusOn: !!line, statusLine: line };
   }
   detailVals() {
     const st = this.state;
@@ -913,6 +1237,256 @@ class Component extends DCLogic {
     const sharp = this.state.ha ? [...new Set((this._haCuts || []).filter(q => q.ready).map(q => q.survey.credit))] : [];
     return (this.state.ha ? 'H\u03b1: Finkbeiner (2003)' + (sharp.length ? ', ' + sharp.join(', ') : '') + ' via CDS \u00b7 ' : '') + 'Imagery \u00a9 Esri, Vantor, Earthstar Geographics \u00b7 Powered by Esri \u00b7 Terrain: Mapzen Terrarium' + (sf && sf.state === 'on' ? ' \u00b7 ' + sf.credit : '');
   }
+  kitVals(ON, OFF, v, p) {
+    const P = window.NoctoPlan, k = this.kit(), st = this.state;
+    if (!P) return { kitLabel: '', npfLabel: '', kitOpen: false, kitRows: [], kitToggle: () => {}, kitEdge: 'rgba(240,236,228,.2)' };
+    const S = P.SENSORS, short = { ff: 'FF', aps: 'APS-C', apsc: 'APS-C', mft: 'MFT' };
+    const mx = P.maxExposure(k, { alt: v.alt, az: v.az }, p.lat);
+    const row = (label, list, key, fmt) => ({ label, opts: list.map(x => ({ label: fmt(x), ...(k[key] === x ? ON : OFF), pick: () => this.setKit({ [key]: x }) })) });
+    return {
+      kitLabel: k.focal + 'mm f/' + k.aperture + ' \u00b7 ' + (short[k.sensor] || 'FF') + ' ' + k.mp + ' MP' + (k.orient === 'port' ? ' \u00b7 portrait' : ''),
+      npfLabel: 'NPF ' + Math.round(mx.secs) + ' s',
+      kitOpen: !!st.kitOpen, kitEdge: st.kitOpen ? '#D6B368' : 'rgba(240,236,228,.2)',
+      kitToggle: () => this.setState({ kitOpen: !st.kitOpen }),
+      kitRows: [
+        row('Sensor', Object.keys(S), 'sensor', x => S[x].label),
+        row('Megapixels', this.KIT_MP, 'mp', x => String(x)),
+        row('Lens', this.KIT_FOCAL, 'focal', x => x + 'mm'),
+        row('Aperture', this.KIT_AP, 'aperture', x => 'f/' + x),
+        row('Held', ['land', 'port'], 'orient', x => x === 'port' ? 'Portrait' : 'Landscape'),
+      ],
+    };
+  }
+  panoVals(ON, OFF) {
+    const st = this.state, S = this.S;
+    if (!st.pano || !S || !S.pano || !this._view) return { panoOn: false, panoRows: [], panoWidths: [], panoTops: [], panoOvs: [] };
+    const E = this.E, b = this.panoBox(), L = this.lens(), ov = this.panoOv(), g = S.pano.grid(b, L, ov);
+    const a360 = a => Math.round(((a % 360) + 360) % 360), cmp = a => (E && E.compass ? ' ' + E.compass(((a % 360) + 360) % 360) : '');
+    const dg = a => { const q = Math.round(a); return (q < 0 ? '\u2212' : '+') + Math.abs(q) + '\u00b0'; };
+    const setBox = patch => { const nb = Object.assign({}, b, patch); if (patch.w != null) nb.az = b.az + b.w / 2 - patch.w / 2; this.fitPano(nb); this.setState({ panoBox: nb }, () => { this.syncView(); this.dirty(); }); };
+    return {
+      panoOn: true,
+      panoCount: g.total + (g.total === 1 ? ' frame' : ' frames') + (g.rows.length > 1 ? ' \u00b7 ' + g.rows.length + ' rows' : ''),
+      panoCover: Math.round(b.w) + '\u00b0 \u00d7 ' + Math.round(b.hi - b.lo) + '\u00b0 \u00b7 ' + a360(b.az) + '\u00b0' + cmp(b.az) + ' to ' + a360(b.az + b.w) + '\u00b0' + cmp(b.az + b.w),
+      panoRows: g.rows.map((r, i) => ({ v: 'Row ' + (i + 1) + ' \u00b7 tilt ' + dg(r.t) + ' \u00b7 ' + r.n + ' \u00d7 ' + r.step.toFixed(1) + '\u00b0 \u00b7 from ' + a360(r.az[0]) + '\u00b0' })),
+      panoWidths: this.PANO_W.map(w => ({ label: w + '\u00b0', ...(Math.round(b.w) === w ? ON : OFF), pick: () => setBox({ w }) })),
+      panoTops: this.PANO_TOP.map(t => ({ label: '+' + t + '\u00b0', ...(Math.round(b.hi) === t ? ON : OFF), pick: () => setBox({ hi: t }) })),
+      panoOvs: this.PANO_OV.map(o => ({ label: o + '%', ...(Math.round(ov * 100) === o ? ON : OFF), pick: () => this.setKit({ panoOv: o }) })),
+      panoCentre: () => { const v2 = this._view, nb = Object.assign({}, b, { az: v2.az - b.w / 2 }); this.setState({ panoBox: nb }, () => this.dirty()); },
+    };
+  }
+  /* ---- plans ----
+     A plan is a composition, kept where the app keeps them, so the list is the same list on this
+     computer as in the app's Log. The picture is the view as it stands, frame and panorama included. */
+  C() { return window.NoctoComp; }
+  nightOf() { const dt = this.baseDate(), d = new Date(Date.UTC(dt[0], dt[1], dt[2] + this.state.day)); return [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()]; }
+  nightKey(n) { return n[0] + '-' + String(n[1] + 1).padStart(2, '0') + '-' + String(n[2]).padStart(2, '0'); }
+  planLoad() { const C = this.C(); if (!C) return; C.all().then(list => this.setState({ plans: list || [] })).catch(() => {}); }
+  planSave() {
+    const C = this.C(), cv = this._cv;
+    if (!C || !cv || !cv.width) { this.toast('Plans are not ready yet. Try again in a moment.'); return; }
+    if (this.state.planBusy) return;
+    const p = this.loc(), v = this._view, k = this.kit(), n = this.nightOf(), st = this.state;
+    const when = this.noon() + this._min * 60000, b = st.pano ? this.panoBox() : null;
+    const rec = { id: C.newId(), at: when, night: new Date(n[0], n[1], n[2], 12).getTime(), nightKey: this.nightKey(n), cap: Date.now(),
+      name: '', note: '', place: this.placeLabel(), lat: p.lat, lon: p.lon, az: ((v.az % 360) + 360) % 360, alt: v.alt, roll: 0,
+      hfov: v.hfov, lens: 'scout', zoom: 1, pano: b ? { az: b.az, w: b.w, lo: b.lo, hi: b.hi, ov: Math.round(this.panoOv() * 100) } : null,
+      focal: k.focal, sensor: k.sensor, orient: k.orient, cal: true, nudge: 0, src: 'scout', photo: false,
+      scout: { tz: this.PLACES[st.place].tz || null, date: n, at: this._min, hfov: v.hfov, exp: st.exp, ground: st.ground },
+      walk: this._walk ? { start: this._walk.start, path: this._walk.path.filter((q, i) => i % 2 === 0 || i === this._walk.path.length - 1).map(q => [+q[0].toFixed(5), +q[1].toFixed(5)]) } : null };
+    rec.w = cv.width; rec.h = cv.height;
+    this.setState({ planBusy: true });
+    C.toBlob(cv, 0.86).then(img => { rec.img = img; return C.toBlob(C.thumb(cv, 480), 0.78); })
+      .then(th => { rec.thumb = th; return C.put(rec); })
+      .then(() => { this.track && this.track('scout/plan'); this.setState(s => ({ plans: s.plans.concat([rec]), planBusy: false })); this.toast('Saved to plans for ' + this.hhmm(when)); })
+      .catch(() => { this.setState({ planBusy: false }); this.toast('That plan could not be saved.'); });
+  }
+  placeLabel() { const p = this.loc(); return (p.area && p.area !== 'Coordinates' ? p.area : p.name) || (p.lat.toFixed(4) + ', ' + p.lon.toFixed(4)); }
+  planOpen(r) {
+    const sc = r.scout || {}, nk = (r.nightKey || '').split('-').map(Number);
+    const date = sc.date || (nk.length === 3 ? [nk[0], nk[1] - 1, nk[2]] : null);
+    this.setState({ pop: null });
+    if (r.focal) this.setKit({ focal: r.focal, orient: r.orient || 'land' });
+    this._walk = null; this.setState({ walkInfo: null });
+    this.openPlace({ name: r.place || 'Plan', area: r.place || 'Plan', lat: r.lat, lon: r.lon, az: r.az, alt: r.alt, hfov: sc.hfov || r.hfov || 70, tz: sc.tz || undefined, date, atMs: r.at });
+  }
+  planDel(r) { const C = this.C(); if (!C) return; C.del(r.id).catch(() => {}); this.setState(s => ({ plans: s.plans.filter(x => x.id !== r.id) })); }
+  /* A link carries the plans themselves, compactly: nothing is stored on a server. */
+  planEncode(list) {
+    const t = list.map(r => [+r.lat.toFixed(5), +r.lon.toFixed(5), +(+r.az).toFixed(1), +(+r.alt).toFixed(1), Math.round((r.scout && r.scout.hfov) || r.hfov || 70), Math.round(r.at / 60000), r.focal || 20, r.orient === 'port' ? 1 : 0, r.place || '', (r.scout && r.scout.tz) || '']);
+    return btoa(unescape(encodeURIComponent(JSON.stringify(t)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  planDecode() {
+    const m = location.search.match(/[?&]plan=([^&]+)/); if (!m) return null;
+    try { const s = m[1].replace(/-/g, '+').replace(/_/g, '/'); const t = JSON.parse(decodeURIComponent(escape(atob(s + '==='.slice((s.length + 3) % 4)))));
+      return Array.isArray(t) ? t.filter(x => Array.isArray(x) && isFinite(x[0]) && isFinite(x[1])) : null; } catch (e) { return null; }
+  }
+  localDay(ms, tz) {
+    try { const f = new Intl.DateTimeFormat('en-GB', { timeZone: tz || 'UTC', hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric' }), q = {};
+      f.formatToParts(new Date(ms)).forEach(x => { q[x.type] = +x.value; }); const d = new Date(Date.UTC(q.year, q.month - 1, q.day - (q.hour < 12 ? 1 : 0))); return [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()]; }
+    catch (e) { const d = new Date(ms - 12 * 3600000); return [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()]; }
+  }
+  planImport(t) {
+    const C = this.C(), recs = t.map(x => { const at = x[5] * 60000, n = this.localDay(at, x[9]);
+      return { id: C ? C.newId() : String(Math.random()), at, night: new Date(n[0], n[1], n[2], 12).getTime(), nightKey: this.nightKey(n), cap: Date.now(), name: '', note: 'Shared plan',
+        place: x[8] || '', lat: x[0], lon: x[1], az: x[2], alt: x[3], roll: 0, hfov: x[4], lens: 'scout', zoom: 1, pano: null, focal: x[6], sensor: this.kit().sensor, orient: x[7] ? 'port' : 'land',
+        cal: true, nudge: 0, src: 'scout', photo: false, scout: { tz: x[9] || null, date: n, hfov: x[4] } }; });
+    if (C) recs.forEach(r => C.put(r).catch(() => {}));
+    history.replaceState(null, '', location.pathname);
+    this.setState(s => ({ plans: s.plans.concat(recs) }), () => { this.planOpen(recs[0]); this.toast(recs.length === 1 ? 'Opened a shared plan' : 'Opened ' + recs.length + ' shared plans: all are in Plans'); });
+  }
+  planShare(list) {
+    const url = location.origin + location.pathname + '?plan=' + this.planEncode(list);
+    const done = () => this.toast(list.length === 1 ? 'Link copied: it opens this plan, on a phone in the app' : 'Link copied: it opens all ' + list.length + ' plans for the night');
+    if (navigator.share && navigator.maxTouchPoints > 1) { navigator.share({ title: 'Noctography plan', url }).catch(() => {}); return; }
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(done).catch(() => { window.prompt('Copy this link', url); });
+  }
+  thumbUrl(r) {
+    if (!r.thumb) return 'none';
+    const c = this._thumbs || (this._thumbs = {});
+    if (!c[r.id]) c[r.id] = URL.createObjectURL(r.thumb);
+    return 'url("' + c[r.id] + '")';
+  }
+  planVals() {
+    const st = this.state, E = this.E, nk = this.nightKey(this.nightOf());
+    const list = (st.plans || []).slice().sort((a, b) => a.at - b.at);
+    const tonight = list.filter(r => r.nightKey === nk), rest = list.filter(r => r.nightKey !== nk).reverse();
+    const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const hm = r => { const tz = r.scout && r.scout.tz; try { return new Intl.DateTimeFormat('en-GB', { timeZone: tz || undefined, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(r.at)); } catch (e) { return ''; } };
+    const item = (r, other) => { const a = Math.round(((r.az % 360) + 360) % 360), n = (r.nightKey || '').split('-');
+      return { thumb: this.thumbUrl(r), edge: 'rgba(240,236,228,.08)',
+        time: (other && n.length === 3 ? +n[2] + ' ' + MON[+n[1] - 1] + ' \u00b7 ' : '') + hm(r),
+        line: String(a).padStart(3, '0') + '\u00b0 ' + (E ? E.compass(a) : '') + ' \u00b7 ' + (r.focal || '') + 'mm' + (r.pano ? ' \u00b7 pano' : '') + (r.place ? ' \u00b7 ' + r.place : ''),
+        open: () => this.planOpen(r), share: () => this.planShare([r]), del: () => this.planDel(r) }; };
+    const groups = [];
+    if (tonight.length) groups.push({ head: '', headOn: false, items: tonight.map(r => item(r, false)) });
+    if (rest.length) groups.push({ head: 'Other nights', headOn: true, items: rest.slice(0, 30).map(r => item(r, true)) });
+    const nd = this.nightOf(), DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], dd = new Date(Date.UTC(nd[0], nd[1], nd[2]));
+    return {
+      planSave: () => this.planSave(), planShotBg: st.planBusy ? 'rgba(214,179,104,.3)' : 'rgba(21,21,26,.94)',
+      planCount: String(tonight.length || list.length || ''), plansOpen: st.pop === 'plans',
+      plansEdge: st.pop === 'plans' ? '#D6B368' : 'rgba(240,236,228,.14)', plansFg: st.pop === 'plans' ? '#D6B368' : '#DCD7CC',
+      plansToggle: () => { if (st.pop !== 'plans') this.planLoad(); this.setState({ pop: st.pop === 'plans' ? null : 'plans' }); },
+      planNightLabel: 'Night of ' + DAYS[dd.getUTCDay()] + ' ' + nd[2] + ' ' + MON[nd[1]] + (tonight.length ? ' \u00b7 ' + tonight.length : ''),
+      planNightShareOn: tonight.length > 0, planNightShare: () => this.planShare(tonight),
+      planNoneOn: !list.length, planGroups: groups,
+      appHref: /\/scout\/?(index\.html)?$/.test(location.pathname) ? '../app/' : './Noctography.dc.html',
+      toastOn: !!st.toast, toastLine: st.toast || '',
+    };
+  }
+  /* ---- cloud: the forecast for the place, hour by hour, as a row on the strip ---- */
+  loadCloud() {
+    const p = this.loc(), key = p.lat.toFixed(2) + ',' + p.lon.toFixed(2);
+    if (this._cloudKey === key && this._cloud && Date.now() - this._cloud.at < 3 * 3600000) return;
+    this._cloudKey = key;
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + p.lat.toFixed(3) + '&longitude=' + p.lon.toFixed(3) + '&hourly=cloud_cover&forecast_days=16&past_days=2&timezone=UTC')
+      .then(r => r.json()).then(j => { if (!j || !j.hourly || this._cloudKey !== key) return;
+        this._cloud = { t0: Date.parse(j.hourly.time[0] + ':00Z'), v: j.hourly.cloud_cover, at: Date.now() }; this.dirty(); })
+      .catch(() => {});
+  }
+  cloudAt(ms) { const c = this._cloud; if (!c) return null; const k = Math.floor((ms - c.t0) / 3600000); return k >= 0 && k < c.v.length ? c.v[k] : null; }
+  /* ---- walk in: from where you park to where you stand, along real paths, then across open ground
+     only for the last stretch where the paths give out ---- */
+  async walkRoute(sLat, sLon) {
+    const to = this.loc(), D = Math.PI / 180, R = 6371000;
+    const dist = (a, b) => { const x = (b[1] - a[1]) * D * Math.cos((a[0] + b[0]) / 2 * D), y = (b[0] - a[0]) * D; return Math.hypot(x, y) * R; };
+    const start = [sLat, sLon], end = [to.lat, to.lon], crow = dist(start, end);
+    if (crow > 15000) { this.toast('That is more than 15 km away. Pick a start closer in.'); return; }
+    this._walkBusy = true; this.setState({ walkPick: false, walkInfo: { line: 'Finding the paths\u2026' } });
+    const pad = Math.max(0.006, crow / 111000 * 0.35), s = Math.min(sLat, to.lat) - pad, n = Math.max(sLat, to.lat) + pad;
+    const pw = pad / Math.cos(to.lat * D), w = Math.min(sLon, to.lon) - pw, e = Math.max(sLon, to.lon) + pw;
+    const q = '[out:json][timeout:25];way[highway~"^(footway|path|track|bridleway|steps|cycleway|pedestrian|living_street|residential|service|unclassified|tertiary|secondary|primary)$"](' + [s, w, n, e].map(v => v.toFixed(5)).join(',') + ');(._;>;);out skel qt;';
+    const NS = window.NoctoSurfaces, proxy = NS && NS.config ? NS.config().proxy : '';
+    let j = null;
+    /* the open map tiles first: quick, and never busy. Their lines are joined where they meet. */
+    try {
+      const lines = NS && NS.ofmPaths ? await NS.ofmPaths(s, w, n, e) : null;
+      if (lines && lines.length) {
+        const ids = new Map(), els = [], idOf = p => { const k = p[0].toFixed(5) + ',' + p[1].toFixed(5); let id = ids.get(k); if (id == null) { id = ids.size + 1; ids.set(k, id); els.push({ type: 'node', id, lat: p[0], lon: p[1] }); } return id; };
+        lines.forEach(L => els.push({ type: 'way', nodes: L.map(idOf) }));
+        j = { elements: els };
+      }
+    } catch (err) {}
+    if (!j) for (const u of [proxy ? proxy + '/overpass?data=' + encodeURIComponent(q) : null, 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q)].filter(Boolean)) {
+      try { const r = await fetch(u); if (r.ok) { j = await r.json(); break; } } catch (err) {}
+    }
+    this._walkBusy = false;
+    if (!j || !j.elements) { this.setState({ walkInfo: { line: 'The path map did not answer. Try again in a minute.', warn: true } }); return; }
+    const node = new Map(), adj = new Map();
+    j.elements.forEach(el => { if (el.type === 'node') node.set(el.id, [el.lat, el.lon]); });
+    const link = (a, b) => { const pa = node.get(a), pb = node.get(b); if (!pa || !pb) return; const d = dist(pa, pb);
+      (adj.get(a) || adj.set(a, []).get(a)).push([b, d]); (adj.get(b) || adj.set(b, []).get(b)).push([a, d]); };
+    j.elements.forEach(el => { if (el.type === 'way' && el.nodes) for (let i = 1; i < el.nodes.length; i++) link(el.nodes[i - 1], el.nodes[i]); });
+    if (!adj.size) { this.setState({ walkInfo: { line: 'No paths mapped here: it is open ground all the way.', warn: true } }); this._walk = { start, path: [start], off: [start, end] }; this.drawMapView(); return; }
+    let s0 = null, sd = 1e12; adj.forEach((_, id) => { const d = dist(start, node.get(id)); if (d < sd) { sd = d; s0 = id; } });
+    /* Dijkstra from the start; the end of the paths is the node that makes path + open ground
+       cheapest, open ground counted at twice its length because it is slower and harder */
+    const g = new Map([[s0, 0]]), prev = new Map(), heap = [[0, s0]], done = new Set();
+    const push = x => { heap.push(x); let i = heap.length - 1; while (i) { const p2 = (i - 1) >> 1; if (heap[p2][0] <= heap[i][0]) break; [heap[p2], heap[i]] = [heap[i], heap[p2]]; i = p2; } };
+    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+    let best = s0, bestC = 2 * dist(node.get(s0), end);
+    while (heap.length) { const [c, u] = pop(); if (done.has(u)) continue; done.add(u);
+      const cc = c + 2 * dist(node.get(u), end); if (cc < bestC) { bestC = cc; best = u; }
+      (adj.get(u) || []).forEach(([v, d]) => { const nc = c + d; if (nc < (g.has(v) ? g.get(v) : Infinity)) { g.set(v, nc); prev.set(v, u); push([nc, v]); } }); }
+    const path = []; for (let u = best; u != null; u = prev.get(u)) path.push(node.get(u)); path.reverse();
+    /* the stretch from where you clicked to the first path is open ground too, and drawn so */
+    const onKm = (g.get(best) || 0) / 1000, off = dist(node.get(best), end);
+    let gain = 0, last = null; const sc = this.sc, all = (sd > 15 ? [start] : []).concat(path, off > 15 ? [end] : []);
+    for (let i = 1; i < all.length; i++) { const a = all[i - 1], b2 = all[i], steps = Math.max(1, Math.ceil(dist(a, b2) / 25));
+      for (let k2 = 0; k2 <= steps; k2++) { const t = k2 / steps, hh = sc && sc.heightAt ? sc.heightAt(a[0] + (b2[0] - a[0]) * t, a[1] + (b2[1] - a[1]) * t) : null; if (hh == null) continue; if (last != null && hh > last) gain += hh - last; last = hh; } }
+    this._walk = { start, path, off: off > 15 ? [node.get(best), end] : null, offStart: sd > 15 ? [start, node.get(s0)] : null };
+    const fmt = v => v < 1 ? Math.round(v * 1000) + ' m' : v.toFixed(1) + ' km';
+    this.setState({ walkInfo: { warn: sd > 400, line: (sd > 15 ? Math.round(sd) + ' m to the first path, then ' : '') + fmt(onKm) + ' on paths' + (off > 15 ? ', then ' + Math.round(off) + ' m across open ground' : '') + (gain > 5 ? ' \u00b7 up ' + Math.round(gain / 10) * 10 + ' m' : '') } });
+    this.track && this.track('scout/walk');
+    this.drawMapView();
+  }
+  walkVals(ON, OFF) {
+    const st = this.state, wi = st.walkInfo, on = st.walkPick || !!this._walk;
+    return {
+      walkToggle: () => { if (this._walk || st.walkPick) { this._walk = null; this.setState({ walkPick: false, walkInfo: null }, () => this.drawMapView()); } else this.setState({ walkPick: true, walkInfo: null }); },
+      walkEdge: on ? ON.edge : OFF.edge, walkBg: on ? ON.bg : OFF.bg, walkFg: on ? ON.fg : OFF.fg,
+      walkLine: st.walkPick ? 'Click where you will start, such as where you park' : wi ? wi.line : 'Click to stand there \u00b7 drag the wedge to aim',
+      walkInk: st.walkPick ? '#D6B368' : wi && wi.warn ? '#E07A86' : wi ? '#F3F0EA' : '#ADA79B',
+    };
+  }
+  /* A month at a time. Each day carries a dot for how bright the moon is that night, which is the
+     first thing to know when choosing one. */
+  calVals(ON, n) {
+    const st = this.state, p = this.loc(), P = window.NoctoPlan;
+    const base = this.baseDate(), b0 = Date.UTC(base[0], base[1], base[2]);
+    const cur = new Date(n.getTime());
+    const cm = st.calMonth || [cur.getUTCFullYear(), cur.getUTCMonth()];
+    const first = Date.UTC(cm[0], cm[1], 1), lead = (new Date(first).getUTCDay() + 6) % 7, days = new Date(Date.UTC(cm[0], cm[1] + 1, 0)).getUTCDate();
+    const key = cm.join('-') + '|' + p.lat.toFixed(2) + ',' + p.lon.toFixed(2);
+    if (this._calKey !== key && st.pop === 'cal') {
+      this._calKey = key; this._calMoon = [];
+      for (let i = 1; i <= days; i++) { let f = 0; try { const k = P && P.skyAt(new Date(Date.UTC(cm[0], cm[1], i, 23, 0)), p.lat, p.lon); f = k && k.moon ? (k.moon.alt > -5 ? k.moon.frac : k.moon.frac * 0.35) : 0; } catch (e) {} this._calMoon.push(f); }
+    }
+    const MONF = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const selD = Math.round((Date.UTC(cur.getUTCFullYear(), cur.getUTCMonth(), cur.getUTCDate()) - b0) / 86400000);
+    const cells = [];
+    for (let i = 0; i < lead; i++) cells.push({ d: '', moon: 0, op: 0, bg: 'none', edge: 'transparent', fg: '#918B81', pick: () => {} });
+    for (let i = 1; i <= days; i++) {
+      const off = Math.round((Date.UTC(cm[0], cm[1], i) - b0) / 86400000), sel = off === selD;
+      cells.push({ d: String(i), moon: (0.12 + 0.88 * ((this._calMoon || [])[i - 1] || 0)).toFixed(2), op: 1,
+        bg: sel ? ON.bg : 'rgba(240,236,228,.03)', edge: sel ? ON.edge : 'transparent', fg: sel ? ON.fg : '#DCD7CC',
+        pick: () => { this._trailFrom = null; this.setState({ day: st.day + (off - selD), pop: null }, () => this.computeStrip(false)); } });
+    }
+    /* always six weeks, so the calendar keeps its height and the arrows stay put month to month */
+    while (cells.length < 42) cells.push({ d: '', moon: 0, op: 0, bg: 'none', edge: 'transparent', fg: '#918B81', pick: () => {} });
+    const shift = k => { const d2 = new Date(Date.UTC(cm[0], cm[1] + k, 1)); this.setState({ calMonth: [d2.getUTCFullYear(), d2.getUTCMonth()] }); };
+    return {
+      calOpen: st.pop === 'cal', calFg: st.pop === 'cal' ? '#D6B368' : '#ADA79B',
+      calToggle: () => this.setState({ pop: st.pop === 'cal' ? null : 'cal', calMonth: null }),
+      calTitle: MONF[cm[1]] + ' ' + cm[0], calPrev: () => shift(-1), calNext: () => shift(1),
+      calHead: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(t => ({ t })), calDays: cells,
+      calTonight: () => {
+        const off = this.tzAt(Date.now()), l = new Date(Date.now() + off * 60000);
+        const t = Date.UTC(l.getUTCFullYear(), l.getUTCMonth(), l.getUTCDate() - (l.getUTCHours() < 6 ? 1 : 0));
+        this._trailFrom = null; this.setState({ day: Math.round((t - b0) / 86400000), pop: null }, () => this.computeStrip(true));
+      },
+    };
+  }
   renderVals() {
     const st = this.state, p = this.loc(), hud = st.hud, sp = st.strip;
     const ms = this.noon() + st.min * 60000;
@@ -925,8 +1499,6 @@ class Component extends DCLogic {
     const fl = this.hhmm(ms);
     return {
       placeName: p.name,
-      placeLine: p.area + ' \u00b7 ' + p.lat.toFixed(4) + ', ' + p.lon.toFixed(4),
-      places: this.PLACES.map((q, i) => ({ area: q.area, ...(i === st.place && !st.here ? ON : OFF), pick: () => this.pickPlace(i) })),
       backOn: !!(st.trail && st.trail.length),
       goBack: () => {
         const tr = (st.trail || []).slice(), prev = tr.pop(); if (!prev) return;
@@ -934,7 +1506,7 @@ class Component extends DCLogic {
         this.resetTrails();
         this.setState({ here: home ? null : prev, trail: tr }, () => this.loadHere('Walking back'));
       },
-      viewJump: e => this.jumpAt(e),
+      viewJump: e => { if (!this.wide()) this.jumpAt(e); },
       mapOn: !!st.mapOn, mapRef: this.mapRef, mapPressed: st.mapOn ? 'true' : 'false',
       mapToggle: () => this.setMap(!st.mapOn),
       mapBtnLabel: st.mapOn ? '3D view' : 'Map', mapBtnIcon: st.mapOn ? 'mountain' : 'map',
@@ -963,7 +1535,7 @@ class Component extends DCLogic {
         if (m.aim) {
           const me = this._mapMe; if (!me || !m.moved) return;
           this._view.az = (Math.atan2(y - me.y, x - me.x) * 180 / Math.PI + 90 + 360) % 360;
-          this.syncView(); this.drawMapSoon(); return;
+          this.syncView(); this.drawMapSoon(); this.drawTape(); return;
         }
         if (!m.moved) return;
         const zt = Math.floor(m.mv.z), k = Math.pow(2, m.mv.z - zt), [cx, cy] = this.mapPx(m.mv.lat, m.mv.lon, zt);
@@ -979,6 +1551,7 @@ class Component extends DCLogic {
         const b = e.currentTarget.getBoundingClientRect(), mv = this._mv, zt = Math.floor(mv.z), k = Math.pow(2, mv.z - zt), [cx, cy] = this.mapPx(mv.lat, mv.lon, zt);
         const [la, lo] = this.mapLL(cx + (e.clientX - b.left - b.width / 2) / k, cy + (e.clientY - b.top - b.height / 2) / k, zt);
         clearTimeout(this._mapClickT);
+        if (this.state.walkPick) { this.walkRoute(la, lo); return; }
         /* a second tap soon after, for touch, which sends no double-click */
         const t = performance.now(), l = this._mapTap;
         if (e.pointerType !== 'mouse' && l && t - l.t < 320 && Math.hypot(e.clientX - l.x, e.clientY - l.y) < 30) {
@@ -991,24 +1564,56 @@ class Component extends DCLogic {
       },
       mapDbl: () => {
         clearTimeout(this._mapClickT);
+        if (this.state.walkPick || this._walkBusy) return;
         const p = this._mapClickAt; if (!p) return;
         this.walkTo(p[0], p[1], 'Walking from the map');
         this.setMap(false);
       },
-      credits: this.creditsLine(),
+      credits: st.mapOn && st.mapBase === 'map' ? 'Map \u00a9 OpenStreetMap contributors' : this.creditsLine(),
+      mapBases: [['sat', 'Satellite'], ['map', 'Map']].map(([k, label]) => ({ label, ...((st.mapBase || 'sat') === k ? ON : OFF), pick: () => this.setState({ mapBase: k }, () => this.drawMapView()) })),
       timeLabel: fl,
-      dateLabel: DAYS[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ' ' + d.getUTCFullYear() + ' \u00b7 ' + (this.tzAt(ms) ? 'BST' : 'GMT'),
-      sunLine: hud ? 'Sun ' + deg(hud.sun) : 'Sun \u2013',
+      dateLabel: DAYS[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ' ' + d.getUTCFullYear() + ' \u00b7 ' + this.zoneLabel(ms),
+      ...this.calVals(ON, n), ...this.planVals(), ...this.walkVals(ON, OFF),
+      compassDisp: st.mapOn ? 'none' : 'grid',
+      brandWord: (this.state.vw || window.innerWidth) >= 1080 ? 'inline' : 'none',
+      speedLabel: st.speed + ' min/s',
+      ...(() => { const c = this.cloudAt(ms); return { cloudNowOn: c != null, cloudNow: c == null ? '' : 'Cloud ' + Math.round(c) + '%' }; })(),
+      speedNext: () => { const i = this.SPEEDS.indexOf(st.speed); this.setState({ speed: this.SPEEDS[(i + 1) % this.SPEEDS.length] }); },
+      focalLabel: this.kit().focal + 'mm', focalOpen: st.pop === 'focal', focalEdge: st.pop === 'focal' ? '#D6B368' : 'rgba(240,236,228,.14)',
+      focalToggle: () => this.setState({ pop: st.pop === 'focal' ? null : 'focal' }),
+      focals: this.KIT_FOCAL.map(f => ({ label: f + 'mm', ...(this.kit().focal === f ? ON : OFF), pick: () => this.setKit({ focal: f }) })),
+      orients: [['land', 'Landscape'], ['port', 'Portrait']].map(([k2, label]) => ({ label, ...((this.kit().orient || 'land') === k2 ? ON : OFF), pick: () => this.setKit({ orient: k2 }) })),
+      viewOpen: st.pop === 'view', viewEdge: st.pop === 'view' ? '#D6B368' : 'rgba(240,236,228,.14)', viewFg: st.pop === 'view' ? '#D6B368' : '#DCD7CC',
+      viewToggle: () => this.setState({ pop: st.pop === 'view' ? null : 'view' }),
+      bearingLine: (() => { const a = Math.round(((v.az % 360) + 360) % 360) % 360; return String(a).padStart(3, '0') + '\u00b0 ' + ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(a / 22.5) % 16]; })(),
+      tapeRef: this.tapeRef,
+      q: st.q || '', qEdge: st.qOpen ? '#D6B368' : 'rgba(240,236,228,.2)',
+      onQ: e => { const v2 = e.target.value; this.setState({ q: v2, qOpen: true }); this.search(v2); },
+      onQFocus: () => this.setState({ qOpen: true }),
+      onQBlur: () => setTimeout(() => this.setState({ qOpen: false }), 150),
+      onQKey: e => { if (e.key === 'Enter' && (st.results || [])[0]) { const r = st.results[0]; this.openPlace({ name: r.name, area: r.coord ? 'Coordinates' : r.name, lat: r.lat, lon: r.lon }); } else if (e.key === 'Escape') { e.target.blur(); } },
+      dropOn: !!st.qOpen && ((st.q || '').trim().length >= 2 || this.recentList().length > 0),
+      results: ((st.q || '').trim().length < 2 ? this.recentList().slice(0, 6).map(r => ({ name: r.name, sub: r.area && r.area !== r.name ? r.area : 'Recent', lat: r.lat, lon: r.lon, _recent: r })) : (st.results || [])).map((r, i) => ({ ...r, bg: i === 0 ? 'rgba(214,179,104,.1)' : 'transparent', pick: () => this.openPlace(r._recent || { name: r.name, area: r.coord ? 'Coordinates' : r.name, lat: r.lat, lon: r.lon }) })),
+      noResults: (st.q || '').trim().length >= 2 && !(st.results || []).length, noResultsLine: st.qBusy ? 'Searching\u2026' : 'Nothing found. Try a nearby town, or paste coordinates.',
+      locateMe: () => {
+        if (!navigator.geolocation) { this.toast('This browser cannot share its location.'); return; }
+        this.toast('Finding you\u2026');
+        navigator.geolocation.getCurrentPosition(pos => this.openPlace({ name: 'Where you are', area: 'Here', lat: pos.coords.latitude, lon: pos.coords.longitude }),
+          () => this.toast('Location was not shared. Search for the place instead.'), { enableHighAccuracy: true, timeout: 12000 });
+      },
+      recents: this.recentList().slice(0, 5).map((r, i) => { const cur = this.PLACES[st.place], on = !st.here && cur && Math.abs(cur.lat - r.lat) < 0.002 && Math.abs(cur.lon - r.lon) < 0.002; return { area: r.area || r.name, ...(on ? ON : OFF), pick: () => this.openPlace(r) }; }),
+      sunLine: hud && hud.sun < -18 ? '' : hud ? 'Sun ' + deg(hud.sun) : 'Sun \u2013',
       moonLine: hud ? 'Moon ' + Math.round(hud.frac * 100) + '% ' + (hud.moon > 0 ? deg(hud.moon) : 'down') : 'Moon \u2013',
       coreLine: hud ? 'Core ' + (hud.core > 0 ? deg(hud.core) : 'down') : 'Core \u2013',
       grounds: this.GROUNDS.map(([k, label]) => ({ label, ...(st.ground === k ? ON : { ...OFF, bg: 'rgba(10,10,11,.6)' }), pick: set('ground', k) })),
       toggles: [
-        { label: 'Frame', ...(st.frame ? ON : OFF), flip: set('frame', !st.frame) },
-        { label: 'Star trails', ...(st.trails ? ON : OFF), flip: set('trails', !st.trails) },
+        { label: 'Frame', ...(st.frame ? ON : OFF), flip: () => this.setState({ frame: !st.frame, pano: false }, () => this.dirty()) },
+        { label: 'Panorama', ...(st.pano ? ON : OFF), flip: () => this.setPano(!st.pano) },
+        { label: 'Star trails', ...(st.trails ? ON : OFF), flip: () => { this._trailFrom = this._min; this.setState({ trails: !st.trails }, () => this.dirty()); } },
         { label: 'Light domes', ...(st.domes ? ON : OFF), flip: set('domes', !st.domes) },
         { label: 'H-alpha', ...(st.ha ? { bg: 'rgba(224,122,134,.16)', edge: '#E07A86', fg: '#E07A86' } : OFF), flip: set('ha', !st.ha) },
       ],
-      ...this.detailVals(),
+      ...this.statusVals(),
       haze: st.haze, hazeLabel: Math.round(this.hazeKm()) + ' km',
       onHaze: e => this.setState({ haze: +e.target.value }, () => { this.resetTrails(); this.dirty(); }),
       saveFrame: () => {
@@ -1026,17 +1631,19 @@ class Component extends DCLogic {
       loadLine: st.toast || (st.load ? (st.load.label || 'Reading the ground') + ' \u00b7 ' + st.load.d + ' of ' + st.load.t + ' tiles' : ''),
       playToggle: () => this.togglePlay(),
       playIcon: st.playing ? 'pause' : 'play', playAria: st.playing ? 'Pause' : 'Play',
-      speeds: this.SPEEDS.map(s => ({ label: s + ' min/s', ...(st.speed === s ? ON : OFF), pick: () => this.setState({ speed: s }) })),
+      speeds: this.SPEEDS.map(s => ({ label: String(s), ...(st.speed === s ? ON : OFF), pick: () => this.setState({ speed: s }) })),
       nightLabel: DAYS[n.getUTCDay()] + ' ' + n.getUTCDate() + ' ' + MON[n.getUTCMonth()],
-      dayPrev: () => this.setState({ day: st.day - 1 }, () => this.computeStrip(false)),
-      dayNext: () => this.setState({ day: st.day + 1 }, () => this.computeStrip(false)),
+      dayPrev: () => { this._trailFrom = null; this.setState({ day: st.day - 1 }, () => this.computeStrip(false)); },
+      dayNext: () => { this._trailFrom = null; this.setState({ day: st.day + 1 }, () => this.computeStrip(false)); },
+      ...this.kitVals(ON, OFF, v, p), ...this.panoVals(ON, OFF),
+      trailsOn: !!st.trails,
+      trailsLine: (() => { if (!st.trails || this._trailFrom == null) return ''; const m = Math.max(0, Math.round(st.min - this._trailFrom)); return 'Trails ' + this.hhmm(this.noon() + this._trailFrom * 60000) + ' + ' + (m >= 60 ? Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') : m + ' min'); })(),
+      trailsRestart: () => { this._trailFrom = this._min; this.dirty(); this.forceUpdate(); },
+      tiltLine: 'tilt ' + (v.alt >= 0 ? '+' : '\u2212') + Math.abs(v.alt).toFixed(0) + '\u00b0' + (v.hfov > this.WIDE ? ' \u00b7 ' + Math.round(v.hfov) + '\u00b0 across' : ''),
       exp: st.exp, expLabel: st.exp + '%',
       haOn: !!st.ha, haStr: st.haStr, haLabel: st.haBusy ? 'sharpening' : st.haStr + '%',
       onHa: e => this.setState({ haStr: +e.target.value }, () => { this.resetTrails(); this.dirty(); }),
       onExp: e => this.setState({ exp: +e.target.value }, () => { this.resetTrails(); this.dirty(); }),
-      lenses: this.LENSES.map(f => ({ label: f + 'mm', ...(st.lens === f ? ON : OFF), pick: set('lens', f) })),
-      orientFlip: set('portrait', !st.portrait), orientLabel: st.portrait ? 'Portrait' : 'Landscape',
-      aimLine: Math.round(((v.az % 360) + 360) % 360) + '\u00b0 \u00b7 ' + (v.alt >= 0 ? '+' : '\u2212') + Math.abs(v.alt).toFixed(0) + '\u00b0 \u00b7 view ' + Math.round(v.hfov) + '\u00b0',
       events: this.eventLabels(sp),
       viewRef: this.viewRef, stripRef: this.stripRef, evRef: this.evRef,
       viewDown: e => {
@@ -1055,20 +1662,20 @@ class Component extends DCLogic {
         const P = this._vp; if (P && P.has(e.pointerId)) P.set(e.pointerId, { x: e.clientX, y: e.clientY });
         if (this._pinch && P && P.size === 2) {
           const [a, b] = [...P.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
-          this._view.hfov = Math.max(12, Math.min(120, this._pinch.hfov * this._pinch.d / Math.max(1, d)));
+          this._view.hfov = Math.max(12, Math.min(360, this._pinch.hfov * this._pinch.d / Math.max(1, d)));
           this.resetTrails(); this.dirty(); this.syncView(); return;
         }
         const g = this._drag, cv = this._cv; if (!g || !cv) return;
         const R = Math.PI / 180, vw = this._view, W = cv.clientWidth, H = cv.clientHeight;
-        const vf = 2 * Math.atan(Math.tan(vw.hfov / 2 * R) * H / W) / R;
+        const vf = this.wide() ? vw.hfov * H / W : 2 * Math.atan(Math.tan(vw.hfov / 2 * R) * H / W) / R;
         vw.az = g.az - (e.clientX - g.x) * vw.hfov / W;
         vw.alt = Math.max(-15, Math.min(80, g.alt + (e.clientY - g.y) * vf / H));
         this.resetTrails(); this.dirty(); this.syncView();
       },
       viewUp: e => { if (this._vp) this._vp.delete(e.pointerId); if (!this._vp || this._vp.size < 2) this._pinch = null; this._drag = null; e.currentTarget.style.cursor = 'grab'; },
-      stripDown: e => { e.currentTarget.setPointerCapture(e.pointerId); this._sdrag = true; if (st.playing) this.setState({ playing: false }); this.stripAt(e); },
-      stripMove: e => { if (this._sdrag) this.stripAt(e); },
-      stripUp: () => { this._sdrag = false; },
+      stripDown: e => { e.currentTarget.setPointerCapture(e.pointerId); this._sdrag = true; this._sAnchor = null; if (st.playing) this.setState({ playing: false }); this.stripAt(e); },
+      stripMove: e => { if (this._sdrag) this.stripAt(e, true); },
+      stripUp: () => { this._sdrag = false; this._sAnchor = null; },
     };
   }
 }

@@ -3775,8 +3775,16 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '2.0.2';
+  VERSION = '2.0.3';
   BUILDS = [
+    {
+      v: '2.0.3', date: '2026-09-28', silent: true,
+      title: 'Noctography 2.0.3',
+      intro: '',
+      bullets: [
+        'Open plans shared from Scout on a computer: they arrive in your compositions, ready for the field',
+      ],
+    },
     {
       v: '2.0.2', date: '2026-09-27', silent: true,
       title: 'Noctography 2.0.2',
@@ -4231,6 +4239,7 @@ class Component extends DCLogic {
   componentDidMount() {
     document.addEventListener('keydown', this._onKey);
     this.compLoad();
+    if (/[?&]plan=/.test(location.search)) setTimeout(() => this.planFromLink(), 900);
     const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
       || window.navigator.standalone === true;
     // count.js loads async, so give it a moment before the first event
@@ -8593,6 +8602,29 @@ class Component extends DCLogic {
 
      So it waits for the module rather than giving up on it, and the flag is only set once a load
      is genuinely under way. */
+  /* A plan shared from Scout on the desktop: the link carries the plans themselves. They are kept
+     as compositions without a picture and the Log opens on them, ready to take into Sky AR. */
+  planFromLink() {
+    const m = location.search.match(/[?&]plan=([^&]+)/); if (!m) return;
+    let t = null;
+    try { const s = m[1].replace(/-/g, '+').replace(/_/g, '/'); t = JSON.parse(decodeURIComponent(escape(atob(s + '==='.slice((s.length + 3) % 4))))); } catch (e) { t = null; }
+    history.replaceState(null, '', location.pathname);
+    if (!Array.isArray(t) || !t.length) return;
+    this.ensureComp().then(C => {
+      const recs = t.filter(x => Array.isArray(x) && isFinite(x[0]) && isFinite(x[1])).map(x => {
+        const at = x[5] * 60000, night = this.compNightOf(at);
+        return { id: C.newId(), at, night: night.ms, nightKey: night.key, cap: Date.now(), name: '', note: 'Planned in Scout',
+          place: x[8] || '', lat: x[0], lon: x[1], az: x[2], alt: x[3], roll: 0, hfov: x[4], lens: 'scout', zoom: 1, pano: null,
+          focal: x[6], sensor: this.kit().sensor, orient: x[7] ? 'port' : 'land', cal: true, nudge: 0, src: 'scout', photo: false };
+      });
+      return Promise.all(recs.map(r => C.put(r))).then(() => {
+        this.setState(s => ({ comps: s.comps.concat(recs).sort((p, q) => p.night - q.night), compSel: recs[0].id }));
+        this.goTab('log');
+        this.setState({ logView: 'comps' });
+        this.track('comp/from-scout');
+      });
+    }).catch(() => {});
+  }
   compLoad() {
     if (this._compLoaded) return;
     this._compLoaded = true;

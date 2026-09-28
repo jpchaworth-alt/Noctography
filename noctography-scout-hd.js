@@ -613,7 +613,7 @@ class Scene {
       const ctx = { W, box, lat, lon, lonOf, latOf, m: r.mPerPx, mMerc: (box.x1 - box.x0) / W, H: Float32Array.from(x.data.base), patient: !!again,
         geo: { n: yToLat(r.y0, r.z), s: yToLat(r.y0 + r.n, r.z), w: xToLon(r.x0, r.z), e: xToLon(r.x0 + r.n, r.z) } };
       let res = null;
-      const O = window.NoctoOffline, ck = 'https://offline.noctography.net/surface3/' + r.z + '/' + r.x0 + '/' + r.y0;
+      const O = window.NoctoOffline, ck = 'https://offline.noctography.net/surface4/' + r.z + '/' + r.x0 + '/' + r.y0;
       const packed = O && !again ? await O.get(ck) : null;
       if (packed) {
         try {
@@ -624,12 +624,16 @@ class Scene {
             terrain: meta.t ? new Float32Array(packed.slice(off + (meta.s ? N * 4 : 0), off + (meta.s ? N * 8 : N * 4))) : null };
           const ko = off + (meta.s ? N * 4 : 0) + (meta.t ? N * 4 : 0);
           res.kind = meta.k ? new Uint8Array(packed.slice(ko, ko + N)) : null;
+          /* a fallback kept where a national survey should have answered is only trusted for three
+             days: the survey may have been down, not absent */
+          if (meta.soft && (!meta.at || Date.now() - meta.at > 3 * 86400000)) res = null;
         } catch (e) { res = null; }
       }
       if (!res) {
         try { res = await NS.fetchFor(ctx); } catch (e) { res = null; }
         if (res && O && !res.pending && !res.degraded) {
-          const meta = new TextEncoder().encode(JSON.stringify({ name: res.name, credit: res.credit, terrainOnly: res.terrainOnly, s: !!res.surface, t: !!res.terrain, k: !!res.kind }));
+          const soft = !!(NS.coverage && NS.coverage(ctx.lat, ctx.lon) && !String(res.name).startsWith(NS.coverage(ctx.lat, ctx.lon)));
+          const meta = new TextEncoder().encode(JSON.stringify({ name: res.name, credit: res.credit, terrainOnly: res.terrainOnly, s: !!res.surface, t: !!res.terrain, k: !!res.kind, soft, at: Date.now() }));
           const pad = (4 - (4 + meta.length) % 4) % 4, N = W * W;
           const out = new Uint8Array(4 + meta.length + pad + (res.surface ? N * 4 : 0) + (res.terrain ? N * 4 : 0) + (res.kind ? N : 0));
           new Uint32Array(out.buffer, 0, 1)[0] = meta.length; out.set(meta, 4);
@@ -723,9 +727,16 @@ class Scene {
       } else H[k] = v;
     }
     if (got < H.length * 0.02) { say({ state: 'none', name: src.name }); return; }
-    if (bare) {
-      const v = [bareAt(ci, cj), bareAt(ci + 1, cj), bareAt(ci, cj + 1), bareAt(ci + 1, cj + 1)].filter(q => q === q);
-      if (v.length) this.ground = Math.max(...v);
+    /* the eye stands on the highest point of the finished ground within two pixels (about 5 m). On a
+       40 degree slope the ground rises more than eye height across one pixel, and an eye below the
+       surface sees straight through its underside into the sky. */
+    {
+      let g = -1e9;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        const i = ci + dx, j = cj + dy; if (i < 0 || j < 0 || i >= W || j >= W) continue;
+        const v = H[j * W + i]; if (v === v && v > g) g = v;
+      }
+      if (g > -1e8) this.ground = g;
     }
     /* the last 40 pixels of the patch ease into the global terrain, so what little step is left after
        the shift becomes a slope rather than a wall */

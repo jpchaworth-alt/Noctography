@@ -163,7 +163,7 @@ function wcs3857(base, id, ax, wrap){
     const url = (wrap || (u => u))(base + (base.includes('?') ? '&' : '?') + 'service=WCS&request=GetCoverage&version=2.0.1&CoverageId=' + encodeURIComponent(id) +
       '&format=image/tiff&subsettingCrs=' + C3857 + '&outputCrs=' + C3857 +
       '&subset=' + ax[0] + '(' + b.x0.toFixed(2) + ',' + b.x1.toFixed(2) + ')&subset=' + ax[1] + '(' + b.y0.toFixed(2) + ',' + b.y1.toFixed(2) + ')' +
-      '&scalesize=' + ax[0] + '(' + ctx.W + '),' + ax[1] + '(' + ctx.W + ')');
+      '&scalesize=' + (ax[2] || ax[0]) + '(' + ctx.W + '),' + (ax[3] || ax[1]) + '(' + ctx.W + ')');
     const t = clean(await decodeTiff(await fetchBuf(url)));
     if (!t) return null;
     if (t.W === ctx.W && t.H === ctx.W) return t.data;
@@ -438,6 +438,32 @@ async function ofmBuildings(ctx){
   }));
   return count ? { heights: out, count } : null;
 }
+/* Paths, tracks and roads over a box, as lines of [lat, lon], from the same open tiles as the
+   buildings: the transportation layer at z14 carries footpaths and tracks as well as roads. */
+async function ofmPaths(s, w, n, e){
+  const { url, VT, Pbf } = await ofm();
+  const z = 14, N = 1 << z;
+  const txOf = lo => Math.floor((lo + 180) / 360 * N), tyOf = la => { const q = Math.sin(la * D2R); return Math.floor((1 - Math.log((1 + q) / (1 - q)) / (2 * Math.PI)) / 2 * N); };
+  const jobs = [];
+  for (let tx = txOf(w); tx <= txOf(e); tx++) for (let ty = tyOf(n); ty <= tyOf(s); ty++) jobs.push([tx, ty]);
+  if (jobs.length > 64) return null;
+  const KEEP = /^(path|track|minor|service|tertiary|secondary|primary|trunk|pedestrian|footway|cycleway|bridleway|steps|living_street|residential|unclassified)$/;
+  const lines = [];
+  await Promise.all(jobs.map(async ([tx, ty]) => {
+    const buf = await fetchBuf(url.replace('{z}', z).replace('{x}', tx).replace('{y}', ty), 30000);
+    if (!buf) return;
+    let L; try { L = new VT.VectorTile(new Pbf(new Uint8Array(buf))).layers.transportation; } catch (err) { return; }
+    if (!L) return;
+    const ext = L.extent;
+    for (let k = 0; k < L.length; k++) {
+      const f = L.feature(k); if (f.type !== 2) continue;
+      const cls = String(f.properties.class || ''), sub = String(f.properties.subclass || '');
+      if (!KEEP.test(cls) && !KEEP.test(sub)) continue;
+      f.loadGeometry().forEach(r => lines.push(r.map(p => { const lon = (tx + p.x / ext) / N * 360 - 180, yy = Math.PI - 2 * Math.PI * (ty + p.y / ext) / N; return [R2D * Math.atan(Math.sinh(yy)), lon]; })));
+    }
+  }));
+  return lines;
+}
 /* scanline fill, even-odd across all rings together so courtyards stay open */
 function fillRings(out, W, rings, h){
   let ymin = 1e9, ymax = -1e9;
@@ -562,8 +588,8 @@ function direct(base, id, ax){
 }
 const SOURCES = [
   { id: 'ea', name: 'Environment Agency LIDAR', credit: 'LIDAR \u00a9 Environment Agency', box: [49.85, 55.82, -6.45, 1.8],
-    surface: direct(EA + 'lidar-composite-digital-surface-model-first-return-dsm-1m/wcs', 'df4e3ec3-315e-48aa-aaaf-b5ae74d7b2bb__Lidar_Composite_Elevation_FZ_DSM_1m'),
-    terrain: direct(EA + 'lidar-composite-digital-terrain-model-dtm-1m/wcs', '13787b9a-26a4-4775-8523-806d13af58fc__Lidar_Composite_Elevation_DTM_1m') },
+    surface: direct(EA + 'lidar-composite-digital-surface-model-first-return-dsm-1m/wcs', 'df4e3ec3-315e-48aa-aaaf-b5ae74d7b2bb__Lidar_Composite_Elevation_FZ_DSM_1m', ['X', 'Y', 'i', 'j']),
+    terrain: direct(EA + 'lidar-composite-digital-terrain-model-dtm-1m/wcs', '13787b9a-26a4-4775-8523-806d13af58fc__Lidar_Composite_Elevation_DTM_1m', ['X', 'Y', 'i', 'j']) },
   { id: 'sc', name: 'Scottish LiDAR', credit: 'LiDAR \u00a9 Scottish Government, OGL', box: [54.6, 60.9, -8.7, -0.7],
     surface: srsp('dsm'), terrain: srsp('dtm') },
   { id: 'fr', name: 'IGN France', credit: 'RGE ALTI, LiDAR HD \u00a9 IGN, Licence Ouverte', box: [41.3, 51.1, -5.2, 9.6],
@@ -676,5 +702,5 @@ async function fetchFor(ctx){
 function config(o){ if (o) { if (o.tokens) Object.assign(CFG.tokens, o.tokens); if (o.proxy != null) CFG.proxy = o.proxy; if (o.canopyBlock) CFG.canopyBlock = o.canopyBlock; } return { ...CFG }; }
 function coverage(lat, lon){ const s = SOURCES.find(s => lat >= s.box[0] && lat <= s.box[1] && lon >= s.box[2] && lon <= s.box[3] && (!s.needs || CFG.tokens[s.needs])); return s ? s.name : null; }
 
-window.NoctoSurfaces = { metaCanopy, buildings, SOURCES, fetchFor, config, coverage, lv95, nztm, nzTiles, osgb, osgbSquare, lcc3979 };
+window.NoctoSurfaces = { metaCanopy, buildings, ofmPaths, SOURCES, fetchFor, config, coverage, lv95, nztm, nzTiles, osgb, osgbSquare, lcc3979 };
 })();
