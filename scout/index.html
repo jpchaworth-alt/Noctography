@@ -17,6 +17,7 @@
   <script src="../noctography-scout.js?v=2.0.3"></script>
   <script src="../noctography-offline.js?v=1"></script>
   <script src="../noctography-comp.js?v=2.0.1"></script>
+  <script src="../noctography-sync.js?v=1"></script>
   <script src="../noctography-surfaces.js?v=24"></script>
   <script src="../noctography-scout-hd.js?v=25"></script>
   <style>
@@ -112,6 +113,16 @@
               <button type="button" onClick="{{ planNightShare }}" style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(214,179,104,.6); background: none; color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="share-2" size="{{ 14 }}" hint-size="14px,14px"></x-import><span>Share the night</span></button>
             </sc-if>
           </div>
+          <div style="display: grid; gap: 8px; padding: 10px 12px; border-radius: 8px; background: rgba(240,236,228,.035); border: 1px solid rgba(240,236,228,.08);">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: {{ syInk }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ syLine }}</span>
+              <button type="button" onClick="{{ syBtn }}" style="flex: 0 0 auto; height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(214,179,104,.6); background: none; color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;">{{ syBtnLabel }}</button>
+            </div>
+            <sc-if value="{{ syQrOn }}" hint-placeholder-val="{{ false }}">
+              <div role="img" aria-label="QR code for linking your phone" style="width: 180px; height: 180px; border-radius: 6px; background: #E8C98A center / contain no-repeat; background-image: {{ syQrBg }};"></div>
+              <span style="font-size: 12.5px; line-height: 1.45; color: #ADA79B; text-wrap: pretty;">Scan with your phone's camera. It opens the app and links it; plans then stay in step on both.</span>
+            </sc-if>
+          </div>
           <sc-if value="{{ planNoneOn }}" hint-placeholder-val="{{ false }}">
             <span style="font-size: 14px; line-height: 1.45; color: #ADA79B; text-wrap: pretty;">Frame a shot and press the camera. Plans are kept with the compositions in the app, and a shared link opens them on your phone.</span>
           </sc-if>
@@ -200,10 +211,7 @@
           <span style="display: flex; align-items: center;">Sky</span><span style="display: flex; align-items: center;">Moon</span><span style="display: flex; align-items: center;">Core</span><span style="display: flex; align-items: center;">Cloud</span>
         </div>
         <div style="display: grid; min-width: 0;">
-          <div ref="{{ evRef }}" style="position: relative; height: 30px;">
-            <sc-for list="{{ events }}" as="e" hint-placeholder-count="4"><span style="position: absolute; left: {{ e.left }}; top: {{ e.top }}; white-space: nowrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: {{ e.c }};">{{ e.label }}</span></sc-for>
-          </div>
-          <canvas ref="{{ stripRef }}" onPointerDown="{{ stripDown }}" onPointerMove="{{ stripMove }}" onPointerUp="{{ stripUp }}" onPointerCancel="{{ stripUp }}" title="Drag or scroll to move through the night, and on into the next" style="display: block; width: 100%; height: 72px; border-radius: 6px; touch-action: none; cursor: ew-resize;"></canvas>
+          <canvas ref="{{ stripRef }}" onPointerDown="{{ stripDown }}" onPointerMove="{{ stripMove }}" onPointerUp="{{ stripUp }}" onPointerCancel="{{ stripUp }}" title="Drag or scroll the timeline: it runs on from night to night" style="display: block; width: 100%; height: 102px; border-radius: 6px; touch-action: none; cursor: grab;"></canvas>
         </div>
       </div>
       <sc-if value="{{ calOpen }}" hint-placeholder-val="{{ false }}">
@@ -284,7 +292,6 @@ class Component extends DCLogic {
       }
       if (el) this.drawMapView();
     };
-    this.evRef = el => { this._ev = el; };
   }
   componentDidMount() {
     window.__scout = this;
@@ -354,13 +361,14 @@ class Component extends DCLogic {
     const shared = this.planDecode();
     if (shared && shared.length) this.planImport(shared); else this.pickPlace(0);
     this.planLoad();
+    window.addEventListener('nocto-sync', e => { const d = e.detail || {}; if (d.state === 'ok' && d.changed) this.planLoad(); this.forceUpdate(); });
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p => { if (!p) navigator.storage.persist(); }); } catch (e) {}
     const tick = t => {
       const dt = this._last ? Math.min(100, t - this._last) : 0; this._last = t;
       const st = this.state, sp = this._strip;
       if (st.playing && sp) {
         this._min += st.speed * dt / 1000;
-        if (this._min > sp.end) this.roll();
+        if (this._min > sp.end) this.roll(true);
         this._dirty = true;
         if (t - (this._pushed || 0) > 120) { this._pushed = t; this.setState({ min: this._min, hud: this._hud }); }
       }
@@ -406,18 +414,25 @@ class Component extends DCLogic {
     return dt;
   }
   noon(day) {
-    const dt = this.baseDate(), g = Date.UTC(dt[0], dt[1], dt[2] + (day == null ? this.state.day : day), 12, 0); return g - this.tzAt(g) * 60000;
+    const dt = this.baseDate(), g = Date.UTC(dt[0], dt[1], dt[2] + (day == null ? this.curDay() : day), 12, 0); return g - this.tzAt(g) * 60000;
   }
   /* Time runs on: past dawn the strip rolls into the next night, before dusk into the one before,
      whether you are playing, dragging or scrolling. */
-  roll() {
-    const sp = this._strip; if (!sp || this._rolling) return;
-    let dir = 0, over = 0;
-    if (this._min > sp.end) { dir = 1; over = this._min - sp.end; }
-    else if (this._min < sp.start) { dir = -1; over = this._min - sp.start; }
+  curDay() { return this._dayNow != null ? this._dayNow : this.state.day; }
+  /* The timeline is continuous. The date is the night that starts that evening, so the day turns at
+     noon; the moment on screen never moves when it does. Playing still skips the daylight. */
+  roll(jump) {
+    let dir = this._min >= 1440 ? 1 : this._min < 0 ? -1 : 0;
+    if (jump) dir = 1;
     if (!dir) return;
-    this._rolling = true; this._rollOver = over;
-    this.setState({ day: this.state.day + dir }, () => { this.computeStrip(false); this._rolling = false; if (this._sdrag) this._sAnchor = null; });
+    const from = this.curDay(), to = from + dir, shift = (this.noon(to) - this.noon(from)) / 60000;
+    this._dayNow = to;
+    this._min -= shift;
+    if (this._sAnchor) this._sAnchor.m -= shift;
+    if (this._trailFrom != null) this._trailFrom -= shift;
+    if (jump) this._jumpStart = true;
+    this.setState({ day: to }, () => { if (this._dayNow === to) this._dayNow = null; this.computeStrip(false); });
+    if (!jump && (this._min >= 1440 || this._min < 0)) this.roll();
   }
   zoneLabel(ms) {
     const z = this.PLACES[this.state.place].tz || 'Europe/London';
@@ -718,9 +733,9 @@ class Component extends DCLogic {
     this._strip = { sun, moon, mfrac, core, start, end, ev };
     const dark = cross(sun, -18, false);
     this.loadCloud();
-    if (this._rollOver != null && !resetTime) { this._min = this._rollOver > 0 ? start + this._rollOver : end + this._rollOver; this._rollOver = null; }
-    if (resetTime && p.at != null) this._min = p.at;
-    else if (resetTime || this._min < start || this._min > end) this._min = Math.min(end, (dark == null ? start : dark) + 45);
+    if (this._jumpStart) { this._min = start; this._jumpStart = false; this._trailFrom = this.state.trails ? start : null; }
+    else if (resetTime && p.at != null) this._min = p.at;
+    else if (resetTime) this._min = Math.min(end, (dark == null ? start : dark) + 45);
     this.resetTrails();
     this.setState({ strip: { start, end, ev: ev.map(e => ({ label: e[0], at: e[1], c: e[2] })) }, min: this._min });
     this.dirty();
@@ -788,14 +803,14 @@ class Component extends DCLogic {
     /* a sharp strip stays until the moment or the look changes; then it is a draft again */
     const q = sharp || (this._wideSharpFor === base) ? 'sharp' : 'draft', key = base + '|' + q;
     if (key === this._wideKey || key === this._wideWant) return;
-    this._wideWant = key;
+    this._wideWant = key; clearTimeout(this._autoSharpT);
     clearTimeout(this._wideT);
     this._wideT = setTimeout(() => {
       const tok = this._wideTok = {}, HD = window.NoctoScoutHD;
       const out = this._wideCv || (this._wideCv = document.createElement('canvas'));
       const extras = { gain, domes: st.domes ? this._domes : null };
       const draft = q === 'draft';
-      const o = { ppd: draft ? (this.touch ? 3 : 4) : (this.touch ? 5 : 6), sw: draft ? 45 : 30, coarse: draft, starScale: 0.8,
+      const o = { ppd: draft ? (this.touch ? 3 : 4) : (this.touch ? 5 : 6), sw: draft ? 45 : 30, coarse: false, starScale: 0.8,
         tiers: draft ? [{ e: 0, lo: S.pano.BOT, hi: 42, vh: 47 }, { e: 64, lo: 42, hi: S.pano.TOP, vh: 32 }] : undefined,
         when, lat: p.lat, lon: p.lon, gain, trueCol: st.ground === 'true', map: S.skyDataReady() ? { stars: true } : null,
         afterSky: (g, W2, H2, pr, sky, view) => { if (st.ha && this._ha) this.drawHa(g, W2, H2, view, when, p, sky, gain); if (HD) HD.skyExtras(g, W2, H2, view, sky, extras); },
@@ -804,7 +819,9 @@ class Component extends DCLogic {
           hazeRow: this.hd && HD ? HD.hazeRow(view, sky, extras) : null }),
         startAz: this._view.az, cancelled: () => this._wideTok !== tok, onTier: () => { this._wideAny = true; this.dirty(); } };
       this.setState({ wideBusy: q });
-      S.pano.strip(sc, out, o).then(ok => { if (this._wideTok !== tok) return; if (ok) { this._wideKey = key; this._wideAny = true; if (q === 'sharp') this._wideSharpFor = base; } this._wideWant = null; this.setState({ wideBusy: false }); this.dirty(); })
+      S.pano.strip(sc, out, o).then(ok => { if (this._wideTok !== tok) return; if (ok) { this._wideKey = key; this._wideAny = true; if (q === 'sharp') this._wideSharpFor = base; } this._wideWant = null; this.setState({ wideBusy: false }); this.dirty();
+        /* on a computer the sharp version follows by itself once the view has settled */
+        if (ok && q === 'draft' && !this.touch) this._autoSharpT = setTimeout(() => { if (this.wide() && !this.state.playing && !this._drag && !this._sdrag && this._wideKey === key) this.wideSharpen(); }, 900); })
         .catch(() => { this._wideWant = null; this.setState({ wideBusy: false }); });
     }, this._wideAny ? 180 : 0);
   }
@@ -856,6 +873,14 @@ class Component extends DCLogic {
     const P = window.NoctoPlan, E = this.E;
     if (P) { const k = P.skyAt(when, p.lat, p.lon), core = E.eq2horiz(E.MW_RA, E.MW_DEC, p.lat, E.lstOf(E.jdFrom(when), p.lon)).alt;
       this._hud = { sun: k.sun.alt, moon: k.moon.alt, frac: k.moon.frac, core }; }
+    if (st.frame && !st.pano && S.pano) {
+      const L = this.lens(), pts = S.pano.footprint(v.az, v.alt, L);
+      ctx.save(); ctx.strokeStyle = '#D6B368'; ctx.lineWidth = 1.5 * dpr;
+      ctx.beginPath(); pts.forEach(([az, alt], i) => { let a = az - v.az; a = ((a % 360) + 540) % 360 - 180; const x = W / 2 + a / dpp, y = Y(alt); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); ctx.closePath(); ctx.stroke();
+      ctx.fillStyle = '#D6B368'; ctx.font = '600 ' + Math.round(12 * dpr) + 'px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
+      const top = pts.reduce((m, q) => Math.min(m, Y(q[1])), 1e9), left = pts.reduce((m, q) => { let a = q[0] - v.az; a = ((a % 360) + 540) % 360 - 180; return Math.min(m, W / 2 + a / dpp); }, 1e9);
+      ctx.fillText(this.kit().focal + ' mm', left, top - 8 * dpr); ctx.restore();
+    }
     this._fr = null;
   }
   fitPano(b) { const v = this._view; v.az = b.az + b.w / 2; v.alt = (b.lo + b.hi) / 2; v.hfov = Math.max(v.hfov, Math.min(360, b.w >= 359 ? 360 : b.w * 1.15 + 12)); }
@@ -989,54 +1014,96 @@ class Component extends DCLogic {
       Promise.resolve().then(() => { this._hudPending = false; this.setState({ hud: this._hud }); });
     }
   }
+  TAPE_MIN = 840;
+  /* one sample every five minutes, kept, so scrolling only works out what newly comes into view */
+  tapeAt(slot, p) {
+    const key = p.lat.toFixed(3) + ',' + p.lon.toFixed(3);
+    if (this._tapeKey !== key) { this._tapeKey = key; this._tape5 = new Map(); }
+    let s = this._tape5.get(slot);
+    if (!s) {
+      const P = window.NoctoPlan, E = this.E, d = new Date(slot * 300000), k = P.skyAt(d, p.lat, p.lon);
+      s = { sun: k.sun.alt, moon: k.moon.alt, frac: k.moon.frac, core: E.eq2horiz(E.MW_RA, E.MW_DEC, p.lat, E.lstOf(E.jdFrom(d), p.lon)).alt };
+      this._tape5.set(slot, s);
+      if (this._tape5.size > 4000) this._tape5.delete(this._tape5.keys().next().value);
+    }
+    return s;
+  }
   drawStrip() {
-    const cv = this._sv, sp = this._strip;
-    if (!cv || !sp) return;
+    const cv = this._sv, p = this.loc();
+    if (!cv || !p || !window.NoctoPlan || !this.E) return;
     const dpr = window.devicePixelRatio || 1;
     const W = Math.max(2, Math.round(cv.clientWidth * dpr)), H = Math.max(2, Math.round(cv.clientHeight * dpr));
     if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
     const ctx = cv.getContext('2d');
     ctx.clearRect(0, 0, W, H);
-    const span = sp.end - sp.start, xOf = m => (m - sp.start) / span * W;
-    const skyH = 30 * dpr, gap = 3 * dpr, rowH = 11 * dpr, yM = skyH + gap, yC = yM + rowH + gap, yK = yC + rowH + gap;
-    const cl = this._cloud, nn = this.noon();
-    const lerp = (a, b, t) => Math.round(a + (b - a) * t);
-    for (let i = 0; i < sp.sun.length - 1; i++) {
-      const m0 = i * 5, m1 = m0 + 5;
-      if (m1 < sp.start || m0 > sp.end) continue;
-      const x0 = xOf(m0), x1 = xOf(m1) + 1;
-      const t = Math.max(0, Math.min(1, (sp.sun[i] + 18) / 18)), e = t * t;
+    const span = this.TAPE_MIN * 60000, now = this.noon() + this._min * 60000, t0 = now - span / 2;
+    const xOf = ms => (ms - t0) / span * W;
+    const LAB = 30 * dpr, skyH = 30 * dpr, gap = 3 * dpr, rowH = 11 * dpr, yS = LAB, yM = yS + skyH + gap, yC = yM + rowH + gap, yK = yC + rowH + gap;
+    const cl = this._cloud, lerp = (a, b, t) => Math.round(a + (b - a) * t);
+    const a0 = Math.floor(t0 / 300000), a1 = Math.ceil((t0 + span) / 300000);
+    const ev = [], S = [];
+    for (let slot = a0; slot <= a1; slot++) S.push(this.tapeAt(slot, p));
+    for (let i = 0; i < S.length - 1; i++) {
+      const s = S[i], ms = (a0 + i) * 300000, x0 = xOf(ms), x1 = xOf(ms + 300000) + 1;
+      const t = Math.max(0, Math.min(1, (s.sun + 18) / 18)), e = t * t;
       ctx.fillStyle = 'rgb(' + lerp(14, 92, e) + ',' + lerp(14, 104, e) + ',' + lerp(18, 128, e) + ')';
-      ctx.fillRect(x0, 0, x1 - x0, skyH);
-      ctx.fillStyle = 'rgba(240,236,228,.05)'; ctx.fillRect(x0, yM, x1 - x0, rowH); ctx.fillRect(x0, yC, x1 - x0, rowH);
-      if (sp.moon[i] > 0) { ctx.fillStyle = 'rgba(201,203,210,' + (0.2 + 0.6 * sp.mfrac[i]).toFixed(2) + ')'; ctx.fillRect(x0, yM, x1 - x0, rowH); }
-      if (sp.core[i] > 0) { ctx.fillStyle = 'rgba(214,179,104,' + (0.35 + 0.6 * (1 - t)).toFixed(2) + ')'; ctx.fillRect(x0, yC, x1 - x0, rowH); }
-      ctx.fillStyle = 'rgba(240,236,228,.05)'; ctx.fillRect(x0, yK, x1 - x0, rowH);
-      if (cl) { const k = Math.floor((nn + m0 * 60000 - cl.t0) / 3600000), c = k >= 0 && k < cl.v.length ? cl.v[k] : null;
+      ctx.fillRect(x0, yS, x1 - x0, skyH);
+      ctx.fillStyle = 'rgba(240,236,228,.05)'; ctx.fillRect(x0, yM, x1 - x0, rowH); ctx.fillRect(x0, yC, x1 - x0, rowH); ctx.fillRect(x0, yK, x1 - x0, rowH);
+      if (s.moon > 0) { ctx.fillStyle = 'rgba(201,203,210,' + (0.2 + 0.6 * s.frac).toFixed(2) + ')'; ctx.fillRect(x0, yM, x1 - x0, rowH); }
+      if (s.core > 0) { ctx.fillStyle = 'rgba(214,179,104,' + (0.35 + 0.6 * (1 - t)).toFixed(2) + ')'; ctx.fillRect(x0, yC, x1 - x0, rowH); }
+      if (cl) { const k = Math.floor((ms - cl.t0) / 3600000), c = k >= 0 && k < cl.v.length ? cl.v[k] : null;
         if (c != null) { ctx.fillStyle = 'rgba(206,210,224,' + (0.08 + 0.8 * c / 100).toFixed(2) + ')'; ctx.fillRect(x0, yK, x1 - x0, rowH); } }
+      const n = S[i + 1], cross = (a, b, lv) => a < lv && b >= lv ? 1 : a >= lv && b < lv ? -1 : 0, at = (a, b, lv) => ms + (lv - a) / (b - a) * 300000;
+      let c;
+      if ((c = cross(s.sun, n.sun, -0.83))) ev.push([c > 0 ? 'Sunrise' : 'Sunset', at(s.sun, n.sun, -0.83), '#ADA79B', 3]);
+      if ((c = cross(s.sun, n.sun, -18))) ev.push([c > 0 ? 'Dawn' : 'Dark', at(s.sun, n.sun, -18), '#DCD7CC', 0]);
+      if ((c = cross(s.moon, n.moon, 0))) ev.push([c > 0 ? 'Moonrise' : 'Moonset', at(s.moon, n.moon, 0), '#C9CBD2', 1]);
+      if ((c = cross(s.core, n.core, 0))) ev.push([c > 0 ? 'Core up' : 'Core down', at(s.core, n.core, 0), '#D6B368', 2]);
     }
+    /* hour ticks, a longer one at midnight */
+    ctx.fillStyle = 'rgba(240,236,228,.28)';
+    for (let hr = Math.ceil(t0 / 3600000); hr * 3600000 <= t0 + span; hr++) {
+      const ms = hr * 3600000, lh = new Date(ms + this.tzAt(ms) * 60000).getUTCHours(), x = Math.round(xOf(ms));
+      ctx.fillRect(x, yS + skyH - (lh === 0 ? 10 : 4) * dpr, dpr, (lh === 0 ? 10 : 4) * dpr);
+    }
+    /* event lines and labels: two lanes, most useful first, none printed over another */
     ctx.strokeStyle = 'rgba(240,236,228,.22)'; ctx.lineWidth = dpr;
-    sp.ev.forEach(e => { const x = Math.round(xOf(e[1])) + 0.5; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, skyH); ctx.stroke(); });
-    const px = xOf(this._min);
-    if (this.state.trails && this._trailFrom != null && this._trailFrom < this._min) { ctx.fillStyle = 'rgba(214,179,104,.28)'; const x0 = xOf(this._trailFrom); ctx.fillRect(x0, 0, px - x0, skyH); }
-    ctx.fillStyle = '#D6B368'; ctx.fillRect(px - dpr, 0, 2 * dpr, H);
-    ctx.beginPath(); ctx.arc(px, skyH / 2, 5 * dpr, 0, 6.2832); ctx.fill();
+    ev.forEach(e => { const x = Math.round(xOf(e[1])) + 0.5; ctx.beginPath(); ctx.moveTo(x, yS); ctx.lineTo(x, yS + skyH); ctx.stroke(); });
+    ctx.font = Math.round(10.5 * dpr) + 'px "JetBrains Mono", monospace'; ctx.textBaseline = 'alphabetic';
+    const placed = [[], []], GAP = 10 * dpr;
+    ev.slice().sort((a, b) => a[3] - b[3]).forEach(e => {
+      const label = e[0] + ' ' + this.hhmm(e[1]), w = ctx.measureText(label).width, cx = xOf(e[1]);
+      const x = Math.max(0, Math.min(W - w, cx - w / 2));
+      const lane = placed.findIndex(L => L.every(([a, b]) => x + w + GAP <= a || x >= b + GAP));
+      if (lane < 0) return;
+      placed[lane].push([x, x + w]);
+      ctx.fillStyle = e[2]; ctx.fillText(label, x, (lane ? 26 : 12) * dpr);
+    });
+    const px = W / 2;
+    if (this.state.trails && this._trailFrom != null && this._trailFrom < this._min) {
+      ctx.fillStyle = 'rgba(214,179,104,.28)'; const x0 = Math.max(0, xOf(this.noon() + this._trailFrom * 60000)); ctx.fillRect(x0, yS, px - x0, skyH);
+    }
+    ctx.fillStyle = '#D6B368'; ctx.fillRect(px - dpr, yS, 2 * dpr, H - yS);
+    ctx.beginPath(); ctx.arc(px, yS + skyH / 2, 5 * dpr, 0, 6.2832); ctx.fill();
   }
 
   togglePlay() {
     if (!this.state.playing) { this.resetTrails(); this._last = 0; }
     this.setState({ playing: !this.state.playing, min: this._min }, () => this.dirty());
   }
-  stripAt(e, rel) {
-    const sp = this._strip, cv = this._sv; if (!sp || !cv) return;
-    const b = cv.getBoundingClientRect();
-    if (rel) {
-      if (!this._sAnchor) this._sAnchor = { x: e.clientX, m: this._min };
-      this._min = this._sAnchor.m + (e.clientX - this._sAnchor.x) / b.width * (sp.end - sp.start);
-      this.roll();
-    } else { this._min = sp.start + Math.max(0, Math.min(1, (e.clientX - b.left) / b.width)) * (sp.end - sp.start); this._sAnchor = { x: e.clientX, m: this._min }; }
-    this.resetTrails(); this.dirty();
-    this.setState({ min: this._min, hud: this._hud });
+  /* drag the tape under the playhead; a tap without a drag brings that moment to the playhead */
+  stripAt(e, phase) {
+    const cv = this._sv; if (!cv) return;
+    const b = cv.getBoundingClientRect(), per = this.TAPE_MIN / b.width;
+    if (phase === 'down') { this._sAnchor = { x: e.clientX, m: this._min, moved: false }; return; }
+    const a = this._sAnchor; if (!a) return;
+    if (phase === 'move') {
+      if (Math.abs(e.clientX - a.x) > 4) a.moved = true;
+      if (!a.moved) return;
+      this._min = a.m - (e.clientX - a.x) * per;
+    } else if (!a.moved) this._min = a.m + (e.clientX - (b.left + b.width / 2)) * per;
+    this.roll(); this.resetTrails(); this.dirty();
+    clearTimeout(this._stT); this._stT = setTimeout(() => this.setState({ min: this._min, hud: this._hud }), 40);
   }
   startRec() {
     const fr = this._fr, st = this.state;
@@ -1352,6 +1419,7 @@ class Component extends DCLogic {
   C() { return window.NoctoComp; }
   nightOf() { const dt = this.baseDate(), d = new Date(Date.UTC(dt[0], dt[1], dt[2] + this.state.day)); return [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()]; }
   nightKey(n) { return n[0] + '-' + String(n[1] + 1).padStart(2, '0') + '-' + String(n[2]).padStart(2, '0'); }
+  hhmmLocal(ms) { const d = new Date(ms); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
   planLoad() { const C = this.C(); if (!C) return; C.all().then(list => this.setState({ plans: list || [] })).catch(() => {}); }
   planSave() {
     const C = this.C(), cv = this._cv;
@@ -1443,6 +1511,13 @@ class Component extends DCLogic {
       planNoneOn: !list.length, planGroups: groups,
       appHref: /\/scout\/?(index\.html)?$/.test(location.pathname) ? '../app/' : './Noctography.dc.html',
       toastOn: !!st.toast, toastLine: st.toast || '',
+      ...(() => { const S2 = window.NoctoSync; if (!S2) return { syLine: '', syInk: '#918B81', syBtn: () => {}, syBtnLabel: '', syQrOn: false, syQr: '' };
+        const s = S2.status(), on = !!s.on;
+        const line = !on ? 'Not syncing with your phone' : s.state === 'syncing' ? 'Syncing\u2026' : s.state === 'error' ? 'Not synced: ' + s.err : s.at ? 'Synced ' + this.hhmmLocal(s.at) : 'Syncing\u2026';
+        const show = () => S2.qr(S2.linkUrl()).then(u => this.setState({ syQr: u })).catch(() => {});
+        return { syLine: line, syInk: s.state === 'error' ? '#E07A86' : on ? '#DCD7CC' : '#918B81',
+          syBtn: () => { if (!on) { this.track && this.track('sync/start'); S2.start().then(show); } else if (st.syQr) this.setState({ syQr: null }); else show(); },
+          syBtnLabel: !on ? 'Sync with phone' : st.syQr ? 'Done' : 'Link a device', syQrOn: !!st.syQr, syQr: st.syQr || '', syQrBg: st.syQr ? 'url("' + st.syQr + '")' : 'none' }; })(),
     };
   }
   /* ---- cloud: the forecast for the place, hour by hour, as a row on the strip ---- */
@@ -1717,8 +1792,7 @@ class Component extends DCLogic {
       haOn: !!st.ha, haStr: st.haStr, haLabel: st.haBusy ? 'sharpening' : st.haStr + '%',
       onHa: e => this.setState({ haStr: +e.target.value }, () => { this.resetTrails(); this.dirty(); }),
       onExp: e => this.setState({ exp: +e.target.value }, () => { this.resetTrails(); this.dirty(); }),
-      events: this.eventLabels(sp),
-      viewRef: this.viewRef, stripRef: this.stripRef, evRef: this.evRef,
+      viewRef: this.viewRef, stripRef: this.stripRef,
       viewDown: e => {
         try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
         const P = this._vp || (this._vp = new Map()); P.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -1746,14 +1820,14 @@ class Component extends DCLogic {
         const R = Math.PI / 180, vw = this._view, W = cv.clientWidth, H = cv.clientHeight;
         const vf = this.wide() ? vw.hfov * H / W : 2 * Math.atan(Math.tan(vw.hfov / 2 * R) * H / W) / R;
         vw.az = g.az - (e.clientX - g.x) * vw.hfov / W;
-        vw.alt = Math.max(-15, Math.min(80, g.alt + (e.clientY - g.y) * vf / H));
+        vw.alt = Math.max(-70, Math.min(85, g.alt + (e.clientY - g.y) * vf / H));
         this.resetTrails(); this.dirty(); this.syncView();
       },
       viewUp: e => { if (this._boxDrag) { this._boxDrag = null; const b = this._boxLive; this._boxLive = null; if (b) this.setState({ panoBox: b }, () => this.dirty()); }
         if (this._vp) this._vp.delete(e.pointerId); if (!this._vp || this._vp.size < 2) this._pinch = null; this._drag = null; e.currentTarget.style.cursor = 'grab'; },
-      stripDown: e => { e.currentTarget.setPointerCapture(e.pointerId); this._sdrag = true; this._sAnchor = null; if (st.playing) this.setState({ playing: false }); this.stripAt(e); },
-      stripMove: e => { if (this._sdrag) this.stripAt(e, true); },
-      stripUp: () => { this._sdrag = false; this._sAnchor = null; },
+      stripDown: e => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {} this._sdrag = true; e.currentTarget.style.cursor = 'grabbing'; if (st.playing) this.setState({ playing: false }); this.stripAt(e, 'down'); },
+      stripMove: e => { if (this._sdrag) this.stripAt(e, 'move'); },
+      stripUp: e => { if (this._sdrag) this.stripAt(e, 'up'); this._sdrag = false; this._sAnchor = null; e.currentTarget.style.cursor = 'grab'; },
     };
   }
 }
