@@ -90,6 +90,17 @@
       <button type="button" onClick="{{ viewToggle }}" style="display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px 0 10px; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: {{ viewEdge }}; color: {{ viewFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="layers" size="{{ 16 }}" hint-size="16px,16px"></x-import><span>View</span></button>
       <button type="button" onClick="{{ saveFrame }}" aria-label="Save the frame as a picture" title="Save the frame as a picture" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); color: #DCD7CC; cursor: pointer;"><x-import component-from-global-scope="PaulHaworthNightscapesDesignSystem_721589.Icon" name="download" size="{{ 18 }}" hint-size="18px,18px"></x-import></button>
       <button type="button" onClick="{{ recToggle }}" aria-label="{{ recLabel }}" title="{{ recLabel }}" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(21,21,26,.94); border: 1px solid rgba(240,236,228,.14); border-color: {{ recEdge }}; cursor: pointer;"><span style="width: 12px; height: 12px; border-radius: 50%; background: {{ recDot }};"></span></button>
+      <sc-if value="{{ saveOpen }}" hint-placeholder-val="{{ false }}">
+        <div data-pop="1" style="position: absolute; top: 48px; right: 0; z-index: 7; display: grid; gap: 10px; width: 320px; padding: 14px; box-sizing: border-box; border-radius: 10px; background: rgba(12,12,15,.96); border: 1px solid rgba(240,236,228,.16);">
+          <span style="font-size: 11px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #D6B368;">Save composition</span>
+          <input type="text" value="{{ saveName }}" onInput="{{ onSaveName }}" onKeyDown="{{ onSaveKey }}" placeholder="{{ saveHint }}" aria-label="Name" autofocus="autofocus" style="height: 40px; padding: 0 12px; box-sizing: border-box; border-radius: 8px; border: 1px solid rgba(240,236,228,.18); background: rgba(240,236,228,.04); color: #F3F0EA; font-family: 'Barlow', sans-serif; font-size: 14px; outline: none;">
+          <textarea value="{{ saveNote }}" onInput="{{ onSaveNote }}" onKeyDown="{{ onSaveKey }}" placeholder="Notes: where to park, what to bring, what to watch for" aria-label="Notes" rows="3" style="padding: 10px 12px; box-sizing: border-box; border-radius: 8px; border: 1px solid rgba(240,236,228,.18); background: rgba(240,236,228,.04); color: #F3F0EA; font-family: 'Barlow', sans-serif; font-size: 14px; line-height: 1.45; resize: vertical; outline: none;"></textarea>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" onClick="{{ saveCancel }}" style="height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(240,236,228,.2); background: none; color: #ADA79B; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;">Cancel</button>
+            <button type="button" onClick="{{ saveGo }}" style="height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #D6B368; background: rgba(214,179,104,.16); color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;">Save</button>
+          </div>
+        </div>
+      </sc-if>
       <sc-if value="{{ focalOpen }}" hint-placeholder-val="{{ false }}">
         <div data-pop="1" style="position: absolute; top: 48px; right: 0; z-index: 6; display: grid; gap: 10px; width: 260px; padding: 12px; border-radius: 10px; background: rgb(21,21,26); border: 1px solid rgba(240,236,228,.16); box-shadow: 0 18px 44px rgba(0,0,0,.55);">
           <div style="display: flex; gap: 4px; flex-wrap: wrap;"><sc-for list="{{ focals }}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{ c.pick }}" style="min-height: 32px; padding: 0 11px; border-radius: 6px; border: 1px solid {{ c.edge }}; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; cursor: pointer;">{{ c.label }}</button></sc-for></div>
@@ -133,7 +144,8 @@
                 <div style="display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 10px; padding: 8px; border-radius: 8px; background: rgba(240,236,228,.035); border: 1px solid {{ p.edge }};">
                   <button type="button" onClick="{{ p.open }}" title="Open this plan" style="display: block; width: 104px; height: 60px; padding: 0; border: 0; border-radius: 6px; background: #0A0A0B center / cover no-repeat; background-image: {{ p.thumb }}; cursor: pointer;"></button>
                   <div style="display: grid; align-content: start; gap: 3px; min-width: 0;">
-                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; font-weight: 700; color: #F3F0EA;">{{ p.time }}</span>
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; font-weight: 700; color: #F3F0EA; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.time }}</span>
+                    <sc-if value="{{ p.noteOn }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12.5px; line-height: 1.35; color: #DCD7CC; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ p.note }}</span></sc-if>
                     <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: #ADA79B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.line }}</span>
                     <div style="display: flex; gap: 4px; margin-top: 2px;">
                       <button type="button" onClick="{{ p.open }}" style="height: 26px; padding: 0 9px; border-radius: 999px; border: 1px solid rgba(214,179,104,.6); background: none; color: #D6B368; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;">Open</button>
@@ -1442,20 +1454,25 @@ class Component extends DCLogic {
   nightKey(n) { return n[0] + '-' + String(n[1] + 1).padStart(2, '0') + '-' + String(n[2]).padStart(2, '0'); }
   hhmmLocal(ms) { const d = new Date(ms); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
   planLoad() { const C = this.C(); if (!C) return; C.all().then(list => this.setState({ plans: list || [] })).catch(() => {}); }
-  planSave() {
+  planAsk() {
+    if (this.state.pop === 'save') { this.setState({ pop: null }); return; }
+    const p = this.loc(), when = this.noon() + this._min * 60000;
+    this.setState({ pop: 'save', saveName: '', saveNote: '', saveHint: (this.placeLabel() || 'Plan') + ' \u00b7 ' + this.hhmm(when) });
+  }
+  planSave(name, note) {
     const C = this.C(), cv = this._cv;
     if (!C || !cv || !cv.width) { this.toast('Plans are not ready yet. Try again in a moment.'); return; }
     if (this.state.planBusy) return;
     const p = this.loc(), v = this._view, k = this.kit(), n = this.nightOf(), st = this.state;
     const when = this.noon() + this._min * 60000, b = st.pano ? this.panoBox() : null;
     const rec = { id: C.newId(), at: when, night: new Date(n[0], n[1], n[2], 12).getTime(), nightKey: this.nightKey(n), cap: Date.now(),
-      name: '', note: '', place: this.placeLabel(), lat: p.lat, lon: p.lon, az: ((v.az % 360) + 360) % 360, alt: v.alt, roll: 0,
+      name: (name || '').trim(), note: (note || '').trim(), place: this.placeLabel(), lat: p.lat, lon: p.lon, az: ((v.az % 360) + 360) % 360, alt: v.alt, roll: 0,
       hfov: v.hfov, lens: 'scout', zoom: 1, pano: b ? { az: b.az, w: b.w, lo: b.lo, hi: b.hi, ov: Math.round(this.panoOv() * 100) } : null,
       focal: k.focal, sensor: k.sensor, orient: k.orient, cal: true, nudge: 0, src: 'scout', photo: false,
       scout: { tz: this.PLACES[st.place].tz || null, date: n, at: this._min, hfov: v.hfov, exp: st.exp, ground: st.ground },
       walk: this._walk ? { start: this._walk.start, path: this._walk.path.filter((q, i) => i % 2 === 0 || i === this._walk.path.length - 1).map(q => [+q[0].toFixed(5), +q[1].toFixed(5)]) } : null };
     rec.w = cv.width; rec.h = cv.height;
-    this.setState({ planBusy: true });
+    this.setState({ planBusy: true, pop: null });
     C.toBlob(cv, 0.86).then(img => { rec.img = img; return C.toBlob(C.thumb(cv, 480), 0.78); })
       .then(th => { rec.thumb = th; return C.put(rec); })
       .then(() => { this.track && this.track('scout/plan'); this.setState(s => ({ plans: s.plans.concat([rec]), planBusy: false })); this.toast('Saved to plans for ' + this.hhmm(when)); })
@@ -1473,7 +1490,7 @@ class Component extends DCLogic {
   planDel(r) { const C = this.C(); if (!C) return; C.del(r.id).catch(() => {}); this.setState(s => ({ plans: s.plans.filter(x => x.id !== r.id) })); }
   /* A link carries the plans themselves, compactly: nothing is stored on a server. */
   planEncode(list) {
-    const t = list.map(r => [+r.lat.toFixed(5), +r.lon.toFixed(5), +(+r.az).toFixed(1), +(+r.alt).toFixed(1), Math.round((r.scout && r.scout.hfov) || r.hfov || 70), Math.round(r.at / 60000), r.focal || 20, r.orient === 'port' ? 1 : 0, r.place || '', (r.scout && r.scout.tz) || '']);
+    const t = list.map(r => [+r.lat.toFixed(5), +r.lon.toFixed(5), +(+r.az).toFixed(1), +(+r.alt).toFixed(1), Math.round((r.scout && r.scout.hfov) || r.hfov || 70), Math.round(r.at / 60000), r.focal || 20, r.orient === 'port' ? 1 : 0, r.place || '', (r.scout && r.scout.tz) || '', r.name || '', (r.note && r.note !== 'Shared plan' ? r.note : '').slice(0, 280)]);
     return btoa(unescape(encodeURIComponent(JSON.stringify(t)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   }
   planDecode() {
@@ -1488,7 +1505,7 @@ class Component extends DCLogic {
   }
   planImport(t) {
     const C = this.C(), recs = t.map(x => { const at = x[5] * 60000, n = this.localDay(at, x[9]);
-      return { id: C ? C.newId() : String(Math.random()), at, night: new Date(n[0], n[1], n[2], 12).getTime(), nightKey: this.nightKey(n), cap: Date.now(), name: '', note: 'Shared plan',
+      return { id: C ? C.newId() : String(Math.random()), at, night: new Date(n[0], n[1], n[2], 12).getTime(), nightKey: this.nightKey(n), cap: Date.now(), name: x[10] || '', note: x[11] || 'Shared plan',
         place: x[8] || '', lat: x[0], lon: x[1], az: x[2], alt: x[3], roll: 0, hfov: x[4], lens: 'scout', zoom: 1, pano: null, focal: x[6], sensor: this.kit().sensor, orient: x[7] ? 'port' : 'land',
         cal: true, nudge: 0, src: 'scout', photo: false, scout: { tz: x[9] || null, date: n, hfov: x[4] } }; });
     if (C) recs.forEach(r => C.put(r).catch(() => {}));
@@ -1515,7 +1532,8 @@ class Component extends DCLogic {
     const hm = r => { const tz = r.scout && r.scout.tz; try { return new Intl.DateTimeFormat('en-GB', { timeZone: tz || undefined, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(r.at)); } catch (e) { return ''; } };
     const item = (r, other) => { const a = Math.round(((r.az % 360) + 360) % 360), n = (r.nightKey || '').split('-');
       return { thumb: this.thumbUrl(r), edge: 'rgba(240,236,228,.08)',
-        time: (other && n.length === 3 ? +n[2] + ' ' + MON[+n[1] - 1] + ' \u00b7 ' : '') + hm(r),
+        time: (other && n.length === 3 ? +n[2] + ' ' + MON[+n[1] - 1] + ' \u00b7 ' : '') + hm(r) + (r.name ? '  ' + r.name : ''),
+        noteOn: !!(r.note && r.note !== 'Shared plan'), note: r.note && r.note !== 'Shared plan' ? r.note : '',
         line: String(a).padStart(3, '0') + '\u00b0 ' + (E ? E.compass(a) : '') + ' \u00b7 ' + (r.focal || '') + 'mm' + (r.pano ? ' \u00b7 pano' : '') + (r.place ? ' \u00b7 ' + r.place : ''),
         open: () => this.planOpen(r), share: () => this.planShare([r]), del: () => this.planDel(r) }; };
     const groups = [];
@@ -1523,7 +1541,13 @@ class Component extends DCLogic {
     if (rest.length) groups.push({ head: 'Other nights', headOn: true, items: rest.slice(0, 30).map(r => item(r, true)) });
     const nd = this.nightOf(), DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], dd = new Date(Date.UTC(nd[0], nd[1], nd[2]));
     return {
-      planSave: () => this.planSave(), planShotBg: st.planBusy ? 'rgba(214,179,104,.3)' : 'rgba(21,21,26,.94)',
+      planSave: () => this.planAsk(),
+      saveOpen: st.pop === 'save', saveName: st.saveName || '', saveNote: st.saveNote || '', saveHint: st.saveHint || '',
+      onSaveName: e => this.setState({ saveName: e.target.value }),
+      onSaveNote: e => this.setState({ saveNote: e.target.value }),
+      onSaveKey: e => { if (e.key === 'Enter' && !e.shiftKey && e.target.tagName === 'INPUT') { e.preventDefault(); this.planSave(st.saveName, st.saveNote); } else if (e.key === 'Escape') this.setState({ pop: null }); },
+      saveGo: () => this.planSave(st.saveName, st.saveNote),
+      saveCancel: () => this.setState({ pop: null }), planShotBg: st.planBusy ? 'rgba(214,179,104,.3)' : 'rgba(21,21,26,.94)',
       planCount: String(tonight.length || list.length || ''), plansOpen: st.pop === 'plans',
       plansEdge: st.pop === 'plans' ? '#D6B368' : 'rgba(240,236,228,.14)', plansFg: st.pop === 'plans' ? '#D6B368' : '#DCD7CC',
       plansToggle: () => { if (st.pop !== 'plans') this.planLoad(); this.setState({ pop: st.pop === 'plans' ? null : 'plans' }); },
