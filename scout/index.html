@@ -1031,8 +1031,18 @@ class Component extends DCLogic {
       ctx.restore();
     }
     if (this._rec) {
-      const rc = this._rec.cv, crop = this._rec.crop;
-      rc.getContext('2d').drawImage(this._comp, crop.x, crop.y, crop.w, crop.h, 0, 0, rc.width, rc.height);
+      /* Video encoders crush near-black into black and players show it darker still, so a night
+         foreground that reads on screen is lost in the file. The recording is lifted in the shadows
+         only: the frame screened over itself (dark tones about 1.4 times brighter, highlights almost
+         unchanged), then a faint floor so the darkest ground stays above the encoder's black. Works
+         in every browser, including the iPad's, which has no canvas filters. */
+      const rc = this._rec.cv, crop = this._rec.crop, rx = this._rec.ctx;
+      rx.globalCompositeOperation = 'source-over'; rx.globalAlpha = 1;
+      rx.drawImage(this._comp, crop.x, crop.y, crop.w, crop.h, 0, 0, rc.width, rc.height);
+      rx.globalCompositeOperation = 'screen'; rx.globalAlpha = 0.45;
+      rx.drawImage(this._comp, crop.x, crop.y, crop.w, crop.h, 0, 0, rc.width, rc.height);
+      rx.globalAlpha = 1; rx.fillStyle = 'rgb(12,12,14)'; rx.fillRect(0, 0, rc.width, rc.height);
+      rx.globalCompositeOperation = 'source-over';
     }
     const s = r.sky, E = this.E;
     const core = E.eq2horiz(E.MW_RA, E.MW_DEC, p.lat, E.lstOf(E.jdFrom(when), p.lon)).alt;
@@ -1141,12 +1151,13 @@ class Component extends DCLogic {
     const cv = document.createElement('canvas');
     const k = Math.min(1, 3840 / crop.w); cv.width = Math.round(crop.w * k / 2) * 2; cv.height = Math.round(crop.h * k / 2) * 2;
     if (!cv.captureStream || !window.MediaRecorder) return;
+    cv.getContext('2d', { alpha: false });
     const type = ['video/webm;codecs=vp9', 'video/webm', 'video/mp4'].find(t => MediaRecorder.isTypeSupported(t));
     const mr = new MediaRecorder(cv.captureStream(30), type ? { mimeType: type, videoBitsPerSecond: 24e6 } : undefined);
     const chunks = [];
     mr.ondataavailable = ev => { if (ev.data.size) chunks.push(ev.data); };
     mr.onstop = () => this.download(new Blob(chunks, { type: mr.mimeType || 'video/webm' }), 'timelapse.' + ((mr.mimeType || '').indexOf('mp4') >= 0 ? 'mp4' : 'webm'));
-    this._rec = { cv, crop, mr };
+    this._rec = { cv, crop, mr, ctx: cv.getContext('2d', { alpha: false }) };
     mr.start(500);
     this.resetTrails();
     this.setState({ rec: true, playing: true }, () => this.dirty());
