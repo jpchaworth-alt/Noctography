@@ -14,7 +14,7 @@
   <script src="../scout-ds/_ds_bundle.js"></script>
   <script src="../noctography-engine.js?v=2.0.1"></script>
   <script src="../noctography-plan.js?v=2.0.1"></script>
-  <script src="../noctography-scout.js?v=2.0.3"></script>
+  <script src="../noctography-scout.js?v=2.0.5b"></script>
   <script src="../noctography-offline.js?v=1"></script>
   <script src="../noctography-comp.js?v=2.0.1"></script>
   <script src="../noctography-sync.js?v=1"></script>
@@ -808,7 +808,7 @@ class Component extends DCLogic {
     if (!S || !S.pano || !sc || !sc.ok) return;
     const cvw = this._cv ? this._cv.clientWidth * (window.devicePixelRatio || 1) : 2000;
     const sPPD = cvw / Math.max(this.WIDE, this._view.hfov);
-    const ppdS = this.touch ? (sPPD > 7 ? 7 : 5) : (sPPD > 10 ? 10 : sPPD > 7 ? 8 : 6);
+    const ppdS = this.touch ? (sPPD > 7 ? 8 : 5) : (sPPD > 12 ? 14 : sPPD > 9 ? 11 : 8);
     const base = [ppdS, Math.round(when.getTime() / 120000), p.lat.toFixed(4), p.lon.toFixed(4), st.exp, st.ground, st.haze, st.domes, st.ha ? st.haStr : 0, (sc.rings || []).filter(Boolean).length].join('|');
     /* a sharp strip stays until the moment or the look changes; then it is a draft again */
     const q = sharp || (this._wideSharpFor === base) ? 'sharp' : 'draft', key = base + '|' + q;
@@ -823,9 +823,12 @@ class Component extends DCLogic {
       const ppd = draft ? Math.max(4, Math.round(ppdS * 0.6)) : ppdS;
       /* a star is drawn a set number of pixels across; blown up to the screen it would grow, so it is
          drawn that much smaller in the strip to land at the same size as in the lens view */
-      const o = { ppd, sw: draft ? 45 : 30, coarse: false, starScale: 0.8 * Math.min(1, ppd / sPPD),
+      /* stars sized as the lens view sizes them at a normal wide angle, allowing for the strip being
+         scaled to the screen, so nothing grows when the view changes */
+      const dprD = window.devicePixelRatio || 1, k = ppd / sPPD;
+      const o = { ppd, sw: draft ? 45 : 30, coarse: false, starScale: 0.93 * k,
         tiers: draft ? [{ e: 0, lo: S.pano.BOT, hi: 42, vh: 47 }, { e: 64, lo: 42, hi: S.pano.TOP, vh: 32 }] : undefined,
-        when, lat: p.lat, lon: p.lon, gain, trueCol: st.ground === 'true', map: S.skyDataReady() ? { stars: true } : null,
+        when, lat: p.lat, lon: p.lon, gain, trueCol: st.ground === 'true', map: S.skyDataReady() ? { stars: true, scaleAbs: 0.93 * dprD * k } : null,
         afterSky: (g, W2, H2, pr, sky, view) => { if (st.ha && this._ha) this.drawHa(g, W2, H2, view, when, p, sky, gain); if (HD) HD.skyExtras(g, W2, H2, view, sky, extras); },
         lightFor: (sky, view) => ({ sunAz: sky.sun.az, sunAlt: sky.sun.alt, moonAz: sky.moon.az, moonAlt: sky.moon.alt, moonFrac: sky.moon.frac,
           gain, hazeKm: this.hazeKm(), haze: this.hd ? 0.9 : 0.85, nv: false, trueCol: st.ground === 'true', mode: st.ground, lpArt: this._lpArt || 0,

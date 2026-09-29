@@ -602,7 +602,9 @@ function drawStarMap(ctx, pr, lat, lst, W, H, o){
   if (o.lines) strokeSets(SKY.lines, nv ? 'rgba(255,59,24,.5)' : 'rgba(214,179,104,.42)', dpr);
   if (o.stars && dark > 0) {
     ctx.save(); ctx.fillStyle = nv ? '#FF3B18' : '#EDEAE2';
-    const scale = Math.min(2.2, Math.max(0.6, kx / (W / 2) / 1.2));
+    /* a caller drawing slices of a wider picture says how big stars should be, since a slice's own
+       narrow view would make them a telephoto's size */
+    const scale = o.scaleAbs != null ? o.scaleAbs : Math.min(2.2, Math.max(0.6, kx / (W / 2) / 1.2));
     const lim = 6.2 - (1 - Math.min(1, o.gain || 1)) * 1.5;   // a short exposure loses the faint ones
     for (let i = 0; i < SKY.stars.length; i++) {
       const s = SKY.stars[i]; if (s.mag > lim || s.mag < 1.6) continue;   // the bright ones are already drawn
@@ -962,7 +964,7 @@ async function panoStrip(scene, out, o){
         scene.render(view, o.light);
         tctx.clearRect(0, 0, sw, sh); tctx.drawImage(gcv, 0, 0);
       } else {
-        const r = drawSky(sctx, sw, sh, view, o.when, o.lat, o.lon, { gain: o.gain, nv: !!o.nv, coarse: !!o.coarse, dpr: 1, map: o.map, starScale: o.starScale != null ? o.starScale : 0.75 });
+        const r = drawSky(sctx, sw, sh, view, o.when, o.lat, o.lon, { gain: o.gain, nv: !!o.nv, coarse: !!o.coarse, dpr: 1, map: o.map ? Object.assign({ scaleAbs: (o.starScale != null ? o.starScale : 0.75) * 1.1 }, o.map) : o.map, starScale: o.starScale != null ? o.starScale : 0.75 });
         if (o.afterSky) o.afterSky(sctx, sw, sh, r.pr, r.sky, view);
         /* o.lightFor lets a caller light every slice exactly as it lights its own view */
         scene.render(view, o.lightFor ? o.lightFor(r.sky, view) : { sunAz: r.sky.sun.az, sunAlt: r.sky.sun.alt, moonAz: r.sky.moon.az, moonAlt: r.sky.moon.alt,
