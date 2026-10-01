@@ -44,6 +44,84 @@ const ESRI_KEY = 'AAPTaCgE7xR2FpQWaRuj6sI31nQ..u17QgYFLf0--49RZU2Gs_YP5g2ZqXlc9c
 const CFG = { imagery: 'https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?token=' + ESRI_KEY, surface: true, shadows: true };
 function config(o){ Object.assign(CFG, o || {}); return { ...CFG }; }
 
+/* ---------------- how much this device can carry ----------------
+   iPadOS closes a tab that holds too much, with no warning to the page: it stalls, goes blank and
+   reloads. So the scene sizes itself to the device, and a page that was closed under a running scene
+   comes back one step lighter. Full is about 700 MB of textures and buffers on a sharp screen,
+   Reduced about 250 MB, Basic under 100 MB. Off means the phone scene. */
+const TIERS = {
+  full:    { maxTex: 8192, shadow: 4096, aa: true,  dpr: 3,   mipMs: 300,  par: 8 },
+  reduced: { maxTex: 4096, shadow: 2048, aa: false, dpr: 1.5, mipMs: 1200, par: 4 },
+  basic:   { maxTex: 2048, shadow: 1024, aa: false, dpr: 1,   mipMs: 2000, par: 3 },
+  /* a phone: every ring's imagery at its coarsest, a small shadow map, one request at a time more */
+  light:   { maxTex: 1024, shadow: 512,  aa: false, dpr: 1,   mipMs: 3000, par: 2 },
+};
+const ORDER = ['full', 'reduced', 'basic', 'light', 'off'];
+const LS = 'nocto.scoutHD';
+const store = {
+  get(){ try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) { return {}; } },
+  set(o){ try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} },
+};
+const lower = t => ORDER[Math.min(ORDER.length - 1, ORDER.indexOf(t) + 1)];
+let probed = null;
+function probe(){
+  if (probed) return probed;
+  const cv = document.createElement('canvas'); let gl = null;
+  try { gl = cv.getContext('webgl2'); } catch (e) {}
+  const ua = navigator.userAgent || '', touch = navigator.maxTouchPoints > 1;
+  const ios = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && touch);
+  const short = Math.min(screen.width, screen.height), mem = navigator.deviceMemory || 0, c = navigator.connection || {};
+  const p = { webgl2: !!gl, maxTex: gl ? gl.getParameter(gl.MAX_TEXTURE_SIZE) : 0, ios, touch, short, mem,
+    slowNet: !!c.saveData || /2g/.test(c.effectiveType || '') };
+  if (gl) { const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); }
+  cv.width = cv.height = 0;
+  let t = 'full', why = 'This computer can carry the full scene.';
+  if (!p.webgl2) { t = 'off'; why = 'This browser cannot draw the detailed ground (no WebGL2).'; }
+  else if (short < 600 || (mem && mem <= 2)) { t = 'light'; why = 'A phone, so the lightest version: the ground near you sharp, the rest coarse.'; }
+  /* an iPad is treated as a phone, only bigger: iPadOS gives a tab far less memory than the chip
+     suggests, and even Reduced stalled, blanked and reloaded on a 13-inch M3 */
+  else if (ios) { t = 'light'; why = 'An iPad, so the same light version as a phone, on the bigger screen.'; }
+  else if (p.maxTex < 4096 || (mem && mem <= 3)) { t = 'basic'; why = 'A small memory, so a light version.'; }
+  else if (ios || (touch && !matchMedia('(pointer: fine)').matches) || (mem && mem <= 6)) { t = 'reduced'; why = 'A tablet: iPadOS closes tabs that hold the full scene.'; }
+  if (t !== 'off' && p.slowNet && ORDER.indexOf(t) < 2) { t = 'basic'; why = 'The connection is slow or set to save data.'; }
+  p.auto = t; p.why = why;
+  return probed = p;
+}
+function device(){
+  const p = probe(), s = store.get();
+  let tier = s.pick && TIERS[s.pick] ? s.pick : p.auto;
+  if (s.cap && ORDER.indexOf(s.cap) > ORDER.indexOf(tier)) tier = s.cap;
+  /* and stays there: an earlier pick of a heavier level is not honoured on iOS */
+  if (p.ios && ORDER.indexOf(tier) < ORDER.indexOf('light')) tier = 'light';
+  if (!p.webgl2) tier = 'off';
+  return { tier, auto: p.auto, why: p.why, pick: s.pick || 'auto', cap: s.cap || null, crashed: s.crashed || null, profile: TIERS[tier] || null, probe: p };
+}
+/* a choice from the user clears any cap a crash set */
+function setTier(t){ const s = store.get(); s.pick = TIERS[t] ? t : 'auto'; s.cap = null; s.crashed = null; store.set(s); return device(); }
+function capAt(t, from){ const s = store.get(); s.cap = t; s.crashed = { from, to: t, at: Date.now() }; store.set(s); return device(); }
+/* The watch: marked while a scene is on screen, refreshed every minute, cleared whenever the page is
+   hidden or left the normal way. Found still marked at the next start, the page was closed under it. */
+let live = null, watching = false;
+function mark(tier){ live = tier; if (document.hidden) return; const s = store.get(); s.run = { tier, at: Date.now() }; store.set(s); }
+function unmark(){ live = null; const s = store.get(); if (s.run) { s.run = null; store.set(s); } }
+function watch(){
+  const s = store.get(); let crashed = null;
+  if (s.run && Date.now() - s.run.at < 3 * 60000 && TIERS[s.run.tier]) {
+    const to = lower(s.run.tier);
+    if (ORDER.indexOf(to) > ORDER.indexOf(s.cap || 'full')) s.cap = to;
+    s.crashed = crashed = { from: s.run.tier, to: s.cap, at: Date.now() };
+  }
+  s.run = null; store.set(s);
+  if (!watching) {
+    watching = true;
+    const quiet = () => { const t = live; unmark(); live = t; };
+    addEventListener('pagehide', quiet);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) quiet(); else if (live) mark(live); });
+    setInterval(() => { if (live && !document.hidden) mark(live); }, 60000);
+  }
+  return crashed;
+}
+
 /* ---------------- trees and buildings ----------------
    A surface model is the ground with everything on it: canopy, hedges, walls, roofs. Each source
    answers for a box in Web Mercator metres on the inner ring's own pixel grid, so its heights drop
@@ -138,6 +216,40 @@ function plan(lat, lon, maxTex){
   });
   return { rings };
 }
+/* Every tile the ground would ask for, from anywhere in a box: a grid of spots no further apart
+   than half the nearest ring, each planned exactly as the scene plans it, so the URLs match what
+   it will look up offline. Heights and imagery for every ring, and the sharper imagery the near
+   rings fetch after. Trees and buildings are not in it: those come per spot, when it is opened. */
+function areaTiles(box, maxTex){
+  const out = new Set(), mt = maxTex || 4096;
+  const c = plan((box.n + box.s) / 2, (box.w + box.e) / 2, mt).rings[0];
+  const half = c.n * TILE * c.mPerPx / 2;   // metres
+  const dLat = half / 111320, dLon = half / (111320 * Math.cos(((box.n + box.s) / 2) * D2R));
+  const ny = Math.max(1, Math.ceil((box.n - box.s) / dLat)), nx = Math.max(1, Math.ceil((box.e - box.w) / dLon));
+  const wrap = (z, x) => { const n = Math.pow(2, z); return ((x % n) + n) % n; };
+  const img = (z, x, y) => CFG.imagery.replace('{z}', z).replace('{y}', y).replace('{x}', wrap(z, x));
+  for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) {
+    const la = box.s + (box.n - box.s) * j / ny, lo = box.w + (box.e - box.w) * i / nx;
+    const p = plan(la, lo, mt), boxes = p.rings.map(boxOf);
+    p.rings.forEach((r, k) => {
+      for (let ty = 0; ty < r.n; ty++) for (let tx = 0; tx < r.n; tx++) {
+        const x = r.x0 + tx, y = r.y0 + ty;
+        out.add(DEM_BASE + r.z + '/' + wrap(r.z, x) + '/' + y + '.png'); out.add(img(r.z, x, y));
+      }
+      if (r.f <= 1) return;
+      const inner = k > 0 ? boxes[k - 1] : null;
+      for (let ty = 0; ty < r.n * r.f; ty++) for (let tx = 0; tx < r.n * r.f; tx++) {
+        const gx = r.x0 * r.f + tx, gy = r.y0 * r.f + ty;
+        if (inner) {
+          const w = xToLon(gx, r.kz), e = xToLon(gx + 1, r.kz), n = yToLat(gy, r.kz), s = yToLat(gy + 1, r.kz);
+          if (w > inner.w && e < inner.e && n < inner.n && s > inner.s) continue;
+        }
+        out.add(img(r.kz, gx, gy));
+      }
+    });
+  }
+  return [...out];
+}
 function boxOf(r){
   const pad = 0.02 * r.n;
   return { w: xToLon(r.x0 + pad, r.z), e: xToLon(r.x0 + r.n - pad, r.z), n: yToLat(r.y0 + pad, r.z), s: yToLat(r.y0 + r.n - pad, r.z) };
@@ -155,6 +267,7 @@ async function fetchDem(z, x, y){
   cx.drawImage(bm, 0, 0);
   const px = cx.getImageData(0, 0, cv.width, cv.height).data;
   if (bm.close) bm.close();
+  cv.width = cv.height = 0;
   const out = new Float32Array(TILE * TILE);
   for (let i = 0, p = 0; i < out.length; i++, p += 4) {
     const e = (px[p] * 256 + px[p + 1] + px[p + 2] / 256) - 32768;
@@ -200,7 +313,7 @@ async function loadRing(r, onTile){
       ]);
       if (dem) for (let py = 0; py < TILE; py++)
         heights.set(dem.subarray(py * TILE, py * TILE + TILE), (j.ty * TILE + py) * W + j.tx * TILE);
-      if (img) actx.drawImage(img, j.tx * TILE, j.ty * TILE);
+      if (img) { actx.drawImage(img, j.tx * TILE, j.ty * TILE); if (img.close) img.close(); }
       if (onTile) onTile();
     }
   };
@@ -307,7 +420,6 @@ in vec3 aPos; uniform mat4 uMVP;
 void main(){ gl_Position = uMVP * vec4(aPos, 1.0); }`;
 const FS_DEPTH = `#version 300 es
 precision mediump float; out vec4 o; void main(){ o = vec4(1.0); }`;
-const SHADOW_SIZE = 4096;
 const FS = `#version 300 es
 precision highp float;
 uniform sampler2D uTex; uniform sampler2D uHazeTex;
@@ -358,8 +470,9 @@ void main(){
   frag = vec4(c, 1.0);
 }`;
 
-function makeGL(canvas){
-  const gl = canvas.getContext('webgl2', { alpha: true, antialias: true, premultipliedAlpha: false, preserveDrawingBuffer: true });
+function makeGL(canvas, P){
+  const SHADOW_SIZE = P.shadow;
+  const gl = canvas.getContext('webgl2', { alpha: true, antialias: P.aa, premultipliedAlpha: false, preserveDrawingBuffer: true });
   if (!gl) return null;
   const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s);
     if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
@@ -377,7 +490,7 @@ function makeGL(canvas){
   gl.bindAttribLocation(dprog, 0, 'aPos');
   gl.linkProgram(dprog);
   if (!gl.getProgramParameter(dprog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(dprog));
-  const shadow = { prog: dprog, uMVP: gl.getUniformLocation(dprog, 'uMVP'), aPos: gl.getAttribLocation(dprog, 'aPos'), maps: [] };
+  const shadow = { prog: dprog, uMVP: gl.getUniformLocation(dprog, 'uMVP'), aPos: gl.getAttribLocation(dprog, 'aPos'), maps: [], size: SHADOW_SIZE };
   for (let i = 0; i < 2; i++) {
     const t = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, t);
@@ -408,7 +521,7 @@ function makeGL(canvas){
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  return { gl, prog, a, u, aniso, maxAniso, hazeTex, shadow, maxTex: Math.min(8192, gl.getParameter(gl.MAX_TEXTURE_SIZE)) };
+  return { gl, prog, a, u, aniso, maxAniso, hazeTex, shadow, maxTex: Math.min(P.maxTex, gl.getParameter(gl.MAX_TEXTURE_SIZE)) };
 }
 /* The ring's texture at its sharp size from the start, filled from the coarse atlas scaled up,
    so the sharp tiles can drop into place one by one. */
@@ -431,6 +544,8 @@ function makeTexture(G, r, atlas){
     gl.texSubImage2D(gl.TEXTURE_2D, 0, tx * ts, ty * ts, gl.RGBA, gl.UNSIGNED_BYTE, sc);
   }
   gl.generateMipmap(gl.TEXTURE_2D);
+  sc.width = sc.height = 0;
+  atlas.width = atlas.height = 0;
   return { tex, size: S };
 }
 function upload(G, mesh){
@@ -489,9 +604,15 @@ function lightFor(L){
 }
 
 class Scene {
-  constructor(canvas){
+  /* o.tier: 'full', 'reduced' or 'basic'; by default what device() picks. onLost is called if the
+     browser takes the GPU back, so the page can come down a step. */
+  constructor(canvas, o){
     this.canvas = canvas;
-    try { this.G = makeGL(canvas); } catch (e) { this.G = null; this.error = e.message; if (window.console) console.warn('Scout HD:', e.message); }
+    this.tier = (o && TIERS[o.tier]) ? o.tier : (TIERS[device().tier] ? device().tier : 'basic');
+    this.P = TIERS[this.tier];
+    this.lost = false; this.onLost = null;
+    canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); this.lost = true; this.token = {}; if (this.onLost) this.onLost(); });
+    try { this.G = makeGL(canvas, this.P); } catch (e) { this.G = null; this.error = e.message; if (window.console) console.warn('Scout HD:', e.message); }
     this.rings = [];
     this.ground = 0;
     this.lat = null; this.lon = null;
@@ -500,9 +621,15 @@ class Scene {
     this.version = 0;
     this.surfaceInfo = null;
   }
-  get ok(){ return !!this.G; }
+  get ok(){ return !!this.G && !this.lost; }
+  /* hands everything back: the rings, the GL context and the canvas */
+  dispose(){
+    this.token = {}; this.onLost = null;
+    if (this.G && !this.lost) { this.clear(); const x = this.G.gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); }
+    this.rings = []; this.G = null; this.canvas.width = this.canvas.height = 0;
+  }
   free(list){
-    const gl = this.G && this.G.gl;
+    const gl = this.G && !this.lost && this.G.gl;
     if (gl) list.forEach(x => { if (x && x.gpu) { gl.deleteTexture(x.tex.tex); [x.gpu.pos, x.gpu.uv, x.gpu.nrm, x.gpu.idx, x.gpu.can].forEach(b => b && gl.deleteBuffer(b)); } });
   }
   clear(){ this.free(this.rings); this.rings = []; }
@@ -512,7 +639,7 @@ class Scene {
      screen until the new one is complete, then swaps, so a jump never passes through a blank. */
   async load(lat, lon, o){
     o = o || {};
-    if (!this.G) { this.lat = lat; this.lon = lon; return null; }
+    if (!this.G || this.lost) { this.lat = lat; this.lon = lon; return null; }
     const keep = this.rings.some(Boolean);
     const token = this.token = {};
     if (window.NoctoOffline) window.NoctoOffline.begin(lat.toFixed(4) + ',' + lon.toFixed(4), o.name);
@@ -577,18 +704,19 @@ class Scene {
       while (jobs.length && this.token === token) {
         const j = jobs.shift(), x = this.rings[j.i];
         const img = await fetchImg(x.r.kz, j.gx, j.gy);
-        if (this.token !== token) return;
+        if (this.token !== token) { if (img && img.close) img.close(); return; }
         if (img) {
           gl.bindTexture(gl.TEXTURE_2D, x.tex.tex);
           gl.texSubImage2D(gl.TEXTURE_2D, 0, j.tx * TILE, j.ty * TILE, gl.RGBA, gl.UNSIGNED_BYTE, img);
           x.dirty = true;
         }
+        if (img && img.close) img.close();
         done++;
         this.detail = { done, total };
         if (onDetail) onDetail(done, total);
       }
     };
-    await Promise.all(Array.from({ length: 8 }, run));
+    await Promise.all(Array.from({ length: this.P.par }, run));
   }
   /* Trees and buildings for the inner ring, from the first source that covers the pin. The ring is
      rebuilt a vertex a pixel (about 2.8 m in Britain) so a hedge or a tree line reads on the skyline. */
@@ -613,7 +741,7 @@ class Scene {
       const ctx = { W, box, lat, lon, lonOf, latOf, m: r.mPerPx, mMerc: (box.x1 - box.x0) / W, H: Float32Array.from(x.data.base), patient: !!again,
         geo: { n: yToLat(r.y0, r.z), s: yToLat(r.y0 + r.n, r.z), w: xToLon(r.x0, r.z), e: xToLon(r.x0 + r.n, r.z) } };
       let res = null;
-      const O = window.NoctoOffline, ck = 'https://offline.noctography.net/surface4/' + r.z + '/' + r.x0 + '/' + r.y0;
+      const O = window.NoctoOffline, ck = 'https://offline.noctography.net/surface5/' + r.z + '/' + r.x0 + '/' + r.y0;
       const packed = O && !again ? await O.get(ck) : null;
       if (packed) {
         try {
@@ -696,7 +824,17 @@ class Scene {
       const a = win.subarray(0, k).sort(); med[j * W + i] = a[k >> 1];
     }
     /* building outlines stay sharp: the median would round every corner */
-    if (kind) for (let i = 0; i < med.length; i++) if (kind[i] === 2 && surf[i] === surf[i]) med[i] = surf[i];
+    if (kind) for (let i = 0; i < med.length; i++) if ((kind[i] === 2 || kind[i] === 3) && surf[i] === surf[i]) med[i] = surf[i];
+    /* Anything tall with a smooth, level top that no map marks (an unmapped roof, a wall, a tank)
+       is not a wood either: a tree crown is never flat to within half a metre across 8 m. */
+    const flat = new Uint8Array(surf.length);
+    if (bare) for (let j = 2; j < W - 2; j++) for (let i = 2; i < W - 2; i++) {
+      const k0 = j * W + i, v0 = surf[k0], b0 = bare[k0];
+      if (!(v0 === v0) || !(b0 === b0) || v0 - b0 < 3 || (kind && kind[k0])) continue;
+      let lo = 1e9, hi = -1e9, ok = 0;
+      for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const v = surf[k0 + dj * W + di]; if (v === v) { lo = Math.min(lo, v); hi = Math.max(hi, v); ok++; } }
+      if (ok >= 8 && hi - lo < 0.5) flat[k0] = 1;
+    }
     /* Right beside the eye a 2.8 m grid cannot draw a tree, only a shard, so the surface fades to
        bare ground inside about 100 m: the view is the one from a clearing, which is where a tripod
        goes anyway. */
@@ -712,7 +850,7 @@ class Scene {
       const k = j * W + i, v = med[k];
       if (v !== v) continue;
       got++;
-      const b0 = bareAt(i, j), isB = !!kind && kind[k] === 2 && (b0 !== b0 || v - b0 > 1.5);
+      const b0 = bareAt(i, j), isB = (!!kind && (kind[k] === 2 || kind[k] === 3) && (b0 !== b0 || v - b0 > 1.5)) || (!!flat[k] && b0 === b0 && v - b0 > 3);
       if (isB) bldW[k] = 1;
       else if (b0 === b0) canopy[k] = ss(1.5, 5, v - b0);
       const d = Math.hypot(i - ci, j - cj) * m;
@@ -824,9 +962,9 @@ class Scene {
       }
       const m = S.maps[c];
       m.mvp = mul(ortho(l, r, b, t, D - 160000, D + 160000), V);
-      m.bias = (c ? 6 : 0.35) / 320000;
+      m.bias = (c ? 6 : 0.35) / 320000 * (4096 / S.size);
       gl.bindFramebuffer(gl.FRAMEBUFFER, m.fb);
-      gl.viewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+      gl.viewport(0, 0, S.size, S.size);
       gl.clear(gl.DEPTH_BUFFER_BIT);
       gl.uniformMatrix4fv(S.uMVP, false, m.mvp);
       for (const x of this.rings) {
@@ -869,7 +1007,7 @@ class Scene {
   /* view: { az, alt, hfov, vfov, eyeM }; light: { sunAz, sunAlt, moonAz, moonAlt, moonFrac, gain,
      mode, lpArt, hazeKm, haze, hazeRow (128 RGBA), nv } */
   render(view, light){
-    const G = this.G; if (!G) return;
+    const G = this.G; if (!G || this.lost) return;
     const gl = G.gl, cv = this.canvas;
     const sl = this.rings.some(Boolean) ? this.shadowLight(light) : null;
     if (sl && light.shadowStep) sl.step = light.shadowStep;
@@ -924,7 +1062,7 @@ class Scene {
       const x = this.rings[i]; if (!x || !x.gpu) continue;
       gl.polygonOffset(i * 2, i * 2);
       gl.bindTexture(gl.TEXTURE_2D, x.tex.tex);
-      if (x.dirty && now - x.mipAt > 300 && pass === 0) { gl.generateMipmap(gl.TEXTURE_2D); x.dirty = false; x.mipAt = now; }
+      if (x.dirty && now - x.mipAt > this.P.mipMs && pass === 0) { gl.generateMipmap(gl.TEXTURE_2D); x.dirty = false; x.mipAt = now; }
       const g = x.gpu;
       gl.bindBuffer(gl.ARRAY_BUFFER, g.pos); gl.enableVertexAttribArray(G.a.pos); gl.vertexAttribPointer(G.a.pos, 3, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, g.uv); gl.enableVertexAttribArray(G.a.uv); gl.vertexAttribPointer(G.a.uv, 2, gl.FLOAT, false, 0, 0);
@@ -1057,5 +1195,6 @@ function hazeRow(view, sky, o){
   return out;
 }
 
-window.NoctoScoutHD = { Scene, plan, lightFor, domeProfile, skyExtras, hazeRow, config, SURFACES };
+window.NoctoScoutHD = { Scene, plan, areaTiles, lightFor, domeProfile, skyExtras, hazeRow, config, SURFACES,
+  TIERS, ORDER, device, setTier, capAt, lower, watch, mark, unmark };
 })();
