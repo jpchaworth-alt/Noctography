@@ -414,12 +414,17 @@ async function startCamera(video, opts){
   if (o._retry) want = { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } };
   /* One stream at a time: asking for a second camera while the first is live fails outright on
      iOS, so the old one is released before the new one is requested. */
-  if (S.stream) {
+  if (S.stream && S.stream !== o.stream) {
     S.stream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
     S.stream = null;
+    /* iOS takes a moment to let go of a camera; asking again at once fails with NotReadableError */
+    await new Promise(r => setTimeout(r, 250));
   }
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: want, audio: false });
+    /* a stream already granted (the page's own first ask) is used as it is, rather than closed and
+       asked for again, which is what failed on an iPhone from the home screen */
+    const stream = o.stream || await navigator.mediaDevices.getUserMedia({ video: want, audio: false });
+    S.lastErr = '';
     S.stream = stream; S.camera = true; S.video = video || S.video;
     if (o.deviceId) S.deviceId = o.deviceId;
     if (o.lens) S.lens = o.lens;
@@ -431,13 +436,18 @@ async function startCamera(video, opts){
     S.trackAuto = isAuto(S.trackLabel);
     if (S.trackLabel && !o.lens) S.lens = classify(S.trackLabel);
     const v = S.video;
-    if (v) { v.srcObject = stream; const p = v.play(); if (p && p.catch) p.catch(() => {}); }
+    if (v) {
+      v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
+      v.srcObject = stream;
+      try { await v.play(); } catch (e) { S.lastErr = 'play: ' + ((e && e.name) || e); }
+    }
     await listCameras();
     await applyHardwareZoom();
     return true;
   } catch (e) {
+    S.lastErr = (e && (e.name + (e.message ? ': ' + e.message : ''))) || String(e);
     // a named camera can be refused where the generic rear one is not: fall back rather than fail
-    if (o.deviceId && !o._retry) return startCamera(video, { _retry: true, lens: o.lens });
+    if (o.deviceId && !o._retry) { await new Promise(r => setTimeout(r, 250)); return startCamera(video, { _retry: true, lens: o.lens }); }
     S.camera = false;
     return false;
   }
@@ -499,6 +509,7 @@ window.NoctoAR = {
   secure: () => window.isSecureContext !== false,
   motionNeedsPermission, requestMotion, startCamera, stopCamera, stop, listen,
   basis, projector, vecFor,
+  lastErr: () => S.lastErr || '',
   live: () => S.haveEvent,
   absolute: () => S.absolute,
   nudge: () => S.nudge,
