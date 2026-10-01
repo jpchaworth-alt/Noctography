@@ -105,10 +105,13 @@ async function run() {
   try {
     const { id, aes } = await derive(k);
     for (let tries = 0; tries < 4; tries++) {
-      const r = await fetch(ENDPOINT + id, { cache: 'no-store' });
+      let r;
+      /* a blocked or unreachable service shows as a bare network error: say which it probably is */
+      try { r = await fetch(ENDPOINT + id, { cache: 'no-store' }); }
+      catch (e) { throw new Error(navigator.onLine === false ? 'there is no connection' : 'the sync service could not be reached from this web address'); }
       let v = 0, changed = 0;
       if (r.ok) { const j = await r.json(); v = j.v || 0; if (j.data) changed = await merge(await open(j.data, aes)); }
-      else if (r.status !== 404) throw new Error(r.status === 503 ? 'the sync service is not set up yet' : 'the sync service said ' + r.status);
+      else if (r.status !== 404) throw new Error(r.status === 503 ? 'the sync service is not set up yet' : r.status === 403 ? 'the sync service does not accept this web address yet' : 'the sync service said ' + r.status);
       const body = JSON.stringify({ v, data: await seal(await snapshot(), aes) });
       const p = await fetch(ENDPOINT + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body });
       if (p.status === 409) continue;
@@ -145,6 +148,36 @@ async function rekey() {
   try { const { id } = await derive(old); await fetch(ENDPOINT + id, { method: 'DELETE' }); } catch (e) {}
   return start();
 }
+/* ---- a code to type ----
+   On iPhone a scanned link always opens in Safari, and a home-screen app keeps its own storage apart
+   from Safari's, so the link cannot reach it. A short code can: the device that is already syncing
+   leaves its key with the sync service for ten minutes, sealed with the code, and the other device
+   types the code to collect it. Used once, then gone. */
+const PAIR = ENDPOINT.replace(/\/sync\/$/, '/pair/');
+const ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const normCode = c => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/[IL]/g, '1').replace(/O/g, '0');
+async function pairOffer() {
+  if (!key()) await start();
+  const u = crypto.getRandomValues(new Uint8Array(8)); let c = ''; for (const b of u) c += ABC[b % ABC.length];
+  const { id, aes } = await derive('pair:' + c);
+  const r = await fetch(PAIR + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: await seal({ k: key() }, aes) }) });
+  if (!r.ok) throw new Error(r.status === 404 ? 'the sync service needs updating for codes' : 'the sync service said ' + r.status);
+  return c.slice(0, 4) + '-' + c.slice(4);
+}
+async function pairAccept(code) {
+  const c = normCode(code); if (c.length !== 8) throw new Error('A code is eight letters and numbers.');
+  const { id, aes } = await derive('pair:' + c);
+  let r; try { r = await fetch(PAIR + id, { cache: 'no-store' }); } catch (e) { throw new Error('The sync service could not be reached.'); }
+  if (r.status === 404) throw new Error('That code is not right, or its ten minutes are up. Make a new one on the other device.');
+  if (!r.ok) throw new Error('The sync service said ' + r.status + '.');
+  const j = await r.json(); let k = null;
+  try { k = (await open(j.data, aes)).k; } catch (e) { throw new Error('That code is not right.'); }
+  if (!k || !/^[A-Za-z0-9_-]{30,60}$/.test(k)) throw new Error('That code is not right.');
+  setKey(k); say({ linked: Date.now() });
+  fetch(PAIR + id, { method: 'DELETE' }).catch(() => {});
+  await run();
+  return true;
+}
 let qrLib = null;
 function qr(text) {
   const make = () => { const q = window.qrcode(0, 'M'); q.addData(text); q.make(); const n = q.getModuleCount(); let d = '';
@@ -163,5 +196,5 @@ boot();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') soon(); });
 setInterval(() => { if (document.visibilityState === 'visible' && key()) run(); }, 5 * 60000);
 
-window.NoctoSync = { run, soon, start, stop, rekey, status, linkUrl, qr, on: () => !!key() };
+window.NoctoSync = { run, soon, start, stop, rekey, status, linkUrl, qr, pairOffer, pairAccept, on: () => !!key() };
 })();
