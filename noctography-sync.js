@@ -105,10 +105,13 @@ async function run() {
   try {
     const { id, aes } = await derive(k);
     for (let tries = 0; tries < 4; tries++) {
-      const r = await fetch(ENDPOINT + id, { cache: 'no-store' });
+      let r;
+      /* a blocked or unreachable service shows as a bare network error: say which it probably is */
+      try { r = await fetch(ENDPOINT + id, { cache: 'no-store' }); }
+      catch (e) { throw new Error(navigator.onLine === false ? 'there is no connection' : 'the sync service could not be reached from this web address'); }
       let v = 0, changed = 0;
       if (r.ok) { const j = await r.json(); v = j.v || 0; if (j.data) changed = await merge(await open(j.data, aes)); }
-      else if (r.status !== 404) throw new Error(r.status === 503 ? 'the sync service is not set up yet' : 'the sync service said ' + r.status);
+      else if (r.status !== 404) throw new Error(r.status === 503 ? 'the sync service is not set up yet' : r.status === 403 ? 'the sync service does not accept this web address yet' : 'the sync service said ' + r.status);
       const body = JSON.stringify({ v, data: await seal(await snapshot(), aes) });
       const p = await fetch(ENDPOINT + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body });
       if (p.status === 409) continue;
