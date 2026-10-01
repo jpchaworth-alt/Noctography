@@ -633,10 +633,24 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
   const pr = projector(view.alt, view.az, view.hfov, view.vfov, W, H);
   const jd = E.jdFrom(when), lst = E.lstOf(jd, lon);
   const sky = P.skyAt(when, lat, lon);
-  const sunAlt = sky.sun.alt;
   const gain = o.gain == null ? 1 : o.gain;
   const nv = !!o.nv;
+  /* An eclipse under way is drawn wherever the sky is: the Moon across the Sun, or the Earth's
+     shadow across the Moon. A deep solar eclipse darkens the sky as if the Sun had set, and at
+     totality there is sunset all the way round the horizon. */
+  const X = o.eclipse === false ? null : window.NoctoEclipse && window.NoctoEclipse.data() ? window.NoctoEclipse : null;
+  const ecl = X ? X.find(when.getTime()) : null;
+  let es = null, el = null;
+  if (ecl && ecl.kind === 'solar') { es = X.solarAt(ecl, lat, lon, when.getTime()); if (!(es.obsc > 0)) es = null; }
+  if (ecl && ecl.kind === 'lunar') { el = X.lunarAt(ecl, when.getTime()); if (!(el.pmag > 0)) el = null; }
+  const sunAlt = es && sky.sun.alt > -1 ? sky.sun.alt - (sky.sun.alt + 9) * Math.pow(es.dark, 1.2) : sky.sun.alt;
   skyBackground(ctx, W, H, view.alt, view.az, view.hfov, view.vfov, sky.sun.az, sunAlt, gain, { nv });
+  if (es && es.dark > 0.8 && sky.sun.alt > -1) {
+    const a = (es.dark - 0.8) / 0.2 * 0.55, p0 = pr(0, view.az), p1 = pr(14, view.az);
+    if (p0 && p1) { const g = ctx.createLinearGradient(0, p0.y, 0, p1.y);
+      g.addColorStop(0, nv ? 'rgba(255,59,24,' + a + ')' : 'rgba(232,140,72,' + a + ')'); g.addColorStop(1, 'rgba(232,140,72,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, Math.min(p0.y, p1.y), W, Math.abs(p0.y - p1.y) + 2); }
+  }
   const dark = Math.max(0, Math.min(1, (-sunAlt - 6) / 8));   // stars from -6, all in by -14
   if (dark > 0) {
     /* the band */
@@ -697,7 +711,7 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
       const frac = sky.moon.frac;
       ctx.save();
       ctx.fillStyle = nv ? '#FF3B18' : '#DDE0E8';
-      ctx.shadowColor = nv ? 'rgba(255,59,24,.5)' : 'rgba(220,224,235,.55)'; ctx.shadowBlur = r * 1.5 * Math.max(0.5, gain);
+      ctx.shadowColor = nv ? 'rgba(255,59,24,.5)' : 'rgba(220,224,235,.55)'; ctx.shadowBlur = r * 1.5 * Math.max(0.5, gain) * (el ? X.moonLit(el) : 1);
       ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.2832); ctx.fill();
       ctx.shadowBlur = 0;
       /* the dark side: the terminator is an ellipse of semi-axis |k|r; the lit limb faces the sun */
@@ -717,18 +731,22 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
         ctx.beginPath(); ctx.ellipse(p.x, p.y, k, r, 0, 0, 6.2832); ctx.fill();
       }
       ctx.restore();
+      if (el) X.drawMoonShadow(ctx, p.x, p.y, r, el, X.parallactic(sky.moon.alt, sky.moon.az, lat), o.danjon != null ? o.danjon : X.settings().danjon);
     }
   }
   /* the sun */
-  if (sunAlt > -1) {
-    const p = pr(sunAlt, sky.sun.az);
+  if (sky.sun.alt > -1) {
+    const p = pr(sky.sun.alt, sky.sun.az);
     if (p) {
       const r = Math.max(3, pr.kx * Math.tan(0.27 * D2R));
-      ctx.save(); ctx.fillStyle = '#FFF4DC'; ctx.shadowColor = 'rgba(255,240,200,.9)'; ctx.shadowBlur = r * 6;
-      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.2832); ctx.fill(); ctx.restore();
+      if (es) X.drawSun(ctx, p.x, p.y, r, es, X.parallactic(sky.sun.alt, sky.sun.az, lat));
+      else { ctx.save(); ctx.fillStyle = '#FFF4DC'; ctx.shadowColor = 'rgba(255,240,200,.9)'; ctx.shadowBlur = r * 6;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.2832); ctx.fill(); ctx.restore(); }
     }
   }
-  return { pr, sky, dark };
+  if (el) sky.moon.frac *= X.moonLit(el);
+  if (es) sky.sun.eclipse = es;
+  return { pr, sky, dark, eclipse: ecl, es, el, sunEff: sunAlt };
 }
 
 /* ---------------- the sky's own colour, as a background ----------------
@@ -1052,7 +1070,62 @@ function panoArch(when, lat, lon){
     box: { az: a0 - 6, w: 192, lo: -8, hi: Math.min(PANO_TOP, peak.alt + 6) } };
 }
 
+
+/* ---------------- Hα, for any view that can say which way a pixel points ----------------
+   Finkbeiner's all-sky composite, plate carrée in RA and Dec, one byte a pixel. The map is soft
+   (about 6 arcmin), so a small canvas scaled up loses nothing; it is redrawn at most ten times a
+   second, which keeps a phone's live view smooth. */
+const HA = { map: null, loading: false, cv: null, key: '', at: 0 };
+function loadHa(src, done){
+  if (HA.map || HA.loading) return; HA.loading = true;
+  const im = new Image();
+  im.onload = () => {
+    const c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
+    const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height).data, px = new Uint8Array(c.width * c.height);
+    for (let i = 0; i < px.length; i++) px[i] = d[i * 4];
+    HA.map = { W: c.width, H: c.height, px }; c.width = c.height = 0; HA.loading = false; if (done) done();
+  };
+  im.onerror = () => { HA.loading = false; };
+  im.src = src;
+}
+function haLayer(ctx, W, H, unproject, lat, lon, when, sky, o){
+  const E = window.NoctoEngine, M = HA.map; o = o || {};
+  if (!M || !E) return false;
+  const dark = Math.max(0, Math.min(1, (-sky.sun.alt - 10) / 8));
+  const moon = sky.moon.alt > 0 ? 1 - 0.7 * sky.moon.frac * Math.min(1, sky.moon.alt / 20) : 1;
+  const k = (o.strength == null ? 0.45 : o.strength) * dark * moon * Math.min(1.6, o.gain || 1);
+  if (k <= 0.01) return false;
+  const w = o.w || 200, h = Math.max(2, Math.round(w * H / W)), now = performance.now();
+  if (!HA.cv) HA.cv = document.createElement('canvas');
+  const cv = HA.cv, c0 = unproject(W / 2, H / 2), c1 = unproject(0, 0);
+  const key = [w, h, c0 ? c0.az.toFixed(1) + c0.alt.toFixed(1) : '', c1 ? c1.az.toFixed(1) + c1.alt.toFixed(1) : '', Math.round(when.getTime() / 30000), k.toFixed(2), !!o.nv].join('|');
+  if (key !== HA.key && now - HA.at > 100) {
+    HA.key = key; HA.at = now;
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    const g = cv.getContext('2d'), img = g.createImageData(w, h), out = img.data;
+    const lst = E.lstOf(E.jdFrom(when), lon) * D2R, sl = Math.sin(lat * D2R), cl = Math.cos(lat * D2R);
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+      const dir = unproject((i + 0.5) * W / w, (j + 0.5) * H / h);
+      if (!dir || dir.alt < -1) continue;
+      const a = dir.alt * D2R, z = dir.az * D2R, sa = Math.sin(a), ca = Math.cos(a);
+      const dec = Math.asin(sa * sl + ca * cl * Math.cos(z)), hh = Math.atan2(-Math.sin(z) * ca, cl * sa - sl * ca * Math.cos(z));
+      let ra = (lst - hh) * R2D; ra = ((ra % 360) + 360) % 360;
+      const x = Math.min(M.W - 1, Math.max(0, Math.floor((360 - ra) / 360 * M.W))), y = Math.min(M.H - 1, Math.max(0, Math.floor((90 - dec * R2D) / 180 * M.H)));
+      let v = M.px[y * M.W + x] / 255; v = Math.pow(Math.max(0, (v - 0.06) / 0.94), 0.9);
+      const q = v * k * Math.max(0, Math.min(1, (dir.alt + 1) / 14)), n = (j * w + i) * 4;
+      /* the colour is fixed and the strength is the alpha: added over a see-through layer (the camera,
+         or Scout's ground under it), an opaque black pixel would black it out */
+      out[n] = 255; out[n + 1] = o.nv ? 26 : 41; out[n + 2] = o.nv ? 13 : 77; out[n + 3] = Math.min(255, Math.round(255 * q * 1.05));
+    }
+    g.putImageData(img, 0, 0);
+  }
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(cv, 0, 0, W, H); ctx.restore();
+  return true;
+}
 window.NoctoScout = {
+  loadHa, haLayer,
   pano: { strip: panoStrip, grid: panoGrid, footprint: panoFootprint, arch: panoArch, TOP: PANO_TOP, BOT: PANO_BOT },
   Scene, plan, sizeLine, ringsFor, projector, drawSky, drawStarMap, loadBand, galToEq, skyColour, skyBackground,
   nightEvents, paintStrip, stripGestures, STRIP_PPM,
