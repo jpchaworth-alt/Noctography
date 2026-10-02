@@ -197,10 +197,13 @@ window.noctoTrack = function (name, every) {
 <script src="../noctography-ar.js?v=2.0.1"></script>
 <script src="../noctography-log.js?v=2.0.1"></script>
 <script src="../noctography-terrain.js?v=2.0.1"></script>
-<script src="../noctography-scout.js?v=2.0.1"></script>
+<script src="../noctography-scout.js?v=2.1.4"></script>
 <script src="../noctography-comp.js?v=2.0.1"></script>
 <script src="../noctography-sightings.js?v=2.0.1"></script>
-<script src="../noctography-backup.js?v=2.0.1"></script>
+<script src="../noctography-backup.js?v=2.0.3"></script>
+<script src="../noctography-sync.js?v=4"></script>
+<script src="../noctography-eclipse-data.js?v=3"></script>
+<script src="../noctography-eclipse.js?v=6"></script>
 <style>
   /* Reported on Android: the data sources list forced the page wider than the screen and clipped
      the right edge of every line. The cause was long unbreakable URLs in a grid, fixed at source,
@@ -314,8 +317,13 @@ window.noctoTrack = function (name, every) {
   html[data-desk="on"] [data-app="bar"] { order: -1; position: static !important; margin: 0 !important; }
   /* Sky AR upright on a phone: the rail stays, floating over the foot of the screen, so you leave
      Sky AR the way you leave anywhere else */
-  [data-app="bar"][data-ar-rail="on"] { position: fixed !important; left: 8px; right: 8px; bottom: calc(6px + env(safe-area-inset-bottom)); z-index: 140 !important; margin: 0 !important; }
+  [data-app="bar"][data-ar-rail="on"] { position: fixed !important; left: 8px !important; right: 8px !important; bottom: calc(6px + env(safe-area-inset-bottom)) !important; z-index: 140 !important; margin: 0 !important; }
   [data-app="bar"][data-ar-rail="on"] > *:not([data-nv-bar]) { display: none !important; }
+  /* over Scout the rail sits just above a thin handle, and tucks away below the screen when hidden */
+  [data-app="bar"][data-ar-rail="fs"], [data-app="bar"][data-ar-rail="hid"] { position: fixed !important; left: 8px !important; right: 8px !important; bottom: calc(26px + env(safe-area-inset-bottom)) !important; z-index: 140 !important; margin: 0 !important; transition: transform 260ms cubic-bezier(.2,.7,.2,1), opacity 260ms; }
+  [data-app="bar"][data-ar-rail="fs"] > *:not([data-nv-bar]), [data-app="bar"][data-ar-rail="hid"] > *:not([data-nv-bar]) { display: none !important; }
+  [data-app="bar"][data-ar-rail="hid"] { transform: translateY(calc(100% + 40px)); opacity: 0; pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) { [data-app="bar"][data-ar-rail="fs"], [data-app="bar"][data-ar-rail="hid"] { transition: none; } }
   html[data-desk="on"] [data-app="foot"] { order: 2; }
   html[data-desk="on"] [data-app="bar"] [data-rail-arrow] { display: none !important; }
   html[data-desk="on"] [data-app="bar"] [data-rail-thumb] { display: none !important; }
@@ -1078,6 +1086,15 @@ window.noctoTrack = function (name, every) {
               <span><b style="color: var(--dim); font-weight: 500;">Conj</b>: the closest two of Mercury, Venus, Mars, Jupiter, Saturn and the moon, when they come within 5° of each other and both stand at least 5° up in a dark or nearly dark sky. Initials name the pair, and a + means another pairing that night. Amber is inside 2°.</span>
               <span><b style="color: var(--dim); font-weight: 500;">Sun</b> and <b style="color: var(--dim); font-weight: 500;">Moon</b>: rise on the top line, marked with an up arrow, and set below it, marked with a down arrow. These are the times for the calendar date in the column heading, midnight to midnight, as an almanac quotes them. The hours of the night itself are the Stars row.</span>
             </div>
+            </sc-if>
+            <sc-if value="{{ eclNextOn }}" hint-placeholder-val="{{ false }}">
+              <button type="button" onClick="{{ eclNextGo }}" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 12px; width: 100%; min-height: 56px; margin-top: 10px; padding: 9px 12px; text-align: left; background: rgba(var(--well-rgb),.5); border: 1px solid rgba(var(--line-rgb),.12); border-radius: 8px; color: inherit; cursor: pointer;">
+                <span style="display: grid; gap: 2px; min-width: 0;">
+                  <span style="font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--dim);">Next eclipse from here</span>
+                  <span style="font-size: 14px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ eclNextLine }}</span>
+                </span>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); white-space: nowrap;">{{ eclNextWhen }}</span>
+              </button>
             </sc-if>
             <sc-if value="{{ eclOn }}" hint-placeholder-val="{{ false }}">
               <div style="display: grid; gap: 6px; margin-top: 10px; padding: 10px 12px; background: rgba(var(--well-rgb),.5); border-left: 2px solid var(--accent); border-radius: 4px;">
@@ -2516,7 +2533,7 @@ window.noctoTrack = function (name, every) {
                   <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">At the crosshair · {{ mapCoord }}</span>
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint);">B1</span>
-                    <i data-nv-grad="1" style="flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(to right, #2b3a42, #3a6a63, #98ac58, #e2962c, #f64618);"></i>
+                    <i data-nv-grad="1" style="flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(to right, #1e5a8c, #1aa09a, #78c328, #e1cd14, #fa6e0a, #eb1e3c);"></i>
                     <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint);">B9</span>
                   </div>
                   <span style="font-size: 14px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">{{ mapLayerNote }}</span>
@@ -2589,28 +2606,145 @@ window.noctoTrack = function (name, every) {
                     <sc-if value="{{ hzDriftOn }}" hint-placeholder-val="{{ false }}">
                       <span style="font-size: 13px; line-height: 1.4; color: var(--accent); text-wrap: pretty;">{{ hzDriftLine }}</span>
                     </sc-if>
-                    <button type="button" onClick="{{ toggleHzEdit }}" style="min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">{{ hzEditLabel }}</button>
-                    <sc-if value="{{ hzEditOn }}" hint-placeholder-val="{{ false }}">
-                    <div style="display: grid; gap: 6px;">
-                      <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Edit horizon for unmapped obstructions</span>
-                      <div style="display: flex; flex-wrap: wrap; gap: 5px;">
-                        <sc-for list="{{ hzChips }}" as="c" hint-placeholder-count="9">
-                          <button type="button" onClick="{{ c.pick }}" data-nv-active="{{ c.on }}" style="min-height: 44px; padding: 0 12px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; cursor: pointer;">{{ c.label }}</button>
-                        </sc-for>
-                      </div>
-                      <span style="font-size: 13.5px; line-height: 1.4; color: var(--text2);">{{ hzSliderLabel }}</span>
-                      <input type="range" min="0" max="30" step="1" value="{{ hzSliderVal }}" onInput="{{ onHzSlider }}" style="width: 100%; min-height: 44px;">
-                      
-                    </div>
-                    </sc-if>
                   </div>
                 </sc-if>
               </div>
             </sc-if>
         </sc-if>
+
       </section>
     </sc-if>
 
+
+    <sc-if value="{{ isEclipses }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Eclipses" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px;">
+        <div style="display: grid; gap: 7px; padding: 4px 0 2px;">
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Eclipses</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div role="group" aria-label="Which eclipses" style="display: flex;">
+            <sc-for list="{{ eclKinds }}" as="k" hint-placeholder-count="3">
+              <button type="button" onClick="{{ k.pick }}" data-nv-active="{{ k.on }}" style="min-height: 44px; padding: 0 16px; margin-left: -1px; border-radius: {{ k.radius }}; border: 1px solid {{ k.bd }}; background: {{ k.bg }}; color: {{ k.fg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">{{ k.label }}</button>
+            </sc-for>
+          </div>
+          <button type="button" onClick="{{ eclToday }}" style="margin-left: auto; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Next</button>
+        </div>
+        <div style="position: relative; border-radius: 10px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14);">
+          <div aria-hidden="true" style="position: absolute; left: 8px; right: 8px; top: 136px; height: 68px; border-top: 1px solid rgba(var(--accent-rgb),.45); border-bottom: 1px solid rgba(var(--accent-rgb),.45); background: rgba(var(--accent-rgb),.06); border-radius: 6px; pointer-events: none;"></div>
+          <div ref="{{ eclWheelRef }}" onScroll="{{ eclWheelScroll }}" role="listbox" aria-label="Eclipses" tabindex="0" onKeyDown="{{ eclWheelKey }}" style="position: relative; height: 340px; overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory; scrollbar-width: none; padding: 136px 0; box-sizing: border-box; -webkit-mask-image: linear-gradient(transparent, #000 28%, #000 72%, transparent); mask-image: linear-gradient(transparent, #000 28%, #000 72%, transparent);">
+            <sc-for list="{{ eclWheel }}" as="r" hint-placeholder-count="5">
+              <button type="button" data-ecl-row="1" role="option" aria-selected="{{ r.sel }}" onClick="{{ r.pick }}" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 12px; width: 100%; height: 68px; box-sizing: border-box; padding: 0 18px; scroll-snap-align: center; background: none; border: 0; color: inherit; text-align: left; opacity: .3; cursor: pointer;">
+                <span style="display: grid; gap: 1px; min-width: 0;">
+                  <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 20px; line-height: 1.1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ r.title }}</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--faint);">{{ r.date }}</span>
+                  <span style="font-size: 12.5px; line-height: 1.3; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ r.where }}</span>
+                </span>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; text-align: right; color: {{ r.hereColour }};">{{ r.here }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ eclSelOn }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 12px; padding: clamp(12px, 3.4vw, 16px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <div style="display: grid; gap: 3px;">
+              <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(24px, 7vw, 30px); line-height: 1.05; color: var(--text);">{{ eclSelTitle }}</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--dim);">{{ eclSelDate }}</span>
+            </div>
+            <span style="font-size: 15.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ eclSelLead }}</span>
+            <div style="display: grid; gap: 4px;">
+              <sc-for list="{{ eclSelWhere }}" as="g" hint-placeholder-count="2">
+                <span style="font-size: 14.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;"><b style="font-weight: 600; color: var(--text);">{{ g.k }}</b> {{ g.v }}</span>
+              </sc-for>
+            </div>
+            <div style="display: grid; gap: 8px;">
+              <div style="position: relative;">{{ eclMapEl }}
+                <span style="position: absolute; right: 8px; bottom: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; color: rgba(245,245,245,.6); pointer-events: none;">{{ eclMapCredit }}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 7px; flex-wrap: wrap;">
+                <button type="button" onClick="{{ eclStyleSat }}" data-nv-active="{{ eclSatOn }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; background: {{ eclSatBg }}; color: {{ eclSatFg }};">Satellite</button>
+                <button type="button" onClick="{{ eclStyleDetail }}" data-nv-active="{{ eclDetailOn }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; background: {{ eclDetailBg }}; color: {{ eclDetailFg }};">Detail</button>
+                <span style="flex: 1; min-width: 20px;"></span>
+                <button type="button" onClick="{{ eclZoomOut }}" aria-label="Zoom out" style="flex: 0 0 auto; min-width: 48px; min-height: 48px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">−</button>
+                <button type="button" onClick="{{ eclZoomIn }}" aria-label="Zoom in" style="flex: 0 0 auto; min-width: 48px; min-height: 48px; border-radius: 10px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">+</button>
+              </div>
+              <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ eclMapNote }}</span>
+              <sc-if value="{{ eclTapOn }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; gap: 4px; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(var(--accent-rgb),.4); background: rgba(var(--accent-rgb),.05);">
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent);">{{ eclTapHead }}</span>
+                  <sc-for list="{{ eclTapLines }}" as="l" hint-placeholder-count="3"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.4; color: var(--text2);">{{ l.t }}</span></sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ eclFsNoteOn }}" hint-placeholder-val="{{ false }}">
+                <span role="status" style="font-size: 14px; line-height: 1.4; color: var(--accent); text-wrap: pretty;">{{ eclFsNote }}</span>
+              </sc-if>
+              <div style="display: flex; gap: 7px; flex-wrap: wrap;">
+                <button type="button" onClick="{{ eclTrackGo }}" aria-disabled="{{ eclTrackDis }}" style="min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1px solid {{ eclTrackBd }}; background: {{ eclTrackBg }}; color: {{ eclTrackFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">{{ eclTrackLabel }}</button>
+                <button type="button" onClick="{{ eclMapFit }}" style="min-height: 48px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Whole track</button>
+              </div>
+            </div>
+            <sc-if value="{{ eclSelSafeOn }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 14.5px; line-height: 1.4; font-weight: 600; color: var(--accent); text-wrap: pretty;">{{ eclSelSafe }}</span>
+            </sc-if>
+            <sc-if value="{{ eclSelRowsOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 8px 14px; align-items: baseline;">
+                <sc-for list="{{ eclSelRows }}" as="c" hint-placeholder-count="5">
+                  <span style="font-size: 14px; color: {{ c.nameColour }};">{{ c.name }}</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14.5px; font-weight: 700; color: {{ c.timeColour }};">{{ c.time }}</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{ c.whereColour }}; text-wrap: pretty;">{{ c.where }}</span>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-for list="{{ eclSelFacts }}" as="f" hint-placeholder-count="2">
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">{{ f.line }}</span>
+            </sc-for>
+          </div>
+        <sc-if value="{{ eclToolsOn }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 10px; padding: 12px; background: rgba(var(--well-rgb),.5); border: 1px solid rgba(var(--line-rgb),.12); border-radius: 8px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">{{ eclToolsHead }}</span>
+            <div style="display: flex; gap: 7px; flex-wrap: wrap;">
+              <button type="button" onClick="{{ eclShotsFlip }}" data-nv-active="{{ eclShotsW }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid {{ eclShotsBd }}; background: none; color: {{ eclShotsFg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Shot list</button>
+            </div>
+            <sc-if value="{{ eclShotsOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; gap: 6px;">
+                <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ eclShotsLine }}</span>
+                <div style="display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 4px 12px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--text2);">
+                  <sc-for list="{{ eclShots }}" as="x" hint-placeholder-count="6"><span style="font-weight: 700; color: var(--text);">{{ x.time }}</span><span style="color: {{ x.fFg }};">{{ x.filter }}</span><span style="color: var(--dim);">{{ x.exp }}</span></sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <!-- spoken prompts, countdowns and beeps: held back for a later release -->
+            <sc-if value="{{ eclPromptsOn }}" hint-placeholder-val="{{ false }}"><div style="display: grid; gap: 10px;"><span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Spoken prompts</span>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <sc-for list="{{ eclPromptChips }}" as="c" hint-placeholder-count="5"><button type="button" onClick="{{ c.pick }}" data-nv-active="{{ c.on }}" style="min-height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ c.bd }}; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; font-size: 12px;">{{ c.label }}</button></sc-for>
+            </div>
+            <sc-for list="{{ eclCues }}" as="q" hint-placeholder-count="3">
+              <div style="display: grid; grid-template-columns: auto 70px minmax(0, 1fr) 44px; gap: 6px; align-items: center;">
+                <select value="{{ q.at }}" onChange="{{ q.onAt }}" aria-label="From which moment" style="min-height: 44px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: rgb(var(--card-rgb)); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px;"><sc-for list="{{ eclAnchors }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.label }}</option></sc-for></select>
+                <input type="number" step="5" value="{{ q.off }}" onChange="{{ q.onOff }}" aria-label="Seconds from that moment" style="min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: rgb(var(--card-rgb)); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px;">
+                <input type="text" value="{{ q.text }}" onChange="{{ q.onText }}" aria-label="What to say" style="min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: rgb(var(--card-rgb)); color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px;">
+                <button type="button" onClick="{{ q.del }}" aria-label="Remove" style="width: 44px; height: 44px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--dim); cursor: pointer;">✕</button>
+              </div>
+            </sc-for>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint);">Seconds from that moment: minus is before. The same prompts play in Sky AR.</span>
+            <div style="display: flex; gap: 7px; flex-wrap: wrap;">
+              <button type="button" onClick="{{ eclCueAdd }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Add a prompt</button>
+              <button type="button" onClick="{{ eclRehearse }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Rehearse</button>
+              <button type="button" onClick="{{ eclRunGo }}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Start on the day</button>
+            </div></div></sc-if>
+          </div>
+        </sc-if>
+        </sc-if>
+      </section>
+    </sc-if>
+    <sc-if value="{{ eclRunOn }}" hint-placeholder-val="{{ false }}">
+      <div role="status" data-nv-solid="1" style="position: fixed; inset: 0; z-index: 160; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 24px; background: rgba(5,5,6,.96); text-align: center;">
+        <span style="font-size: 12px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">{{ eclRunHead }}</span>
+        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: clamp(56px, 18vw, 96px); font-weight: 700; line-height: 1; color: var(--accent);">{{ eclRunCount }}</span>
+        <span style="max-width: 30ch; font-size: 20px; line-height: 1.35; color: var(--text); text-wrap: pretty;">{{ eclRunNext }}</span>
+        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; color: var(--dim);">{{ eclRunClock }}</span>
+        <button type="button" onClick="{{ eclRunStop }}" style="min-height: 56px; padding: 0 28px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.3); background: none; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; font-size: 14px;">Stop</button>
+      </div>
+    </sc-if>
     <sc-if value="{{ isMore }}" hint-placeholder-val="{{ false }}">
       <section data-screen-label="More" style="display: grid; gap: 16px;">
         <div style="display: grid; gap: 8px;">
@@ -2620,6 +2754,48 @@ window.noctoTrack = function (name, every) {
           
           
         </div>
+        <sc-if value="{{ syOn }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 10px; padding: 14px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Sync between devices</span>
+            <p style="margin: 0; font-size: 15.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ syLead }}</p>
+            <sc-if value="{{ syStatusOn }}" hint-placeholder-val="{{ false }}">
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.45; color: {{ syStatusInk }}; text-wrap: pretty;">{{ syStatus }}</span>
+            </sc-if>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <sc-if value="{{ syOffOn }}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{ syStart }}" style="min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Start syncing</button>
+              </sc-if>
+              <sc-if value="{{ syLinkedOn }}" hint-placeholder-val="{{ false }}">
+                <button type="button" onClick="{{ syAdd }}" style="min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ syAddLabel }}</button>
+                <button type="button" onClick="{{ syNow }}" style="min-height: 52px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.24); background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Sync now</button>
+              </sc-if>
+            </div>
+            <sc-if value="{{ syQrOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; justify-items: start; gap: 10px;">
+<div style="display: grid; gap: 6px; padding: 12px 14px; border-radius: 8px; background: rgba(var(--accent-rgb),.08); border: 1px solid rgba(var(--accent-rgb),.4);">
+                  <span style="font-size: 14px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">On the other device, open Noctography from its home screen, go to More, Sync between devices, and type this under Enter a code:</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 30px; font-weight: 700; letter-spacing: .12em; color: var(--accent);">{{ syCode }}</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ syCodeNote }}</span>
+                </div>
+              </div>
+            </sc-if>
+            <div style="display: grid; gap: 8px; padding-top: 6px;">
+              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Enter a code</span>
+              <span style="font-size: 14px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ syJoinLead }}</span>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <input type="text" value="{{ syCodeIn }}" onChange="{{ onSyCodeIn }}" onKeyDown="{{ onSyCodeKey }}" placeholder="ABCD-EFGH" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Code from the other device" style="flex: 1 1 160px; min-width: 0; height: 52px; box-sizing: border-box; padding: 0 14px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.24); background: rgba(var(--well-rgb),.5); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 20px; letter-spacing: .12em; text-transform: uppercase;">
+                <button type="button" onClick="{{ syJoin }}" style="min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ syJoinLabel }}</button>
+              </div>
+              <sc-if value="{{ syJoinErrOn }}" hint-placeholder-val="{{ false }}"><span style="font-size: 14px; line-height: 1.45; color: var(--accent); text-wrap: pretty;">{{ syJoinErr }}</span></sc-if>
+            </div>
+            <sc-if value="{{ syLinkedOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+                <button type="button" onClick="{{ syStop }}" style="min-height: 44px; padding: 0; border: 0; background: none; color: var(--faint); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;">Stop on this device</button>
+                <button type="button" onClick="{{ syRekey }}" style="min-height: 44px; padding: 0; border: 0; background: none; color: var(--faint); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer;">Lost a device? New key</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
         <div aria-label="Colour scheme" style="display: grid; gap: 6px; padding: 14px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
           <div style="display: grid; gap: 3px; padding: 0 2px 4px;">
             <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Colour scheme</span>
@@ -2713,6 +2889,7 @@ window.noctoTrack = function (name, every) {
             <span style="font-size: 13px; line-height: 1.42; color: var(--faint); text-wrap: pretty;">A zip of ordinary photographs and files. Restoring only adds.</span>
           </div>
         </sc-if>
+
 
         <div style="display: grid; gap: 8px; padding: 14px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -2896,6 +3073,21 @@ window.noctoTrack = function (name, every) {
 
         <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); padding-top: 6px;">Published models and type</span>
         <div style="display: grid; gap: 8px;">
+          <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">Sky AR: ground, imagery and maps</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.55; color: var(--accent); min-width: 0; overflow-wrap: anywhere;">Imagery © Esri, Vantor, Earthstar Geographics, powered by Esri · Terrain: Mapzen Terrarium · Map © OpenStreetMap contributors</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Trees and buildings, where they are drawn, come from national LIDAR and elevation services: Environment Agency, Scottish Government, IGN France, IGN España, Natural Resources Canada, Rijkswaterstaat, Geobasis NRW, Digitaal Vlaanderen, swisstopo, Klimadatastyrelsen, Lantmäteriet, Kartverket, Toitū Te Whenua LINZ, Spatial Services NSW, State of Queensland, Maanmittauslaitos and USGS 3DEP. Elsewhere, canopy height © Meta and WRI, and buildings © OpenStreetMap contributors. Hα: Finkbeiner (2003), with sharper surveys via CDS.</span>
+          </div>
+          <a href="https://eclipse.gsfc.nasa.gov/SEpubs/5MCSE.html" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">Eclipses</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">Eclipse Predictions by Fred Espenak, NASA’s GSFC</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Besselian elements for every solar eclipse from 1999 to 2100, from the Five Millennium Canon of Solar Eclipses. Lunar eclipses are worked out on your device and checked against NASA’s catalogue.</span>
+          </a>
+          <a href="https://commons.wikimedia.org/wiki/File:FullMoon2010.jpg" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+            <span style="font-size: 16px; font-weight: 600;">The Moon and the Sun</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">Moon: Gregory H. Revera, CC BY-SA 3.0 · Sun: NASA/SDO and the HMI science team</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The photographs drawn for the Moon and the Sun in Scout and Sky AR. The Moon is cropped and toned; the Sun is SDO’s white-light view, warmed.</span>
+          </a>
           <a href="https://ui.adsabs.harvard.edu/abs/1991PASP..103.1033K/abstract" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">Moonlight sky brightness</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">Krisciunas &amp; Schaefer 1991, PASP</span>
@@ -3053,8 +3245,8 @@ window.noctoTrack = function (name, every) {
     <div style="display: grid; gap: 14px; width: 100%; max-width: 440px; padding: 26px 22px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--accent-rgb),.45); border-radius: 16px;">
       <img src="../assets/logo-roundel.png" alt="" style="width: 46px; height: 46px; border-radius: 50%; display: block;">
       <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">{{ takeoverLabel }}</span>
-      <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(28px, 8.5vw, 36px); line-height: 1.04; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ takeoverTitle }}</h2>
-      <p style="margin: 0; font-size: 16.5px; line-height: 1.5; color: var(--text2); text-wrap: pretty;">{{ takeoverBody }}</p>
+      <sc-if value="{{ takeoverTitleOn }}" hint-placeholder-val="{{ false }}"><h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(28px, 8.5vw, 36px); line-height: 1.04; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">{{ takeoverTitle }}</h2></sc-if>
+      <p style="margin: 0; font-size: 16.5px; line-height: 1.5; color: var(--text2); text-wrap: pretty; white-space: pre-line;">{{ takeoverBody }}</p>
       <sc-if value="{{ takeoverListOn }}" hint-placeholder-val="{{ false }}">
         <div style="display: grid; gap: 9px;">
           <sc-for list="{{ takeoverList }}" as="b" hint-placeholder-count="6">
@@ -3066,7 +3258,7 @@ window.noctoTrack = function (name, every) {
         </div>
       </sc-if>
       <sc-if value="{{ takeoverFootOn }}" hint-placeholder-val="{{ false }}">
-        <p style="margin: 0; padding: 11px 13px; background: rgba(var(--line-rgb),.05); border-left: 2px solid var(--accent); border-radius: 4px; font-size: 15.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ takeoverFoot }}</p>
+        <p style="margin: 0; padding: 11px 13px; background: rgba(var(--line-rgb),.05); border-left: 2px solid var(--accent); border-radius: 4px; font-size: 15.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;; white-space: pre-line;">{{ takeoverFoot }}</p>
       </sc-if>
       <div style="display: grid; gap: 9px; padding-top: 4px;">
         <sc-if value="{{ takeoverCtaOn }}" hint-placeholder-val="{{ false }}">
@@ -3099,15 +3291,37 @@ window.noctoTrack = function (name, every) {
         </button>
       </sc-if>
 
+      <sc-if value="{{ arHintOn }}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{ arHintClose }}" onPointerDown="{{ arStopPtr }}" style="position: absolute; top: 64px; left: 12px; z-index: 8; max-width: min(420px, calc(100% - 24px)); box-sizing: border-box; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(var(--accent-rgb),.5); background: rgba(6,6,7,.86); color: rgba(240,236,228,.92); text-align: left; font-family: 'Barlow', sans-serif; font-size: 14px; line-height: 1.4; cursor: pointer;"><b style="font-weight: 600; color: var(--accent);">{{ arHintMode }}</b> {{ arHintText }}</button>
+      </sc-if>
       <div style="position: absolute; left: 0; right: 0; top: 0; z-index: 7; display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,0));">
         
         <div role="group" aria-label="What to draw under the sky" style="flex: 0 0 auto; display: flex;">
           <button type="button" onClick="{{ arGoLive }}" data-nv-active="{{ arModeLiveOn }}" style="min-height: 44px; padding: 0 12px; border: 1px solid {{ arLiveBd }}; border-radius: 999px 0 0 999px; background: {{ arLiveBg }}; color: {{ arLiveFg }}; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Live</button>
           <button type="button" onClick="{{ arGoTerrain }}" data-nv-active="{{ arTerrainOn }}" style="min-height: 44px; padding: 0 12px; border: 1px solid {{ arTerrBd }}; border-left: 0; border-radius: 0 999px 999px 0; background: {{ arTerrBg }}; color: {{ arTerrFg }}; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;">Scout</button>
         </div>
-        <span data-ar-aim="1" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(240,236,228,.8);"></span>
+        <span data-ar-aim="1" style="flex: 1 1 auto; min-width: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(240,236,228,.8);"></span>
         <button type="button" onClick="{{ closeAr }}" onPointerDown="{{ arStopPtr }}" aria-label="Close" style="margin-left: auto; width: 44px; height: 44px; border: 1px solid rgba(240,236,228,.28); border-radius: 999px; background: rgba(0,0,0,.5); color: rgba(240,236,228,.9); font-family: 'Barlow', sans-serif; font-size: 17px; line-height: 1; cursor: pointer;">✕</button>
       </div>
+      <sc-if value="{{ fullScoutNoteOn }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="position: absolute; top: 66px; left: 50%; transform: translateX(-50%); z-index: 8; width: max-content; max-width: min(520px, calc(100% - 24px)); box-sizing: border-box; padding: 9px 16px; border-radius: 18px; background: rgba(6,6,7,.9); border: 1px solid rgba(240,236,228,.16); font-family: 'Barlow', sans-serif; font-size: 13px; line-height: 1.35; color: #F3F0EA; text-align: center; text-wrap: pretty;">{{ fullScoutNote }}</div>
+      </sc-if>
+      <sc-if value="{{ fullScoutOn }}" hint-placeholder-val="{{ false }}">
+        <div style="position: fixed; inset: 0; z-index: 200; background: #050506;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: {{ fsBottom }}; transition: bottom 260ms cubic-bezier(.2,.7,.2,1);">
+            <iframe src="{{ fullScoutSrc }}" title="Scout" allow="geolocation; camera; accelerometer; gyroscope; magnetometer; fullscreen; clipboard-write; web-share" style="display: block; width: 100%; height: 100%; border: 0;"></iframe>
+          </div>
+          <sc-if value="{{ fsHandleOn }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ fsRailFlip }}" aria-label="{{ fsHandleAria }}" aria-expanded="{{ fsHandleExp }}" style="position: absolute; left: 0; right: 0; bottom: 0; height: calc(24px + env(safe-area-inset-bottom)); padding: 0 0 env(safe-area-inset-bottom); display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: #0B0B0E; color: rgba(240,236,228,.6); cursor: pointer;">
+              <span aria-hidden="true" style="width: 36px; height: 4px; border-radius: 2px; background: rgba(240,236,228,.3);"></span>
+              <span style="font-family: 'Barlow', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;">{{ fsHandleWord }}</span>
+            </button>
+          </sc-if>
+          <sc-if value="{{ fullScoutWaitOn }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: rgba(240,236,228,.7);">Opening Scout</div>
+          </sc-if>
+        </div>
+      </sc-if>
 
       <sc-if value="{{ arNotice }}" hint-placeholder-val="{{ true }}">
         <div style="position: absolute; left: 14px; right: 14px; bottom: {{ arNoticeBottom }}; z-index: 3; display: grid; gap: 10px; padding: 15px; background: rgba(6,6,7,.9); border: 1px solid rgba(240,236,228,.16); border-radius: 12px;">
@@ -3358,11 +3572,6 @@ window.noctoTrack = function (name, every) {
       </div>
       </sc-if>
 
-      <div style="display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;">
-        <sc-for list="{{ arSubjectChips }}" as="c" hint-placeholder-count="4">
-          <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 0 0 auto; min-height: 44px; padding: 0 13px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 13px; white-space: nowrap; cursor: pointer;">{{ c.label }}</button>
-        </sc-for>
-      </div>
 
       <div style="display: flex; gap: 6px; flex-wrap: wrap;">
         <sc-for list="{{ arMapChips }}" as="c" hint-placeholder-count="6">
@@ -3488,7 +3697,7 @@ window.noctoTrack = function (name, every) {
 </sc-if>
 
 <sc-if value="{{ compOpen }}" hint-placeholder-val="{{ false }}">
-  <div data-screen-label="Compositions" role="dialog" aria-modal="true" aria-label="Saved compositions" style="position: fixed; inset: 0; z-index: 130; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: var(--bg);">
+  <div data-screen-label="Compositions" role="dialog" aria-modal="true" aria-label="Saved compositions" style="position: fixed; inset: 0; z-index: {{ compZ }}; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: var(--bg);">
     <div style="display: grid; gap: 16px; align-content: start; max-width: 720px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom));">
 
       <div style="display: flex; align-items: center; gap: 8px;">
@@ -3692,7 +3901,7 @@ class Component extends DCLogic {
     filmSecs: 10, showTl: false,
     framePitch: 34, frameScrub: 40, frameMin: null, frameAz: null, frameThirds: true, frameLabels: true, frameElements: true,
     frameGround: true, frameGlow: true, frameMap: { stars: true, lines: true, bounds: false, names: false }, frameGroundLoad: null,
-    arMap: { stars: false, lines: false, bounds: false, names: false }, arVirtual: false, arGlow: true, arTrue: false, frameTrue: false, arPano: false, arPanoMock: false, arIdeas: false, arIdeaSel: null, ideaTick: 0, arPanoProj: 'sph', arPanoBox: null, arPanoSaved: '', panoFrom: null,
+    arMap: { stars: false, lines: false, bounds: false, names: false }, arVirtual: false, arGlow: true, arHa: (() => { try { return localStorage.getItem('noctography.arHa') === 'on'; } catch (e) { return false; } })(), arTrue: false, frameTrue: false, arPano: false, arPanoMock: false, arIdeas: false, arIdeaSel: null, ideaTick: 0, arPanoProj: 'sph', arPanoBox: null, arPanoSaved: '', panoFrom: null,
     frameExposure: 100, frameDate: null,
     calView: null, calOffset: 0, calSel: null, kitReturn: null,
     nearbyOpen: false, nearbyDrive: null, nearbyStatus: 'idle', nbView: null, noticeDone: {}, buildsOpen: false,
@@ -3781,14 +3990,30 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '2.0.3';
+  VERSION = '3.0';
   BUILDS = [
+    {
+      v: '3.0', date: '2026-10-02', silent: false,
+      title: 'Noctography 3.0',
+      intro: '',
+      bullets: [
+        'Sky AR overhauled: detailed planning on a phone, full landscape and sky detail on a computer, H-alpha and star timelapse',
+        'Eclipse planning: locations, times and compositions',
+        'Encrypted sync between devices, in More',
+      ],
+      popup: {
+        label: 'Upgraded to v3.0', title: '',
+        body: 'Sky AR has had a major overhaul, so you can now plan in detail on your phone and see exquisite landscape and sky detail on desktop. Add H-alpha to the sky and view a timelapse of the stars over the landscape.\n\nPlan your next eclipse trip: locations, times and compositions, all from the app.\n\nSync between devices: keep your Noctography data synced between your phone and desktop using the encrypted code generator in More.',
+        foot: 'Thank you for using Noctography. I hope you enjoy planning your next shot.\n\nPaul',
+      },
+    },
     {
       v: '2.0.3', date: '2026-09-28', silent: true,
       title: 'Noctography 2.0.3',
       intro: '',
       bullets: [
         'Open plans shared from Scout on a computer: they arrive in your compositions, ready for the field',
+        'Sync between devices, with no account: compositions, plans and saved places, in More',
       ],
     },
     {
@@ -4071,8 +4296,8 @@ class Component extends DCLogic {
        itself on launch. */
     if (!b || b.silent) return null;
     return {
-      id: 'build-' + b.v, style: 'takeover', label: 'Version ' + b.v,
-      title: b.title, body: b.intro, bullets: b.bullets, foot: b.foot, cta: null,
+      id: 'build-' + b.v, style: 'takeover', label: b.popup ? b.popup.label : 'Version ' + b.v,
+      title: b.popup ? b.popup.title : b.title, body: b.popup ? b.popup.body : b.intro, bullets: b.popup ? [] : b.bullets, foot: b.popup ? b.popup.foot : b.foot, cta: null,
     };
   }
 
@@ -4122,7 +4347,7 @@ class Component extends DCLogic {
   buildVals() {
     const st = this.state;
     return {
-      verLine: 'Version ' + this.VERSION + ' \u00b7 build 3',
+      verLine: 'Version ' + this.VERSION,
       buildsOpen: !!st.buildsOpen,
       toggleBuilds: () => this.setState({ buildsOpen: !st.buildsOpen }),
       buildsLabel: st.buildsOpen ? 'Hide' : 'What changed',
@@ -4153,6 +4378,7 @@ class Component extends DCLogic {
       if (!n) return;
       vals[p + 'Label'] = n.label;
       vals[p + 'Title'] = n.title;
+      vals[p + 'TitleOn'] = !!n.title;
       vals[p + 'Body'] = n.body;
       vals[p + 'ListOn'] = !!(n.bullets && n.bullets.length);
       vals[p + 'List'] = (n.bullets || []).map(text => ({ text }));
@@ -4244,8 +4470,51 @@ class Component extends DCLogic {
 
   componentDidMount() {
     document.addEventListener('keydown', this._onKey);
+    window.addEventListener('nocto-face', () => { this._arDirty = true; if (this.state.arOpen && this.drawAr) this.drawAr(); });
+    /* ?sky=1 opens straight into Sky AR, for a link or a preview */
+    if (/[?&]sky=1/.test(location.search)) setTimeout(() => { const go = () => this.E() && this.E().state.lat != null ? this.arOrFrame({}) : setTimeout(go, 300); go(); }, 600);
     this.compLoad();
+    /* full Scout, open inside Sky AR, says when it is up, when it has had to fall back and when it is done */
+    window.addEventListener('message', e => {
+      const d = e.data; if (e.origin !== location.origin || !d || d.nocto !== 'scout' || !this.state.fullScout) return;
+      if (d.type === 'ready') this.setState({ fullScoutWait: false });
+      else if (d.type === 'ideas') this.fsIdeasSend(e.source, 0);
+      else if (d.type === 'comp' && d.id) {
+        /* Scout's Details: the full composition card, over Scout; closing it goes back to Scout */
+        /* Scout has just saved it, so the list here is out of date: read it again */
+        this._compLoaded = false; this.compLoad(); this.setState({ compSel: d.id, compOpen: true, compView: 'detail', compMonth: 0 });
+      }
+      /* a close that nobody could have asked for, in the first moments of opening, is ignored */
+      else if (d.type === 'close' && Date.now() - (this._fsOpenedAt || 0) < 2500) { /* too soon to be a tap */ }
+      else if (d.type === 'close') {
+        /* the time and the aim come back from Scout, so the standard view carries on where it left off */
+        if (d.at && /^\d{4}-\d{2}-\d{2}$/.test(d.night || '')) {
+          const base = new Date(d.night + 'T12:00:00').getTime();
+          if (this._arLive) this._arLive.scrub = null;
+          this.setState({ arDate: d.night, arScrub: Math.max(0, Math.min(100, (d.at - base) / 864000)) }, () => { this.arSyncInputs(); this.drawAr(); });
+        }
+        if (isFinite(d.az) && this._arV) this._arV.az = d.az;
+        this.fullScoutClose();
+      }
+      /* one Scout: if it cannot hold the detailed ground it carries on with its simple ground, in the
+         same layout, rather than handing back to the old view */
+      else if (d.type === 'fallback') { /* Scout says so in its own Detail line */ }
+    });
     if (/[?&]plan=/.test(location.search)) setTimeout(() => this.planFromLink(), 900);
+    /* another device's sync brought something in: show it */
+    window.addEventListener('nocto-sync', e => {
+      const d = e.detail || {};
+      if (d.state === 'ok' && d.changed) {
+        this._compLoaded = false; this.compLoad(); try { this.setState({ favs: this.loadFavs() }); } catch (err) {}
+        /* kit, colour scheme and the log may have come across too: read them again */
+        this._logDb = null;
+        try { const P = this.P(); if (P && P.loadKit) this.setState({ kit: P.loadKit() }); } catch (err) {}
+        try { const pal = localStorage.getItem('noctography.palette'); if (pal && this.PALETTES[pal] && pal !== this.state.pal) { this.applyPalette(pal); this.setState({ pal }, () => this.drawRibbon()); } } catch (err) {}
+        this.forceUpdate();
+      }
+      if (d.linked && !this._syLinkedShown) { this._syLinkedShown = true; this.goTab('more'); }
+      this.forceUpdate();
+    });
     /* Ask the browser to keep this app's storage rather than clear it when space is short or the
        site has not been opened for a while. Most grant it silently to an installed app. */
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p => { if (!p) navigator.storage.persist(); }); } catch (e) {}
@@ -4277,11 +4546,28 @@ class Component extends DCLogic {
     setTimeout(() => { this.sightFlush(); this.sightLiveCheck(true); }, 4000);
     setInterval(() => this.sightLiveCheck(), 5 * 60000);
     this.waitForEngine().then(() => this.boot());
+    this.swRegister();
   }
 
+  /* the app and Scout keep themselves for offline use: only on the live site, never in a preview */
+  swRegister() {
+    if (!('serviceWorker' in navigator) || !/\/app\/(index\.html|desktop\.html)?$/.test(location.pathname)) return;
+    navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {});
+  }
   componentDidUpdate(prev) {
+    /* Sky AR's Scout is the new Scout wherever it can run: going to Scout opens it */
+    { const st = this.state;
+      if (st.arOpen && st.arVirtual && !st.fullScout && !this._fsAuto && !this._fsAutoHeld && ['', 'off'].includes(this.fullScoutBlock())) {
+        /* if it could not open yet (no location, a layout still settling), try again shortly rather
+           than leaving the old view up for good */
+        this._fsAuto = true; setTimeout(() => {
+          if (this.state.arOpen && this.state.arVirtual && !this.state.fullScout) this.fullScoutOpen();
+          setTimeout(() => { if (!this.state.fullScout) { this._fsAuto = false; if (this.state.arOpen && this.state.arVirtual) this.forceUpdate(); } }, 400);
+        }, 0);
+      } }
     this.drawRibbon(); this.applyNv(this.state.nv); this.measureAhead(); this.parkHistory(); this.syncLogo(this.state.pal);
     this.syncMapHome(); this.syncArLens();
+    if (this.state.tab === 'eclipses' && (prev.eclSel !== this.state.eclSel || prev.eclKind !== this.state.eclKind || prev.tab !== 'eclipses' || prev.nv !== this.state.nv || prev.eclMapStyle !== this.state.eclMapStyle)) this.drawEclMap();
     this.sightConfigure();
     /* Self-throttled to five minutes, so calling it on every update simply means it fires as soon
        as there is a position to measure against rather than waiting out a timer that started
@@ -4838,6 +5124,7 @@ class Component extends DCLogic {
      typing, while a modifier is held, and while AR or the location sheet is open, so a shortcut
      can never fire instead of a keystroke somebody meant for a field. */
   NAV_ICONS = {
+    eclipses: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M14.5 3.4a9 9 0 0 1 0 17.2a7 7 0 0 0 0 -17.2',
     tonight: 'M18 5h4 M20 3v4 M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401',
     map: 'M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0 M9 10a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
     sky: 'M3 7V5a2 2 0 0 1 2-2h2 M17 3h2a2 2 0 0 1 2 2v2 M21 17v2a2 2 0 0 1-2 2h-2 M7 21H5a2 2 0 0 1-2-2v-2 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0',
@@ -5070,7 +5357,8 @@ class Component extends DCLogic {
     }
     const prof = T.decode(hit.rec);
     this._hzFn = null;
-    this.setState({ hz: prof, hzObs: hit.rec.obs || null, hzStatus: prof ? 'ready' : 'idle',
+    /* hand-recorded obstructions are retired: Scout's ground, trees and buildings replace them */
+    this.setState({ hz: prof, hzObs: null, hzStatus: prof ? 'ready' : 'idle',
       hzDrift: hit.drift > 5 ? Math.round(hit.drift) : null, hzKeyUsed: hit.key });
   }
   async readSkyline() {
@@ -5445,7 +5733,7 @@ class Component extends DCLogic {
       isTonight: st.tab === 'tonight', isMeteors: st.tab === 'meteors', isAurora: st.tab === 'aurora',
       isPano: st.tab === 'pano', isMore: st.tab === 'more', isData: st.tab === 'data',
       isTrails: st.tab === 'trails', isSky: st.tab === 'sky', isKit: st.tab === 'kit',
-      isLog: st.tab === 'log', isMap: st.tab === 'map', isComps: st.tab === 'comps',
+      isLog: st.tab === 'log', isMap: st.tab === 'map', isComps: st.tab === 'comps', isEclipses: st.tab === 'eclipses',
       cloudMapGo: () => this.openCloudMap(),
       ...this.safe('cloudMapVals'),
       ...this.logVals(),
@@ -5473,6 +5761,7 @@ class Component extends DCLogic {
         { key: 'sky', label: 'Sky AR' },
         { key: 'aurora', label: 'Aurora', off: !auroraOn },
         { key: 'meteors', label: 'Meteors' },
+        { key: 'eclipses', label: 'Eclipses' },
         { key: 'log', label: 'Log' },
         { key: 'kit', label: 'Kit' },
         { key: 'more', label: 'More' },
@@ -5640,9 +5929,11 @@ class Component extends DCLogic {
       ...this.safe('mapVals'),
       ...this.safe('compTabVals'),
       ...this.safe('pinVals'),
+      ...this.safe('eclipseVals'),
       ...this.noticeVals(),
       ...this.buildVals(),
       ...this.safe('backupVals'),
+      ...this.safe('syncVals'),
       ...this.safe('layoutVals'),
       ...this.infoVals(),
     };
@@ -6294,8 +6585,12 @@ class Component extends DCLogic {
   }
   arOrFrame(opts) {
     /* 2.0: the framing view is Terrain now. Without a compass and camera, Sky AR opens in Terrain. */
-    if (!this.hasSensors() && !this.state.arVirtual) { this._arV = null; this.setState({ arVirtual: true, arPano: false }); this.scoutEnsure(true); }
+    /* Sky AR always opens in Scout: Live is switched on from there, so the camera and motion prompts
+       arrive when somebody has asked for them, not on the way in */
+    if (!this.state.arOpen && !this.state.arVirtual) { this._arV = null; this.setState({ arVirtual: true, arPano: false }); this.scoutEnsure(true); }
     const o = opts || {};
+    /* a subject from Tonight, Meteors and the rest: Scout opens facing it, at its best time */
+    this._fsSubject = o.subject && o.subject !== 'all' ? o.subject : null; this._fsSubjectTries = 0;
     this.openAr(Object.assign({}, o, { subject: o.subject && o.subject !== 'all' ? o.subject : 'all' }));
     if (o.subject && o.subject !== 'all') setTimeout(() => this.arIdeaAim(o.subject), 0);
     return;
@@ -6402,6 +6697,141 @@ class Component extends DCLogic {
       .catch(() => { if (this._scoutKey === key) this.setState({ frameGroundLoad: null }); });
   }
   scoutReady() { const sc = this._scout; return !!(sc && sc.ok && sc.rings.some(Boolean)); }
+  /* ---- Full Scout ----
+     On a screen big enough for it, with WebGL2, Scout mode can open the full desktop Scout in place:
+     trees, buildings, shadows, Hα, the compass ribbon, plans and walk-in routes. It shares this app's
+     storage, so kit, plans and compositions are the same on both sides, and it sizes itself to the
+     device (Full, Reduced, Basic). If it cannot hold even Basic, or does not open, it hands back and
+     this view carries on as before. */
+  fullScoutCan() {
+    if (this._fsCan) return this._fsCan;
+    let gl2 = false;
+    try { const c = document.createElement('canvas'), g = c.getContext('webgl2'); gl2 = !!g; const x = g && g.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); c.width = c.height = 0; } catch (e) {}
+    /* phones too, now: Scout carries a Light level for them */
+    return this._fsCan = { gl2, big: true };
+  }
+  offlineCovers() {
+    const E = this.E(); if (!E || E.state.lat == null) return false;
+    const la = E.state.lat, lo = E.state.lon;
+    try {
+      const a = JSON.parse(localStorage.getItem('noctography.scoutAreas') || '[]');
+      if (a.some(x => x.box && la <= x.box.n && la >= x.box.s && lo >= x.box.w && lo <= x.box.e)) return true;
+      const s = JSON.parse(localStorage.getItem('noctography.scoutOffline') || '[]');
+      return s.some(x => { const p = (x.key || '').split(',').map(Number); return p.length === 2 && Math.abs(p[0] - la) < 0.01 && Math.abs(p[1] - lo) < 0.015; });
+    } catch (e) { return false; }
+  }
+  fullScoutBlock() {
+    const c = this.fullScoutCan();
+    if (!c.big) return 'hide';
+    /* offline, Scout opens where its ground was saved: a saved area, or one of the last spots opened */
+    if (navigator.onLine === false && !this.offlineCovers()) return 'There is no saved ground here. Save an area from Scout\u2019s map, with Offline, before you go.';
+    const n = navigator.connection;
+    if (n && (n.saveData || /2g/.test(n.effectiveType || ''))) return 'The connection is too slow for full Scout just now.';
+    try { const s = JSON.parse(localStorage.getItem('nocto.scoutHD')) || {}; if (s.cap === 'off') return 'off'; } catch (e) {}
+    return '';
+  }
+  fullScoutOpen() {
+    const b = this.fullScoutBlock(), E = this.E();
+    if (b === 'hide' || !E || E.state.lat == null || this.state.fullScout) return;
+    /* the subject's aim and time are worked out here, before the address is built: they used to be
+       set a moment later, after Scout had already opened facing south on the live clock */
+    let subAim = null;
+    if (this._fsSubject) {
+      const p = this.arIdeaPick(this._fsSubject);
+      if (!p || !p.best) {
+        if ((this._fsSubjectTries = (this._fsSubjectTries || 0) + 1) < 12) { clearTimeout(this._fsSubT); this._fsSubT = setTimeout(() => this.fullScoutOpen(), 300); return; }
+      } else {
+        const t = p.best.t instanceof Date ? p.best.t : new Date(p.best.t), base = new Date(t.getFullYear(), t.getMonth(), t.getDate(), 12, 0, 0, 0);
+        if (t < base) base.setDate(base.getDate() - 1);
+        subAim = { az: p.best.az, alt: Math.max(-10, Math.min(80, p.best.alt)), t: t.getTime(), night: this.arDateStr(base) };
+      }
+      this._fsSubject = null;
+    }
+    if (b === 'off' && this._fsAuto) {
+      /* it ran out of memory here before: try the lightest level rather than never opening again */
+      try { const s = JSON.parse(localStorage.getItem('nocto.scoutHD')) || {}; s.cap = 'light'; localStorage.setItem('nocto.scoutHD', JSON.stringify(s)); } catch (e) {}
+    } else if (b === 'off' && !this._fsRetry) {
+      this._fsRetry = true;
+      this.fullScoutSay('Full Scout ran out of memory on this device before. Tap again to try its lightest version.'); return;
+    }
+    else if (b === 'off') { try { const s = JSON.parse(localStorage.getItem('nocto.scoutHD')) || {}; s.cap = 'light'; localStorage.setItem('nocto.scoutHD', JSON.stringify(s)); } catch (e) {} }
+    else if (b) { this.fullScoutSay(b); return; }
+    this._fsRetry = false;
+    const fsEcl = this._fsEcl, fsAt = this._fsAt; this._fsEcl = null; this._fsAt = null;
+    const q = 'embed=1&at=' + (fsAt ? fsAt[0].toFixed(5) + ',' + fsAt[1].toFixed(5) : E.state.lat.toFixed(5) + ',' + E.state.lon.toFixed(5))
+      + (fsAt ? '&name=' + encodeURIComponent('Eclipse spot') + '&area=' + encodeURIComponent(Math.abs(fsAt[0]).toFixed(3) + (fsAt[0] >= 0 ? 'N ' : 'S ') + Math.abs(fsAt[1]).toFixed(3) + (fsAt[1] >= 0 ? 'E' : 'W')) : E.state.place ? '&name=' + encodeURIComponent(E.state.place) : '')
+      + (subAim ? '&az=' + Math.round(((subAim.az % 360) + 360) % 360) + '&alt=' + subAim.alt.toFixed(1)
+        : this._arV && isFinite(this._arV.az) ? '&az=' + Math.round(((this._arV.az % 360) + 360) % 360) : '')
+      + (fsEcl ? '&ecl=' + fsEcl : '')
+      /* a time picked on the strip or the calendar goes with it; the live clock leaves Scout on tonight */
+      + (subAim ? '&t=' + subAim.t + '&night=' + subAim.night
+        : this.state.arScrub != null || this.state.arDate ? '&t=' + this.arTime().getTime() + '&night=' + this.arDateStr(this.arDayBase()) : '');
+    /* the small scene's memory goes to the big one; it is rebuilt on the way back */
+    const o = this._scout;
+    if (o && o.canvas) { try { const g = o.canvas.getContext('webgl2') || o.canvas.getContext('webgl'); const x = g && g.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); } catch (e) {} o.canvas.width = o.canvas.height = 0; }
+    this._scout = null; this._scoutKey = null;
+    this.track && this.track('skyar/full-scout');
+    this.setState({ fullScout: true, fullScoutWait: true, fullScoutNote: '', fullScoutSrc: (/\.dc\.html$/.test(location.pathname) ? '../Scout.dc.html?' : '../scout/?') + q });
+    clearTimeout(this._fsT);
+    this._fsOpenedAt = Date.now();
+    /* slow to say it is up: stop waiting and let it draw, rather than handing back to the old view */
+    this._fsT = setTimeout(() => { if (this.state.fullScout && this.state.fullScoutWait) this.setState({ fullScoutWait: false }); }, 30000);
+  }
+  /* Ideas for Scout: tonight's ranked subjects with where and when each is best. Scout draws the
+     pictures itself, from its own ground. Waits for the rank if it is not in yet. */
+  fsIdeasSend(win, tries) {
+    const rk = this.rank(), P = this.P(), st = this.state;
+    if (!win) return;
+    if (!rk || !P) { if (tries < 20) setTimeout(() => this.fsIdeasSend(win, tries + 1), 500); else win.postMessage({ nocto: 'app', type: 'ideas', list: [] }, location.origin); return; }
+    const list = (rk.picks || []).filter(p => p.best && p.best.alt > -2).map(p => {
+      const b = p.best, t = b.t instanceof Date ? b.t : new Date(b.t);
+      let why = ''; try { why = P.reasonFor(p, st.t, this.kit()) || ''; } catch (e) {}
+      return { id: p.el.id, name: p.el.name, ext: p.el.ext || 2, az: b.az, alt: b.alt, t: t.getTime(), why };
+    });
+    try { win.postMessage({ nocto: 'app', type: 'ideas', list }, location.origin); } catch (e) {}
+  }
+  fullScoutClose(note) {
+    clearTimeout(this._fsT);
+    /* opened on its own because Sky AR went to Scout: leaving it leaves Scout, back to Live if the
+       device has it or out of Sky AR if not. If it could not open, stay on this view until Sky AR closes. */
+    if (this._fsAuto) {
+      this._fsAuto = false;
+      if (note) this._fsAutoHeld = true;
+      else if (!this._fsEclBack) {
+        let nv = false; try { nv = localStorage.getItem('noctography.nv') === 'on'; } catch (e) {}
+        if (nv !== !!this.state.nv) this.applyNv(nv);
+        this._fsAutoHeld = true;
+        this.setState({ fullScout: false, fullScoutWait: false, fullScoutSrc: '', nv }, () => {
+          this._compLoaded = false; this.compLoad();
+          /* Live is inside Scout now, so leaving Scout leaves Sky AR */
+          this.closeAr();
+        });
+        return;
+      }
+    }
+    const back = this._fsEclBack; this._fsEclBack = null;
+    if (back) {
+      if (this._arV && back.az != null) { this._arV.az = back.az; this._arV.alt = back.alt; }
+      this.setState({ arDate: back.arDate, arScrub: back.arScrub, arVirtual: back.arVirtual,
+        eclFsNote: note ? 'Full Scout could not open on this device, so it cannot show that spot. Its times are above.' : '' });
+      if (this._arLive) this._arLive.scrub = null;
+      if (!back.arOpen) { this.setState({ fullScout: false, fullScoutWait: false, fullScoutSrc: '' }); this.closeAr(); return; }
+      note = null;
+    }
+    /* night vision may have been changed inside Scout */
+    let nv = false; try { nv = localStorage.getItem('noctography.nv') === 'on'; } catch (e) {}
+    if (nv !== !!this.state.nv) this.applyNv(nv);
+    this.setState({ fullScout: false, fullScoutWait: false, fullScoutSrc: '', nv }, () => {
+      this._compLoaded = false; this.compLoad();
+      if (this.state.arVirtual) this.scoutEnsure(true);
+    });
+    if (note) this.fullScoutSay(note);
+  }
+  fullScoutSay(note) {
+    clearTimeout(this._fsNT);
+    this.setState({ fullScoutNote: note });
+    this._fsNT = setTimeout(() => this.setState({ fullScoutNote: '' }), 7000);
+  }
   /* drag on the picture to aim: written live, committed on release */
   frameDown(e) {
     const el = e.currentTarget; el.setPointerCapture(e.pointerId);
@@ -7316,6 +7746,8 @@ class Component extends DCLogic {
   async openAr(opts) {
     const o = opts || {};
     this.track('skyar/open');
+    const wasOpen = !!this.state.arOpen;
+    if (!wasOpen && !o.live && !this.state.arVirtual) { this._arV = null; this.setState({ arVirtual: true, arPano: false }); this.scoutEnsure(true); }
     this.track(this.state.arVirtual || !this.hasSensors() ? 'skyar/scout' : 'skyar/live');
     const patch = { arOpen: true, arShowTune: false, arAligning: false };
     if (o.subject) patch.arSubject = o.subject;
@@ -7326,6 +7758,11 @@ class Component extends DCLogic {
     this.lockPage(true);
     this.watchArOrientation(true);
     this.loadArObjs();
+    if (this.state.arVirtual) { this.arLoop(); return; }   // Scout asks for nothing
+    await this.arLiveStart();
+  }
+  /* motion first, then the camera: only when Live is actually switched on */
+  async arLiveStart() {
     const AR = window.NoctoAR;
     if (!AR || !AR.supported() || !AR.secure()) { this.setState({ arMotion: false }); return; }
     const ok = await AR.requestMotion();
@@ -7437,7 +7874,10 @@ class Component extends DCLogic {
   }
 
   closeAr() {
+    this._fsAutoHeld = false; this._fsAuto = false;
     if (!this.state.arOpen) return;
+    if (this.state.fullScout) { clearTimeout(this._fsT); this.setState({ fullScout: false, fullScoutWait: false, fullScoutSrc: '' }); }
+    if (this._fsEclBack) { const b = this._fsEclBack; this._fsEclBack = null; this.setState({ arDate: b.arDate, arScrub: b.arScrub, arVirtual: b.arVirtual }); }
     /* Older iPhones deliver a second, synthesised click about 300 ms after the tap, at the same
        spot. Once the overlay has gone that spot is the header's Sky AR button, so the app went to
        Tonight and straight back in. Any click in the next half second is eaten. */
@@ -7695,6 +8135,11 @@ class Component extends DCLogic {
     f.projector = (W, H, o) => AR.projector(W, H, { basis: (o && o.basis) || basis(), hfov: (o && o.hfov) || v.hfov });
     return f;
   }
+  arHintSeen(k) { try { return (JSON.parse(localStorage.getItem('noctography.arHints')) || {})[k] === 1; } catch (e) { return true; } }
+  arHintMark(k) {
+    try { const h = JSON.parse(localStorage.getItem('noctography.arHints')) || {}; h[k] = 1; localStorage.setItem('noctography.arHints', JSON.stringify(h)); } catch (e) {}
+    clearTimeout(this._arHintT); this._arHintT = null; this.forceUpdate();
+  }
   arSetVirtual(on) {
     const AR = window.NoctoAR;
     this.track(on ? 'skyar/scout' : 'skyar/live');
@@ -7708,7 +8153,7 @@ class Component extends DCLogic {
       if (AR) AR.stopCamera();
     }
     this.setState(Object.assign({ arVirtual: !!on, arCal: false, arAligning: false, arPano: on ? this.state.arPano : false }, on ? { arCamOk: null } : {}), () => {
-      if (!on && this.state.arCam !== false) this.startArCamera();
+      if (!on) { if (this.state.arMotion == null || this.state.arMotion === false) this.arLiveStart(); else if (this.state.arCam !== false) this.startArCamera(); }
       this.drawAr();
     });
   }
@@ -8298,7 +8743,13 @@ class Component extends DCLogic {
     this.logWrite();
     this.setState({ arPanoSaved: 'Saved to the Log under the night of ' + nightWord + '. Fill in the rest on the night.' });
   }
-  arRailOn() { const st = this.state; const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches; return !!st.arOpen && !st.arLandscape && coarse; }
+  arRailOn() { const st = this.state; const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches; return !!st.arOpen && !st.arLandscape && (coarse || this.fsRail()); }
+  /* Scout on a phone keeps the app's rail: over its foot, above a thin handle that tucks it away */
+  fsRail() { const st = this.state; return !!st.fullScout && Math.min(window.innerWidth, window.innerHeight) < 600; }
+  /* sideways there is no height to spare, so the rail starts tucked away behind its handle */
+  fsRailHid() {
+    if (this.state.arLandscape && !this._fsLandShow) return true;
+    if (this._fsHid == null) { try { this._fsHid = localStorage.getItem('noctography.scoutRail') === 'hid'; } catch (e) { this._fsHid = false; } } return this._fsHid; }
   arMoving() {
     const AR = this.arSrc();
     if (!AR) return false;
@@ -8574,6 +9025,49 @@ class Component extends DCLogic {
     };
   }
 
+  /* Sync: the module does the work; this is its switch and its status */
+  syncVals() {
+    const S = window.NoctoSync, st = this.state;
+    if (!S) return { syOn: false };
+    const s = S.status(), on = !!s.on;
+    const ago = s.at ? (() => { const m = Math.round((Date.now() - s.at) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : this.compClock(s.at); })() : '';
+    const status = !on ? '' : s.state === 'syncing' ? 'Syncing\u2026' : s.state === 'error' ? 'Not synced: ' + s.err + '.' : s.at ? 'Synced ' + ago + ' \u00b7 ' + (s.count || 0) + ' compositions and plans' : '';
+    return {
+      syOn: true, syOffOn: !on, syLinkedOn: on,
+      syLead: on ? 'This device shares its compositions, plans, saved places, kit, night log, aurora notes and settings with your other linked devices. The full photos stay here and in your backup.'
+        : 'Keep compositions, plans, saved places, kit, your night log and settings the same on your phone, tablet and computer. No account: a private key links your devices, and everything is encrypted before it leaves.',
+      syStatusOn: !!status, syStatus: status, syStatusInk: s.state === 'error' ? 'var(--accent)' : 'var(--faint)',
+      syStart: () => { this.track('sync/start'); S.start().then(() => this.syncShowQr()); },
+      syAdd: () => (st.syQr ? this.setState({ syQr: null }) : this.syncShowQr()), syAddLabel: st.syQr ? 'Done' : 'Add a device',
+      syNow: () => S.run(),
+      syQrOn: !!st.syQr, syQr: st.syQr || '',
+      syCode: st.syCode || '\u2026',
+      syCodeNote: st.syCodeAt ? 'Works once, for ten minutes, until ' + this.hhmm(st.syCodeAt + 600000) : st.syCodeErr ? 'No code: ' + st.syCodeErr : 'Making a code\u2026',
+      syJoinLead: on ? 'Type the code from another device to join its sync instead of this one\u2019s.' : 'Already syncing on another device? Make a code there with Add a device, and type it here.',
+      syCodeIn: st.syCodeIn || '', onSyCodeIn: e => this.setState({ syCodeIn: e.target.value, syJoinErr: '' }),
+      onSyCodeKey: e => { if (e.key === 'Enter') this.syncJoin(e.target.value); },
+      syJoin: () => this.syncJoin(st.syCodeIn), syJoinLabel: st.syJoinBusy ? 'Linking\u2026' : 'Link',
+      syJoinErrOn: !!st.syJoinErr, syJoinErr: st.syJoinErr || '',
+      syCopy: () => { const u = S.linkUrl(); (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => this.setState({ syCopied: true })).catch(() => window.prompt('Copy this link', u)); },
+      syCopyLabel: st.syCopied ? 'Link copied' : 'Copy the link',
+      syStop: () => { if (window.confirm('Stop syncing on this device? Everything already here stays here.')) { S.stop(); this.setState({ syQr: null }); } },
+      syRekey: () => { if (window.confirm('Make a new key? Every other device stops syncing until you link it again. Use this if a device is lost.')) S.rekey().then(() => this.syncShowQr()); },
+    };
+  }
+  syncJoin(code) {
+    const S = window.NoctoSync; if (!S || !S.pairAccept || this.state.syJoinBusy) return;
+    this.setState({ syJoinBusy: true, syJoinErr: '' });
+    S.pairAccept(code).then(() => { this.setState({ syJoinBusy: false, syCodeIn: '', syQr: null }); this.toast && this.toast('Linked. Your plans and compositions are coming across.'); this._compLoaded = false; this.compLoad(); })
+      .catch(e => this.setState({ syJoinBusy: false, syJoinErr: (e && e.message) || 'That did not work.' }));
+  }
+  /* a code, not a QR: the app is meant to live on the home screen, and a scanned link opens Safari */
+  syncShowQr() {
+    const S = window.NoctoSync; if (!S) return;
+    this.setState({ syQr: 'code', syCode: '\u2026', syCodeAt: 0, syCodeErr: '' });
+    (S.pairOffer ? S.pairOffer() : Promise.reject(new Error('codes need the new sync file')))
+      .then(c => this.setState({ syCode: c, syCodeAt: Date.now() }))
+      .catch(e => this.setState({ syCode: '\u2013', syCodeAt: 0, syCodeErr: (e && e.message) || 'no code' }));
+  }
   backupVals() {
     const st = this.state;
     const n = (st.comps || []).length;
@@ -8629,7 +9123,7 @@ class Component extends DCLogic {
     this.ensureComp().then(C => {
       const recs = t.filter(x => Array.isArray(x) && isFinite(x[0]) && isFinite(x[1])).map(x => {
         const at = x[5] * 60000, night = this.compNightOf(at);
-        return { id: C.newId(), at, night: night.ms, nightKey: night.key, cap: Date.now(), name: '', note: 'Planned in Scout',
+        return { id: C.newId(), at, night: night.ms, nightKey: night.key, cap: Date.now(), name: x[10] || '', note: x[11] || 'Planned in Sky AR Scout',
           place: x[8] || '', lat: x[0], lon: x[1], az: x[2], alt: x[3], roll: 0, hfov: x[4], lens: 'scout', zoom: 1, pano: null,
           focal: x[6], sensor: this.kit().sensor, orient: x[7] ? 'port' : 'land', cal: true, nudge: 0, src: 'scout', photo: false };
       });
@@ -8762,7 +9256,7 @@ class Component extends DCLogic {
       lat: E.state.lat, lon: E.state.lon,
       az: b.az, alt: b.alt,
       roll: Math.asin(Math.max(-1, Math.min(1, b.right[2]))) * 180 / Math.PI,
-      hfov: pano ? pano.box.w : AR.effHfov(), lens: pano ? 'terrain panorama' : virt ? 'terrain' : AR.lensLabel(), zoom: virt ? 1 : AR.zoom(),
+      hfov: pano ? pano.box.w : AR.effHfov(), lens: pano ? 'Scout panorama' : virt ? 'Scout' : AR.lensLabel(), zoom: virt ? 1 : AR.zoom(),
       pano: pano ? { az: pano.box.az, w: pano.box.w, lo: pano.box.lo, hi: pano.box.hi, frames: pano.frames, rows: pano.rows, ov: pano.ov, proj: pano.proj } : null,
       focal: kit.focal, sensor: kit.sensor, orient: kit.orient,
       cal: virt ? true : this.compCalibrated(), nudge: virt ? 0 : AR.nudge(),
@@ -8860,7 +9354,7 @@ class Component extends DCLogic {
         software: 'Noctography',
         lat: rec.lat, lon: rec.lon, az: rec.az,
         focal: rec.focal, focal35: rec.focal,
-        lens: rec.focal + 'mm equivalent, ' + (rec.src === 'terrain' ? 'planned in Scout' : (rec.lens || 'phone') + ' camera'),
+        lens: rec.focal + 'mm equivalent, ' + (rec.src === 'terrain' ? 'planned in Sky AR Scout' : (rec.lens || 'phone') + ' camera'),
         width: cv.width, height: cv.height,
       })))
       .then(blob => {
@@ -9254,7 +9748,7 @@ class Component extends DCLogic {
         { k: 'Lens', v: num(sel.focal, 0) + 'mm ' + sensorOf(sel) + ' \u00b7 ' + num(sel.hfov, 0) + '\u00b0 across' },
         ...(sel.pano ? [{ k: 'Panorama', v: sel.pano.frames + ' frames (' + sel.pano.rows.join(' + ') + ') at ' + sel.pano.ov + '% \u00b7 ' + Math.round(sel.pano.w) + '\u00b0 \u00d7 ' + Math.round(sel.pano.hi - sel.pano.lo) + '\u00b0' }] : []),
         { k: 'Scouted', v: this.compShort(sel.cap) + '  ' + this.compClock(sel.cap) },
-        { k: 'Compass', v: sel.src === 'terrain' ? 'not needed: planned in Scout' : sel.cal ? 'calibrated' : 'not calibrated' },
+        { k: 'Compass', v: sel.src === 'terrain' ? 'not needed: planned in Sky AR Scout' : sel.cal ? 'calibrated' : 'not calibrated' },
       ],
       walk: this.compWalkLine(sel),
       onName: e => this.compPatch(sel.id, { name: e.target.value }),
@@ -9299,7 +9793,8 @@ class Component extends DCLogic {
 
       /* the overlay */
       compOpen: !!st.compOpen,
-      compIsList: st.compView === 'list',
+      /* a card that is not there (yet, or any more) shows the list rather than an empty overlay */
+      compIsList: st.compView === 'list' || !sel,
       compIsDetail: st.compView === 'detail' && !!sel,
       compIsAgain: st.compView === 'again' && !!sel,
       compGroups: places,
@@ -9310,6 +9805,7 @@ class Component extends DCLogic {
         + ' \u00b7 ' + (soonDays <= 0 ? 'tonight' : 'in ' + soonDays + (soonDays === 1 ? ' night' : ' nights'))
         + ' \u00b7 ' + (soon.place || 'unnamed place') : '',
       compSoonGo: () => { if (soon) this.setState({ compSel: soon.id, compView: 'detail', compMonth: 0 }); },
+      compZ: st.fullScout ? '230' : '130',
       compStoreErr: st.compStoreErr,
       compStoreErrOn: !!st.compStoreErr,
 
@@ -9523,6 +10019,12 @@ class Component extends DCLogic {
     const say = (text, x, y, colour, size, weight, pri) =>
       labels.push({ text, x, y, colour, size: size * scale, weight, pri });
 
+    /* Hα, in Live and in Scout: the glowing hydrogen a modified camera records, from Finkbeiner's
+       all-sky map. Fetched the first time it is switched on. */
+    if (st.arHa && S && S.haLayer && pr.unproject) {
+      if (!S.haLayer(ctx, W, H, pr.unproject, E.state.lat, E.state.lon, when, sky, { nv, w: window.matchMedia && window.matchMedia('(pointer: coarse)').matches ? 160 : 260 }) && S.loadHa)
+        S.loadHa('../assets/halpha_finkbeiner_4k.png', () => { this._arDirty = true; this.drawAr(); });
+    }
     // the Milky Way, as a photograph warped onto the same projection as everything else, so the
     // Great Rift and every other dark lane read as real structure rather than a soft glow. Falls
     // back to the plain stroke while the source image is still loading.
@@ -9681,6 +10183,23 @@ class Component extends DCLogic {
         me ? accent : dim, 13, 600, me ? 20 : 40);
     });
 
+    /* an eclipse under way: the Sun or Moon marker shows it as it looks, enlarged, and says how far on */
+    const EX = window.NoctoEclipse && window.NoctoEclipse.data() ? window.NoctoEclipse : null, eNow = EX ? EX.find(this.arTime().getTime()) : null;
+    let eclSaid = null;
+    if (eNow) {
+      const E0 = this.E(), t0 = this.arTime().getTime(), solar = eNow.kind === 'solar', b = solar ? sky.sun : sky.moon;
+      const p = b && b.alt > -1 ? pr(b.alt, b.az) : null;
+      if (p && inView(p)) {
+        const r = 14 * scale, pa = EX.parallactic(b.alt, b.az, E0.state.lat);
+        if (solar) { const es = EX.solarAt(eNow, E0.state.lat, E0.state.lon, t0);
+          if (es.obsc > 0) { EX.drawSun(ctx, p.x, p.y, r, es, pa); eclSaid = { p, t: es.total ? 'totality' : es.ring ? 'the ring' : 'sun ' + Math.round(es.obsc * 100) + '% covered' }; } }
+        else { const l = EX.lunarAt(eNow, t0);
+          if (l.pmag > 0) { EX.moonDisc(ctx, p.x, p.y, r, pa, nv);
+            EX.drawMoonShadow(ctx, p.x, p.y, r, l, pa, EX.settings().danjon);
+            eclSaid = { p, t: l.umag >= 1 ? 'moon in totality' : l.umag > 0 ? 'moon ' + Math.round(l.umag * 100) + '% in shadow' : 'moon in the penumbra' }; } }
+        if (eclSaid) say(eclSaid.t, p.x + 24 * scale, p.y - 12 * scale, accent, 13, 600, 70);
+      }
+    }
     // the moon, which is also the thing you tap to align
     if (sky.moon.alt > 0) {
       const p = pr(sky.moon.alt, sky.moon.az);
@@ -9945,6 +10464,16 @@ class Component extends DCLogic {
       arTerrBd: st.arVirtual ? 'var(--accent)' : 'rgba(240,236,228,.28)', arTerrFg: st.arVirtual ? 'var(--accent)' : 'rgba(240,236,228,.75)',
       arTerrBg: st.arVirtual ? 'rgba(var(--accent-rgb),.18)' : 'rgba(0,0,0,.5)',
       arGoLive: () => this.arSetVirtual(false), arGoTerrain: () => this.arSetVirtual(true),
+      /* said once per mode, the first time it is used, then never again */
+      ...(() => { const k = st.arVirtual ? 'scout' : 'live', seen = this.arHintSeen(k), on = st.arOpen && !st.fullScout && !seen;
+        if (on && !this._arHintT) this._arHintT = setTimeout(() => { this._arHintT = null; this.arHintMark(k); }, 9000);
+        return { arHintOn: on, arHintMode: st.arVirtual ? 'Scout:' : 'Live:',
+          arHintText: st.arVirtual ? 'stand anywhere, on any date. Drag to look round.' : 'hold the phone up and the sky is drawn over your camera.',
+          arHintClose: () => this.arHintMark(k) }; })(),
+      ...(() => { const b = st.arVirtual && !st.fullScout ? this.fullScoutBlock() : 'hide';
+        return { fullScoutBtnOn: b !== 'hide', fullScoutGo: e => { if (e && e.stopPropagation) e.stopPropagation(); this.fullScoutOpen(); },
+          fullScoutOn: !!st.fullScout, fullScoutSrc: st.fullScoutSrc || 'about:blank', fullScoutWaitOn: !!st.fullScoutWait,
+          fullScoutNoteOn: !!st.fullScoutNote, fullScoutNote: st.fullScoutNote || '' }; })(),
       /* Contrast against the camera. The overlay is a screen blend, and screen over a bright sky
          adds almost nothing, so no amount of exposure recovers it in daylight: what works is
          giving the overlay somewhere darker to add into. One slider drives both ends of that
@@ -9974,7 +10503,10 @@ class Component extends DCLogic {
          screen. */
       arRows: st.arLandscape ? '1fr' : 'minmax(54%, 1fr) auto',
       arVpHeight: (() => { const rail = this.arRailOn() ? (this._appBarH || 66) + 12 : 0; return st.arVpH ? (st.arVpH - rail) + 'px' : 'calc(100dvh - ' + rail + 'px)'; })(),
-      arRailWord: this.arRailOn() ? 'on' : 'off',
+      arRailWord: this.fsRail() ? (this.fsRailHid() ? 'hid' : 'fs') : this.arRailOn() ? 'on' : 'off',
+      fsHandleOn: this.fsRail(), fsHandleWord: this.fsRailHid() ? 'Menu' : 'Hide menu', fsHandleAria: this.fsRailHid() ? 'Show the app menu' : 'Hide the app menu', fsHandleExp: this.fsRailHid() ? 'false' : 'true',
+      fsBottom: !this.fsRail() ? '0px' : this.fsRailHid() ? 'calc(24px + env(safe-area-inset-bottom))' : 'calc(' + ((this._appBarH || 66) + 32) + 'px + env(safe-area-inset-bottom))',
+      fsRailFlip: () => { if (st.arLandscape) { this._fsLandShow = !this._fsLandShow; this.forceUpdate(); return; } this._fsHid = !this.fsRailHid(); try { localStorage.setItem('noctography.scoutRail', this._fsHid ? 'hid' : 'on'); } catch (e) {} this.forceUpdate(); },
       /* upright, the time sits over the view; sideways it keeps its place in the strip's row */
       arClockStageOn: !!st.arOpen && !st.arLandscape && !st.arPano,
       setAppBar: el => { this._appBar = el; if (el) { const nb = el.querySelector('[data-nv-bar]'); const h = nb ? nb.offsetHeight : 0; if (h && h !== this._appBarH) { this._appBarH = h; if (this.state.arOpen) this.forceUpdate(); } } },
@@ -10071,6 +10603,7 @@ class Component extends DCLogic {
           this.setState(patch, () => { this._arDirty = true; this.drawAr(); });
         });
       })()]).concat([chip('Glow', st.arGlow !== false, () => this.setState({ arGlow: st.arGlow === false }, () => this.drawAr()))])
+        .concat([chip('H-alpha', !!st.arHa, () => { const on = !st.arHa; try { localStorage.setItem('noctography.arHa', on ? 'on' : 'off'); } catch (e) {} this.setState({ arHa: on }, () => { this._arDirty = true; this.drawAr(); }); })])
         .concat(st.arVirtual ? [chip('True colour', !!st.arTrue, () => this.setState({ arTrue: !st.arTrue }, () => this.drawAr()))] : []),
       arSubjectChips: [chip('Everything', st.arSubject === 'all', () => this.setState({ arSubject: 'all' }))]
         .concat(picks.map(p => chip(p.el.name, st.arSubject === p.el.id, () => this.setState({ arSubject: p.el.id })))),
@@ -11653,7 +12186,7 @@ class Component extends DCLogic {
     if (this._tileRaf) return;
     this._tileRaf = requestAnimationFrame(() => {
       this._tileRaf = null;
-      this.drawPin(); this.drawNearby(); this.drawCompMap();
+      this.drawPin(); this.drawNearby(); this.drawCompMap(); this.drawEclMap();
     });
   }
   tileUrl(tpl, src, z, x, y) {
@@ -11716,6 +12249,15 @@ class Component extends DCLogic {
     };
 
     layer(src.base);
+
+    /* under a brightness wash the map goes grey, so the shading is the only colour on it: a
+       saturation blend with grey takes the colour out of whatever is already drawn, map or photo */
+    if (opts.lp) {
+      /* all colour out, and the ground pushed down to a dark grey, so the shading carries the page and
+         the map underneath only gives the roads and coast to read it by */
+      ctx.save(); ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#5A5A5A'; ctx.fillRect(0, 0, W, H); ctx.restore();
+    }
 
     if (opts.lp) {
       /* One sample per six screen pixels: the atlas is 1.5 arcmin, about 2.8 km, so anything finer
@@ -11956,9 +12498,9 @@ class Component extends DCLogic {
        arrives as a warm wash that thickens towards town, which the eye reads as "avoid" before
        anyone has looked at the legend. */
     return [
-      'rgba(46,130,150,.06)', 'rgba(58,145,150,.13)', 'rgba(92,163,128,.21)',
-      'rgba(152,172,88,.30)', 'rgba(202,171,58,.40)', 'rgba(226,150,44,.50)',
-      'rgba(235,120,34,.60)', 'rgba(240,95,28,.70)', 'rgba(246,70,24,.78)',
+      'rgba(20,110,190,.16)', 'rgba(20,150,200,.26)', 'rgba(30,175,140,.36)',
+      'rgba(120,195,40,.46)', 'rgba(225,205,20,.56)', 'rgba(250,160,10,.64)',
+      'rgba(250,110,10,.72)', 'rgba(245,65,20,.80)', 'rgba(235,30,60,.86)',
     ][i];
   }
 
@@ -11974,10 +12516,12 @@ class Component extends DCLogic {
     if (this._mapHome === undefined) { this._mapHome = key; return; }   // first sight is not a move
     if (this._mapHome === key) return;
     this._mapHome = key;
-    const prev = this.state.mapView;
+    const prev = this.state.mapView, pin = this.state.pinView;
+    /* the Refine map keeps its zoom and its basemap too: it used to be reset here, so every time
+       the pin settled the map sprang back out to the default zoom and to satellite */
     this.setState({
       mapView: prev ? { ...prev, lat: E.state.lat, lon: E.state.lon } : null,
-      pinView: null,
+      pinView: pin ? { ...pin, lat: E.state.lat, lon: E.state.lon } : null,
     }, () => { this.drawMap(); if (this.state.tab === 'map') this.mapWarm(); });
   }
 
@@ -12267,7 +12811,7 @@ class Component extends DCLogic {
     if (!v) return;
     const st = this.state, cloud = !!st.pinCloud, look = this.pinLook(st), E = this.E(), nv = !!st.nv, pal = this.pal();
     this.drawSlippy(this._pinCv, v, {
-      lp: st.mapLayer && st.mapLayer !== 'off', lpAlpha: nv ? 0.65 : 0.7, crosshair: true,
+      lp: st.mapLayer && st.mapLayer !== 'off', lpAlpha: nv ? 0.8 : 0.82, crosshair: true,
       markers: look && E && E.state.lat != null ? [{ lat: E.state.lat, lon: E.state.lon, r: 5.5, colour: nv ? '#FF3B18' : pal.accent }] : [],
       wash: cloud ? (ctx, f) => this.drawCloudGrid(ctx, f) : null,
       after: look ? (ctx, f) => this.drawCompPins(ctx, f, v) : null,
@@ -12339,7 +12883,7 @@ class Component extends DCLogic {
         return d < -1.5 ? head + ' It swamps the difference between places, so tonight the drive buys you very little.' : head;
       })(),
       mapLayerNote: st.mapLayer === 'atlas'
-        ? 'Sky brightness from the light pollution atlas, before tonight\u0027s moon and haze. Pans look around without moving your pin.'
+        ? 'Sky brightness from the light pollution atlas, before tonight\u0027s moon and haze.'
         : st.mapLayer === 'tonight'
           ? 'The same shading with tonight\u0027s moon and haze counted in, as measured at your own site.'
           : 'All shading off.',
@@ -15124,6 +15668,317 @@ class Component extends DCLogic {
     return { eclOn: lines.length > 0, eclList: lines };
   }
   lower(s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; }
+  /* ---- eclipses ----
+     Every eclipse from August 1999 to 2100, worldwide, each marked for whether it can be seen from
+     the pin. The detail is what matters on the day: when each stage happens here, where the Sun or
+     Moon is, and whether the skyline you have mapped is in the way. */
+  X() { return window.NoctoEclipse && window.NoctoEclipse.data() ? window.NoctoEclipse : null; }
+  eclLocal(e) {
+    const E = this.E(), X = this.X(); if (!X || !E || E.state.lat == null) return null;
+    const key = E.state.lat.toFixed(4) + ',' + E.state.lon.toFixed(4);
+    if (this._eclKey !== key) { this._eclKey = key; this._eclCache = new Map(); }
+    if (!this._eclCache.has(e.id)) { let r = null; try { r = X.local(e, E.state.lat, E.state.lon); } catch (err) {} this._eclCache.set(e.id, r); }
+    return this._eclCache.get(e.id);
+  }
+  eclPath(e) {
+    const X = this.X(); if (!X || e.kind !== 'solar' || e.type === 'P') return null;
+    this._eclPaths = this._eclPaths || new Map();
+    if (!this._eclPaths.has(e.id)) this._eclPaths.set(e.id, X.solarPath(e, 1));
+    return this._eclPaths.get(e.id);
+  }
+  eclDate(ms, withDay) {
+    const E = this.E(), p = E.localParts(new Date(ms)), d = new Date(Date.UTC(p.y, p.m, p.d));
+    return (withDay ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d.getUTCDay()] + ' ' : '') + p.d + ' ' + ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][p.m] + ' ' + p.y;
+  }
+  eclTitle(e) { return e.typeName + (e.kind === 'solar' ? ' solar' : ' lunar'); }
+  /* what the pin gets, in a few words */
+  eclHere(e, lc) {
+    if (!lc || !lc.visible) return { here: 'Not from here', colour: 'var(--faint)' };
+    if (e.kind === 'solar') {
+      const up = lc.maxUp ? '' : (lc.c1.alt > -0.5 ? ', sets eclipsed' : ', rises eclipsed');
+      if (lc.kind === 'total') return { here: 'Total ' + this.eclDur(lc.dur) + up, colour: 'var(--accent)' };
+      if (lc.kind === 'annular') return { here: 'Ring ' + this.eclDur(lc.dur) + up, colour: 'var(--accent)' };
+      return { here: Math.round(lc.obsc * 100) + '% covered' + up, colour: 'var(--text2)' };
+    }
+    const all = lc.contacts.every(c => !c || c.up), maxUp = lc.maxUp;
+    const w = lc.kind === 'total' ? (lc.contacts[2].up || lc.contacts[4].up ? 'Totality ' + this.eclDur(lc.dur) : 'Partial stages only')
+      : lc.kind === 'partial' ? 'Partial, ' + Math.round(e.umag * 100) + '%' : 'Penumbral, faint';
+    return { here: w + (all ? '' : maxUp ? ', part hidden' : ', low'), colour: lc.kind === 'penumbral' ? 'var(--text2)' : 'var(--accent)' };
+  }
+  eclDur(s) { s = Math.round(s); if (s >= 3600) return Math.floor(s / 3600) + 'h ' + String(Math.round(s % 3600 / 60)).padStart(2, '0') + 'm'; return s >= 60 ? Math.floor(s / 60) + 'm ' + String(s % 60).padStart(2, '0') + 's' : s + 's'; }
+  /* the mapped skyline at a bearing, the same one the skyline panel draws */
+  eclSkyAt(az) {
+    const T = this.T(), st = this.state; if (!T) return 0;
+    let a = 0; try { a = Math.max(st.hz ? T.altAt(st.hz, az) : 0, T.sectorAlt(st.hzObs, az)); } catch (err) {}
+    return a;
+  }
+  eclWhere(alt, az, body) {
+    const E = this.E();
+    if (alt < -0.5) return { where: body + ' below the horizon', colour: 'var(--faint)' };
+    const sky = this.eclSkyAt(az), low = alt < sky + 0.3;
+    return { where: Math.round(alt) + '\u00b0 up, ' + E.compass(az) + (low ? ', behind your skyline' : ''), colour: low ? 'var(--accent)' : 'var(--dim)' };
+  }
+  eclDetail(e, lc) {
+    const E = this.E(), X = this.X(), out = { rows: [], facts: [], lead: '', safe: '' };
+    const sol = e.kind === 'solar';
+    if (sol) {
+      out.safe = lc && (lc.kind === 'total')
+        ? 'Use a certified solar filter throughout. Take it off only when totality begins, and put it back the moment it ends.'
+        : 'Use a certified solar filter at every stage: at no point is it safe to look, or to point a lens, without one.';
+      if (lc && lc.visible) {
+        const w = lc.kind === 'total' ? 'Total here, ' + this.eclDur(lc.dur) + ' of totality.' : lc.kind === 'annular' ? 'Annular here, ' + this.eclDur(lc.dur) + ' of the ring.'
+          : 'Partial here: ' + Math.round(lc.obsc * 100) + '% of the Sun covered at greatest, magnitude ' + lc.mag.toFixed(3) + '.';
+        out.lead = w + (lc.maxUp ? '' : lc.c1.alt > -0.5 ? ' The Sun sets before greatest eclipse.' : ' The Sun rises already eclipsed.');
+        const row = (name, p, strong) => { if (!p) return null; const wh = this.eclWhere(p.alt, p.az, 'Sun');
+          return { name, time: this.hhmm(p.ms), where: wh.where, whereColour: wh.colour, nameColour: strong ? 'var(--text)' : 'var(--dim)', timeColour: p.alt < -0.5 ? 'var(--faint)' : strong ? 'var(--accent)' : 'var(--text)' }; };
+        const c2n = lc.kind === 'annular' ? 'Ring starts' : 'Totality starts', c3n = lc.kind === 'annular' ? 'Ring ends' : 'Totality ends';
+        out.rows = [row('First contact: eclipse begins', lc.c1), row(c2n, lc.c2, true), row('Greatest eclipse', lc.max, !lc.c2), row(c3n, lc.c3, true), row('Last contact: eclipse ends', lc.c4)].filter(Boolean);
+      } else out.lead = 'Not seen from here. ' + (e.type === 'P' ? 'A partial eclipse near the ' + (e.glat >= 0 ? 'Arctic' : 'Antarctic') + '.' : '');
+      if (e.type !== 'P' && e.gdur) out.facts.push({ line: 'Greatest eclipse ' + this.eclDur(e.gdur) + ' at ' + Math.abs(e.glat).toFixed(1) + (e.glat >= 0 ? 'N ' : 'S ') + Math.abs(e.glon).toFixed(1) + (e.glon >= 0 ? 'E' : 'W') + ', path ' + Math.round(e.gwidth) + ' km wide' });
+      const P = this.eclPath(e);
+      if (P && lc && lc.kind !== 'total' && lc.kind !== 'annular' && P.line.length) {
+        let best = null; for (const q of P.north.concat(P.south)) { const km = this.kmTo(E.state.lat, E.state.lon, q[0], q[1]); if (!best || km < best.km) best = { km, lat: q[0], lon: q[1] }; }
+        if (best) out.facts.push({ line: 'Nearest ' + (e.type === 'A' ? 'annularity' : 'totality') + ': ' + Math.round(best.km) + ' km ' + E.compass(this.brgTo(E.state.lat, E.state.lon, best.lat, best.lon)) + ', to the edge of the path' });
+      }
+    } else {
+      const names = { P1: 'Penumbra', U1: 'Partial begins', U2: 'Totality begins', Max: 'Greatest', U3: 'Totality ends', U4: 'Partial ends', P4: 'Penumbra ends' };
+      if (lc) {
+        out.lead = (lc.kind === 'total' ? 'Umbral magnitude ' + e.umag.toFixed(3) + ', ' + this.eclDur(lc.dur) + ' of totality.' : lc.kind === 'partial' ? Math.round(e.umag * 100) + '% of the Moon in the umbra at greatest.' : 'Penumbral only: a shading on one side of the Moon, easy to miss by eye.')
+          + (lc.visible ? '' : ' The Moon is below the horizon here throughout.');
+        out.rows = lc.contacts.filter(Boolean).map(c => { const strong = c.name === 'U2' || c.name === 'U3' || (c.name === 'Max' && lc.kind !== 'total');
+          const wh = this.eclWhere(c.alt, c.az, 'Moon');
+          return { name: c.name === 'P1' ? 'Begins' : names[c.name], time: this.hhmm(c.ms), where: wh.where, whereColour: wh.colour, nameColour: strong ? 'var(--text)' : 'var(--dim)', timeColour: !c.up ? 'var(--faint)' : strong ? 'var(--accent)' : 'var(--text)' }; });
+      }
+      out.facts.push({ line: 'Penumbral magnitude ' + e.pmag.toFixed(3) + (e.type !== 'N' ? ', umbral ' + e.umag.toFixed(3) : '') });
+    }
+    return out;
+  }
+  kmTo(a, b, c, d) { const R = Math.PI / 180, s = Math.sin((c - a) * R / 2) ** 2 + Math.cos(a * R) * Math.cos(c * R) * Math.sin((d - b) * R / 2) ** 2; return 12742 * Math.asin(Math.sqrt(s)); }
+  /* ---- the Eclipses page: a wheel of every eclipse, the one in the middle opened beneath ----
+     Rows are a fixed 60px so the wheel can say which one is centred from the scroll alone; the
+     fading and shrinking away from the centre is painted straight onto the rows, so turning it
+     never re-renders the page. It settles on a row and only then opens it. */
+  eclGo(id) {
+    const X = this.X(), e = id && X ? X.byId(id) : null, k = this.state.eclKind || 'all';
+    this._eclWant = true;
+    this.setState({ eclSel: id || null, eclKind: e && k !== 'all' && e.kind !== k ? 'all' : k }, () => { if (this.state.tab === 'eclipses') this.eclWheelPlace(); else this.goTab('eclipses'); });
+  }
+  eclOpen(id) { this.eclGo(id); }
+  eclWheelList() {
+    const X = this.X(); if (!X) return [];
+    const k = this.state.eclKind || 'all';
+    if (this._eclWl && this._eclWl.k === k) return this._eclWl.list;
+    const list = X.list().filter(e => k === 'all' || e.kind === k);
+    this._eclWl = { k, list }; return list;
+  }
+  eclDefault(list) { const now = Date.now() - 86400000, i = list.findIndex(e => e.peak >= now); return i < 0 ? list.length - 1 : i; }
+  eclSelIndex(list) { const i = this.state.eclSel ? list.findIndex(e => e.id === this.state.eclSel) : -1; return i < 0 ? this.eclDefault(list) : i; }
+  eclWheelRef = el => { this._eclWheel = el; if (el) this._eclWant = true; this.eclWheelPlace(); };
+  /* once the rows are all there (the list streams in after its placeholders), go to the chosen one */
+  eclWheelPlace(tries) {
+    const el = this._eclWheel; if (!el || !this._eclWant) return;
+    const list = this.eclWheelList();
+    if (el.children.length < list.length && (tries || 0) < 30) { requestAnimationFrame(() => this.eclWheelPlace((tries || 0) + 1)); return; }
+    this._eclWant = false; this.eclWheelTo(this.eclSelIndex(list), false);
+  }
+  eclWheelTo(i, smooth) {
+    const el = this._eclWheel; if (!el) return;
+    if (smooth) el.scrollTo({ top: i * 68, behavior: 'smooth' }); else { el.scrollTop = i * 68; this.eclWheelPaint(); }
+  }
+  eclWheelPaint() {
+    const el = this._eclWheel; if (!el) return;
+    const c = el.scrollTop / 68, rows = el.children, lo = Math.max(0, Math.floor(c) - 7), hi = Math.min(rows.length - 1, Math.ceil(c) + 7);
+    for (let i = lo; i <= hi; i++) { const d = Math.abs(i - c), r = rows[i]; r.style.opacity = String(Math.max(0.22, 1 - d * 0.3)); r.style.transform = 'scale(' + Math.max(0.9, 1 - d * 0.035).toFixed(3) + ')'; }
+  }
+  eclWheelScroll = () => {
+    if (!this._eclRaf) this._eclRaf = requestAnimationFrame(() => { this._eclRaf = 0; this.eclWheelPaint(); });
+    clearTimeout(this._eclWheelT);
+    this._eclWheelT = setTimeout(() => {
+      const el = this._eclWheel, list = this.eclWheelList(); if (!el) return;
+      const e = list[Math.max(0, Math.min(list.length - 1, Math.round(el.scrollTop / 68)))];
+      if (e && e.id !== this.state.eclSel) this.setState({ eclSel: e.id, eclTap: null, eclFsNote: '' });
+    }, 140);
+  };
+  eclWheelKey = ev => {
+    const list = this.eclWheelList(), i = this.eclSelIndex(list), step = { ArrowDown: 1, ArrowUp: -1, PageDown: 4, PageUp: -4 }[ev.key];
+    if (!step) return; ev.preventDefault(); this.eclWheelTo(Math.max(0, Math.min(list.length - 1, i + step)), true);
+  };
+  eclipseVals() {
+    const X = this.X(), E = this.E(), st = this.state;
+    if (!X || !E || E.state.lat == null) return { eclPlaceOn: false, eclNextOn: false, eclSelOn: false, eclWheel: [], ...this.eclRunVals() };
+    const now = Date.now();
+    /* the next one that can be seen from the pin, for Looking ahead and the row on Place */
+    let next = null;
+    for (const e of X.around(null, null, now - 3 * 3600000, 60, false).map(r => r.e)) { const lc = this.eclLocal(e); if (lc && lc.visible && !(e.kind === 'lunar' && e.type === 'N' && e.pmag < 0.8)) { next = { e, lc }; break; } }
+    const nh = next ? this.eclHere(next.e, next.lc) : null;
+    const out = {
+      ...this.eclRunVals(),
+      goEclipses: () => this.eclGo(next ? next.e.id : null),
+      eclPlaceOn: true, eclNextOn: !!next, eclNextGo: () => next && this.eclGo(next.e.id),
+      eclNextLine: next ? this.eclTitle(next.e) + ', ' + this.eclDate(next.e.peak, true) + ' \u00b7 ' + this.lower(nh.here) : 'None seen from here for a long while. Open for the rest.',
+      eclNextWhen: next ? (next.e.peak > now ? 'in ' + this.eclIn(next.e.peak - now) : 'today') : '',
+    };
+    if (st.tab !== 'eclipses') return { ...out, eclSelOn: false, eclWheel: [], eclToolsOn: false };
+    const list = this.eclWheelList(), si = this.eclSelIndex(list), sel = list[si], k = st.eclKind || 'all';
+    const seg = (key, label, i, n) => { const on = k === key; return { label, on: on ? 'on' : 'off', bd: on ? 'var(--accent)' : 'rgba(var(--line-rgb),.2)', bg: on ? 'rgba(var(--accent-rgb),.14)' : 'transparent', fg: on ? 'var(--accent)' : 'var(--dim)',
+      radius: i === 0 ? '999px 0 0 999px' : i === n - 1 ? '0 999px 999px 0' : '0',
+      pick: () => { if (on) return; const cur = sel && (key === 'all' || sel.kind === key) ? sel.id : null; this._eclWant = true; this.setState({ eclKind: key, eclSel: cur }, () => this.eclWheelPlace()); } }; };
+    const d = sel ? this.eclDetail(sel, this.eclLocal(sel)) : null;
+    return {
+      ...out,
+      eclWheelRef: this.eclWheelRef, eclWheelScroll: this.eclWheelScroll, eclWheelKey: this.eclWheelKey,
+      eclKinds: [['all', 'All'], ['solar', 'Solar'], ['lunar', 'Lunar']].map(([key, label], i) => seg(key, label, i, 3)),
+      eclToday: () => this.eclWheelTo(this.eclDefault(list), true),
+      eclWheel: list.map((e, i) => { const h = this.eclHere(e, this.eclLocal(e));
+        const g = X.where(e);
+        return { title: this.eclTitle(e), date: this.eclDate(e.peak, false), where: g ? g.line : '', here: h.here, hereColour: h.colour, sel: i === si ? 'true' : 'false', pick: () => this.eclWheelTo(i, true) }; }),
+      eclSelOn: !!sel, eclSelTitle: sel ? this.eclTitle(sel) + ' eclipse' : '',
+      eclSelDate: sel ? this.eclDate(sel.peak, true) + (sel.peak > now ? ' \u00b7 in ' + this.eclIn(sel.peak - now) : '') : '',
+      eclSelLead: d ? d.lead : '', eclSelSafe: d ? d.safe : '', eclSelSafeOn: !!(d && d.safe), eclSelRows: d ? d.rows : [], eclSelRowsOn: !!(d && d.rows.length), eclSelFacts: d ? d.facts : [],
+      ...(sel ? this.eclToolsVals(sel, this.eclLocal(sel)) : { eclToolsOn: false }),
+      ...(sel ? this.eclMapVals(sel) : {}),
+    };
+  }
+  /* ---- the track, on the same map engine as Place, so it works on a phone ---- */
+  eclMapView(e) {
+    const st = this.state;
+    const style = st.eclMapStyle || 'dark', lo = (this.TILE_SOURCES[style] || {}).minZ || 2;
+    const v = st.eclMapV && st.eclMapV.id === e.id ? st.eclMapV : this.eclMapFitView(e);
+    return v.style === style && v.z >= lo ? v : { ...v, style, z: Math.max(lo, v.z) };
+  }
+  eclMapFitView(e) {
+    const X = this.X(), b = X.mapBox(e), el = this._eclMapCv, cssW = el && el.clientWidth || Math.min(700, window.innerWidth - 60), cssH = cssW / 1.6;
+    const s0 = Math.max(-80, b[0]), n0 = Math.min(84, b[2]), w = b[1], ee = b[3];
+    const [, y0] = this.project(n0, 0, 0), [, y1] = this.project(s0, 0, 0), pw = (ee - w) / 360 * 256, ph = Math.max(1, y1 - y0);
+    const z = Math.max(2, Math.min(8, Math.log2(Math.min(cssW / Math.max(1, pw), cssH / ph)) - 0.05));
+    const c = this.unproject(128, (y0 + y1) / 2, 0);
+    return { id: e.id, lat: c[0], lon: ((((w + ee) / 2) + 540) % 360) - 180, z, style: 'dark' };
+  }
+  eclMapRef = el => { this._eclMapCv = el; if (el) requestAnimationFrame(() => this.drawEclMap()); };
+  drawEclMap() {
+    const el = this._eclMapCv, X = this.X(), E = this.E(), st = this.state; if (!el || !el.isConnected || !X || !E || st.tab !== 'eclipses') return;
+    const list = this.eclWheelList(), e = list[this.eclSelIndex(list)]; if (!e) return;
+    const v = this.eclMapView(e), pal = this.pal(), nv = !!st.nv;
+    const mk = [{ lat: E.state.lat, lon: E.state.lon, r: 5.5, colour: nv ? '#FF3B18' : pal.accent }];
+    if (st.eclTap && st.eclTap.id === e.id) mk.push({ lat: st.eclTap.lat, lon: st.eclTap.lon, r: 4.5, colour: '#F5F5F5' });
+    this.drawSlippy(el, v, { markers: mk, after: (ctx, f) => {
+      ctx.save(); ctx.scale(f.dpr, f.dpr);
+      X.drawMap(ctx, e, (la, lo) => { const p = f.toXY(la, lo); return [p[0] / f.dpr, p[1] / f.dpr]; }, 256 * f.S / f.dpr * Math.pow(2, f.z), { onGrid: () => this.drawEclMap(), light: v.style === 'detail' });
+      ctx.restore();
+    } });
+  }
+  eclMapVals(e) {
+    const X = this.X(), st = this.state, v = this.eclMapView(e);
+    const set = nv => this.setState({ eclMapV: { ...nv, id: e.id } }, () => this.drawEclMap());
+    const tap = (cx, cy) => {
+      const el = this._eclMapCv; if (!el) return false;
+      const [wx, wy] = this.project(v.lat, v.lon, v.z), ll = this.unproject(wx + cx - el.clientWidth / 2, wy + cy - el.clientHeight / 2, v.z);
+      const lat = ll[0], lon = ((ll[1] + 540) % 360) - 180, lines = [];
+      let lc = null; try { lc = X.local(e, lat, lon); } catch (err) {}
+      if (!lc || !lc.visible) lines.push({ t: 'Not seen from here.' });
+      else if (e.kind === 'solar') {
+        lines.push({ t: lc.kind === 'total' ? 'Total, ' + this.eclDur(lc.dur) : lc.kind === 'annular' ? 'Annular, ' + this.eclDur(lc.dur) : 'Partial, ' + Math.round(lc.obsc * 100) + '% of the Sun covered' });
+        [['First contact', lc.c1], [lc.kind === 'annular' ? 'Ring starts' : 'Totality starts', lc.c2], ['Greatest eclipse', lc.max], [lc.kind === 'annular' ? 'Ring ends' : 'Totality ends', lc.c3], ['Last contact', lc.c4]].forEach(([n, c]) => { if (c) lines.push({ t: n + '  ' + new Date(c.ms).toISOString().slice(11, 19) + ' UT  ' + (c.alt < -0.5 ? 'Sun down' : 'Sun ' + Math.round(c.alt) + '\u00b0') }); });
+      } else {
+        lines.push({ t: lc.maxUp ? 'Moon ' + Math.round(lc.max.alt) + '\u00b0 up at greatest' : 'Moon down at greatest' });
+        lc.contacts.forEach(c => { if (c && c.name !== 'P1' && c.name !== 'P4') lines.push({ t: c.name + '  ' + new Date(c.ms).toISOString().slice(11, 19) + ' UT  ' + (c.up ? Math.round(c.alt) + '\u00b0 up' : 'below the horizon') }); });
+      }
+      this.setState({ eclTap: { id: e.id, lat, lon, lines } }, () => this.drawEclMap());
+      return true;
+    };
+    const g = X.where(e), sol = e.kind === 'solar', central = sol && e.type !== 'P', tp = st.eclTap && st.eclTap.id === e.id ? st.eclTap : null;
+    const whereRows = [];
+    if (g) {
+      if (central) whereRows.push({ k: e.type === 'A' ? 'Annular across' : e.type === 'H' ? 'Central across' : 'Totality across', v: g.path + '.' });
+      if (g.regions) whereRows.push({ k: sol ? 'Partial across' : 'Moon up at greatest from', v: g.regions + '.' });
+    }
+    return {
+      eclSelWhere: whereRows,
+      eclMapEl: React.createElement('canvas', { ref: this.eclMapRef, ...this.slippyHandlers(v, set, false, tap),
+        style: { display: 'block', width: '100%', height: 'auto', aspectRatio: '1.6 / 1', borderRadius: '8px', touchAction: 'none', cursor: 'grab' } }),
+      eclMapCredit: (this.TILE_SOURCES[v.style] || this.TILE_SOURCES.dark).credit || '',
+      /* the same two switches as Place; pressing the one that is on goes back to the dark map */
+      ...(() => { const cur = st.eclMapStyle || 'dark', pick = id => () => this.setState({ eclMapStyle: cur === id ? 'dark' : id }, () => this.drawEclMap());
+        const on = id => cur === id;
+        return { eclStyleSat: pick('sat'), eclSatOn: on('sat') ? 'on' : 'off', eclSatBg: on('sat') ? 'rgba(var(--accent-rgb),.16)' : 'transparent', eclSatFg: on('sat') ? 'var(--accent)' : 'var(--dim)',
+          eclStyleDetail: pick('detail'), eclDetailOn: on('detail') ? 'on' : 'off', eclDetailBg: on('detail') ? 'rgba(var(--accent-rgb),.16)' : 'transparent', eclDetailFg: on('detail') ? 'var(--accent)' : 'var(--dim)',
+          eclZoomIn: () => set({ ...v, z: Math.min(22, Math.floor(v.z) + 1) }),
+          eclZoomOut: () => set({ ...v, z: Math.max((this.TILE_SOURCES[v.style] || {}).minZ || 2, Math.ceil(v.z) - 1) }) }; })(),
+      eclMapNote: central ? 'Gold is the path, with UT every 30 min. Lines out from it are 80, 60, 40 and 20% of the Sun covered, then the edge of the partial eclipse. Zoom in on the places you might go, tap one for its times, then open it in Sky AR.'
+        : sol ? 'Lines are 80, 60, 40 and 20% of the Sun covered, then the edge of the partial eclipse. Zoom in on the places you might go, tap one for its times, then open it in Sky AR.'
+        : 'Each line is the Moon\u2019s horizon at one stage: inside it, the Moon is up. Zoom in on the places you might go, tap one for its times, then open it in Sky AR.',
+      eclMapFit: () => this.setState({ eclMapV: null, eclTap: null }, () => this.drawEclMap()),
+      eclTapOn: !!tp, eclTapHead: tp ? Math.abs(tp.lat).toFixed(2) + (tp.lat >= 0 ? 'N ' : 'S ') + Math.abs(tp.lon).toFixed(2) + (tp.lon >= 0 ? 'E' : 'W') : '', eclTapLines: tp ? tp.lines : [],
+      /* where full Scout can run, Sky AR opens standing on the spot; elsewhere it can only show the pin */
+      ...(() => { const full = (this.fullScoutBlock ? this.fullScoutBlock() : 'hide') !== 'hide', ready = full ? !!tp : true;
+        return { eclTrackLabel: full ? (tp ? 'Open this spot in Sky AR' : 'Tap the map to choose a spot') : 'Open in Sky AR from the pin',
+          eclTrackGo: () => { if (full) { if (tp) this.eclScout(e, [tp.lat, tp.lon]); } else this.eclAr(e); },
+          eclTrackBd: ready ? 'var(--accent)' : 'rgba(var(--line-rgb),.2)', eclTrackBg: ready ? 'rgba(var(--accent-rgb),.14)' : 'transparent', eclTrackFg: ready ? 'var(--accent)' : 'var(--faint)',
+          eclTrackCur: ready ? 'pointer' : 'default', eclTrackDis: !ready }; })(),
+      eclFsNoteOn: !!st.eclFsNote, eclFsNote: st.eclFsNote || '',
+    };
+  }
+  /* Sky AR on the moment: the date, the time and the aim */
+  eclAr(e, lcAt) {
+    const lc = lcAt || this.eclLocal(e), t = lc && lc.visible ? lc.max.ms : e.peak, d = new Date(t);
+    const base = new Date(d.getFullYear(), d.getMonth(), d.getDate() - (d.getHours() < 12 ? 1 : 0), 12, 0, 0);
+    const b = e.kind === 'solar' ? lc && lc.max : lc && lc.max;
+    this.arOrFrame({ subject: 'all', date: this.arDateStr(base), scrub: Math.max(0, Math.min(100, (t - base.getTime()) / 864000)) });
+    if (b && isFinite(b.az)) { const v = this.arV(); v.az = b.az; v.alt = Math.max(-5, Math.min(70, b.alt || 10)); }
+    setTimeout(() => { this.arSyncInputs && this.arSyncInputs(); this.drawAr && this.drawAr(); }, 60);
+  }
+  /* Scout opens standing on the chosen spot, at greatest eclipse there, looking at it */
+  eclScout(e, at) {
+    if (!at) return;
+    let lc = null; try { lc = this.X().local(e, at[0], at[1]); } catch (err) {}
+    /* Sky AR is only the way in: coming back out, or if full Scout cannot open here, it goes back
+       as it was and you land on this page again, not on the pin's sky at the spot's time */
+    const st = this.state, v = this._arV;
+    this._fsEclBack = { arOpen: st.arOpen, arDate: st.arDate, arScrub: st.arScrub, arVirtual: st.arVirtual, az: v && v.az, alt: v && v.alt };
+    this.setState({ eclFsNote: '' });
+    this._fsEcl = e.id; this._fsAt = at; this.eclAr(e, lc); if (!this.state.arVirtual) this.arSetVirtual && this.arSetVirtual(true); setTimeout(() => this.fullScoutOpen(), 300); }
+  eclRun(e, rehearse) {
+    const X = this.X(), lc = this.eclLocal(e); if (!X || !lc || !lc.visible) return;
+    const list = X.cueList(lc), M = X.marks(lc), key = M.C2 || M.Max;
+    if (!rehearse && list.length && list[list.length - 1].ms < Date.now()) { this.compSay && this.compSay('That one is over: rehearse it instead.'); return; }
+    let last = 0;
+    X.Runner.start(list, { shift: rehearse ? key - 95000 - Date.now() : 0, hello: rehearse ? 'Rehearsal. A minute and a half to go.' : 'Eclipse prompts on.',
+      onTick: rs => { const sec = Math.floor(rs.now / 1000); if (rs.on && sec === last) return; last = sec; this.setState({ eclRun: rs.on ? { ...rs, id: e.id } : null }); } });
+  }
+  eclToolsVals(e, lc) {
+    const X = this.X(), st = this.state, S = X.settings(), sol = e.kind === 'solar';
+    const chip = on => ({ bd: on ? 'var(--accent)' : 'rgba(var(--line-rgb),.2)', bg: on ? 'rgba(var(--accent-rgb),.14)' : 'transparent', fg: on ? 'var(--accent)' : 'var(--dim)', on: on ? 'on' : 'off' });
+    const save = p => { X.saveSettings(p); this.forceUpdate(); };
+    const cues = S.cues || [], setCue = (i, patch) => save({ cues: cues.map((c, j) => j === i ? { ...c, ...patch } : c) });
+    const shots = lc && lc.visible ? X.shotList(lc, S, t => this.hhmm(t)) : [];
+    const flip = (k, label) => ({ label, ...chip(!!S[k]), pick: () => save({ [k]: !S[k] }) });
+    const anchors = sol ? [['C1', 'Begins'], ['C2', lc && lc.kind === 'annular' ? 'Ring' : 'Totality'], ['Max', 'Greatest'], ['C3', 'Ends totality'], ['C4', 'Ends']]
+      : [['P1', 'Penumbra'], ['U1', 'Partial'], ['U2', 'Totality'], ['Max', 'Greatest'], ['U3', 'Ends totality'], ['U4', 'Partial ends'], ['P4', 'Penumbra ends']];
+    const sh = chip(!!st.eclShots), fsb = this.fullScoutBlock ? this.fullScoutBlock() : 'hide';
+    return {
+      eclToolsOn: true, eclToolsHead: 'Shooting it',
+      eclArGo: () => this.eclAr(e), eclScoutOn: fsb !== 'hide', eclScoutGo: () => this.eclScout(e),
+      eclShotsOn: !!st.eclShots && shots.length > 0, eclShotsFlip: () => this.setState({ eclShots: !st.eclShots }), eclShotsBd: sh.bd, eclShotsFg: sh.fg, eclShotsW: sh.on,
+      eclShotsLine: shots.length + ' frames, every ' + S.every + ' min and every ' + S.near + ' min for ' + S.nearMin + ' min either side of the middle. Set the intervals in Scout. Suggested settings from Fred Espenak’s eclipse exposure guides: a starting point only. Adapt them for your own camera, lens and filter, and test before the day.',
+      eclShots: shots.map(x => ({ time: x.time, filter: x.filter === 'On' ? 'Filter on' : x.filter === 'Off' ? 'Filter off' : '\u2013', fFg: x.filter === 'Off' ? 'var(--accent)' : 'var(--faint)', exp: x.exp })),
+      eclPromptChips: [flip('voice', 'Voice'), flip('beeps', 'Beeps'), flip('count90', 'Countdown'), flip('count10', 'Last ten seconds'), flip('frames', 'Each frame')],
+      eclAnchors: anchors.map(([v, label]) => ({ v, label })),
+      eclCues: cues.map((c, i) => ({ at: c.at, off: String(c.off || 0), text: c.text || '', onAt: ev => setCue(i, { at: ev.target.value }), onOff: ev => setCue(i, { off: +ev.target.value || 0 }),
+        onText: ev => setCue(i, { text: ev.target.value }), del: () => save({ cues: cues.filter((x, j) => j !== i) }) })),
+      eclCueAdd: () => save({ cues: cues.concat([{ at: sol ? 'C2' : 'U2', off: -30, text: 'Exposure bracket at f/8 now.' }]) }),
+      eclRehearse: () => this.eclRun(e, true), eclRunGo: () => this.eclRun(e, false), eclPromptsOn: false,
+    };
+  }
+  eclRunVals() {
+    const r = this.state.eclRun, X = this.X(); if (!r || !X) return { eclRunOn: false };
+    const nx = r.next, left = nx ? Math.max(0, Math.round((nx.ms - r.now) / 1000)) : 0;
+    return { eclRunOn: true, eclRunHead: r.rehearse ? 'Rehearsal' : 'Eclipse prompts',
+      eclRunCount: nx ? (left >= 3600 ? Math.floor(left / 3600) + ':' : '') + String(Math.floor(left % 3600 / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0') : 'Done',
+      eclRunNext: nx ? nx.text : 'That was the last prompt.', eclRunClock: this.hhmm(r.now) + ':' + String(new Date(r.now).getSeconds()).padStart(2, '0'),
+      eclRunStop: () => { X.Runner.stop(); this.setState({ eclRun: null }); } };
+  }
+  eclIn(ms) { const d = Math.round(ms / 86400000); if (d < 1) return 'hours'; if (d < 60) return d + (d === 1 ? ' day' : ' days'); const m = Math.round(d / 30.44); return m < 24 ? m + ' months' : Math.round(d / 365.25) + ' years'; }
+
 
   /* The verdict word, with a bit of range. Seeded off the date so it holds steady all night
      and reads differently tomorrow, rather than reshuffling on every render. */
