@@ -438,6 +438,44 @@ async function ofmBuildings(ctx){
   }));
   return count ? { heights: out, count } : null;
 }
+/* Bridges and viaducts, as a mask on the ring's grid: every road or railway the open map marks as a
+   bridge, drawn at its real width. A surface model shows a viaduct as a long raised strip, which
+   would otherwise be taken for a line of trees. */
+async function ofmStructures(ctx){
+  const { url, VT, Pbf } = await ofm();
+  const z = 14, n = 1 << z, c = ctx.geo, W = ctx.W, mask = new Uint8Array(W * W);
+  const txOf = lo => Math.floor((lo + 180) / 360 * n), tyOf = la => { const q = Math.sin(la * D2R); return Math.floor((1 - Math.log((1 + q) / (1 - q)) / (2 * Math.PI)) / 2 * n); };
+  const PX = lon => (lon - ctx.lonOf[0]) / (ctx.lonOf[W - 1] - ctx.lonOf[0]) * (W - 1);
+  const yOfLat = la => { let lo = 0, hi = W - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (ctx.latOf[m] > la) lo = m; else hi = m; } return lo + (ctx.latOf[lo] - la) / (ctx.latOf[lo] - ctx.latOf[hi] || 1); };
+  const mpp = (ctx.box.x1 - ctx.box.x0) / W * Math.cos(((c.n + c.s) / 2) * D2R);
+  const WIDTH = { rail: 9, transit: 8, motorway: 26, trunk: 20, primary: 14, secondary: 12, tertiary: 10, minor: 9, service: 7, path: 4, track: 5 };
+  const stamp = (x, y, r) => { const r2 = r * r, x0 = Math.max(0, Math.floor(x - r)), x1 = Math.min(W - 1, Math.ceil(x + r)), y0 = Math.max(0, Math.floor(y - r)), y1 = Math.min(W - 1, Math.ceil(y + r));
+    for (let j = y0; j <= y1; j++) for (let i = x0; i <= x1; i++) if ((i - x) * (i - x) + (j - y) * (j - y) <= r2) mask[j * W + i] = 1; };
+  let count = 0;
+  const jobs = [];
+  for (let tx = txOf(c.w); tx <= txOf(c.e); tx++) for (let ty = tyOf(c.n); ty <= tyOf(c.s); ty++) jobs.push([tx, ty]);
+  await Promise.all(jobs.map(async ([tx, ty]) => {
+    const buf = await fetchBuf(url.replace('{z}', z).replace('{x}', tx).replace('{y}', ty), 30000);
+    if (!buf) return;
+    let L; try { L = new VT.VectorTile(new Pbf(new Uint8Array(buf))).layers.transportation; } catch (e) { return; }
+    if (!L) return;
+    const ext = L.extent;
+    for (let k = 0; k < L.length; k++) {
+      const f = L.feature(k), pr = f.properties;
+      if (pr.brunnel !== 'bridge' || f.type !== 2) continue;
+      const r = Math.max(1, (WIDTH[pr.class] || 8) / mpp / 2);
+      f.loadGeometry().forEach(line => {
+        const pts = line.map(p => { const lon = (tx + p.x / ext) / n * 360 - 180, yy = Math.PI - 2 * Math.PI * (ty + p.y / ext) / n; return [PX(lon), yOfLat(R2D * Math.atan(Math.sinh(yy)))]; });
+        for (let q = 1; q < pts.length; q++) {
+          const [ax, ay] = pts[q - 1], [bx, by] = pts[q], steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / Math.max(0.5, r / 2)));
+          for (let t = 0; t <= steps; t++) stamp(ax + (bx - ax) * t / steps, ay + (by - ay) * t / steps, r);
+        }
+      });
+      count++;
+    }
+  }));
+  return count ? { mask, count } : null;
+}
 /* Paths, tracks and roads over a box, as lines of [lat, lon], from the same open tiles as the
    buildings: the transportation layer at z14 carries footpaths and tracks as well as roads. */
 async function ofmPaths(s, w, n, e){
@@ -687,11 +725,13 @@ async function fetchFor(ctx){
   /* a national surface model has roofs in it but does not say which bumps they are: OpenStreetMap
      outlines mark them, so they are drawn as buildings rather than woods */
   if (surface && !kind) {
-    const bld = await within(buildings(ctx).catch(() => null), 8000);
-    if (bld) {
+    const [bld, brg] = await Promise.all([within(buildings(ctx).catch(() => null), 8000), within(ofmStructures(ctx).catch(() => null), 8000)]);
+    if (bld || brg) {
       kind = new Uint8Array(surface.length);
-      for (let i = 0; i < kind.length; i++) if (bld.heights[i] === bld.heights[i]) kind[i] = 2;
-      credits.push('Building outlines \u00a9 OpenStreetMap contributors');
+      /* 3: a bridge or viaduct, drawn solid like a building, never as trees */
+      if (brg) for (let i = 0; i < kind.length; i++) if (brg.mask[i]) kind[i] = 3;
+      if (bld) for (let i = 0; i < kind.length; i++) if (bld.heights[i] === bld.heights[i]) kind[i] = 2;
+      credits.push('Building and bridge outlines \u00a9 OpenStreetMap contributors');
     }
   }
   if (!surface && !terrain) return null;
@@ -702,5 +742,5 @@ async function fetchFor(ctx){
 function config(o){ if (o) { if (o.tokens) Object.assign(CFG.tokens, o.tokens); if (o.proxy != null) CFG.proxy = o.proxy; if (o.canopyBlock) CFG.canopyBlock = o.canopyBlock; } return { ...CFG }; }
 function coverage(lat, lon){ const s = SOURCES.find(s => lat >= s.box[0] && lat <= s.box[1] && lon >= s.box[2] && lon <= s.box[3] && (!s.needs || CFG.tokens[s.needs])); return s ? s.name : null; }
 
-window.NoctoSurfaces = { metaCanopy, buildings, ofmPaths, SOURCES, fetchFor, config, coverage, lv95, nztm, nzTiles, osgb, osgbSquare, lcc3979 };
+window.NoctoSurfaces = { metaCanopy, buildings, ofmPaths, ofmStructures, SOURCES, fetchFor, config, coverage, lv95, nztm, nzTiles, osgb, osgbSquare, lcc3979 };
 })();
