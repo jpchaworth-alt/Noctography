@@ -380,12 +380,12 @@ window.noctoTrack = function (name, every) {
 
     <header data-app="head" style="display: flex; align-items: center; gap: clamp(8px, 2.4vw, 12px); padding: 18px 0 12px; border-bottom: 1px solid rgba(var(--line-rgb),.14);">
       <img data-logo="1" src="../assets/logo/obsidian.png?v=2026-08-15" alt="Noctography" width="256" height="256" decoding="async" style="width: clamp(38px, 10.5vw, 44px); height: clamp(38px, 10.5vw, 44px); flex: 0 0 auto; border-radius: 10px; display: block; object-fit: cover;">
-      <div style="display: grid; gap: 3px; margin-right: auto; flex: 0 1 auto; min-width: 0;">
+      <div style="display: grid; gap: 3px; margin-right: auto; flex: 0 0 auto;">
         <span style="font-size: clamp(12.5px, 3.5vw, 15px); font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--text); white-space: nowrap;" data-head-name="1">Noctography</span>
         <span data-head-sub="1" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: clamp(9.5px, 2.8vw, 11px); letter-spacing: .02em; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Paul Haworth Nightscapes</span>
       </div>
       
-      <button type="button" onClick="{{ openLocation }}" style="min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; flex: 0 1 auto; max-width: min(46%, 170px); min-width: 0;">
+      <button type="button" onClick="{{ openLocation }}" style="min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; flex: 0 1 auto; max-width: min(46%, 170px); min-width: 0; overflow: hidden;">
         <span data-nv-dot="on" style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: 0 0 6px;"></span>
         <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ placeName }}</span>
       </button>
