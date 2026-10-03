@@ -314,6 +314,7 @@ window.noctoTrack = function (name, every) {
      duplication beats an indirection nobody can read. */
   html[data-desk="on"] [data-app="col"] { max-width: 1380px !important; }
   html[data-desk="on"] [data-app="head"] { order: -2; }
+  @media (max-width: 439px) { [data-head-sub] { display: none; } [data-head-name] { letter-spacing: .12em !important; } }
   html[data-desk="on"] [data-app="bar"] { order: -1; position: static !important; margin: 0 !important; }
   /* Sky AR upright on a phone: the rail stays, floating over the foot of the screen, so you leave
      Sky AR the way you leave anywhere else */
@@ -379,9 +380,9 @@ window.noctoTrack = function (name, every) {
 
     <header data-app="head" style="display: flex; align-items: center; gap: clamp(8px, 2.4vw, 12px); padding: 18px 0 12px; border-bottom: 1px solid rgba(var(--line-rgb),.14);">
       <img data-logo="1" src="../assets/logo/obsidian.png?v=2026-08-15" alt="Noctography" width="256" height="256" decoding="async" style="width: clamp(38px, 10.5vw, 44px); height: clamp(38px, 10.5vw, 44px); flex: 0 0 auto; border-radius: 10px; display: block; object-fit: cover;">
-      <div style="display: grid; gap: 3px; margin-right: auto; flex: 0 0 auto; min-width: 0;">
-        <span style="font-size: clamp(12.5px, 3.5vw, 15px); font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--text);">Noctography</span>
-        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: clamp(9.5px, 2.8vw, 11px); letter-spacing: .02em; color: var(--dim); white-space: nowrap;">Paul Haworth Nightscapes</span>
+      <div style="display: grid; gap: 3px; margin-right: auto; flex: 0 1 auto; min-width: 0;">
+        <span style="font-size: clamp(12.5px, 3.5vw, 15px); font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--text); white-space: nowrap;" data-head-name="1">Noctography</span>
+        <span data-head-sub="1" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: clamp(9.5px, 2.8vw, 11px); letter-spacing: .02em; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Paul Haworth Nightscapes</span>
       </div>
       
       <button type="button" onClick="{{ openLocation }}" style="min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; flex: 0 1 auto; max-width: min(46%, 170px); min-width: 0;">
@@ -389,10 +390,16 @@ window.noctoTrack = function (name, every) {
         <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ placeName }}</span>
       </button>
       
+      <button type="button" onClick="{{ shareApp }}" aria-label="Share Noctography" title="Share Noctography" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: rgba(var(--well-rgb),.45); color: var(--text2); cursor: pointer;">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v13"></path><path d="m16 6-4-4-4 4"></path><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path></svg>
+      </button>
       <button type="button" onClick="{{ openArAll }}" aria-label="Open Sky AR" title="Open Sky AR" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: var(--accent); color: var(--ink); cursor: pointer;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"></rect><path d="M10 6.5h4"></path><circle cx="12" cy="13" r="2.6"></circle></svg>
       </button>
     </header>
+    <sc-if value="{{ shareNoteOn }}" hint-placeholder-val="{{ false }}">
+      <p role="status" style="margin: -8px 0 0; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(var(--accent-rgb),.45); background: rgb(var(--card-rgb)); color: var(--text2); font-size: 14px; line-height: 1.45;">{{ shareNote }}</p>
+    </sc-if>
 
     <sc-if value="{{ showInstall }}" hint-placeholder-val="{{ false }}">
       <aside style="display: grid; gap: 10px; padding: 16px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--accent-rgb),.45); border-radius: 12px;">
@@ -5278,6 +5285,15 @@ class Component extends DCLogic {
     if (on) el.setAttribute('data-nv', 'on'); else el.removeAttribute('data-nv');
   }
 
+  shareApp() {
+    const url = 'https://www.noctography.net', text = 'Check out the Noctography app to supercharge your Milky Way and nightscape planning.';
+    const note = m => { this.setState({ shareNote: m }); clearTimeout(this._shareT); this._shareT = setTimeout(() => this.setState({ shareNote: '' }), 4000); };
+    if (navigator.share) { navigator.share({ title: 'Noctography', text, url }).catch(() => {}); return; }
+    const all = text + ' ' + url;
+    (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(all) : Promise.reject())
+      .then(() => note('Link copied. Paste it into an email or a message.'))
+      .catch(() => { location.href = 'mailto:?subject=' + encodeURIComponent('Noctography') + '&body=' + encodeURIComponent(all); });
+  }
   toggleNv() {
     const on = !this.state.nv;
     this.setState({ nv: on });
@@ -5796,6 +5812,7 @@ class Component extends DCLogic {
       navOn3: st.tab === 'pano' ? 'on' : 'off', navOn4: st.tab === 'more' ? 'on' : 'off',
       on15: st.range === 15 ? 'on' : 'off', on30: st.range === 30 ? 'on' : 'off', on60: st.range === 60 ? 'on' : 'off',
       toggleNv: () => this.toggleNv(),
+      shareApp: () => this.shareApp(), shareNoteOn: !!st.shareNote, shareNote: st.shareNote || '',
       nvBg: st.nv ? 'rgba(var(--accent-rgb),.16)' : 'transparent',
       nvBorder: st.nv ? amber : 'rgba(var(--line-rgb),.2)',
       nvDot: st.nv ? amber : 'rgba(var(--line-rgb),.32)',
