@@ -4522,7 +4522,13 @@ class Component extends DCLogic {
         try { const pal = localStorage.getItem('noctography.palette'); if (pal && this.PALETTES[pal] && pal !== this.state.pal) { this.applyPalette(pal); this.setState({ pal }, () => this.drawRibbon()); } } catch (err) {}
         this.forceUpdate();
       }
-      if (d.linked && !this._syLinkedShown) { this._syLinkedShown = true; this.goTab('more'); }
+      /* the sync status keeps its last "linked" time for good, so only a link made just now opens More,
+         and only once: otherwise every launch after linking would land there instead of Tonight */
+      let seen = 0; try { seen = +localStorage.getItem('noctography.sync.linkedSeen') || 0; } catch (err) {}
+      if (d.linked && d.linked !== seen && Date.now() - d.linked < 60000 && !this._syLinkedShown) {
+        this._syLinkedShown = true; try { localStorage.setItem('noctography.sync.linkedSeen', String(d.linked)); } catch (err) {}
+        this.goTab('more');
+      }
       this.forceUpdate();
     });
     /* Ask the browser to keep this app's storage rather than clear it when space is short or the
