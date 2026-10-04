@@ -90,26 +90,39 @@ function probe(){
 function device(){
   const p = probe(), s = store.get();
   let tier = s.pick && TIERS[s.pick] ? s.pick : p.auto;
-  if (s.cap && ORDER.indexOf(s.cap) > ORDER.indexOf(tier)) tier = s.cap;
+  /* A cap from the browser actually taking the GPU back (src 'lost') stands until the user picks a level.
+     A cap guessed from the page closing while the scene was up is only a guess, as a reload looks the
+     same: it never goes below Light, and it lapses after two hours. */
+  let cap = s.cap || null; const cr = s.crashed || {};
+  if (cap && cr.src !== 'lost') { if (Date.now() - (cr.at || 0) > 2 * 3600000) cap = null; else if (cap === 'off') cap = 'light'; }
+  if (cap && ORDER.indexOf(cap) > ORDER.indexOf(tier)) tier = cap;
   /* and stays there: an earlier pick of a heavier level is not honoured on iOS */
   if (p.ios && ORDER.indexOf(tier) < ORDER.indexOf('light')) tier = 'light';
   if (!p.webgl2) tier = 'off';
-  return { tier, auto: p.auto, why: p.why, pick: s.pick || 'auto', cap: s.cap || null, crashed: s.crashed || null, profile: TIERS[tier] || null, probe: p };
+  return { tier, auto: p.auto, why: p.why, pick: s.pick || 'auto', cap, crashed: cap ? s.crashed || null : null, profile: TIERS[tier] || null, probe: p };
 }
 /* a choice from the user clears any cap a crash set */
 function setTier(t){ const s = store.get(); s.pick = TIERS[t] ? t : 'auto'; s.cap = null; s.crashed = null; store.set(s); return device(); }
-function capAt(t, from){ const s = store.get(); s.cap = t; s.crashed = { from, to: t, at: Date.now() }; store.set(s); return device(); }
+function capAt(t, from){ const s = store.get(); s.cap = t; s.crashed = { from, to: t, at: Date.now(), src: 'lost' }; store.set(s); return device(); }
 /* The watch: marked while a scene is on screen, refreshed every minute, cleared whenever the page is
    hidden or left the normal way. Found still marked at the next start, the page was closed under it. */
 let live = null, watching = false;
 function mark(tier){ live = tier; if (document.hidden) return; const s = store.get(); s.run = { tier, at: Date.now() }; store.set(s); }
 function unmark(){ live = null; const s = store.get(); if (s.run) { s.run = null; store.set(s); } }
+/* The guess is for iPads and phones, where the system kills a tab that holds too much and the
+   page simply starts again. On a computer a reload looks identical and is far more likely, while a
+   real loss of the GPU fires webglcontextlost, which caps the level properly (capAt). So on a
+   computer the guess is never made, and any cap it left behind is cleared. */
+let runFrom = 0;
 function watch(){
-  const s = store.get(); let crashed = null;
-  if (s.run && Date.now() - s.run.at < 3 * 60000 && TIERS[s.run.tier]) {
-    const to = lower(s.run.tier);
+  const s = store.get(); let crashed = null; const p = probe(), lost = s.crashed && s.crashed.src === 'lost', mobile = p.ios || p.touch;
+  if (!lost && s.cap && !mobile) { s.cap = null; s.crashed = null; }
+  if (!lost && s.cap === 'off') s.cap = 'light';
+  if (mobile && s.run && Date.now() - s.run.at < 3 * 60000 && TIERS[s.run.tier]) {
+    const to = lower(s.run.tier) === 'off' ? 'light' : lower(s.run.tier);
+    const lost = s.crashed && s.crashed.src === 'lost';
     if (ORDER.indexOf(to) > ORDER.indexOf(s.cap || 'full')) s.cap = to;
-    s.crashed = crashed = { from: s.run.tier, to: s.cap, at: Date.now() };
+    s.crashed = crashed = { from: s.run.tier, to: s.cap, at: Date.now(), src: lost ? 'lost' : 'watch' };
   }
   s.run = null; store.set(s);
   if (!watching) {
@@ -117,7 +130,9 @@ function watch(){
     const quiet = () => { const t = live; unmark(); live = t; };
     addEventListener('pagehide', quiet);
     document.addEventListener('visibilitychange', () => { if (document.hidden) quiet(); else if (live) mark(live); });
-    setInterval(() => { if (live && !document.hidden) mark(live); }, 60000);
+    /* five quiet minutes on a guessed cap: step back up a level, so one bad night does not stick */
+    setInterval(() => { if (!live || document.hidden) { runFrom = 0; return; } mark(live); if (!runFrom) runFrom = Date.now();
+      if (Date.now() - runFrom > 5 * 60000) { runFrom = Date.now(); const q = store.get(); if (q.cap && !(q.crashed && q.crashed.src === 'lost')) { const i = ORDER.indexOf(q.cap); q.cap = i > 1 ? ORDER[i - 1] : null; if (!q.cap) q.crashed = null; store.set(q); } } }, 60000);
   }
   return crashed;
 }
