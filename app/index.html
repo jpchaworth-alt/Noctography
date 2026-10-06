@@ -197,7 +197,7 @@ window.noctoTrack = function (name, every) {
 <script src="../noctography-ar.js?v=2.0.1"></script>
 <script src="../noctography-log.js?v=2.0.1"></script>
 <script src="../noctography-terrain.js?v=2.0.1"></script>
-<script src="../noctography-scout.js?v=2.1.4"></script>
+<script src="../noctography-scout.js?v=3.0.1"></script>
 <script src="../noctography-comp.js?v=2.0.1"></script>
 <script src="../noctography-sightings.js?v=2.0.1"></script>
 <script src="../noctography-backup.js?v=2.0.3"></script>
@@ -3200,7 +3200,7 @@ window.noctoTrack = function (name, every) {
     <div data-app="bar" ref="{{ setAppBar }}" data-ar-rail="{{ arRailWord }}" style="position: sticky; bottom: 0; z-index: 20; display: grid; gap: 8px; margin-top: 6px;">
 
 
-      <div data-nv-bar="1" style="display: flex; align-items: center; gap: clamp(3px, 1vw, 4px); padding: 6px; background: rgba(var(--well-rgb),.86); backdrop-filter: blur(14px); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px;">
+      <div data-nv-bar="1" style="display: flex; align-items: center; gap: clamp(3px, 1vw, 4px); padding: 6px; background: rgba(var(--well-rgb),.97); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px;">
       <button type="button" onClick="{{ railBack }}" aria-label="Earlier tabs" data-rail-arrow="1" style="flex: 0 0 clamp(32px, 8.5vw, 34px); min-height: 48px; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid {{ railLeftBd }}; border-radius: 999px; background: {{ railLeftBg }}; color: {{ railLeftCol }}; cursor: pointer;">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block;">
           <path d="m14.5 6-6 6 6 6"></path>
@@ -3997,7 +3997,7 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '3.0';
+  VERSION = '3.0.1';
   BUILDS = [
     {
       v: '3.0', date: '2026-10-02', silent: false,
@@ -4547,7 +4547,8 @@ class Component extends DCLogic {
     this.setState({ favs: this.loadFavs() });
     this.syncHorizon();
     this.installShell();
-    this._onResize = () => this.forceUpdate();
+    /* a window being dragged wider fires this dozens of times a second: render once it settles */
+    this._onResize = () => { clearTimeout(this._rsT); this._rsT = setTimeout(() => this.forceUpdate(), 120); };
     window.addEventListener('resize', this._onResize);
     this.watchInstall();
     this._loadedAt = Date.now();
@@ -4667,11 +4668,18 @@ class Component extends DCLogic {
   measureAhead() {
     const el = this.aheadBox;
     if (!el) return;
-    const m = el.scrollWidth - el.clientWidth;
-    const x = el.scrollLeft;
-    if (Math.abs((this.state.aheadMax || 0) - m) > 2 || Math.abs((this.state.aheadX || 0) - x) > 2) {
-      this.setState({ aheadMax: m, aheadX: x });
-    }
+    this.aheadSync(el.scrollLeft, el.scrollWidth - el.clientWidth);
+  }
+  /* Scrolling the outlook and the ribbon only changes what is drawn when the fade at the edge comes
+     or goes, so that is the only time they ask for a render. A render per scroll event was what made
+     dragging them judder. */
+  aheadSync(x, m) {
+    const s = this.state, fade = (xx, mm) => mm > 6 && xx < mm - 6;
+    if (Math.abs((s.aheadMax || 0) - m) > 2 || fade(s.aheadX || 0, s.aheadMax || 0) !== fade(x, m)) this.setState({ aheadMax: m, aheadX: x });
+  }
+  ribSync(x, m) {
+    const s = this.state, fade = (xx, mm) => mm > 6 && xx < mm - 6;
+    if (Math.abs((s.ribMax || 0) - m) > 2 || fade(s.ribX || 0, s.ribMax || 0) !== fade(x, m)) this.setState({ ribX: x, ribMax: m });
   }
 
 
@@ -5748,7 +5756,7 @@ class Component extends DCLogic {
     const rangeBtn = v => ({ bg: st.range === v ? amber : 'transparent', fg: st.range === v ? 'var(--ink)' : 'var(--dim)' });
     const r15 = rangeBtn(15), r30 = rangeBtn(30), r60 = rangeBtn(60);
 
-    const rp = st.railPos || { c: 0, w: 0, l: 0 };
+    const rp = this._railLive || st.railPos || { c: 0, w: 0, l: 0 };
     const railC = rp.c, railW = rp.w, railL = rp.l;
 
     const out = {
@@ -5852,7 +5860,7 @@ class Component extends DCLogic {
       goData: () => { this.goTab('data'); window.scrollTo(0, 0); },
       copyrightLine: 'Copyright ' + new Date().getFullYear() + ' Paul Haworth. All rights reserved.',
       ribScroll: el => { this.ribBox = el; },
-      onRibScroll: e => this.setState({ ribX: e.currentTarget.scrollLeft, ribMax: e.currentTarget.scrollWidth - e.currentTarget.clientWidth }),
+      onRibScroll: e => this.ribSync(e.currentTarget.scrollLeft, e.currentTarget.scrollWidth - e.currentTarget.clientWidth),
       ribFade: (st.ribMax > 6 && (st.ribX || 0) < st.ribMax - 6) ? 1 : 0,
       scrollHint: st.ribMax > 6
         ? ((st.ribX || 0) < st.ribMax - 6 ? '\u2190 Five nights back, then ' + st.range + ' ahead' : 'Tap any night for its detail')
@@ -5930,7 +5938,8 @@ class Component extends DCLogic {
       ...this.safe('kitVals'),
       ...this.safe('arVals'),
       ...this.safe('meteorVals'),
-      ...this.safe('auroraVals'),
+      /* by far the heaviest set, and only the Aurora tab reads it */
+      ...(st.tab === 'aurora' ? this.safe('auroraVals') : {}),
       ...this.safe('sightingVals'),
       ...this.safe('sightMapVals'),
       ...this.safe('calendarVals'),
@@ -6092,8 +6101,13 @@ class Component extends DCLogic {
     const r = this._rail;
     if (!r) return;
     const c = r.clientWidth, w = r.scrollWidth, l = r.scrollLeft;
+    this._railLive = { c, w, l };
+    /* the thumb follows the finger directly; a render is only needed when an arrow lights or dims */
+    const th = r.parentNode && r.parentNode.querySelector('[data-rail-thumb] > i');
+    if (th && w > 0) { th.style.left = (w > c ? (l / w) * 100 : 0).toFixed(1) + '%'; th.style.width = Math.max(14, (c / w) * 100).toFixed(1) + '%'; }
     const p = this.state.railPos;
-    if (p && p.c === c && p.w === w && Math.abs(p.l - l) < 1) return;
+    const sig = q => [q.c, q.w, q.l > 6, q.l < q.w - q.c - 6].join('|');
+    if (p && sig(p) === sig(this._railLive)) return;
     this.setState({ railPos: { c, w, l } });
   }
   /* Eight destinations do not fit across a phone, so the rail keeps the one you are on centred
@@ -9947,7 +9961,7 @@ class Component extends DCLogic {
     const moving = this.arMoving();
     /* A phone that cannot keep up (measured, below) draws at one pixel per point while moving and
        a little more when still: the sky sharpens back the moment you stop. */
-    const lite = this._arSlow > 26;
+    const lite = this._arSlow > 26 || !!(window.NoctoScout && window.NoctoScout.software && window.NoctoScout.software());
     const dpr = moving ? Math.min(lite ? 1 : 1.4, window.devicePixelRatio || 1) : Math.min(lite ? 1.5 : 2, window.devicePixelRatio || 1);
     const W = Math.round(cw * dpr), H = Math.round(ch * dpr);
     if (el.width !== W || el.height !== H) { el.width = W; el.height = H; }
@@ -10391,10 +10405,16 @@ class Component extends DCLogic {
     if (groundDrawn && this._scout) {
       const g = this._scout.canvas, gw = Math.max(1, Math.round(W / 8)), gh = Math.max(1, Math.round(H / 8));
       const m = this._lblMask || (this._lblMask = document.createElement('canvas'));
-      if (m.width !== gw || m.height !== gh) { m.width = gw; m.height = gh; }
-      const mx = m.getContext('2d', { willReadFrequently: true });
-      mx.clearRect(0, 0, gw, gh); mx.drawImage(g, 0, 0, gw, gh);
-      const px = mx.getImageData(0, 0, gw, gh).data;
+      const tNow = performance.now(), resized = m.width !== gw || m.height !== gh;
+      if (resized) { m.width = gw; m.height = gh; }
+      /* Reading pixels back makes the processor wait for the graphics chip, so while the view is
+         moving the mask is refreshed a few times a second rather than on every frame. */
+      if (resized || !this._lblPx || !moving || tNow - (this._lblAt || 0) > 150) {
+        const mx = m.getContext('2d', { willReadFrequently: true });
+        mx.clearRect(0, 0, gw, gh); mx.drawImage(g, 0, 0, gw, gh);
+        this._lblPx = mx.getImageData(0, 0, gw, gh).data; this._lblAt = tNow;
+      }
+      const px = this._lblPx;
       underGround = (x, y) => {
         const i = Math.floor(x / 8), j = Math.floor(y / 8);
         if (i < 0 || j < 0 || i >= gw || j >= gh) return false;
@@ -15289,7 +15309,7 @@ class Component extends DCLogic {
       ...this.eclipsesAhead(rows.filter(r => !r.hist), DAYS),
       aheadFade: (hidden > 6 && seen < hidden - 6) ? 1 : 0,
       aheadScroll: el => { this.aheadBox = el; },
-      onAheadScroll: e => this.setState({ aheadX: e.currentTarget.scrollLeft, aheadMax: e.currentTarget.scrollWidth - e.currentTarget.clientWidth }),
+      onAheadScroll: e => this.aheadSync(e.currentTarget.scrollLeft, e.currentTarget.scrollWidth - e.currentTarget.clientWidth),
     };
   }
 

@@ -243,8 +243,25 @@ void main(){
   gl_FragColor = vec4(c, 1.0);
 }`;
 
+/* Is WebGL being drawn on the processor? Asked once. A browser with graphics acceleration off still
+   offers WebGL, and smoothing the edges of the ground there costs most of the frame. */
+let swProbe = null;
+function software(){
+  if (swProbe != null) return swProbe;
+  swProbe = false;
+  try {
+    const c = document.createElement('canvas'), g = c.getContext('webgl');
+    if (g) {
+      const x = g.getExtension('WEBGL_debug_renderer_info');
+      swProbe = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(String(g.getParameter(x ? x.UNMASKED_RENDERER_WEBGL : g.RENDERER) || ''));
+      const l = g.getExtension('WEBGL_lose_context'); if (l) l.loseContext();
+    }
+    c.width = c.height = 0;
+  } catch (e) {}
+  return swProbe;
+}
 function makeGL(canvas){
-  const gl = canvas.getContext('webgl', { alpha: true, antialias: true, premultipliedAlpha: false, preserveDrawingBuffer: true });
+  const gl = canvas.getContext('webgl', { alpha: true, antialias: !software(), premultipliedAlpha: false, preserveDrawingBuffer: true });
   if (!gl) return null;
   if (!gl.getExtension('OES_element_index_uint')) return null;
   const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s);
@@ -499,6 +516,17 @@ function projector(aimAlt, aimAz, across, down, W, H){
   return fn;
 }
 
+/* the band in night-vision red, made once per band at no more than 2048px across */
+function nvBand(src){
+  if (src._nvTint) return src._nvTint;
+  const w = Math.min(2048, src.width), h = Math.max(1, Math.round(src.height * w / src.width));
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  x.filter = 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(0.9)';
+  x.drawImage(src, 0, 0, w, h);
+  src._nvTint = c;
+  return c;
+}
 /* affine texture-mapped triangle */
 function drawTri(ctx, img, s0, s1, s2, d0, d1, d2){
   const den = (s1[0] - s0[0]) * (s2[1] - s0[1]) - (s2[0] - s0[0]) * (s1[1] - s0[1]);
@@ -731,8 +759,11 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha = bandGain;
-      if (nv) ctx.filter = 'grayscale(1) sepia(1) saturate(6) hue-rotate(-32deg) brightness(0.9)';
-      const cw = SW / nx, ch = SH / ny, m = 60;
+      if (nv) ctx.filter = 'none';
+      /* Night vision tints the band once into a smaller copy, rather than running the colour filter
+         on every one of the thousands of small draws below. */
+      const img = nv ? nvBand(band) : band, k = img.width / SW;
+      const cw = SW * k / nx, ch = SH * k / ny, m = 60;
       const onScreen = p => p[0] > -m && p[0] < W + m && p[1] > -m && p[1] < H + m;
       for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
         const p00 = grid[j * (nx + 1) + i], p10 = grid[j * (nx + 1) + i + 1];
@@ -742,8 +773,8 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
         const span = Math.max(Math.hypot(p10[0] - p00[0], p10[1] - p00[1]), Math.hypot(p01[0] - p00[0], p01[1] - p00[1]));
         if (span > Math.max(W, H) * 1.5) continue;   // a cell wrapped through the pole
         const s00 = [i * cw, j * ch], s10 = [(i + 1) * cw, j * ch], s01 = [i * cw, (j + 1) * ch], s11 = [(i + 1) * cw, (j + 1) * ch];
-        drawTri(ctx, band, s00, s10, s01, p00, p10, p01);
-        drawTri(ctx, band, s10, s11, s01, p10, p11, p01);
+        drawTri(ctx, img, s00, s10, s01, p00, p10, p01);
+        drawTri(ctx, img, s10, s11, s01, p10, p11, p01);
       }
       ctx.restore();
     }
@@ -1212,7 +1243,7 @@ function haLayer(ctx, W, H, unproject, lat, lon, when, sky, o){
 window.NoctoScout = {
   loadHa, haLayer,
   pano: { strip: panoStrip, grid: panoGrid, footprint: panoFootprint, arch: panoArch, TOP: PANO_TOP, BOT: PANO_BOT },
-  Scene, plan, sizeLine, ringsFor, projector, drawSky, drawStarMap, discScale, focalT, skyLabels, drawLabels, loadBand, galToEq, skyColour, skyBackground,
+  Scene, plan, sizeLine, ringsFor, projector, drawSky, drawStarMap, discScale, focalT, skyLabels, drawLabels, loadBand, galToEq, skyColour, skyBackground, software,
   nightEvents, paintStrip, stripGestures, STRIP_PPM,
   loadSkyData, skyDataReady: () => !!SKY.stars, skyDataFailed: () => SKY.failed, skyStars: () => SKY.stars,
   bandReady: () => !!bandLifted,

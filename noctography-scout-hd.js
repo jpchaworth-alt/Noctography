@@ -27,13 +27,31 @@ const R_EARTH = 6371000, R_EFF = R_EARTH * 7 / 6;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 /* heights: metres a pixel wanted, tiles across, vertex step; k: how many zooms sharper the imagery */
-const RINGS = [
+let RINGS = [
   { targetM: 3,   n: 4, step: 2, k: 2 },
   { targetM: 12,  n: 5, step: 2, k: 2 },
   { targetM: 50,  n: 5, step: 4, k: 1 },
   { targetM: 400, n: 5, step: 5, k: 0 },
 ];
-const DEM_MAX_Z = 15, IMG_MAX_Z = 18;
+/* Ground source. 'aws' is the global Terrarium set (about 30 m outside England). 'mapterhorn' is the
+   open compilation of national laser and survey models: the same height encoding in 512 px WebP tiles,
+   read here as quadrants so the rest of the scene still sees 256 px tiles. On trial behind ?ground=new
+   (or localStorage noctography.scout.ground = 'new') until the terrain decisions are made. */
+const MT_BASE = 'https://tiles.mapterhorn.com/';
+const GROUND = (() => { try { const q = /[?&]ground=(new|mapterhorn|old|aws)\b/.exec(location.search); const v = q ? q[1] : localStorage.getItem('noctography.scout.ground'); return v === 'new' || v === 'mapterhorn' ? 'mapterhorn' : 'aws'; } catch (e) { return 'aws'; } })();
+const DEM_MAX_Z = GROUND === 'mapterhorn' ? 16 : 15, IMG_MAX_Z = 18;
+/* With the finer ground on a computer, carry the drawn detail further. Zooms and reach are pinned, and
+   the figures are mesh spacing, which is what draws a skyline (in Scotland; a little coarser in the
+   south): a point every 2.6 m to 1.3 km, 7.8 m to 3.5 km, 15.7 m to 8 km and 84 m to 20 km. Today's
+   rings are 5.2 m to 1.3 km and 21 m to 7 km. About 3.5 times the points, so phones keep the old rings
+   until this is measured on one. */
+if (GROUND === 'mapterhorn' && !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) RINGS = [
+  { z: 16, km: 1.3, step: 2, k: 1 },
+  { z: 15, km: 3.5, step: 3, k: 1 },
+  { z: 14, km: 8,   step: 3, k: 0 },
+  { z: 12, km: 20,  step: 4, k: 0 },
+  { targetM: 400, n: 5, step: 5, k: 0 },
+];
 
 /* Imagery is a URL template so a keyed source can replace the public one without touching the
    renderer. Esri's terms want the ArcGIS Location Platform endpoint with a key for anything live:
@@ -50,7 +68,7 @@ function config(o){ Object.assign(CFG, o || {}); return { ...CFG }; }
    comes back one step lighter. Full is about 700 MB of textures and buffers on a sharp screen,
    Reduced about 250 MB, Basic under 100 MB. Off means the phone scene. */
 const TIERS = {
-  full:    { maxTex: 8192, shadow: 4096, aa: true,  dpr: 3,   mipMs: 300,  par: 8 },
+  full:    { maxTex: 8192, shadow: 4096, aa: true,  dpr: 2,   mipMs: 300,  par: 8 },
   reduced: { maxTex: 4096, shadow: 2048, aa: false, dpr: 1.5, mipMs: 1200, par: 4 },
   basic:   { maxTex: 2048, shadow: 1024, aa: false, dpr: 1,   mipMs: 2000, par: 3 },
   /* a phone: every ring's imagery at its coarsest, a small shadow map, one request at a time more */
@@ -73,10 +91,24 @@ function probe(){
   const short = Math.min(screen.width, screen.height), mem = navigator.deviceMemory || 0, c = navigator.connection || {};
   const p = { webgl2: !!gl, maxTex: gl ? gl.getParameter(gl.MAX_TEXTURE_SIZE) : 0, ios, touch, short, mem,
     slowNet: !!c.saveData || /2g/.test(c.effectiveType || '') };
+  /* A browser with its graphics acceleration off still offers WebGL2, drawn on the processor, and
+     the full scene there runs at a frame a second. Ask which renderer it is, and whether the
+     browser itself calls this a major performance caveat. */
+  p.renderer = ''; p.software = false;
+  if (gl) {
+    try { const x = gl.getExtension('WEBGL_debug_renderer_info'); p.renderer = String(gl.getParameter(x ? x.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || ''); } catch (e) {}
+    p.software = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(p.renderer);
+    if (!p.software) {
+      try { const c2 = document.createElement('canvas'), g2 = c2.getContext('webgl2', { failIfMajorPerformanceCaveat: true });
+        if (!g2) p.software = true; else { const x2 = g2.getExtension('WEBGL_lose_context'); if (x2) x2.loseContext(); }
+        c2.width = c2.height = 0; } catch (e) {}
+    }
+  }
   if (gl) { const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); }
   cv.width = cv.height = 0;
   let t = 'full', why = 'This computer can carry the full scene.';
   if (!p.webgl2) { t = 'off'; why = 'This browser cannot draw the detailed ground (no WebGL2).'; }
+  else if (p.software) { t = 'light'; why = 'This browser is drawing without the graphics chip, so the lightest version. Turn on hardware acceleration in the browser settings for the full scene.'; }
   else if (short < 600 || (mem && mem <= 2)) { t = 'light'; why = 'A phone, so the lightest version: the ground near you sharp, the rest coarse.'; }
   /* an iPad is treated as a phone, only bigger: iPadOS gives a tab far less memory than the chip
      suggests, and even Reduced stalled, blanked and reloaded on a 13-inch M3 */
@@ -98,6 +130,8 @@ function device(){
   if (cap && ORDER.indexOf(cap) > ORDER.indexOf(tier)) tier = cap;
   /* and stays there: an earlier pick of a heavier level is not honoured on iOS */
   if (p.ios && ORDER.indexOf(tier) < ORDER.indexOf('light')) tier = 'light';
+  /* nor on a browser drawing without the graphics chip */
+  if (p.software && ORDER.indexOf(tier) < ORDER.indexOf('light')) tier = 'light';
   if (!p.webgl2) tier = 'off';
   return { tier, auto: p.auto, why: p.why, pick: s.pick || 'auto', cap, crashed: cap ? s.crashed || null : null, profile: TIERS[tier] || null, probe: p };
 }
@@ -221,13 +255,16 @@ function destPoint(lat, lon, azDeg, dM){
 function plan(lat, lon, maxTex){
   const base = 156543.03392 * Math.cos(lat * D2R);
   const rings = RINGS.map(r => {
-    const z = clamp(Math.ceil(Math.log2(base / r.targetM)), 3, DEM_MAX_Z);
+    /* a ring may pin its zoom (z) and its reach (km, the radius): then the tiles across follow from the
+       latitude, so the reach is the same in Cornwall as in Glencoe */
+    const z = r.z ? Math.min(r.z, DEM_MAX_Z) : clamp(Math.ceil(Math.log2(base / r.targetM)), 3, DEM_MAX_Z);
+    const n = r.km ? Math.max(2, Math.ceil(2 * r.km * 1000 / (TILE * base / Math.pow(2, z)))) : r.n;
     let kz = Math.min(IMG_MAX_Z, z + r.k);
-    while (kz > z && r.n * TILE * Math.pow(2, kz - z) > maxTex) kz--;
+    while (kz > z && n * TILE * Math.pow(2, kz - z) > maxTex) kz--;
     const fx = lonToX(lon, z), fy = latToY(lat, z);
-    return { z, kz, f: Math.pow(2, kz - z), n: r.n, step: r.step,
+    return { z, kz, f: Math.pow(2, kz - z), n, step: r.step,
       mPerPx: base / Math.pow(2, z), imgM: base / Math.pow(2, kz),
-      x0: Math.round(fx - r.n / 2), y0: Math.round(fy - r.n / 2) };
+      x0: Math.round(fx - n / 2), y0: Math.round(fy - n / 2) };
   });
   return { rings };
 }
@@ -270,10 +307,48 @@ function boxOf(r){
   return { w: xToLon(r.x0 + pad, r.z), e: xToLon(r.x0 + r.n - pad, r.z), n: yToLat(r.y0 + pad, r.z), s: yToLat(r.y0 + r.n - pad, r.z) };
 }
 
+const MT_CACHE = new Map();
+function mtTile(z, x, y){
+  const u = MT_BASE + z + '/' + x + '/' + y + '.webp';
+  if (!MT_CACHE.has(u)) {
+    if (MT_CACHE.size > 96) MT_CACHE.delete(MT_CACHE.keys().next().value);
+    MT_CACHE.set(u, (async () => {
+      const bm = await fetchBitmap(u, 15000); if (!bm) return null;
+      const cv = document.createElement('canvas'); cv.width = bm.width; cv.height = bm.height;
+      const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(bm, 0, 0);
+      const px = cx.getImageData(0, 0, cv.width, cv.height).data; if (bm.close) bm.close(); cv.width = cv.height = 0;
+      return { w: bm.width || Math.sqrt(px.length / 4), px };
+    })());
+  }
+  return MT_CACHE.get(u);
+}
+/* Mapterhorn only goes as deep as each country's data: z16 over 1 m laser, z13 over 5 m, z12 over 30 m.
+   So walk up to the deepest tile that exists and resample from it, rather than leaving a hole (a hole
+   drew as sea level, which is why the Blue Mountains showed sky) or mixing in the other source. */
+async function fetchDemMt(z, x, y){
+  for (let up = 1; up <= 7 && z - up >= 0; up++) {
+    const t = await mtTile(z - up, x >> up, y >> up); if (!t) continue; if (t.w !== 512) return null;
+    /* the target tile is a (512 >> up) px square of this one, k source px per target px */
+    const ox = (x & ((1 << up) - 1)) * (512 >> up), oy = (y & ((1 << up) - 1)) * (512 >> up), k = (512 >> up) / TILE;
+    const px = t.px, out = new Float32Array(TILE * TILE), H = (i, j) => { const p = (j * 512 + i) * 4; const e = px[p] * 256 + px[p + 1] + px[p + 2] / 256 - 32768; return e < 0 ? 0 : e; };
+    for (let j = 0; j < TILE; j++) for (let i = 0; i < TILE; i++) {
+      let sx = ox + (i + 0.5) * k - 0.5, sy = oy + (j + 0.5) * k - 0.5;
+      sx = Math.max(0, Math.min(510.999, sx)); sy = Math.max(0, Math.min(510.999, sy));
+      const i0 = sx | 0, j0 = sy | 0, fx = sx - i0, fy = sy - j0;
+      out[j * TILE + i] = k === 1 ? H(ox + i, oy + j) : (H(i0, j0) * (1 - fx) + H(i0 + 1, j0) * fx) * (1 - fy) + (H(i0, j0 + 1) * (1 - fx) + H(i0 + 1, j0 + 1) * fx) * fy;
+    }
+    return out;
+  }
+  return null;
+}
 async function fetchDem(z, x, y){
   const n = Math.pow(2, z);
   x = ((x % n) + n) % n;
   if (y < 0 || y >= n) return null;
+  if (GROUND === 'mapterhorn') {
+    const m = await fetchDemMt(z, x, y); if (m) return m;
+    if (z > 15) return null;
+  }
   const bm = await fetchBitmap(DEM_BASE + z + '/' + x + '/' + y + '.png', 15000);
   if (!bm) return null;
   const cv = document.createElement('canvas');
@@ -1210,6 +1285,6 @@ function hazeRow(view, sky, o){
   return out;
 }
 
-window.NoctoScoutHD = { Scene, plan, areaTiles, lightFor, domeProfile, skyExtras, hazeRow, config, SURFACES,
+window.NoctoScoutHD = { GROUND, Scene, plan, areaTiles, lightFor, domeProfile, skyExtras, hazeRow, config, SURFACES,
   TIERS, ORDER, device, setTier, capAt, lower, watch, mark, unmark };
 })();

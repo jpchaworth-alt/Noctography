@@ -14,12 +14,12 @@
   <script src="../scout-ds/_ds_bundle.js"></script>
   <script src="../noctography-engine.js?v=2.0.1"></script>
   <script src="../noctography-plan.js?v=2.0.1"></script>
-  <script src="../noctography-scout.js?v=2.1.4"></script>
+  <script src="../noctography-scout.js?v=3.0.1"></script>
   <script src="../noctography-offline.js?v=2"></script>
   <script src="../noctography-comp.js?v=2.0.1"></script>
   <script src="../noctography-sync.js?v=4"></script>
   <script src="../noctography-surfaces.js?v=25"></script>
-  <script src="../noctography-scout-hd.js?v=35"></script>
+  <script src="../noctography-scout-hd.js?v=3.0.1"></script>
   <script src="../noctography-ar.js?v=2.0.3b8"></script>
 <script src="../noctography-eclipse-data.js?v=3"></script>
 <script src="../noctography-eclipse.js?v=7"></script>
@@ -647,6 +647,7 @@ class Component extends DCLogic {
       e.preventDefault();
       const v = this._view;
       v.hfov = Math.max(12, Math.min(this.zoomMax(), v.hfov * (e.deltaY > 0 ? 1.08 : 1 / 1.08)));
+      this._movedAt = performance.now();
       this.resetTrails(); this.dirty(); this.syncView();
     }, { passive: false });
     this._key = e => {
@@ -677,6 +678,8 @@ class Component extends DCLogic {
       const want = q.get('ecl'), onMap = q.get('map') === '1';
       if (want) Promise.resolve(opened).then(() => setTimeout(() => { const X = this.X(); if (X && X.byId(want)) { this.eclGo(X.byId(want)); if (onMap) setTimeout(() => this.eclShowMap(), 300); } }, 400));
     } else this.pickPlace(0);
+    { const HD = window.NoctoScoutHD, dv = HD && HD.device ? HD.device() : null;
+      if (dv && dv.probe && dv.probe.software && !this._crash) setTimeout(() => this.toast('Your browser is not using the graphics chip, so I have set Scout to its lightest detail. Turn on hardware acceleration in the browser settings for the full scene.', 9000), 1200); }
     if (this._crash) setTimeout(() => this.toast('Scout closed unexpectedly last time, so I have lowered the detail on this device. Change it under View.', 7000), 1200);
     this.embedSay(this.hd ? 'ready' : 'fallback');
     this.planLoad();
@@ -698,6 +701,8 @@ class Component extends DCLogic {
       if (this.hd && this.sc.sharpening && t - (this._sharpAt || 0) > 250) { this._sharpAt = t; this._dirty = true; }
       if (t - (this._fitAt || 0) > 500) { this._fitAt = t; this.fitPanels(); }
       if (this.state.live) this.liveTick(t);
+      /* the view has come to rest: one more pass at full detail */
+      if (this._movedAt && t - this._movedAt > 200) { this._movedAt = 0; this._dirty = true; }
       if (this._dirty) { this._dirty = false; const sp = this.splitOn(); if (!this.state.mapOn || sp) this.draw(); if (sp) this.drawMapView(); this.drawStrip(); this.drawTape(); }
       this._raf = requestAnimationFrame(tick);
     };
@@ -1892,7 +1897,11 @@ class Component extends DCLogic {
     const st = this.state, p = this.loc();
     /* a playing timelapse draws at fewer pixels on a sharp screen, so every frame keeps pace; paused,
        it is back to full detail at once */
-    const fullDpr = Math.min(window.devicePixelRatio || 1, this.hd && this.sc.P ? this.sc.P.dpr : 2), dpr = st.playing || this._scrubbing || st.live ? Math.max(1, Math.min(fullDpr, fullDpr * 0.6)) : fullDpr;
+    /* Panning and zooming draw a draft too, sharpened once the view comes to rest. Full detail is
+       held to about 8 million pixels, a 4K screen's worth, whatever the display. */
+    const moving = !!this._movedAt && performance.now() - this._movedAt < 200;
+    const budget = Math.sqrt(8.3e6 / Math.max(1, cv.clientWidth * cv.clientHeight));
+    const fullDpr = Math.max(1, Math.min(window.devicePixelRatio || 1, this.hd && this.sc.P ? this.sc.P.dpr : 2, budget)), dpr = st.playing || this._scrubbing || st.live || moving ? Math.max(1, Math.min(fullDpr, fullDpr * 0.6)) : fullDpr;
     const W = Math.max(2, Math.round(cv.clientWidth * dpr)), H = Math.max(2, Math.round(cv.clientHeight * dpr));
     [cv, this._sky, this._tr, this._comp].forEach(c => { if (c.width !== W || c.height !== H) { c.width = W; c.height = H; this._trailsFresh = true; } });
     const R = Math.PI / 180, v = this._view;
@@ -1904,7 +1913,7 @@ class Component extends DCLogic {
     if (st.pano && v.hfov > 95 && !st.playing) this.wideStrip(when, p, gain);
     const sx = this._sky.getContext('2d');
     sx.setTransform(1, 0, 0, 1, 0, 0); sx.globalAlpha = 1; sx.globalCompositeOperation = 'source-over';
-    const r = S.drawSky(sx, W, H, view, when, p.lat, p.lon, { gain, dpr, coarse: st.playing || !!st.live, map: S.skyDataReady() ? { stars: true, lines: !!(st.show && st.show.cons) } : null, labels: this.showOpts() });
+    const r = S.drawSky(sx, W, H, view, when, p.lat, p.lon, { gain, dpr, coarse: st.playing || !!st.live || moving, map: S.skyDataReady() ? { stars: true, lines: !!(st.show && st.show.cons) } : null, labels: this.showOpts() });
     if (st.ha && this._ha) this.drawHa(sx, W, H, view, when, p, r.sky, gain);
     /* the moon's own wash over the sky, and the towns' domes on the horizon */
     const HD = window.NoctoScoutHD, extras = { gain, domes: st.domes ? this._domes : null };
@@ -3025,6 +3034,7 @@ class Component extends DCLogic {
         if (this._pinch && P && P.size === 2) {
           const [a, b] = [...P.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
           this._view.hfov = Math.max(12, Math.min(this.zoomMax(), this._pinch.hfov * this._pinch.d / Math.max(1, d)));
+          this._movedAt = performance.now();
           this.resetTrails(); this.dirty(); this.syncView(); return;
         }
         if (this._boxDrag) { const bb = e.currentTarget.getBoundingClientRect(); this.boxDrag(e.clientX - bb.left, e.clientY - bb.top); return; }
@@ -3034,6 +3044,7 @@ class Component extends DCLogic {
         const vf = this.wide() ? vw.hfov * H / W : 2 * Math.atan(Math.tan(vw.hfov / 2 * R) * H / W) / R;
         vw.az = g.az - (e.clientX - g.x) * vw.hfov / W;
         vw.alt = Math.max(-70, Math.min(85, g.alt + (e.clientY - g.y) * vf / H));
+        this._movedAt = performance.now();
         this.resetTrails(); this.dirty(); this.syncView();
       },
       viewUp: e => { if (this.state.live) { if (this._lvp) this._lvp.delete(e.pointerId); this._lpinch = null; return; } if (this._boxDrag) { this._boxDrag = null; const b = this._boxLive; this._boxLive = null; if (b) this.setState({ panoBox: b }, () => this.dirty()); }
