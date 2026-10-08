@@ -12,14 +12,15 @@
 <helmet>
   <link rel="stylesheet" href="../scout-ds/fonts.css">
   <script src="../scout-ds/_ds_bundle.js"></script>
-  <script src="../noctography-engine.js?v=2.0.1"></script>
+  <script src="../noctography-engine.js?v=3.0.2b"></script>
   <script src="../noctography-plan.js?v=2.0.1"></script>
-  <script src="../noctography-scout.js?v=3.0.1"></script>
+  <script src="../noctography-png.js?v=3.0.2"></script>
+  <script src="../noctography-scout.js?v=3.0.2"></script>
   <script src="../noctography-offline.js?v=2"></script>
   <script src="../noctography-comp.js?v=2.0.1"></script>
   <script src="../noctography-sync.js?v=4"></script>
   <script src="../noctography-surfaces.js?v=25"></script>
-  <script src="../noctography-scout-hd.js?v=3.0.1"></script>
+  <script src="../noctography-scout-hd.js?v=3.0.2"></script>
   <script src="../noctography-ar.js?v=2.0.3b8"></script>
 <script src="../noctography-eclipse-data.js?v=3"></script>
 <script src="../noctography-eclipse.js?v=7"></script>
@@ -2572,7 +2573,9 @@ class Component extends DCLogic {
       appBack: e => { if (/[?&]embed=1/.test(location.search) && window.parent !== window) { e.preventDefault();
         const n = this.nightOf(), at = Math.round(this.noon() + this._min * 60000);
         if (this.sc && this.sc.dispose) this.sc.dispose();
-        this.embedSay('close', { at, night: this.nightKey(n), az: Math.round(((this._view.az % 360) + 360) % 360) }); } },
+        const here = this.loc();
+        this.embedSay('close', { at, night: this.nightKey(n), az: Math.round(((this._view.az % 360) + 360) % 360),
+          site: here && isFinite(here.lat) ? { lat: here.lat, lon: here.lon, name: here.name } : null }); } },
       nvOn: !!st.nv,
       toastOn: !!st.toast, toastLine: st.toast || '',
       ...(() => { const S2 = window.NoctoSync; if (!S2) return { syLine: '', syInk: '#918B81', syBtn: () => {}, syBtnLabel: '', syQrOn: false, syQr: '' };

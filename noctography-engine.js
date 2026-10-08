@@ -526,7 +526,7 @@ function viewDirection(radAlt,radAz){
 function clearFraction(c){
   if(!c) return null;
   if(c.low==null) return clamp(1-(c.total||0)/100,0,1);
-  return clamp((1-c.low/100)*(1-0.9*c.mid/100)*(1-0.55*c.high/100),0,1);
+  return clamp((1-c.low/100)*(1-0.9*c.mid/100)*(1-0.5*c.high/100),0,1);   // thin high cloud at half weight
 }
 /* Low and mid cloud is what actually stops a shot. High cirrus dims and softens, and a night
    under nothing but cirrus is still worth driving to, so everything that judges whether a night
@@ -1355,8 +1355,15 @@ function tonight(){
   const q = best ? 0.5 * best.quality + 0.5 * meanQ : 0;
   const hours = usable.length * STEP / 60;
   let verdict;
+  /* The grade is for Milky Way and dark-sky shooting, judged on the best stretch. Great needs half
+     the dark hours (and at least one) clear with no bright moon up (bright: 40% lit or more), so a
+     short midsummer night can still be great; the moon elsewhere in the night does not stop it, but
+     the sentence says when it is up. */
+  const MOON_BRIGHT = 0.4;
+  const brightUp = s => s.moonAlt > 0 && s.illum >= MOON_BRIGHT;
+  const moonlessClearH = usable.filter(s => !brightUp(s) && (clearFraction(s.cloud) ?? 0) >= 0.7).length * STEP / 60;
   if (!usable.length) verdict = 'too light for astro, the sun barely sets';
-  else if (q >= 0.72 && meanQ >= 0.6 && hours > 2) verdict = 'great';
+  else if (moonlessClearH >= Math.max(1, 0.5 * hours) && best.quality >= 0.72) verdict = 'great';
   else if (q >= 0.5 && meanQ >= 0.35) verdict = 'not bad';
   else if (q >= 0.28 || best.quality >= 0.6) verdict = 'challenging';
   else verdict = 'quite rough';
@@ -1373,6 +1380,26 @@ function tonight(){
     else if (lmMean > 35){ if (verdict === 'great' || verdict === 'not bad') verdict = 'challenging'; cloudCap = 'broken'; }
   }
 
+  /* Haze and a light-polluted site each cost a grade: both take the faint sky away however clear it
+     is. Haze is humidity above about 90% or visibility under 8 km, typical over the dark hours. */
+  const GRADES = ['great', 'not bad', 'challenging', 'quite rough'];
+  const drop = () => { const i = GRADES.indexOf(verdict); if (i >= 0 && i < 3) verdict = GRADES[i + 1]; };
+  const mid = a => { const v = a.filter(x => x != null).sort((x, y) => x - y); return v.length ? v[Math.floor(v.length / 2)] : null; };
+  const rhMid = mid(usable.map(s => s.cloud ? s.cloud.rh : null)), visMid = mid(usable.map(s => s.cloud ? s.cloud.vis : null));
+  const hazy = (rhMid != null && rhMid >= 91) || (visMid != null && visMid < 8000);
+  const bright = !!(state.sky && state.sky.bortle >= 7);
+  if (usable.length) { if (hazy) drop(); if (bright) drop(); }
+
+  /* when a bright moon is up during the dark hours, said in words */
+  let moonLine = null;
+  const bu = usable.filter(brightUp);
+  if (bu.length) {
+    const inDark = t => t && darkWin && t >= darkWin.from && t <= darkWin.to;
+    if (bu.length === usable.length) moonLine = 'a bright moon is up all night';
+    else if (brightUp(usable[0])) moonLine = 'a bright moon is up until ' + fmtTime(inDark(moonSet) ? moonSet : bu[bu.length - 1].t);
+    else moonLine = 'a bright moon is up from ' + fmtTime(inDark(moonRise) ? moonRise : bu[0].t);
+  }
+
   /* Fog and wind do not move the grade, but a serious risk should visibly qualify the headline
      rather than sit quietly further down the page. A clear, moonless, foggy night with a gale
      blowing used to read as unqualified great. */
@@ -1382,9 +1409,15 @@ function tonight(){
   else if (fog && fog.level === 'likely') qualifier = 'but fog is likely';
   else if (wind && wind.gust != null && wind.gust >= 30) qualifier = 'but it will be windy';
   else if (fog && fog.level === 'possible') qualifier = 'with a real chance of fog';
+  else if (hazy) qualifier = 'but the air will be hazy';
+  /* the moon comes first unless cloud has already settled it, with anything else joined on */
+  if (moonLine && cloudCap !== 'heavy') {
+    const rest = !qualifier ? '' : ' and ' + qualifier.replace(/^but /, '').replace(/^with /, 'there\u0027s ').replace(/^too much/, 'there\u0027s too much');
+    qualifier = 'but ' + moonLine + rest;
+  }
 
   return { night: n, darkWin, moonRise, moonSet, midIllum, mwBest, win, hedge, best, cloudSeries, wind, sun, mt, fog,
-           clearRun, lowMid: lmMean, cloudCap, qualifier, noCloudData,
+           clearRun, lowMid: lmMean, cloudCap, qualifier, noCloudData, moonLine, moonlessClearH, hazy,
            verdict, quality: q, peakQuality: best ? best.quality : 0, meanQuality: meanQ, darkHours: hours };
 }
 

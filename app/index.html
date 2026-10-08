@@ -191,13 +191,14 @@ window.noctoTrack = function (name, every) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=2.0.1"></script>
+<script src="../noctography-engine.js?v=3.0.2b"></script>
 <script src="../noctography-sat.js?v=2.0.1"></script>
 <script src="../noctography-plan.js?v=2.0.1"></script>
 <script src="../noctography-ar.js?v=2.0.1"></script>
 <script src="../noctography-log.js?v=2.0.1"></script>
-<script src="../noctography-terrain.js?v=2.0.1"></script>
-<script src="../noctography-scout.js?v=3.0.1"></script>
+<script src="../noctography-png.js?v=3.0.2"></script>
+<script src="../noctography-terrain.js?v=3.0.2"></script>
+<script src="../noctography-scout.js?v=3.0.2"></script>
 <script src="../noctography-comp.js?v=2.0.1"></script>
 <script src="../noctography-sightings.js?v=2.0.1"></script>
 <script src="../noctography-backup.js?v=2.0.3"></script>
@@ -2511,6 +2512,9 @@ window.noctoTrack = function (name, every) {
                     <button type="button" onClick="{{ compMapClear }}" aria-label="Close" style="flex: 0 0 auto; align-self: start; width: 34px; height: 34px; border: 1px solid rgba(var(--line-rgb),.2); border-radius: 999px; background: none; color: var(--dim); font-size: 14px; cursor: pointer;">✕</button>
                   </div>
                 </sc-if>
+                <sc-if value="{{ pinWheelHint }}" hint-placeholder-val="{{ false }}">
+                  <span data-nv-bar="1" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: calc(100% - 32px); padding: 8px 14px; border-radius: 999px; background: rgba(var(--well-rgb),.94); border: 1px solid rgba(var(--line-rgb),.2); font-size: 14px; color: var(--text); text-align: center; pointer-events: none;">{{ pinWheelHintLine }}</span>
+                </sc-if>
                 <sc-if value="{{ cloudBusyOn }}" hint-placeholder-val="{{ false }}">
                   <span data-nv-bar="1" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; border-radius: 999px; background: rgba(var(--well-rgb),.86); border: 1px solid rgba(var(--line-rgb),.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--dim);">{{ cloudBusyLine }}</span>
                 </sc-if>
@@ -2555,6 +2559,12 @@ window.noctoTrack = function (name, every) {
                   <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 17px; color: var(--text);">{{ cloudWhen }}</span>
                   <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ cloudRel }}</span>
                 </div>
+                <label style="display: flex; align-items: center; gap: 10px; min-height: 44px;">
+                  <span style="flex: 0 0 auto; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--dim);">Model</span>
+                  <select value="{{ cloudModelId }}" onChange="{{ onCloudModel }}" aria-label="Forecast model" style="flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: rgba(var(--well-rgb),.6); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px;">
+                    <sc-for list="{{ cloudModels }}" as="o" hint-placeholder-count="1"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
+                  </select>
+                </label>
                 <input type="range" min="0" max="{{ cloudMax }}" step="1" value="{{ cloudIdx }}" onInput="{{ onCloudSlider }}" aria-label="Forecast time" style="width: 100%; min-height: 44px; accent-color: var(--accent);">
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                   <button type="button" onClick="{{ cloudGoNow }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Now</button>
@@ -3997,7 +4007,7 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '3.0.1';
+  VERSION = '3.0.3';
   BUILDS = [
     {
       v: '3.0', date: '2026-10-02', silent: false,
@@ -4501,6 +4511,14 @@ class Component extends DCLogic {
           this.setState({ arDate: d.night, arScrub: Math.max(0, Math.min(100, (d.at - base) / 864000)) }, () => { this.arSyncInputs(); this.drawAr(); });
         }
         if (isFinite(d.az) && this._arV) this._arV.az = d.az;
+        /* Somewhere new in Scout is somewhere new for the whole app: Tonight reads from it next */
+        const s = d.site, E = this.E();
+        if (this._fsSite && s && isFinite(s.lat) && isFinite(s.lon) && E && E.state.lat != null
+          && this.haversineM(E.state.lat, E.state.lon, s.lat, s.lon) > 25) {
+          const nm = s.name && s.name !== 'From the app' && !/of (Coordinates|-?\d+\.\d+, -?\d+\.\d+)$/.test(s.name) ? s.name : s.lat.toFixed(4) + ', ' + s.lon.toFixed(4);
+          this.applySite({ lat: s.lat, lon: s.lon, place: nm }, true);
+          this.refresh();
+        }
         this.fullScoutClose();
       }
       /* one Scout: if it cannot hold the detailed ground it carries on with its simple ground, in the
@@ -5498,11 +5516,14 @@ class Component extends DCLogic {
   applySite(site, persist, keepPin) {
     const E = this.E();
     E.state.lat = site.lat; E.state.lon = site.lon; E.state.place = site.place;
+    /* where the name came from, so a pin dragged well away from it is named by distance from it */
+    if (!keepPin || !this._nameAt) this._nameAt = site.anchor || { lat: site.lat, lon: site.lon, name: site.place };
+    site = { ...site, anchor: this._nameAt };
     /* The search bar holds the chosen place rather than falling back to its example text: an empty
        field next to a named place read as though nothing had been selected. It is still an
        ordinary field, so typing over it starts a new search. */
     this.setState({ place: site.place, query: site.place || '' });
-    if (persist) this.save({ lat: site.lat, lon: site.lon, place: site.place });
+    if (persist) this.save({ lat: site.lat, lon: site.lon, place: site.place, anchor: site.anchor });
     /* The pin map follows the site. Left alone it kept the view it was last dragged to, so choosing
        a new place left the imagery sitting over the old field. Clearing it makes pinView() fall
        back to the site's own coordinates. */
@@ -6052,6 +6073,8 @@ class Component extends DCLogic {
     return (TWO[c.a] || c.a.slice(0, 2)) + (TWO[c.b] || c.b.slice(0, 2));
   }
   goTab(key) {
+    /* a pin let go of a moment ago is committed now, so the tab you go to reads from it */
+    if (this._pinPend) { clearTimeout(this._pinTimer); const nv = this._pinPend; this._pinPend = null; this.commitPin(nv); }
     /* Sky is Sky AR itself: no page in between */
     if (key === 'sky') { if (!this.state.arOpen) this.arOrFrame({ subject: 'all' }); return; }
     if (this.state.arOpen) this.closeAr();
@@ -6381,7 +6404,7 @@ class Component extends DCLogic {
         const bad = tt && (tt.verdict === 'quite rough' || tt.cloudCap === 'heavy' || (tt.cloudCap === 'broken' && !tt.win));
         return { skyPoorOn: !!bad,
           skyPoorLine: !bad ? '' : 'Conditions are not good tonight'
-            + (tt.qualifier ? ': ' + tt.qualifier + '. ' : '. ') + 'Here is what would be visible if they were.' };
+            + (tt.qualifier ? ': ' + tt.qualifier.replace(/^but /, '') + '. ' : '. ') + 'Here is what would be visible if they were.' };
       })(),
       skyPicks: r.picks.map(p => {
         const b = posAt(p);
@@ -6796,8 +6819,11 @@ class Component extends DCLogic {
     this._fsRetry = false;
     const fsEcl = this._fsEcl, fsAt = this._fsAt, fsComp = this._fsComp; this._fsEcl = null; this._fsAt = null; this._fsComp = null;
     if (fsComp) subAim = fsComp.aim;
+    /* opened on your own site, so a move inside Scout moves the site; an eclipse spot or a saved
+       composition is somewhere you are visiting */
+    this._fsSite = !fsAt;
     const q = 'embed=1&at=' + (fsAt ? fsAt[0].toFixed(5) + ',' + fsAt[1].toFixed(5) : E.state.lat.toFixed(5) + ',' + E.state.lon.toFixed(5))
-      + (fsAt ? '&name=' + encodeURIComponent(fsComp ? fsComp.name : 'Eclipse spot') + '&area=' + encodeURIComponent(Math.abs(fsAt[0]).toFixed(3) + (fsAt[0] >= 0 ? 'N ' : 'S ') + Math.abs(fsAt[1]).toFixed(3) + (fsAt[1] >= 0 ? 'E' : 'W')) : E.state.place ? '&name=' + encodeURIComponent(E.state.place) : '')
+      + (fsAt ? '&name=' + encodeURIComponent(fsComp ? fsComp.name : 'Eclipse spot') + '&area=' + encodeURIComponent(Math.abs(fsAt[0]).toFixed(3) + (fsAt[0] >= 0 ? 'N ' : 'S ') + Math.abs(fsAt[1]).toFixed(3) + (fsAt[1] >= 0 ? 'E' : 'W')) : E.state.place ? '&name=' + encodeURIComponent(E.state.place) + '&area=' + encodeURIComponent(E.state.place) : '')
       + (subAim ? '&az=' + Math.round(((subAim.az % 360) + 360) % 360) + '&alt=' + subAim.alt.toFixed(1)
         : this._arV && isFinite(this._arV.az) ? '&az=' + Math.round(((this._arV.az % 360) + 360) % 360) : '')
       + (fsEcl ? '&ecl=' + fsEcl : '')
@@ -12703,8 +12729,8 @@ class Component extends DCLogic {
     if (!this.state.pinCloud || this.state.tab !== 'map') return;
     const b = this.cloudViewBox();
     if (!b) return;
-    const spacing = Math.max(4, b.km / 16), g = this._cg;
-    if (g && g.s <= b.s && g.n >= b.n && g.w <= b.w && g.e >= b.e && g.spacing <= spacing * 1.6 && g.spacing >= spacing / 1.6
+    const spacing = Math.max(4, b.km / 16), g = this._cg, model = this.wxModelFor();
+    if (g && g.model === model && g.s <= b.s && g.n >= b.n && g.w <= b.w && g.e >= b.e && g.spacing <= spacing * 1.6 && g.spacing >= spacing / 1.6
       && Date.now() - g.at < 45 * 60000) return;
     const pLat = (b.n - b.s) * 0.2, pLon = (b.e - b.w) * 0.2;
     /* A close view is smaller than one model cell. Widen the grid round the centre to at least one
@@ -12729,7 +12755,8 @@ class Component extends DCLogic {
     const one = async (list, base) => {
       const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + list.map(p => p[0].toFixed(3)).join(',')
         + '&longitude=' + list.map(p => (((p[1] + 540) % 360) - 180).toFixed(3)).join(',')
-        + '&hourly=cloud_cover,cloud_cover_low&forecast_hours=' + this.CLOUD_HOURS + '&timezone=UTC';
+        + '&hourly=cloud_cover,cloud_cover_low&forecast_hours=' + this.CLOUD_HOURS + '&timezone=UTC'
+        + (model && model !== 'best_match' ? '&models=' + model : '');
       const r = await fetch(url);
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const j = await r.json(), arr = Array.isArray(j) ? j : [j];
@@ -12752,7 +12779,7 @@ class Component extends DCLogic {
       this.setState({ cloudBusy: null, cloudErr: 'The forecast did not answer. Wide views ask for a lot at once: wait a minute, or zoom in and try again.' });
       return;
     }
-    this._cg = { s, n, w, e, nx, ny, tot, low, t0, hours, spacing: Math.max((n - s) * 111 / (ny - 1), 1), at: Date.now() };
+    this._cg = { model, s, n, w, e, nx, ny, tot, low, t0, hours, spacing: Math.max((n - s) * 111 / (ny - 1), 1), at: Date.now() };
     this.setState({ cloudBusy: null, cloudGen: (this.state.cloudGen || 0) + 1 }, () => this.drawPin());
   }
   cloudSample(lat, lon, hf, useLow) {
@@ -12847,10 +12874,14 @@ class Component extends DCLogic {
       cloudPickLow: () => this.setState({ cloudLow: true }, () => this.drawPin()),
       cloudTotalOn: lowOn ? 'off' : 'on', cloudLowOn: lowOn ? 'on' : 'off',
       cloudTotalBg: pT.bg, cloudTotalFg: pT.fg, cloudLowBg: pL.bg, cloudLowFg: pL.fg,
+      /* the same model choice as the forecast everywhere else, so the map and Tonight agree */
+      cloudModelId: this.wxModelFor(),
+      cloudModels: [{ id: 'best_match', label: 'Best match' }].concat(this.wxHere().map(x => ({ id: x.m.id, label: x.m.name + ' \u00b7 ' + x.res }))),
+      onCloudModel: e => { const id = e.target.value; this._cg = null; this.wxPickModel(id); setTimeout(() => this.cloudFetch(), 0); },
       cloudBusyOn: !!st.cloudBusy,
       cloudBusyLine: st.cloudBusy ? 'Reading the cloud… ' + st.cloudBusy.done + ' of ' + st.cloudBusy.of : '',
       cloudGridLine: st.cloudErr ? st.cloudErr
-        : g ? 'Best match · a reading every ' + Math.round(g.spacing) + ' km · ' + (g.nx * g.ny) + ' points · hourly, 5 days'
+        : g ? (g.model && g.model !== 'best_match' ? this.wxMeta(g.model).name : 'Best match') + ' · a reading every ' + Math.round(g.spacing) + ' km · ' + (g.nx * g.ny) + ' points · hourly, 5 days'
         : 'Fetching the forecast for this view…',
     };
   }
@@ -12972,7 +13003,18 @@ class Component extends DCLogic {
     const moved = this.haversineM(E.state.lat, E.state.lon, v.lat, v.lon);
     if (moved < 3) return;
     const had = !!st.hz;
-    this.applySite({ lat: v.lat, lon: v.lon, place: st.place || (v.lat.toFixed(4) + ', ' + v.lon.toFixed(4)) }, true, true);
+    /* Within a couple of hundred metres it is still the named place. Further, it is named by how far
+       and which way from it, so Tonight never claims a spot you have dragged away from. */
+    const a = this._nameAt, coords = v.lat.toFixed(4) + ', ' + v.lon.toFixed(4);
+    let place = coords;
+    if (a && a.name && !/^-?\d+\.\d+, -?\d+\.\d+$/.test(a.name)) {
+      const d = this.haversineM(a.lat, a.lon, v.lat, v.lon);
+      const D = Math.PI / 180, la0 = a.lat * D, la1 = v.lat * D, dl = (v.lon - a.lon) * D;
+      const br = Math.atan2(Math.sin(dl) * Math.cos(la1), Math.cos(la0) * Math.sin(la1) - Math.sin(la0) * Math.cos(la1) * Math.cos(dl)) / D;
+      const pt = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round((((br % 360) + 360) % 360) / 45) % 8];
+      place = d < 250 ? a.name : (d < 1000 ? Math.round(d / 10) * 10 + ' m ' : (d / 1000).toFixed(d < 10000 ? 1 : 0) + ' km ') + pt + ' of ' + a.name;
+    }
+    this.applySite({ lat: v.lat, lon: v.lon, place }, true, true);
     this.refresh();
     if (had) this.setState({ hzOpen: true, hz: null }, () => this.readSkyline());
   }
@@ -13004,8 +13046,22 @@ class Component extends DCLogic {
     const src = this.TILE_SOURCES[v.style];
     const set = nv => this.setState({ pinView: nv }, () => {
       clearTimeout(this._pinTimer);
-      if (!this.pinLook(this.state)) this._pinTimer = setTimeout(() => this.commitPin(nv), 900);
+      if (!this.pinLook(this.state)) { this._pinPend = nv; this._pinTimer = setTimeout(() => { this._pinPend = null; this.commitPin(nv); }, 900); }
     });
+    /* A desktop wheel over the map scrolls the page, as it does everywhere else on it. The map takes
+       the wheel once it has been clicked, or with Ctrl or Cmd held, which is also how a trackpad
+       pinch arrives. Before, a scroll that happened to pass over it zoomed the map instead. */
+    const pinH0 = this.slippyHandlers(v, set, undefined, this.pinLook(st) ? this.compTap : undefined), pinH = { ...pinH0 };
+    delete pinH.onWheel;
+    const down0 = pinH0.onPointerDown, leave0 = pinH0.onPointerLeave;
+    pinH.onPointerDown = e => { if (e.pointerType === 'mouse') this._pinArmed = true; if (down0) down0(e); };
+    pinH.onPointerLeave = e => { this._pinArmed = false; if (leave0) leave0(e); };
+    this._pinWheel = e => {
+      if (e.ctrlKey || e.metaKey || this._pinArmed) { pinH0.onWheel(e); return; }
+      clearTimeout(this._pinHintT);
+      if (!this.state.pinWheelHint) this.setState({ pinWheelHint: true });
+      this._pinHintT = setTimeout(() => this.setState({ pinWheelHint: false }), 1600);
+    };
     const moved = E.state.lat == null ? 0 : this.haversineM(E.state.lat, E.state.lon, v.lat, v.lon);
     return {
       pinOn: true,
@@ -13015,10 +13071,15 @@ class Component extends DCLogic {
       togglePin: () => this.setState({ pinOpen: !st.pinOpen }, () => this.drawPin()),
       pinToggleLabel: st.pinOpen ? 'Done' : 'Refine location',
       pinEl: React.createElement('canvas', {
-        ref: el => { this._pinCv = el; if (el) requestAnimationFrame(() => this.drawPin()); },
-        ...this.slippyHandlers(v, set, undefined, this.pinLook(st) ? this.compTap : undefined),
+        ref: el => {
+          this._pinCv = el;
+          if (el && !el._wheelBound) { el._wheelBound = true; el.addEventListener('wheel', e => { if (this._pinWheel) this._pinWheel(e); }, { passive: false }); }
+          if (el) requestAnimationFrame(() => this.drawPin());
+        },
+        ...pinH,
         'data-pin-map': '1',
-        style: { display: 'block', width: '100%', height: this.pinLook(st) ? '380px' : '260px',
+        /* a phone always gets the tall map: the short one was close to a square */
+        style: { display: 'block', width: '100%', height: this.pinLook(st) || window.innerWidth < 720 ? '380px' : '260px',
           borderRadius: '8px', touchAction: 'none', cursor: 'grab' },
       }),
       pinCoord: v.lat.toFixed(5) + ', ' + v.lon.toFixed(5)
@@ -13028,6 +13089,8 @@ class Component extends DCLogic {
         ? Math.round(moved) + ' m from where the forecast was reading'
         : 'Everything below is reading from this spot',
       pinCredit: src.credit,
+      pinWheelHint: !!st.pinWheelHint,
+      pinWheelHintLine: (/Mac|iPad|iPhone/.test(navigator.platform || navigator.userAgent || '') ? 'Hold \u2318' : 'Hold Ctrl') + ' and scroll to zoom, or click the map first',
       pinZoomIn: () => { const c = this.pinView(); if (c) set({ ...c, z: Math.min(22, Math.floor(c.z) + 1) }); },
       pinZoomOut: () => { const c = this.pinView(); if (c) set({ ...c, z: Math.max(this.pinLook(this.state) ? (this.TILE_SOURCES[c.style].minZ || 3) : 8, Math.ceil(c.z) - 1) }); },
       pinCloudToggle: () => this.cloudOnPin(!st.pinCloud),
@@ -16039,14 +16102,21 @@ class Component extends DCLogic {
       /* Straight from the copy document's phrase bank. Each has to read naturally in
          "Tonight's looking ___ for some astrophotography at PLACE." */
       'great': ['really rather good', 'about as good as it gets', 'an absolute treat', 'like a night to remember',
-                'properly promising', 'rather splendid', 'very promising indeed', 'like it could deliver the goods'],
+                'properly promising', 'rather splendid', 'very promising indeed', 'like it could deliver the goods',
+                'suspiciously good', 'almost too good to be true', 'worth cancelling plans for', 'jolly promising',
+                'rather marvellous', 'like a proper cracker', 'too good to waste on the telly', 'worth the late night and the grumpy morning'],
       'not bad': ['not bad', 'not bad at all', 'quietly promising', 'perfectly respectable', 'decent enough',
-                  'reasonably hopeful', 'entirely passable', 'half decent'],
+                  'reasonably hopeful', 'entirely passable', 'half decent',
+                  'fair to middling', 'worth a punt', 'cautiously encouraging', 'better than a poke in the eye',
+                  'like a mustn\u0027t-grumble sort of night', 'like a solid six out of ten', 'unremarkable but usable'],
       'challenging': ['a bit of a gamble', 'touch and go', 'optimistic at best', 'a test of patience',
                       'more hope than expectation', 'a bit of a stretch'],
       'quite rough': ['quite rough', 'frankly grim', 'a bit of a write-off', 'thoroughly unpromising',
                       'something of a washout', 'deeply unhelpful', 'abysmal', 'catastrophic',
-                      'like it\u0027ll make you question your life choices if you head out'],
+                      'like it\u0027ll make you question your life choices if you head out',
+                      'about as useful as a chocolate teapot', 'grimmer than a wet bank holiday', 'like a night for the telly and a biscuit',
+                      'like one to spend cleaning your lenses', 'like the sky has other plans', 'a non-starter',
+                      'properly miserable', 'dismal by any standard'],
     };
     const list = SETS[verdict];
     if (!list) return verdict;

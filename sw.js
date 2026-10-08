@@ -2,9 +2,9 @@
    Pages: the network first, the kept copy when there is none. Scripts and pictures: the kept copy at
    once, refreshed behind it. The ground tiles are Scout's own store (noctography-scout-v1), read here
    too so a saved area draws offline. Forecasts and other live answers are never kept. */
-const SHELL = 'noctography-shell-3.0.1';
+const SHELL = 'noctography-shell-3.0.3';
 const TILES = 'noctography-scout-v1';
-const PRE = ["app/","app/index.html","scout/","scout/index.html","support.js","favicon.png","manifest.webmanifest","assets/noctography-icon-graded.png","assets/noctography-icon-128.png","assets/moon-disc.webp","assets/sun-disc.webp","assets/logo/obsidian.png","assets/logo-roundel.png","scout-ds/fonts.css","scout-ds/_ds_bundle.js","noctography-engine.js","noctography-sat.js","noctography-plan.js","noctography-ar.js","noctography-log.js","noctography-terrain.js","noctography-scout.js","noctography-comp.js","noctography-sightings.js","noctography-backup.js","noctography-sync.js","noctography-eclipse-data.js","noctography-eclipse.js","noctography-offline.js","noctography-surfaces.js","noctography-scout-hd.js"];
+const PRE = ["app/","app/index.html","scout/","scout/index.html","support.js","favicon.png","manifest.webmanifest","assets/noctography-icon-graded.png","assets/noctography-icon-128.png","assets/moon-disc.webp","assets/sun-disc.webp","assets/logo/obsidian.png","assets/logo-roundel.png","scout-ds/fonts.css","scout-ds/_ds_bundle.js","noctography-engine.js","noctography-sat.js","noctography-plan.js","noctography-ar.js","noctography-log.js","noctography-png.js","noctography-terrain.js","noctography-scout.js","noctography-comp.js","noctography-sightings.js","noctography-backup.js","noctography-sync.js","noctography-eclipse-data.js","noctography-eclipse.js","noctography-offline.js","noctography-surfaces.js","noctography-scout-hd.js"];
 const KEEP_HOSTS = /^(fonts\.googleapis\.com|fonts\.gstatic\.com|unpkg\.com|cdn\.jsdelivr\.net)$/;
 
 self.addEventListener('install', e => {

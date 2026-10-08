@@ -145,17 +145,11 @@ async function fetchTile(t){
   if (mem.has(key)) return mem.get(key);
   const r = await fetch(TILE_BASE + key + '.png');
   if (!r.ok) throw new Error('tile ' + key + ' HTTP ' + r.status);
-  const bm = await createImageBitmap(await r.blob());
-  /* Width and height are read before the bitmap is closed. Closing it first sets both to zero,
-     which produced an empty height grid and a cast that could see nothing at all: an hour of
-     looking in the wrong place, recorded here so nobody repeats it. */
-  const w = bm.width, h = bm.height;
-  const cv = document.createElement('canvas');
-  cv.width = w; cv.height = h;
-  const cx = cv.getContext('2d', { willReadFrequently: true });
-  cx.drawImage(bm, 0, 0);
-  const px = cx.getImageData(0, 0, w, h).data;
-  if (bm.close) bm.close();
+  /* The PNG's own bytes, unpacked directly: Firefox's colour management and anti-fingerprinting
+     both alter canvas read-back, and one step of red is 256 m of ground. */
+  const img = await window.NoctoPNG.rgba(await r.arrayBuffer());
+  if (!img) throw new Error('tile ' + key + ' unreadable');
+  const w = img.w, h = img.h, px = img.px;
   const out = new Int16Array(w * h);
   for (let i = 0, p = 0; i < out.length; i++, p += 4) {
     /* Terrarium: 16 bits of integer and 8 of fraction, offset by 32768 so everything is positive.
@@ -485,11 +479,14 @@ function encode(profile){
   const b = new Uint8Array(profile.alt.buffer, profile.alt.byteOffset, profile.alt.byteLength);
   let s = '';
   for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
-  return { v: 1, at: profile.at, origin: profile.origin, ground: profile.ground,
+  return { v: 2, at: profile.at, origin: profile.origin, ground: profile.ground,
     tiles: profile.tiles, missing: profile.missing, alt: btoa(s) };
 }
 function decode(stored){
   if (!stored || !stored.alt) return null;
+  /* Skylines saved before 3.0.2 were read through a canvas, which Firefox can alter: there they are
+     read again rather than trusted. Elsewhere the old ones are fine. */
+  if ((stored.v || 1) < 2 && /Firefox\//.test(navigator.userAgent || '')) return null;
   try {
     const s = atob(stored.alt), b = new Uint8Array(s.length);
     for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);

@@ -345,19 +345,17 @@ async function fetchDem(z, x, y){
   const n = Math.pow(2, z);
   x = ((x % n) + n) % n;
   if (y < 0 || y >= n) return null;
-  if (GROUND === 'mapterhorn') {
+  /* Mapterhorn is WebP, which only a canvas can unpack: where this browser alters canvas data it
+     would build hills out of noise, so the standard ground is used there instead. */
+  if (GROUND === 'mapterhorn' && !(window.NoctoPNG && window.NoctoPNG.honest === false)) {
     const m = await fetchDemMt(z, x, y); if (m) return m;
     if (z > 15) return null;
   }
-  const bm = await fetchBitmap(DEM_BASE + z + '/' + x + '/' + y + '.png', 15000);
-  if (!bm) return null;
-  const cv = document.createElement('canvas');
-  cv.width = bm.width; cv.height = bm.height;
-  const cx = cv.getContext('2d', { willReadFrequently: true });
-  cx.drawImage(bm, 0, 0);
-  const px = cx.getImageData(0, 0, cv.width, cv.height).data;
-  if (bm.close) bm.close();
-  cv.width = cv.height = 0;
+  const buf = await fetchBuf(DEM_BASE + z + '/' + x + '/' + y + '.png', 15000);
+  if (!buf) return null;
+  const img = window.NoctoPNG ? await window.NoctoPNG.rgba(buf) : null;
+  if (!img) return null;
+  const px = img.px;
   const out = new Float32Array(TILE * TILE);
   for (let i = 0, p = 0; i < out.length; i++, p += 4) {
     const e = (px[p] * 256 + px[p + 1] + px[p + 2] / 256) - 32768;
@@ -367,6 +365,17 @@ async function fetchDem(z, x, y){
 }
 /* Tiles come through the offline store when it is loaded: from the cache if this spot was saved,
    otherwise from the network and then kept. */
+async function fetchBuf(url, ms){
+  const O = window.NoctoOffline;
+  let buf = O ? await O.get(url) : null;
+  if (!buf) {
+    const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms);
+    try { const r = await fetch(url, { signal: ac.signal }); if (!r.ok) return null; buf = await r.arrayBuffer(); }
+    catch (e) { return null; } finally { clearTimeout(t); }
+    if (O) O.put(url, buf);
+  }
+  return buf;
+}
 async function fetchBitmap(url, ms){
   const O = window.NoctoOffline;
   let buf = O ? await O.get(url) : null;
@@ -376,7 +385,7 @@ async function fetchBitmap(url, ms){
     catch (e) { return null; } finally { clearTimeout(t); }
     if (O) O.put(url, buf);
   }
-  try { return await createImageBitmap(new Blob([buf])); } catch (e) { return null; }
+  try { return await createImageBitmap(new Blob([buf]), { colorSpaceConversion: 'none' }); } catch (e) { return null; }
 }
 function fetchImg(z, x, y){
   const n = Math.pow(2, z);

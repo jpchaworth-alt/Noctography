@@ -87,13 +87,9 @@ async function fetchDem(z, x, y){
   if (y < 0 || y >= n) return null;
   const r = await fetch(DEM_BASE + z + '/' + x + '/' + y + '.png');
   if (!r.ok) return null;
-  const bm = await createImageBitmap(await r.blob());
-  const cv = document.createElement('canvas');
-  cv.width = bm.width; cv.height = bm.height;
-  const cx = cv.getContext('2d', { willReadFrequently: true });
-  cx.drawImage(bm, 0, 0);
-  const px = cx.getImageData(0, 0, cv.width, cv.height).data;
-  if (bm.close) bm.close();
+  const img = window.NoctoPNG ? await window.NoctoPNG.rgba(await r.arrayBuffer()) : null;
+  if (!img) return null;
+  const px = img.px;
   const out = new Float32Array(TILE * TILE);
   for (let i = 0, p = 0; i < out.length; i++, p += 4) {
     const e = (px[p] * 256 + px[p + 1] + px[p + 2] / 256) - 32768;
