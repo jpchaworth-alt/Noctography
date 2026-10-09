@@ -191,7 +191,7 @@ window.noctoTrack = function (name, every) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=3.0.2b"></script>
+<script src="../noctography-engine.js?v=3.0.4"></script>
 <script src="../noctography-sat.js?v=2.0.1"></script>
 <script src="../noctography-plan.js?v=2.0.1"></script>
 <script src="../noctography-ar.js?v=2.0.1"></script>
@@ -634,7 +634,7 @@ window.noctoTrack = function (name, every) {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 148px), 1fr)); gap: clamp(8px, 2.4vw, 10px);">
 
           <!-- Conditions in one strip: one glance at the weather rather than three tiles -->
-          <div style="grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: clamp(10px, 3vw, 16px); padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+          <div style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 132px), 1fr)); gap: clamp(12px, 3vw, 16px); padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
             <div style="display: grid; gap: 6px; align-content: start; min-width: 0;">
               <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Cloud</span>
               <div style="display: flex; align-items: flex-end; gap: 2px; height: 30px; padding: 3px; background: rgba(var(--well-rgb),.45); border-radius: 6px;">
@@ -645,6 +645,11 @@ window.noctoTrack = function (name, every) {
               <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; color: var(--text);">{{ cloudVal }}</span>
               <span style="font-size: 13px; color: var(--dim); line-height: 1.3;">{{ cloudSub }}</span>
               <button type="button" onClick="{{ cloudMapGo }}" style="justify-self: start; min-height: 44px; margin-top: 2px; padding: 0 14px; border: 1px solid rgba(var(--line-rgb),.2); border-radius: 999px; background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Cloud map</button>
+            </div>
+            <div style="display: grid; gap: 6px; align-content: start; min-width: 0;">
+              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">{{ rainLabel }}</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: clamp(20px, 6vw, 26px); line-height: 1.1; color: {{ rainColour }};">{{ rainVal }}</span>
+              <span style="font-size: 13px; color: var(--dim); line-height: 1.3; text-wrap: pretty;">{{ rainSub }}</span>
             </div>
             <div style="display: grid; gap: 6px; align-content: start; min-width: 0;">
               <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Air</span>
@@ -1227,18 +1232,18 @@ window.noctoTrack = function (name, every) {
             <div style="display: grid; gap: 6px; font-size: 13.5px; line-height: 1.3;">
               <span style="display: flex; align-items: center; gap: 9px;">
                 <i style="flex: 0 0 auto; width: 12px; height: 12px; border-radius: 3px; background: rgba(var(--cool-rgb),.85);"></i>
-                <span style="color: var(--text2);">{{ aurTenColour }}: colour on a long exposure</span>
+                <span style="color: var(--text2);">{{ aurTenColour }}: colour on a long exposure at some point in the night</span>
               </span>
               <sc-if value="{{ aurTenFaintOn }}" hint-placeholder-val="{{ true }}">
                 <span style="display: flex; align-items: center; gap: 9px;">
                   <i style="flex: 0 0 auto; width: 12px; height: 12px; border-radius: 3px; background: rgba(var(--accent-rgb),.5);"></i>
-                  <span style="color: var(--text2);">{{ aurTenFaint }}: a grey smudge – nothing spectacular</span>
+                  <span style="color: var(--text2);">{{ aurTenFaint }}: a grey smudge at best, nothing spectacular</span>
                 </span>
               </sc-if>
               <sc-if value="{{ aurTenNoneOn }}" hint-placeholder-val="{{ true }}">
                 <span style="display: flex; align-items: center; gap: 9px;">
                   <i style="flex: 0 0 auto; width: 12px; height: 12px; border-radius: 3px; background: rgba(var(--line-rgb),.08); border: 1px solid rgba(var(--line-rgb),.16); box-sizing: border-box;"></i>
-                  <span style="color: var(--text2);">{{ aurTenNone }}: nothing at all</span>
+                  <span style="color: var(--text2);">{{ aurTenNone }}: nothing at all, all night</span>
                 </span>
               </sc-if>
             </div>
@@ -2515,10 +2520,29 @@ window.noctoTrack = function (name, every) {
                 <sc-if value="{{ pinWheelHint }}" hint-placeholder-val="{{ false }}">
                   <span data-nv-bar="1" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: calc(100% - 32px); padding: 8px 14px; border-radius: 999px; background: rgba(var(--well-rgb),.94); border: 1px solid rgba(var(--line-rgb),.2); font-size: 14px; color: var(--text); text-align: center; pointer-events: none;">{{ pinWheelHintLine }}</span>
                 </sc-if>
-                <sc-if value="{{ cloudBusyOn }}" hint-placeholder-val="{{ false }}">
-                  <span data-nv-bar="1" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; border-radius: 999px; background: rgba(var(--well-rgb),.86); border: 1px solid rgba(var(--line-rgb),.14); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--dim);">{{ cloudBusyLine }}</span>
+                <sc-if value="{{ cloudWaitOn }}" hint-placeholder-val="{{ false }}">
+                  <div data-cloud-wait="1" style="position: absolute; inset: 0; display: grid; place-items: center; background: rgba(var(--well-rgb),.66); pointer-events: none;">
+                    <span data-nv-bar="1" style="display: grid; gap: 4px; justify-items: center; max-width: calc(100% - 32px); padding: 12px 18px; border-radius: 12px; background: rgba(var(--well-rgb),.96); border: 1px solid rgba(var(--line-rgb),.2); text-align: center;">
+                      <span style="font-size: 16px; font-weight: 600; color: var(--text);">{{ cloudWaitHead }}</span>
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">{{ cloudWaitSub }}</span>
+                    </span>
+                  </div>
                 </sc-if>
               </div>
+              <sc-if value="{{ cloudOn }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; gap: 6px;">
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                    <span data-cloud-when="1" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 17px; color: var(--text);">{{ cloudWhen }}</span>
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ cloudRel }}</span>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 6px;">
+                    <div style="display: grid; grid-template-rows: 30px 11px 11px 11px; row-gap: 3px; padding-top: 30px; font-size: 9.5px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">
+                      <span style="display: flex; align-items: center;">Sky</span><span style="display: flex; align-items: center;">Moon</span><span style="display: flex; align-items: center;">Core</span><span style="display: flex; align-items: center;">Cloud</span>
+                    </div>
+                    <canvas ref="{{ cloudStripRef }}" onPointerDown="{{ cloudStripDown }}" onPointerMove="{{ cloudStripMove }}" onPointerUp="{{ cloudStripUp }}" onPointerCancel="{{ cloudStripCancel }}" aria-label="Forecast time: drag the timeline" title="Drag the timeline, or tap a time to bring it under the line" style="display: block; width: 100%; height: 102px; border-radius: 6px; touch-action: pan-y; cursor: grab;"></canvas>
+                  </div>
+                </div>
+              </sc-if>
               <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
                 <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; color: var(--text);">{{ pinCoord }}</span>
                 <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--faint); text-align: right;">{{ pinCredit }}</span>
@@ -2555,17 +2579,12 @@ window.noctoTrack = function (name, every) {
               </sc-if>
             <sc-if value="{{ cloudOn }}" hint-placeholder-val="{{ false }}">
               <div style="display: grid; gap: 8px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 17px; color: var(--text);">{{ cloudWhen }}</span>
-                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint);">{{ cloudRel }}</span>
-                </div>
                 <label style="display: flex; align-items: center; gap: 10px; min-height: 44px;">
                   <span style="flex: 0 0 auto; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--dim);">Model</span>
                   <select value="{{ cloudModelId }}" onChange="{{ onCloudModel }}" aria-label="Forecast model" style="flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: rgba(var(--well-rgb),.6); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px;">
                     <sc-for list="{{ cloudModels }}" as="o" hint-placeholder-count="1"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
                   </select>
                 </label>
-                <input type="range" min="0" max="{{ cloudMax }}" step="1" value="{{ cloudIdx }}" onInput="{{ onCloudSlider }}" aria-label="Forecast time" style="width: 100%; min-height: 44px; accent-color: var(--accent);">
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                   <button type="button" onClick="{{ cloudGoNow }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Now</button>
                   <button type="button" onClick="{{ cloudGoTonight }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Tonight</button>
@@ -4007,7 +4026,7 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '3.0.3';
+  VERSION = '3.0.4';
   BUILDS = [
     {
       v: '3.0', date: '2026-10-02', silent: false,
@@ -10931,7 +10950,7 @@ class Component extends DCLogic {
       cloudBars: [], cloudVal: '–', cloudSub: '', moonVal: '–', moonSub: '',
       moonDayOn: false, moonDayLabel: '', moonDayLine: '',
       darkRange: '–', darkSub: '', mwVal: '–', mwSub: '', kpVal: '–', kpSub: 'Fetching', kpColour: 'var(--dim)',
-      airVal: '–', airSub: '', windVal: '–', windSub: '', metVal: '–', metName: '', metSub: '', metColour: 'var(--dim)',
+      airVal: '–', airSub: '', windVal: '–', windSub: '', rainLabel: 'Rain', rainVal: '–', rainSub: '', rainColour: 'var(--text)', metVal: '–', metName: '', metSub: '', metColour: 'var(--dim)',
       rwbVal: '–', rwbSub: '', rwbColour: 'var(--text)', ahead: [], aheadLead: '', aheadHint: '', dayOpen: false,
       ...this.ringVals(),
       ...this.auroraTileVals(),
@@ -11110,6 +11129,7 @@ class Component extends DCLogic {
       airVal: minTemp != null ? minTemp.toFixed(0) + '°C' : '–',
       airSub: dewNote,
       windVal, windSub,
+      ...this.rainVals(n, sSet, sRise),
       metVal: n.peakClear ? n.peakClear.rate.toFixed(0) + '/hr' : '0/hr',
       /* The same twenty an hour the ten-night table treats as a shower worth the drive. Nought an
          hour was gold, which is exactly the thing gold is not for. */
@@ -12807,7 +12827,7 @@ class Component extends DCLogic {
   drawCloudGrid(ctx, f) {
     const g = this._cg;
     if (!g) return;
-    const st = this.state, hf = ((st.cloudAt || Date.now()) - g.t0) / 3600000;
+    const st = this.state, hf = (this.cloudAtNow() - g.t0) / 3600000;
     const STEP = 8;
     const bw = Math.max(1, Math.ceil(f.cssW / STEP)), bh = Math.max(1, Math.ceil(f.cssH / STEP));
     if (!this._cgCv) this._cgCv = document.createElement('canvas');
@@ -12847,15 +12867,17 @@ class Component extends DCLogic {
   cloudMapVals() {
     const st = this.state, E = this.E();
     if (!st.pinCloud || !E) return { cloudOn: false, cloudBusyOn: false };
-    const g = this._cg, now = Date.now();
-    const t0 = g ? g.t0 : Math.floor(now / 3600000) * 3600000, hours = g ? g.hours : this.CLOUD_HOURS;
-    const idx = Math.max(0, Math.min(hours - 1, Math.round(((st.cloudAt || now) - t0) / 3600000)));
-    const d = new Date(t0 + idx * 3600000), tz = E.tzOffset() * 60000;
-    const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const ld = new Date(d.getTime() + tz);
-    const hrs = Math.round((d.getTime() - now) / 3600000);
+    const g = this._cg, now = Date.now(), tz = E.tzOffset() * 60000;
+    const at = this.cloudAtNow();
+    const hrs = Math.round((at - now) / 3600000);
     const rel = hrs <= 0 ? 'now' : hrs < 48 ? 'in ' + hrs + ' h' : 'in ' + Math.round(hrs / 24) + ' days';
-    const setAt = ms => this.setState({ cloudAt: ms }, () => this.drawPin());
+    const setAt = ms => { const r = this.cloudRange(); this._cloudLive = null; this.setState({ cloudAt: Math.max(r.from, Math.min(r.to, ms)) }, () => this.drawPin()); };
+    /* Until this model's cloud is in for the whole view, the map says so on itself: an empty map
+       reads as clear sky, which is the opposite of "not known yet". */
+    const model = this.wxModelFor(), b = this.cloudViewBox();
+    const covers = !!(g && b && g.s <= b.s && g.n >= b.n && g.w <= b.w && g.e >= b.e);
+    const ready = !!g && g.model === model && covers && !st.cloudBusy;
+    const mName = model && model !== 'best_match' ? this.wxMeta(model).name : 'Best match';
     const lowOn = !!st.cloudLow;
     const pill = on => ({ bg: on ? 'rgba(var(--accent-rgb),.16)' : 'transparent', fg: on ? 'var(--accent)' : 'var(--dim)' });
     const pT = pill(!lowOn), pL = pill(lowOn);
@@ -12866,9 +12888,32 @@ class Component extends DCLogic {
     };
     return {
       cloudOn: true,
-      cloudWhen: DAYS[ld.getUTCDay()] + ' ' + ld.getUTCDate() + ' ' + E.MONTHS[ld.getUTCMonth()] + ' · ' + this.hhmm(d),
-      cloudRel: rel, cloudMax: hours - 1, cloudIdx: idx,
-      onCloudSlider: e => setAt(t0 + (+e.target.value) * 3600000),
+      cloudWhen: this.cloudWhenText(at),
+      cloudRel: rel,
+      cloudWaitOn: !ready,
+      cloudWaitHead: !ready && st.cloudErr && !st.cloudBusy ? 'Forecast not loaded' : 'Please wait: forecast loading',
+      cloudWaitSub: !ready && st.cloudErr && !st.cloudBusy ? 'Zoom in, or wait a minute and move the map'
+        : mName + (st.cloudBusy ? ' \u00b7 ' + st.cloudBusy.done + ' of ' + st.cloudBusy.of : ''),
+      cloudStripRef: el => {
+        this._cStrip = el;
+        if (!el) return;
+        if (!el._bound) {
+          el._bound = true;
+          /* sideways scroll or Shift-wheel scrubs; an ordinary wheel still scrolls the page */
+          el.addEventListener('wheel', e => {
+            const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+            if (!d) return;
+            e.preventDefault();
+            this.cloudScrubTo(this.cloudAtNow() + d * this.CSTRIP_MIN * 60000 / Math.max(1, el.clientWidth), false);
+          }, { passive: false });
+          if (window.ResizeObserver) { this._csRO = this._csRO || new ResizeObserver(() => this.drawCloudStrip()); this._csRO.observe(el); }
+        }
+        requestAnimationFrame(() => this.drawCloudStrip());
+      },
+      cloudStripDown: e => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {} e.currentTarget.style.cursor = 'grabbing'; this.cloudStripAt(e, 'down'); },
+      cloudStripMove: e => { if (this._csA) this.cloudStripAt(e, 'move'); },
+      cloudStripUp: e => { if (this._csA) this.cloudStripAt(e, 'up'); this._csA = null; e.currentTarget.style.cursor = 'grab'; },
+      cloudStripCancel: e => { if (this._csA && this._csA.moved) this.cloudScrubTo(this.cloudAtNow(), true); this._csA = null; e.currentTarget.style.cursor = 'grab'; },
       cloudGoNow: () => setAt(now), cloudGoTonight: () => setAt(tonight()),
       cloudPickTotal: () => this.setState({ cloudLow: false }, () => this.drawPin()),
       cloudPickLow: () => this.setState({ cloudLow: true }, () => this.drawPin()),
@@ -12897,7 +12942,174 @@ class Component extends DCLogic {
       wash: cloud ? (ctx, f) => this.drawCloudGrid(ctx, f) : null,
       after: look ? (ctx, f) => this.drawCompPins(ctx, f, v) : null,
     });
-    if (cloud) this.cloudEnsure();
+    if (cloud) { this.cloudEnsure(); this.drawCloudStrip(); }
+  }
+
+  /* The cloud map's timeline is Scout's: a tape dragged under a fixed line, sky, moon, core and
+     cloud at your site in rows, the night's events written over it. Held to the forecast's hours. */
+  CSTRIP_MIN = 840;
+  cloudRange() {
+    const g = this._cg, h = 3600000, t0 = g ? g.t0 : Math.floor(Date.now() / h) * h, hours = g ? g.hours : this.CLOUD_HOURS;
+    return { from: t0, to: t0 + (hours - 1) * h };
+  }
+  cloudAtNow() {
+    const r = this.cloudRange(), v = this._cloudLive != null ? this._cloudLive : (this.state.cloudAt || Date.now());
+    return Math.max(r.from, Math.min(r.to, v));
+  }
+  cloudWhenText(ms) {
+    const E = this.E(), d = new Date(Math.round(ms / 300000) * 300000), ld = new Date(d.getTime() + E.tzOffset() * 60000);
+    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][ld.getUTCDay()] + ' ' + ld.getUTCDate() + ' ' + E.MONTHS[ld.getUTCMonth()] + ' \u00b7 ' + this.hhmm(d);
+  }
+  cloudStripAt(e, phase) {
+    const cv = this._cStrip; if (!cv) return;
+    const b = cv.getBoundingClientRect(), per = this.CSTRIP_MIN * 60000 / Math.max(1, b.width);
+    if (phase === 'down') { this._csA = { x: e.clientX, at: this.cloudAtNow(), moved: false }; return; }
+    const a = this._csA; if (!a) return;
+    if (phase === 'move') {
+      if (Math.abs(e.clientX - a.x) > 4) a.moved = true;
+      if (!a.moved) return;
+      this.cloudScrubTo(a.at - (e.clientX - a.x) * per, false);
+    } else this.cloudScrubTo(a.moved ? a.at - (e.clientX - a.x) * per : a.at + (e.clientX - (b.left + b.width / 2)) * per, true);
+  }
+  /* Moves draw straight to the canvases and the date line; React hears once the finger settles. */
+  cloudScrubTo(ms, commit) {
+    const r = this.cloudRange();
+    this._cloudLive = Math.max(r.from, Math.min(r.to, ms));
+    if (!this._csRaf) this._csRaf = requestAnimationFrame(() => {
+      this._csRaf = 0;
+      this.drawPin();
+      const el = document.querySelector('[data-cloud-when]');
+      if (el) el.textContent = this.cloudWhenText(this.cloudAtNow());
+    });
+    clearTimeout(this._csT);
+    const done = () => { const v = this._cloudLive; if (v == null) return; this.setState({ cloudAt: v }, () => { this._cloudLive = null; this.drawPin(); }); };
+    if (commit) done(); else this._csT = setTimeout(done, 400);
+  }
+  cloudTapeAt(slot, lat, lon) {
+    const key = lat.toFixed(3) + ',' + lon.toFixed(3);
+    if (this._ctKey !== key) { this._ctKey = key; this._ct5 = new Map(); }
+    let s = this._ct5.get(slot);
+    if (!s) {
+      const E = this.E(), d = new Date(slot * 300000), jd = E.jdFrom(d), lst = E.lstOf(jd, lon);
+      const sp = E.sunPos(jd), mp = E.moonPos(jd);
+      s = { sun: E.eq2horiz(sp.ra, sp.dec, lat, lst).alt, moon: E.eq2horiz(mp.ra, mp.dec, lat, lst).alt, frac: E.moonIllum(jd, sp, mp).frac,
+        core: E.eq2horiz(E.MW_RA != null ? E.MW_RA : 266.405, E.MW_DEC != null ? E.MW_DEC : -28.936, lat, lst).alt };
+      this._ct5.set(slot, s);
+      if (this._ct5.size > 4000) this._ct5.delete(this._ct5.keys().next().value);
+    }
+    return s;
+  }
+  drawCloudStrip() {
+    const cv = this._cStrip, E = this.E();
+    if (!cv || !cv.isConnected || !E || E.state.lat == null) return;
+    const lat = E.state.lat, lon = E.state.lon, nv = !!this.state.nv, pal = this.pal();
+    const dpr = window.devicePixelRatio || 1;
+    const W = Math.max(2, Math.round(cv.clientWidth * dpr)), H = Math.max(2, Math.round(cv.clientHeight * dpr));
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+    const span = this.CSTRIP_MIN * 60000, at = this.cloudAtNow(), t0 = at - span / 2, rg = this.cloudRange();
+    const xOf = ms => (ms - t0) / span * W;
+    const LAB = 30 * dpr, skyH = 30 * dpr, gap = 3 * dpr, rowH = 11 * dpr, yS = LAB, yM = yS + skyH + gap, yC = yM + rowH + gap, yK = yC + rowH + gap;
+    const ink = nv ? '255,59,24' : '240,236,228', acc = nv ? '#FF3B18' : pal.accent;
+    const lerp = (a, b, t) => Math.round(a + (b - a) * t);
+    const wx = E.state.weather, low = !!this.state.cloudLow;
+    const a0 = Math.floor(t0 / 300000), a1 = Math.ceil((t0 + span) / 300000);
+    const S = [], ev = [];
+    for (let slot = a0; slot <= a1; slot++) S.push(this.cloudTapeAt(slot, lat, lon));
+    for (let i = 0; i < S.length - 1; i++) {
+      const s = S[i], ms = (a0 + i) * 300000, x0 = xOf(ms), x1 = xOf(ms + 300000) + 1;
+      const t = Math.max(0, Math.min(1, (s.sun + 18) / 18)), e = t * t;
+      ctx.fillStyle = nv ? 'rgb(' + lerp(12, 96, e) + ',' + lerp(3, 22, e) + ',' + lerp(1, 10, e) + ')' : 'rgb(' + lerp(14, 92, e) + ',' + lerp(14, 104, e) + ',' + lerp(18, 128, e) + ')';
+      ctx.fillRect(x0, yS, x1 - x0, skyH);
+      ctx.fillStyle = 'rgba(' + ink + ',.05)'; ctx.fillRect(x0, yM, x1 - x0, rowH); ctx.fillRect(x0, yC, x1 - x0, rowH); ctx.fillRect(x0, yK, x1 - x0, rowH);
+      if (s.moon > 0) { ctx.fillStyle = nv ? 'rgba(255,59,24,' + (0.2 + 0.5 * s.frac).toFixed(2) + ')' : 'rgba(201,203,210,' + (0.2 + 0.6 * s.frac).toFixed(2) + ')'; ctx.fillRect(x0, yM, x1 - x0, rowH); }
+      if (s.core > 0) { ctx.globalAlpha = 0.35 + 0.6 * (1 - t); ctx.fillStyle = acc; ctx.fillRect(x0, yC, x1 - x0, rowH); ctx.globalAlpha = 1; }
+      const c = wx && wx[new Date(ms).toISOString().slice(0, 13)], v = c ? (low ? c.low : c.total) : null;
+      if (v != null) { ctx.fillStyle = nv ? 'rgba(255,110,80,' + (0.08 + 0.7 * v / 100).toFixed(2) + ')' : 'rgba(206,210,224,' + (0.08 + 0.8 * v / 100).toFixed(2) + ')'; ctx.fillRect(x0, yK, x1 - x0, rowH); }
+      /* past the forecast's last hour the tape is dimmed: nothing to scrub to there */
+      if (ms < rg.from || ms >= rg.to + 3600000) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(x0, yS, x1 - x0, H - yS); }
+      const n = S[i + 1], cross = (a, b, lv) => a < lv && b >= lv ? 1 : a >= lv && b < lv ? -1 : 0, tAt = (a, b, lv) => ms + (lv - a) / (b - a) * 300000;
+      let k;
+      if ((k = cross(s.sun, n.sun, -0.83))) ev.push([k > 0 ? 'Sunrise' : 'Sunset', tAt(s.sun, n.sun, -0.83), nv ? '#C8301A' : '#ADA79B', 3]);
+      if ((k = cross(s.sun, n.sun, -18))) ev.push([k > 0 ? 'Dawn' : 'Dark', tAt(s.sun, n.sun, -18), nv ? '#FF3B18' : '#DCD7CC', 0]);
+      if ((k = cross(s.moon, n.moon, 0))) ev.push([k > 0 ? 'Moonrise' : 'Moonset', tAt(s.moon, n.moon, 0), nv ? '#E0381C' : '#C9CBD2', 1]);
+      if ((k = cross(s.core, n.core, 0))) ev.push([k > 0 ? 'Core up' : 'Core down', tAt(s.core, n.core, 0), acc, 2]);
+    }
+    ctx.fillStyle = 'rgba(' + ink + ',.28)';
+    const tz = E.tzOffset() * 60000;
+    for (let hr = Math.ceil(t0 / 3600000); hr * 3600000 <= t0 + span; hr++) {
+      const ms = hr * 3600000, lh = new Date(ms + tz).getUTCHours(), x = Math.round(xOf(ms));
+      ctx.fillRect(x, yS + skyH - (lh === 0 ? 10 : 4) * dpr, dpr, (lh === 0 ? 10 : 4) * dpr);
+    }
+    /* the present, so "now" is findable on a tape that runs five days */
+    const nowX = Math.round(xOf(Date.now()));
+    if (nowX >= 0 && nowX <= W) { ctx.fillStyle = 'rgba(' + ink + ',.6)'; ctx.fillRect(nowX, yS, dpr, H - yS); }
+    ctx.strokeStyle = 'rgba(' + ink + ',.22)'; ctx.lineWidth = dpr;
+    ev.forEach(e => { const x = Math.round(xOf(e[1])) + 0.5; ctx.beginPath(); ctx.moveTo(x, yS); ctx.lineTo(x, yS + skyH); ctx.stroke(); });
+    ctx.font = Math.round(10.5 * dpr) + 'px "JetBrains Mono", monospace'; ctx.textBaseline = 'alphabetic';
+    const placed = [[], []], GAP = 10 * dpr;
+    ev.slice().sort((a, b) => a[3] - b[3]).forEach(e => {
+      const label = e[0] + ' ' + this.hhmm(new Date(e[1])), w = ctx.measureText(label).width, cx = xOf(e[1]);
+      const x = Math.max(0, Math.min(W - w, cx - w / 2));
+      const lane = placed.findIndex(L => L.every(([a, b]) => x + w + GAP <= a || x >= b + GAP));
+      if (lane < 0) return;
+      placed[lane].push([x, x + w]);
+      ctx.fillStyle = e[2]; ctx.fillText(label, x, (lane ? 26 : 12) * dpr);
+    });
+    const px = W / 2;
+    ctx.fillStyle = acc; ctx.fillRect(px - dpr, yS, 2 * dpr, H - yS);
+    ctx.beginPath(); ctx.arc(px, yS + skyH / 2, 5 * dpr, 0, 6.2832); ctx.fill();
+  }
+
+  /* Rain decides more nights than cloud does: a dry overcast night can still make a picture, a
+     wet one cannot. Read hour by hour from sunset to sunrise, and called snow below freezing. */
+  rainVals(n, from, to) {
+    const seen = new Set(), hrs = [];
+    (n.slots || []).forEach(s => {
+      const c = s.cloud, ms = +s.t;
+      if (!c || c.precip == null) return;
+      if (from && to && (ms < +from || ms > +to)) return;
+      const key = new Date(ms).toISOString().slice(0, 13);
+      if (seen.has(key)) return;
+      seen.add(key);
+      hrs.push({ t: ms, mm: c.precip || 0, pop: c.pop, snow: c.snow || 0, temp: c.temp });
+    });
+    if (!hrs.length) return { rainLabel: 'Rain', rainVal: '\u2013', rainSub: 'No rain forecast this far ahead', rainColour: 'var(--dim)' };
+    const wet = hrs.filter(h => h.mm >= 0.1 || h.snow >= 0.1), pops = hrs.map(h => h.pop).filter(v => v != null);
+    const popMax = pops.length ? Math.round(Math.max(...pops)) : null;
+    const temps = (wet.length ? wet : hrs).map(h => h.temp).filter(v => v != null).sort((a, b) => a - b);
+    const snowy = temps.length ? temps[Math.floor(temps.length / 2)] <= 0 : false;
+    const P = snowy ? 'snow' : 'rain', sh = snowy ? 'snow shower' : 'shower', label = snowy ? 'Snow' : 'Rain';
+    /* The chance is the share of the ensemble that has any at all: worth quoting when it is in
+       doubt, noise when the rain is certain anyway. A dry deterministic run against a likely
+       chance is drizzle or a stray shower with little in it. */
+    const chance = popMax != null && popMax < 90 ? ' \u00b7 ' + popMax + '% chance' : '';
+    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+    if (!wet.length) {
+      if (popMax == null || popMax < 15) return { rainLabel: label, rainVal: 'Dry', rainSub: 'Dry all night', rainColour: 'var(--cool)' };
+      if (popMax < 35) return { rainLabel: label, rainVal: 'Dry', rainSub: 'Mostly dry, a small chance of a ' + sh + chance, rainColour: 'var(--cool)' };
+      if (popMax < 60) return { rainLabel: label, rainVal: 'Dry', rainSub: 'Forecast dry, but a ' + sh + ' can\u0027t be ruled out' + chance, rainColour: 'var(--text)' };
+      return { rainLabel: label, rainVal: 'Damp', rainSub: (snowy ? 'A few flakes likely, nothing that settles' : 'Drizzle or a stray shower likely, little in it') + chance, rainColour: 'var(--text)' };
+    }
+    const total = wet.reduce((a, h) => a + h.mm, 0), snowCm = wet.reduce((a, h) => a + h.snow, 0);
+    const peak = Math.max(...wet.map(h => snowy && h.snow ? h.snow * 0.7 : h.mm));
+    const frac = wet.length / hrs.length, heavy = peak >= 4, mod = !heavy && peak >= 1;
+    const i0 = hrs.indexOf(wet[0]), i1 = hrs.indexOf(wet[wet.length - 1]), solid = i1 - i0 + 1 === wet.length;
+    const adj = heavy ? 'heavy ' : mod ? '' : 'light ';
+    const at = i => this.hhmm(new Date(hrs[i].t));
+    let sub;
+    if (solid && i0 === 0 && i1 <= hrs.length - 3) sub = cap(adj + P) + ' clearing by ' + at(i1 + 1) + ', dry after that';
+    else if (solid && i0 >= 2 && i1 === hrs.length - 1) sub = 'Dry until about ' + at(i0) + ', then ' + adj + P;
+    else if (frac >= 0.6) sub = heavy ? 'Heavy ' + P + ' through the night' : mod ? 'Steady ' + P + ' through the night' : (snowy ? 'Light snow' : 'Drizzle or light rain') + ' through the night';
+    else if (wet.length <= 2 || frac < 0.3) sub = heavy ? 'Mostly dry, but a heavy ' + sh + ' or two' : mod ? 'Mostly dry, the odd ' + sh : 'Occasional light ' + sh + ' possible';
+    else sub = heavy ? 'Heavy ' + sh + 's at times' : mod ? cap(sh) + 's on and off' : 'Light ' + P + ' on and off';
+    return {
+      rainLabel: label,
+      rainVal: snowy && snowCm >= 0.1 ? snowCm.toFixed(1) + ' cm' : total.toFixed(1) + ' mm',
+      rainSub: sub + chance,
+      rainColour: heavy || frac >= 0.6 ? 'var(--accent)' : 'var(--text)',
+    };
   }
 
   /* One place decides how much atlas is needed: the view itself. */
@@ -15057,8 +15269,8 @@ class Component extends DCLogic {
       head = cap(camWord) + ' on camera. ' + (eyeWord === 'unlikely' ? 'Probably not to your eye.' : eyeWord === 'possible' ? 'Possible to your eye at the peak.' : 'Likely to your eye as well.');
       const wide = bestWin && (bestWin.to - bestWin.from) > 4 * 3600000;
       sub = (tenN
-          ? 'On ten nights with similar conditions to this, a camera pointed ' + poleWord + ' picks up colour on about ' + NUMWORD[tenN.colour]
-          : 'A long exposure pointed ' + poleWord + ' has a ' + camWord + ' chance of picking up colour low in the sky')
+          ? 'On ten nights with similar conditions to this, a camera pointed ' + poleWord + ' picks up colour at some point on about ' + NUMWORD[tenN.colour]
+          : 'A long exposure pointed ' + poleWord + ' has a ' + camWord + ' chance of picking up colour low in the sky at some point')
         + (wide ? ', fairly evenly through the dark hours' : bestWin ? ', best between ' + hhmm(bestWin.from) + ' and ' + hhmm(bestWin.to) : '')
         + '. ' + (eyeWord === 'unlikely' ? 'Standing there looking at it, you would most likely see a pale grey haze rather than colour.' : 'At the peak it may be bright enough to see standing there.');
     }

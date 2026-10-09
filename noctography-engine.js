@@ -626,7 +626,7 @@ async function loadWeather(){
   state.weatherStatus='pending'; renderChips();
   const url='https://api.open-meteo.com/v1/forecast?latitude='+state.lat.toFixed(4)+
     '&longitude='+state.lon.toFixed(4)+
-    '&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,temperature_2m,dew_point_2m,wind_speed_10m,wind_gusts_10m,visibility'+
+    '&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,temperature_2m,dew_point_2m,wind_speed_10m,wind_gusts_10m,visibility,precipitation,precipitation_probability,snowfall'+
     '&past_days=' + HISTORY_NIGHTS + '&forecast_days=16&timezone=auto'+
     (state.wxModel && state.wxModel!=='best_match' ? '&models='+encodeURIComponent(state.wxModel) : '');
   try{
@@ -648,7 +648,11 @@ async function loadWeather(){
         temp:j.hourly.temperature_2m[i],dew:j.hourly.dew_point_2m[i],
         wind:j.hourly.wind_speed_10m?j.hourly.wind_speed_10m[i]:null,
         gust:j.hourly.wind_gusts_10m?j.hourly.wind_gusts_10m[i]:null,
-        vis:j.hourly.visibility?j.hourly.visibility[i]:null};
+        vis:j.hourly.visibility?j.hourly.visibility[i]:null,
+        /* rain in mm and snow in cm over the hour, and the chance of any at all */
+        precip:j.hourly.precipitation?j.hourly.precipitation[i]:null,
+        pop:j.hourly.precipitation_probability?j.hourly.precipitation_probability[i]:null,
+        snow:j.hourly.snowfall?j.hourly.snowfall[i]:null};
     });
     state.weather=map; state.weatherStatus='live';
   }catch(e){
@@ -735,7 +739,9 @@ function cloudAt(dateUTC){
   let total=mix(a.total,b.total);
   [low,mid,high].forEach(v=>{ if(v!=null && (total==null || v>total)) total=v; });
   return {total,low,mid,high,rh:mix(a.rh,b.rh),temp:mix(a.temp,b.temp),dew:mix(a.dew,b.dew),
-          wind:mix(a.wind,b.wind),gust:mix(a.gust,b.gust),vis:mix(a.vis,b.vis)};
+          wind:mix(a.wind,b.wind),gust:mix(a.gust,b.gust),vis:mix(a.vis,b.vis),
+          /* hourly totals and a chance, not levels: the hour's own figure, never blended */
+          precip:a.precip,pop:a.pop,snow:a.snow};
 }
 
 /* ============================ night computation ============================ */
@@ -1390,6 +1396,34 @@ function tonight(){
   const bright = !!(state.sky && state.sky.bortle >= 7);
   if (usable.length) { if (hazy) drop(); if (bright) drop(); }
 
+  /* Rain, sunset to sunrise, hour by hour. A dry overcast night can still make a picture and a wet
+     one cannot, so anything beyond the odd light shower costs a grade and goes in the headline. */
+  const rain = (() => {
+    const seen = new Set(), hrs = [];
+    slots.forEach(s => {
+      const c = s.cloud; if (!c || c.precip == null || !(s.sunAlt < -0.83)) return;
+      const k = s.t.toISOString().slice(0, 13); if (seen.has(k)) return; seen.add(k);
+      hrs.push({ t: s.t, mm: c.precip || 0, snow: c.snow || 0, temp: c.temp });
+    });
+    if (!hrs.length) return null;
+    const wet = hrs.filter(h => h.mm >= 0.1 || h.snow >= 0.1);
+    if (!wet.length) return { bad: false, line: null };
+    const temps = wet.map(h => h.temp).filter(v => v != null).sort((a, b) => a - b);
+    const P = temps.length && temps[Math.floor(temps.length / 2)] <= 0 ? 'snow' : 'rain', sh = P === 'snow' ? 'snow showers' : 'showers';
+    const peak = Math.max(...wet.map(h => P === 'snow' && h.snow ? h.snow * 0.7 : h.mm)), frac = wet.length / hrs.length;
+    const heavy = peak >= 4, light = peak < 1, occasional = wet.length <= 2 || frac < 0.3;
+    if (light && occasional) return { bad: false, line: null };
+    const i0 = hrs.indexOf(wet[0]), i1 = hrs.indexOf(wet[wet.length - 1]), solid = i1 - i0 + 1 === wet.length;
+    const adj = heavy ? 'heavy ' : '';
+    let line;
+    if (solid && i0 === 0 && i1 <= hrs.length - 3) line = adj + P + ' until about ' + fmtTime(hrs[i1 + 1].t);
+    else if (solid && i0 >= 2 && i1 === hrs.length - 1) line = adj + P + ' from about ' + fmtTime(hrs[i0].t);
+    else if (frac >= 0.6) line = adj + P + ' through the night';
+    else line = heavy ? 'heavy ' + sh + ' at times' : sh + ' on and off';
+    return { bad: true, line, heavy };
+  })();
+  if (rain && rain.bad) drop();
+
   /* when a bright moon is up during the dark hours, said in words */
   let moonLine = null;
   const bu = usable.filter(brightUp);
@@ -1415,9 +1449,14 @@ function tonight(){
     const rest = !qualifier ? '' : ' and ' + qualifier.replace(/^but /, '').replace(/^with /, 'there\u0027s ').replace(/^too much/, 'there\u0027s too much');
     qualifier = 'but ' + moonLine + rest;
   }
+  /* rain leads when it matters: the moon still gets its say, fog and wind are left to the tiles */
+  if (rain && rain.bad) {
+    qualifier = cloudCap === 'heavy' ? 'clouded out, with ' + rain.line
+      : 'but expect ' + rain.line + (moonLine ? ', and ' + moonLine : '');
+  }
 
   return { night: n, darkWin, moonRise, moonSet, midIllum, mwBest, win, hedge, best, cloudSeries, wind, sun, mt, fog,
-           clearRun, lowMid: lmMean, cloudCap, qualifier, noCloudData, moonLine, moonlessClearH, hazy,
+           clearRun, lowMid: lmMean, cloudCap, qualifier, noCloudData, moonLine, moonlessClearH, hazy, rain,
            verdict, quality: q, peakQuality: best ? best.quality : 0, meanQuality: meanQ, darkHours: hours };
 }
 
