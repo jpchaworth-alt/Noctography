@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- the app is dark by design: stops Samsung Internet and Chrome's forced dark mode recolouring it -->
+<meta name="color-scheme" content="dark">
 <!-- Search and AI-search tags live in the real <head>, so a crawler sees them in the first
      kilobyte with no JavaScript run. Do not move these down into <helmet>: anything below
      <body> is ignored by Google. -->
@@ -194,7 +196,8 @@ window.noctoTrack = function (name, every) {
 <script src="../noctography-engine.js?v=3.0.4"></script>
 <script src="../noctography-sat.js?v=2.0.1"></script>
 <script src="../noctography-plan.js?v=2.0.1"></script>
-<script src="../noctography-ar.js?v=3.0.6"></script>
+<script src="../noctography-ar.js?v=3.0.8"></script>
+<script src="../noctography-phonecheck.js?v=3.0.8"></script>
 <script src="../noctography-log.js?v=2.0.1"></script>
 <script src="../noctography-png.js?v=3.0.2"></script>
 <script src="../noctography-terrain.js?v=3.0.2"></script>
@@ -2940,6 +2943,43 @@ window.noctoTrack = function (name, every) {
         </sc-if>
 
 
+        <div aria-label="Phone check" style="display: grid; gap: 10px; padding: 14px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Phone check</span>
+          <p style="margin: 0; font-size: 15.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">Ten seconds that show how this phone and browser handle Sky AR and Scout. It asks for motion and the camera. Nothing is sent unless you choose to send it.</p>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" onClick="{{ pcRun }}" disabled="{{ pcRunning }}" style="min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ pcRunLabel }}</button>
+            <sc-if value="{{ pcHas }}" hint-placeholder-val="{{ false }}">
+              <button type="button" onClick="{{ pcCopyGo }}" style="min-height: 52px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.24); background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ pcCopyLabel }}</button>
+              <a href="{{ pcMail }}" onClick="{{ pcMailGo }}" style="display: flex; align-items: center; min-height: 52px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.24); color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;">Email it to me</a>
+            </sc-if>
+          </div>
+          <sc-if value="{{ pcRunning }}" hint-placeholder-val="{{ false }}">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.45; color: var(--accent); text-wrap: pretty;">{{ pcStep }}</span>
+          </sc-if>
+          <sc-if value="{{ pcErrOn }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 14px; line-height: 1.45; color: var(--accent); text-wrap: pretty;">{{ pcErr }}</span>
+          </sc-if>
+          <sc-if value="{{ pcHas }}" hint-placeholder-val="{{ false }}">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{ pcSummaryInk }};">{{ pcSummary }}</span>
+            <div style="display: grid; gap: 10px; padding-top: 4px; border-top: 1px solid rgba(var(--line-rgb),.1);">
+              <sc-for list="{{ pcRows }}" as="r" hint-placeholder-count="0">
+                <div style="display: grid; grid-template-columns: 8px minmax(0, 7.5em) minmax(0, 1fr); column-gap: 10px; row-gap: 3px; align-items: baseline;">
+                  <i style="width: 7px; height: 7px; border-radius: 50%; background: {{ r.dot }}; transform: translateY(-1px);"></i>
+                  <span style="font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--dim);">{{ r.k }}</span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.4; color: var(--text); overflow-wrap: anywhere;">{{ r.v }}</span>
+                  <sc-if value="{{ r.noteOn }}" hint-placeholder-val="{{ false }}">
+                    <span style="grid-column: 3; font-size: 13.5px; line-height: 1.4; color: {{ r.noteInk }}; text-wrap: pretty;">{{ r.note }}</span>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ pcCopyFail }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 14px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">This browser would not copy it. Press and hold the text below, choose Select all, then Copy.</span>
+            <pre style="margin: 0; padding: 10px; max-height: 240px; overflow: auto; border-radius: 6px; background: rgba(var(--well-rgb),.5); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; line-height: 1.45; color: var(--text2); white-space: pre-wrap; -webkit-user-select: text; user-select: text;">{{ pcText }}</pre>
+          </sc-if>
+        </div>
+
         <div style="display: grid; gap: 8px; padding: 14px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="margin-right: auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; color: var(--text);">{{ verLine }}</span>
@@ -2973,7 +3013,31 @@ window.noctoTrack = function (name, every) {
         <div style="display: grid; gap: 10px;">
           <button type="button" onClick="{{ goData }}" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.28); background: transparent; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;">Credits and privacy</button>
           <a href="../index.html" style="min-height: 44px; display: flex; align-items: center; padding: 0 14px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 999px; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;">About</a>
-          <a href="mailto:jpchaworth@gmail.com?subject=Noctography%20Feedback" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-size: 14px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;">Feedback</a>
+          <button type="button" onClick="{{ fbToggle }}" aria-expanded="{{ fbOpen }}" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;">Feedback</button>
+          <sc-if value="{{ fbOpen }}" hint-placeholder-val="{{ false }}">
+            <div aria-label="Feedback" style="display: grid; gap: 10px; padding: 14px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--accent-rgb),.4); border-radius: 10px;">
+              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Reporting a problem?</span>
+              <p style="margin: 0; font-size: 15.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">Run the diagnostic first. It takes about ten seconds and records how your phone and browser handle the app, which helps me pinpoint the problem and fix it, usually without needing to come back to you with questions. It goes into your email, so you can see exactly what is sent.</p>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" onClick="{{ pcRun }}" disabled="{{ pcRunning }}" style="min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ fbRunLabel }}</button>
+                <sc-if value="{{ pcHas }}" hint-placeholder-val="{{ false }}">
+                  <a href="{{ pcMail }}" onClick="{{ pcMailGo }}" style="display: flex; align-items: center; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent); color: rgb(var(--card-rgb)); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;">Write the email</a>
+                  <button type="button" onClick="{{ pcCopyGo }}" style="min-height: 52px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.24); background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ pcCopyLabel }}</button>
+                </sc-if>
+              </div>
+              <sc-if value="{{ pcRunning }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.45; color: var(--accent); text-wrap: pretty;">{{ pcStep }}</span>
+              </sc-if>
+              <sc-if value="{{ pcHas }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{ pcSummaryInk }};">Diagnostic done: {{ pcSummary }}. The full results are in Phone check above.</span>
+                <span style="font-size: 13.5px; line-height: 1.42; color: var(--dim); text-wrap: pretty;">Write the email opens your mail app with the results already in it, and copies them too, in case your mail app leaves them out. If it does, paste them in.</span>
+              </sc-if>
+              <sc-if value="{{ pcCopyFail }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size: 14px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">This browser would not copy it. The text is in Phone check above, ready to select by hand.</span>
+              </sc-if>
+              <a href="{{ fbPlain }}" style="display: flex; align-items: center; min-height: 44px; color: var(--faint); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;">Not a problem? Write without it</a>
+            </div>
+          </sc-if>
           <a href="https://www.youtube.com/@nightscapejournals" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 14px; padding: 16px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="display: grid; gap: 3px; margin-right: auto;">
               <span style="font-size: 17px; font-weight: 600;">Nightscape Journals</span>
@@ -4039,7 +4103,7 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '3.0.6';
+  VERSION = '3.0.8';
   BUILDS = [
     {
       v: '3.0', date: '2026-10-02', silent: false,
@@ -4390,6 +4454,63 @@ class Component extends DCLogic {
       if (n.until && now > Date.parse(n.until + 'T23:59:59')) return false;
       return true;
     }) || null;
+  }
+
+  /* Phone check, in More and in front of Feedback. One run serves both: the report shows in full in
+     the check's own card and travels in the feedback email. Started straight from the tap, because
+     iOS will only show the motion prompt inside it. */
+  pcStart() {
+    const C = window.NoctoPhoneCheck, pc = this.state.pc;
+    if (!C || (pc && pc.running)) return;
+    const p = C.run({ version: this.VERSION, onStep: s => this.setState(st => ({ pc: Object.assign({}, st.pc, { step: s }) })) });
+    this.setState({ pc: { running: true, step: 'Starting' }, pcCopied: 0, pcCopyFail: false });
+    this.track && this.track('more/phonecheck');
+    p.then(r => this.setState({ pc: { running: false, rows: r.rows, text: r.text, model: r.model, problems: r.problems, checks: r.checks } }))
+      .catch(e => this.setState({ pc: { running: false, err: (e && e.message) || String(e) } }));
+  }
+  pcCopy(text) {
+    if (!text) return;
+    const done = () => this.setState({ pcCopied: Date.now(), pcCopyFail: false });
+    const fallback = () => {
+      const t = document.createElement('textarea');
+      t.value = text; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.top = '0'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select(); try { t.setSelectionRange(0, text.length); } catch (e) {}
+      let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+      t.remove();
+      if (ok) done(); else this.setState({ pcCopyFail: true });
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+    else fallback();
+  }
+  pcVals() {
+    const st = this.state, pc = st.pc || {}, has = !!(pc.rows && pc.rows.length);
+    const ink = { good: 'var(--cool)', warn: 'var(--accent)', bad: 'var(--accent)', info: 'rgba(var(--line-rgb),.35)' };
+    const summary = !has ? '' : pc.problems ? pc.problems + (pc.problems === 1 ? ' problem' : ' problems') + (pc.checks ? ', ' + pc.checks + ' to check' : '')
+      : pc.checks ? 'Nothing broken, ' + pc.checks + (pc.checks === 1 ? ' thing' : ' things') + ' to check' : 'Nothing wrong found';
+    const subj = 'Noctography feedback' + (pc.model ? ' (' + pc.model + ')' : '');
+    const body = 'What happened, and where in the app:\n\n\n\n' + (has ? pc.text : '');
+    const copied = st.pcCopied && Date.now() - st.pcCopied < 6000;
+    if (copied && !this._pcCopiedT) this._pcCopiedT = setTimeout(() => { this._pcCopiedT = null; this.forceUpdate(); }, 6100);
+    return {
+      pcRunning: !!pc.running, pcStep: pc.step || '', pcHas: has, pcSummary: summary,
+      pcSummaryInk: pc.problems || pc.checks ? 'var(--accent)' : 'var(--cool)',
+      pcErrOn: !!pc.err, pcErr: pc.err ? 'The check stopped part way: ' + pc.err : '',
+      pcRunLabel: pc.running ? 'Checking\u2026' : has ? 'Run it again' : 'Run the check',
+      fbRunLabel: pc.running ? 'Running\u2026' : has ? 'Run it again' : 'Run diagnostic',
+      pcRun: () => this.pcStart(),
+      pcRows: (pc.rows || []).map(r => ({ k: r.k, v: r.v, dot: ink[r.s] || ink.info, note: r.note, noteOn: !!r.note,
+        noteInk: r.s === 'bad' || r.s === 'warn' ? 'var(--text2)' : 'var(--dim)' })),
+      pcCopyGo: () => this.pcCopy(pc.text),
+      pcCopyLabel: copied ? 'Copied' : 'Copy the report',
+      pcCopiedOn: !!copied,
+      pcCopyFail: !!st.pcCopyFail && has, pcText: pc.text || '',
+      pcMail: 'mailto:jpchaworth@gmail.com?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body),
+      /* the report is copied as well as written into the email, in case the mail app drops a long body */
+      pcMailGo: () => { if (has) this.pcCopy(pc.text); },
+      fbOpen: !!st.fbOpen,
+      fbToggle: () => this.setState({ fbOpen: !st.fbOpen }),
+      fbPlain: 'mailto:jpchaworth@gmail.com?subject=Noctography%20Feedback',
+    };
   }
 
   /* The build history in More, from the same list the release notice comes from. */
@@ -6017,6 +6138,7 @@ class Component extends DCLogic {
       ...this.safe('eclipseVals'),
       ...this.noticeVals(),
       ...this.buildVals(),
+      ...this.safe('pcVals'),
       ...this.safe('backupVals'),
       ...this.safe('syncVals'),
       ...this.safe('layoutVals'),
@@ -7769,7 +7891,7 @@ class Component extends DCLogic {
         if (want > hmax * 1.06 && !this.state.arPano) { g.pinch = null; this.arV().hfov = hmax; this.arPanoToggle(); return; }
         this.arV().hfov = Math.max(4, Math.min(hmax, want)); this.drawAr();
       }
-      else this.applyArField(want);
+      else { this._arPinching = true; this.applyArField(want); }
       return;
     }
     if (this.state.arVirtual && this._vDrag) {
@@ -7810,6 +7932,7 @@ class Component extends DCLogic {
       g.ptrs.delete(e.pointerId);
       if (g.ptrs.size < 2) {
         g.pinch = null;
+        if (this._arPinching) { this._arPinching = false; if (this._arTarget) this.applyArField(this._arTarget); }
         if (this._arDragging) {
           this._arDragging = false;
           this.setState({ arTick: this.state.arTick + 1 }, () => this.drawAr());
@@ -7894,7 +8017,10 @@ class Component extends DCLogic {
     const rng = AR.fieldRange();
     const t = Math.max(rng.narrow, Math.min(rng.wide, target));
     this._arTarget = t;
-    if (this.state.arCam && this.state.arCamOk && AR.cameras().length > 1) {
+    /* Changing camera restarts the stream, which on Android takes most of a second and can fail.
+       Mid-pinch the current camera zooms on its own; the change of camera waits for the fingers to
+       lift. */
+    if (this.state.arCam && this.state.arCamOk && AR.cameras().length > 1 && !this._arPinching) {
       const pick = AR.pickLensForField(t);
       const cur = AR.lens();
       if (pick && pick.kind !== cur) {
@@ -7913,6 +8039,9 @@ class Component extends DCLogic {
       }
     }
     await AR.setZoom(AR.zoomForField(t));
+    /* the picture's share of the zoom, set straight on the video: mid-pinch there is no re-render
+       to carry it, so the stars zoomed and the camera picture only caught up on release */
+    if (this._arVideo) { const z = AR.cssZoom(); this._arVideo.style.transform = z > 1.001 ? 'scale(' + z.toFixed(3) + ')' : 'none'; }
     if (this._arDragging) this.drawAr();
     else this.setState({ arTick: this.state.arTick + 1 });
   }
@@ -10573,11 +10702,19 @@ class Component extends DCLogic {
       arTerrBg: st.arVirtual ? 'rgba(var(--accent-rgb),.18)' : 'rgba(0,0,0,.5)',
       arGoLive: () => this.arSetVirtual(false), arGoTerrain: () => this.arSetVirtual(true),
       /* said once per mode, the first time it is used, then never again */
-      ...(() => { const k = st.arVirtual ? 'scout' : 'live', seen = this.arHintSeen(k), on = st.arOpen && !st.fullScout && !seen;
-        if (on && !this._arHintT) this._arHintT = setTimeout(() => { this._arHintT = null; this.arHintMark(k); }, 9000);
-        return { arHintOn: on, arHintMode: st.arVirtual ? 'Scout:' : 'Live:',
-          arHintText: st.arVirtual ? 'stand anywhere, on any date. Drag to look round.' : 'hold the phone up and the sky is drawn over your camera.',
-          arHintClose: () => this.arHintMark(k) }; })(),
+      ...(() => {
+        /* Some browsers (Firefox on Android among them) give the gyro but no north, so Live draws the
+           sky the wrong way round until it is lined up. Said once per session, rather than left to
+           look like a broken compass. */
+        const NA = window.NoctoAR, hd = !st.arVirtual && NA && NA.heading ? NA.heading() : '';
+        const noNorth = hd === 'none' && !(NA.aligned && NA.aligned()) && !this._noNorthSaid;
+        const k = st.arVirtual ? 'scout' : noNorth ? 'nonorth' : 'live', seen = !noNorth && this.arHintSeen(k), on = st.arOpen && !st.fullScout && !seen;
+        if (on && !this._arHintT) this._arHintT = setTimeout(() => { this._arHintT = null; if (k === 'nonorth') { this._noNorthSaid = true; this.forceUpdate(); } else this.arHintMark(k); }, k === 'nonorth' ? 14000 : 9000);
+        return { arHintOn: on, arHintMode: st.arVirtual ? 'Scout:' : noNorth ? 'No compass:' : 'Live:',
+          arHintText: st.arVirtual ? 'stand anywhere, on any date. Drag to look round.'
+            : noNorth ? 'this browser does not say which way is north. Tap the moon, the sun or a bright star to line the sky up.'
+            : 'hold the phone up and the sky is drawn over your camera.',
+          arHintClose: () => { if (k === 'nonorth') { this._noNorthSaid = true; clearTimeout(this._arHintT); this._arHintT = null; this.forceUpdate(); } else this.arHintMark(k); } }; })(),
       ...(() => { const b = st.arVirtual && !st.fullScout ? this.fullScoutBlock() : 'hide';
         return { fullScoutBtnOn: b !== 'hide', fullScoutGo: e => { if (e && e.stopPropagation) e.stopPropagation(); this.fullScoutOpen(); },
           fullScoutOn: !!st.fullScout, fullScoutSrc: st.fullScoutSrc || 'about:blank', fullScoutWaitOn: !!st.fullScoutWait,

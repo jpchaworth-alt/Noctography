@@ -35,7 +35,7 @@ const S = {
   motion: false, camera: false, stream: null, video: null,
   alpha: 0, beta: 70, gamma: 0, absolute: false, compass: null, compassRaw: null,
   screenAngle: 0, flip: false, nudge: 0, offCache: 0, haveEvent: false, listening: false,
-  prefer: 'abs', src: null, srcN: 0, seen: { abs: 0, rel: 0 },
+  prefer: 'abs', src: null, srcN: 0, seen: { abs: 0, rel: 0 }, alphaSeen: false, wantWake: false,
   smooth: null,
   /* how fast the phone is turning, and how long it has been still: the offset is only allowed
      to move while nothing else is */
@@ -141,6 +141,7 @@ function onOrient(e){
   if (kind !== use) return;
   void other;
   S.haveEvent = true;
+  if (e.alpha != null) S.alphaSeen = true;
   const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
   const a = e.alpha == null ? S.alpha : e.alpha;
   const b = e.beta == null ? S.beta : e.beta;
@@ -199,6 +200,7 @@ function listen(){
     window.screen.orientation.addEventListener('change', readScreen);
   window.addEventListener('deviceorientationabsolute', onOrient, true);
   window.addEventListener('deviceorientation', onOrient, true);
+  wake();
 }
 function unlisten(){
   if (!S.listening) return;
@@ -206,7 +208,38 @@ function unlisten(){
   window.removeEventListener('deviceorientationabsolute', onOrient, true);
   window.removeEventListener('deviceorientation', onOrient, true);
   window.removeEventListener('orientationchange', readScreen);
+  if (window.screen && window.screen.orientation && window.screen.orientation.removeEventListener)
+    window.screen.orientation.removeEventListener('change', readScreen);
+  unwake();
 }
+
+/* Aiming a phone at the sky involves no touching, so after thirty seconds most phones dim and then
+   lock, and the view dies mid-composition. The screen is held awake while the sensors are in use.
+   The system drops the hold whenever the page is hidden, so it is asked for again on return. */
+let wakeHold = null;
+async function wake(){
+  S.wantWake = true;
+  if (wakeHold || !navigator.wakeLock || document.visibilityState !== 'visible') return;
+  try { wakeHold = await navigator.wakeLock.request('screen'); wakeHold.addEventListener('release', () => { wakeHold = null; }); }
+  catch (e) { wakeHold = null; }
+}
+function unwake(){
+  S.wantWake = false;
+  if (wakeHold) { try { wakeHold.release(); } catch (e) {} wakeHold = null; }
+}
+/* Lock the phone, or switch app, and every make stops the camera: iOS ends the track for good,
+   Android usually does too. Coming back to a black picture was the result. The camera is started
+   again on return, on the same lens, if it was meant to be running. */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  if (S.wantWake) wake();
+  const tr = S.stream && S.stream.getVideoTracks ? S.stream.getVideoTracks()[0] : null;
+  if (S.camera && S.video && (!tr || tr.readyState === 'ended')) {
+    startCamera(S.video, { deviceId: S.deviceId, lens: S.lens }).then(() => applyHardwareZoom()).catch(() => {});
+  } else if (S.camera && S.video && S.video.paused) {
+    try { const p = S.video.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+  }
+});
 
 /* ---------- fields of view ---------- */
 /* Two figures, kept apart on purpose. The base is what the fitted lens sees, and it is what the
@@ -396,15 +429,32 @@ async function listCameras(){
 /* Ask the track for real optical or sensor zoom, and remember how much of the request it took.
    Chrome on Android usually obliges; iOS Safari does not expose zoom at all, so this returns 1
    and CSS carries the whole factor. Either way the overlay maths uses the total. */
-async function applyHardwareZoom(){
+/* One request at a time. A pinch fires sixty moves a second; Samsung's camera takes a good part of
+   a second over each zoom change, and a queue of them left the picture stuck while it caught up.
+   Requests arriving mid-change collapse into one, made with the latest figure when it finishes. */
+let zoomBusy = null, zoomAgain = false;
+function applyHardwareZoom(){
+  if (zoomBusy) { zoomAgain = true; return zoomBusy; }
+  zoomBusy = (async () => {
+    try { do { zoomAgain = false; await hardwareZoomOnce(); } while (zoomAgain); }
+    finally { zoomBusy = null; }
+  })();
+  return zoomBusy;
+}
+async function hardwareZoomOnce(){
   const track = S.stream && S.stream.getVideoTracks && S.stream.getVideoTracks()[0];
   if (!track || !track.getCapabilities || !track.applyConstraints) { S.hwZoom = 1; return; }
   let caps = null;
   try { caps = track.getCapabilities(); } catch (e) { caps = null; }
   if (!caps || !caps.zoom) { S.hwZoom = 1; return; }
   const want = Math.max(caps.zoom.min || 1, Math.min(caps.zoom.max || 1, S.zoom));
-  try { await track.applyConstraints({ advanced: [{ zoom: want }] }); S.hwZoom = want || 1; }
-  catch (e) { S.hwZoom = 1; }
+  /* An advanced constraint the camera cannot meet is skipped without an error, so the zoom it
+     actually took is read back rather than assumed. Assuming it is what left Samsung phones with
+     the stars zooming over a camera picture that had not moved, and no CSS zoom to make it up. */
+  try { await track.applyConstraints({ advanced: [{ zoom: want }] }); } catch (e) {}
+  let got = null;
+  try { const s = track.getSettings && track.getSettings(); got = s && s.zoom; } catch (e) {}
+  S.hwZoom = got > 0 ? Math.max(1, Math.min(S.zoom, got)) : 1;
 }
 
 async function startCamera(video, opts){
@@ -476,7 +526,7 @@ function stopCamera(){
   if (S.video) { try { S.video.srcObject = null; } catch (e) {} S.video = null; }
   S.camera = false;
 }
-function stop(){ stopCamera(); unlisten(); S.motion = false; S.haveEvent = false; S.smooth = null; S.src = null; S.last = null; }
+function stop(){ stopCamera(); unlisten(); S.motion = false; S.haveEvent = false; S.alphaSeen = false; S.smooth = null; S.src = null; S.last = null; }
 
 /* Stop asking the magnetometer. Called by every deliberate act of alignment. */
 function hold(){
@@ -544,6 +594,11 @@ window.NoctoAR = {
   clearAlign: () => { S.aligned = false; S.alignedAt = 0; S.offAt = 0; save(); },
   aligned: () => S.aligned,
   alignedAt: () => S.alignedAt,
+  /* Where the heading comes from: 'compass' (iOS), 'north' (a north-referenced stream), 'none'
+     (the gyro alone, so the sky is drawn the wrong way round until lined up), 'noturn' (events
+     with no heading at all), or 'waiting' before anything has arrived. */
+  heading: () => !S.haveEvent ? 'waiting' : !S.alphaSeen ? 'noturn'
+    : S.compass != null ? 'compass' : S.src === 'abs' ? 'north' : 'none',
   /* Everything the AR view needs to say out loud when the overlay and the sky disagree, so the
      next trip out comes back with evidence rather than a hunch. */
   diag: () => ({
