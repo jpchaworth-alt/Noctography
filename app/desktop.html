@@ -953,6 +953,10 @@ window.noctoTrack = function (name, every) {
             <sc-for list="{{ ahead }}" as="a" hint-placeholder-count="15">
               <span data-nv-active="{{ a.best }}" style="display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 6px; border-left: {{ a.edge }}; border-right: {{ a.edge2 }}; background: {{ a.bg }}; opacity: {{ a.dim }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; color: {{ a.cloudColour }};">{{ a.cloudLabel }}</span>
             </sc-for>
+            <span data-nv-solid="1" title="Rain from sunset to sunrise, in mm (snow in cm)" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; padding-right: 6px; background: rgb(var(--card-rgb)); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Rain</span>
+            <sc-for list="{{ ahead }}" as="a" hint-placeholder-count="15">
+              <span data-nv-active="{{ a.best }}" title="{{ a.rainTitle }}" style="display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 6px; border-left: {{ a.edge }}; border-right: {{ a.edge2 }}; background: {{ a.bg }}; opacity: {{ a.dim }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{ a.rainColour }};">{{ a.rainLabel }}</span>
+            </sc-for>
             <sc-for list="{{ aheadCmp }}" as="row" hint-placeholder-count="0">
               <span data-nv-solid="1" title="{{ row.title }}" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; overflow: hidden; padding-right: 4px; background: rgb(var(--card-rgb)); white-space: nowrap; font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: {{ row.kc }};">{{ row.k }}</span>
               <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="15">
@@ -13062,6 +13066,27 @@ class Component extends DCLogic {
     ctx.beginPath(); ctx.arc(px, yS + skyH / 2, 5 * dpr, 0, 6.2832); ctx.fill();
   }
 
+  /* One night's rain for the outlook: hourly totals from sunset to sunrise, counted once per hour.
+     bad is the same test the greeting uses: anything beyond the odd light shower. */
+  rainNight(n) {
+    const seen = new Set(), hrs = [];
+    (n && n.slots || []).forEach(s => {
+      const c = s.cloud; if (!c || c.precip == null || !(s.sunAlt < -0.83)) return;
+      const k = new Date(+s.t).toISOString().slice(0, 13); if (seen.has(k)) return; seen.add(k);
+      hrs.push({ mm: c.precip || 0, cm: c.snow || 0, pop: c.pop, temp: c.temp });
+    });
+    if (!hrs.length) return null;
+    const wet = hrs.filter(h => h.mm >= 0.1 || h.cm >= 0.1);
+    const pops = hrs.map(h => h.pop).filter(v => v != null), pop = pops.length ? Math.round(Math.max(...pops)) : null;
+    if (!wet.length) return { dry: true, pop };
+    const temps = wet.map(h => h.temp).filter(v => v != null).sort((a, b) => a - b);
+    const snow = temps.length ? temps[Math.floor(temps.length / 2)] <= 0 && wet.some(h => h.cm > 0) : false;
+    const mm = wet.reduce((a, h) => a + h.mm, 0), cm = wet.reduce((a, h) => a + h.cm, 0);
+    const peak = Math.max(...wet.map(h => h.mm)), frac = wet.length / hrs.length;
+    const bad = !(peak < 1 && (wet.length <= 2 || frac < 0.3));
+    return { dry: false, snow, mm, cm, pop, bad };
+  }
+
   /* Rain decides more nights than cloud does: a dry overcast night can still make a picture, a
      wet one cannot. Read hour by hour from sunset to sunrise, and called snow below freezing. */
   rainVals(n, from, to) {
@@ -15537,6 +15562,14 @@ class Component extends DCLogic {
         conjWho: (() => { const l = conj.byKey[this.conjKeyFor(s)]; return l && l.length ? (l.length > 1 ? this.conjShort(l[0]) + '+' : this.conjShort(l[0])) : ''; })(),
         conjColour: (() => { const l = conj.byKey[this.conjKeyFor(s)]; if (!l || !l.length) return 'var(--faint)'; return l[0].sep < 2 ? 'var(--accent)' : 'var(--cool)'; })(),
         conjTitle: (() => { const l = conj.byKey[this.conjKeyFor(s)]; return l && l.length ? l.map(c => c.pair + ' ' + c.sepText).join(', ') : 'No planets within 5° that night'; })(),
+        ...(() => {
+          const rn = this.rainNight(r.n);
+          if (!rn) return { rainLabel: '\u2013', rainColour: 'var(--faint)', rainTitle: 'No rain forecast this far ahead' };
+          if (rn.dry) return { rainLabel: 'Dry', rainColour: 'var(--cool)', rainTitle: 'Dry from sunset to sunrise' + (rn.pop != null ? ', ' + rn.pop + '% chance of any' : '') };
+          const v = rn.snow ? rn.cm.toFixed(rn.cm < 10 ? 1 : 0) + 'cm' : rn.mm.toFixed(rn.mm < 10 ? 1 : 0) + 'mm';
+          return { rainLabel: v, rainColour: rn.bad ? 'var(--accent)' : 'var(--text2)',
+            rainTitle: (rn.snow ? 'Snow' : 'Rain') + ' from sunset to sunrise: ' + v + (rn.pop != null ? ', ' + rn.pop + '% chance' : '') };
+        })(),
         cloudLabel: cloudPct == null ? '–' : cloudPct + '%',
         cloudColour: cloudPct == null ? 'var(--faint)'
           : cloudPct < 35 ? 'var(--cool)' : cloudPct < 70 ? 'var(--accent)' : 'var(--moon-dim)',
@@ -15910,6 +15943,30 @@ class Component extends DCLogic {
       { k: 'High cloud', cells: cloudRow(c => c.high) },
       { k: 'Mid cloud', cells: cloudRow(c => c.mid) },
       { k: 'Low cloud', cells: cloudRow(c => c.low) },
+      /* hourly totals, each hour counted once however many samples fall inside it */
+      ...(() => {
+        const per = g => {
+          const seen = new Set(); let mm = 0, cm = 0, pop = null, n = 0, cold = 0;
+          g.forEach(s => {
+            const c = s.cloud; if (!c || c.precip == null) return;
+            const k = s.t.toISOString().slice(0, 13); if (seen.has(k)) return; seen.add(k);
+            n++; mm += c.precip || 0; cm += c.snow || 0;
+            if (c.pop != null) pop = pop == null ? c.pop : Math.max(pop, c.pop);
+            if (c.temp != null && c.temp <= 0) cold++;
+          });
+          return n ? { mm, cm, pop, snow: cold * 2 > n && cm > 0 } : null;
+        };
+        const P = groups.map(per), snowy = P.some(p => p && p.snow);
+        return [
+          { k: 'Rain mm', cells: P.map(p => !p ? cell(null, FAINT)
+            : p.mm < 0.05 ? { v: '0', c: FAINT }
+            : { v: p.mm < 10 ? p.mm.toFixed(1) : String(Math.round(p.mm)), c: p.mm / Math.max(1, hours || 3) >= 1 ? ACC : T2 }) },
+          { k: 'Rain chance', cells: P.map(p => !p || p.pop == null ? cell(null, FAINT)
+            : { v: Math.round(p.pop) + '%', c: p.pop >= 60 ? ACC : p.pop >= 30 ? T2 : DIM }) },
+          ...(snowy ? [{ k: 'Snow cm', cells: P.map(p => !p ? cell(null, FAINT)
+            : p.cm < 0.05 ? { v: '0', c: FAINT } : { v: p.cm.toFixed(1), c: ACC }) }] : []),
+        ];
+      })(),
       { k: 'Temp \u00b0C', cells: groups.map(g => { const v = mean(g, s => s.cloud ? s.cloud.temp : null); return cell(v == null ? null : num(v), T2); }) },
       { k: 'Dew \u00b0C', cells: groups.map(g => { const v = mean(g, s => s.cloud ? s.cloud.dew : null); return cell(v == null ? null : num(v), DIM); }) },
       { k: 'Humidity', cells: groups.map(g => {
