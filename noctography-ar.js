@@ -35,6 +35,7 @@ const S = {
   motion: false, camera: false, stream: null, video: null,
   alpha: 0, beta: 70, gamma: 0, absolute: false, compass: null, compassRaw: null,
   screenAngle: 0, flip: false, nudge: 0, offCache: 0, haveEvent: false, listening: false,
+  prefer: 'abs', src: null, srcN: 0, seen: { abs: 0, rel: 0 },
   smooth: null,
   /* how fast the phone is turning, and how long it has been still: the offset is only allowed
      to move while nothing else is */
@@ -121,6 +122,24 @@ const STILL_RATE = 6;      // degrees a second, below which the phone counts as 
 const STILL_FOR = 400;     // and for this long before the compass is believed again
 function onOrient(e){
   if (e.alpha == null && e.beta == null && e.gamma == null) return;
+  /* Android Chrome fires two streams at once: deviceorientationabsolute, measured from north, and
+     deviceorientation, measured from wherever the phone was when it started. Their alphas differ
+     by an arbitrary angle, and fed alternately into one filter they made the view flick back and
+     forth between two headings and never settle. One stream is used at a time: the preferred one
+     (north for Live, the gyro for VR), the other only when the preferred has gone quiet. */
+  const now0 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+  const kind = (e.type === 'deviceorientationabsolute' || e.absolute === true) ? 'abs' : 'rel';
+  S.seen[kind] = now0;
+  const want = S.prefer, other = want === 'abs' ? 'rel' : 'abs';
+  const use = kind === want || !(S.seen[want] && now0 - S.seen[want] < 1000) ? kind : null;
+  if (!use) return;
+  if (S.src !== use) {
+    S.src = use; S.srcN++;
+    /* a different frame: start the filter and the motion estimate again rather than swing to it */
+    S.smooth = null; S.last = null; S.rate = 0; S.compass = null;
+  }
+  if (kind !== use) return;
+  void other;
   S.haveEvent = true;
   const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
   const a = e.alpha == null ? S.alpha : e.alpha;
@@ -457,7 +476,7 @@ function stopCamera(){
   if (S.video) { try { S.video.srcObject = null; } catch (e) {} S.video = null; }
   S.camera = false;
 }
-function stop(){ stopCamera(); unlisten(); S.motion = false; S.haveEvent = false; S.smooth = null; }
+function stop(){ stopCamera(); unlisten(); S.motion = false; S.haveEvent = false; S.smooth = null; S.src = null; S.last = null; }
 
 /* Stop asking the magnetometer. Called by every deliberate act of alignment. */
 function hold(){
@@ -511,6 +530,10 @@ window.NoctoAR = {
   basis, projector, vecFor,
   lastErr: () => S.lastErr || '',
   live: () => S.haveEvent,
+  /* which orientation stream to follow: 'abs' (north, for overlaying the real sky) or 'rel' (the
+     gyro alone, steadier indoors, for VR). stream() changes whenever the one in use does. */
+  prefer: p => { const v = p === 'rel' ? 'rel' : 'abs'; if (S.prefer !== v) { S.prefer = v; S.src = null; } },
+  stream: () => S.srcN,
   absolute: () => S.absolute,
   nudge: () => S.nudge,
   /* Turning the offset by hand is an alignment too: the user is putting a known star where it

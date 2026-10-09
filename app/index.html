@@ -194,7 +194,7 @@ window.noctoTrack = function (name, every) {
 <script src="../noctography-engine.js?v=3.0.4"></script>
 <script src="../noctography-sat.js?v=2.0.1"></script>
 <script src="../noctography-plan.js?v=2.0.1"></script>
-<script src="../noctography-ar.js?v=2.0.1"></script>
+<script src="../noctography-ar.js?v=3.0.6"></script>
 <script src="../noctography-log.js?v=2.0.1"></script>
 <script src="../noctography-png.js?v=3.0.2"></script>
 <script src="../noctography-terrain.js?v=3.0.2"></script>
@@ -276,6 +276,9 @@ window.noctoTrack = function (name, every) {
   ::-webkit-scrollbar-track { background: rgba(var(--well-rgb),.5); }
   ::-webkit-scrollbar-thumb { background: rgba(var(--line-rgb),.18); border-radius: 4px; }
   @keyframes noctoPulse { 0%,100% { opacity: .35 } 50% { opacity: .85 } }
+  /* A grid item's default minimum is its content, so one long label or a wide control could push a
+     whole page past the phone's edge. Inside the tabs, grid items may shrink to the screen instead. */
+  section[data-screen-label] [style*="display: grid"] > *, section[data-screen-label][style*="display: grid"] > * { min-width: 0; }
   /* night vision: the whole app drops to red on black for a dark-adapted eye */
   html[data-nv="on"], html[data-nv="on"] body { background: #0B0301 !important; }
   html[data-nv="on"] body * { color: #FF3B18 !important; border-color: rgba(255,59,24,.34) !important;
@@ -895,6 +898,9 @@ window.noctoTrack = function (name, every) {
                   <span style="flex: 0 0 auto; white-space: nowrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{ wxBest.ink }};">16 d</span>
                 </span>
                 <span style="font-size: 13px; line-height: 1.4; color: var(--text2); text-wrap: pretty;">The sharpest model that reaches here for each hour, then a global one further out. Leave this on if you are unsure.</span>
+                <sc-if value="{{ wxBestOn }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">{{ wxBestLine }}</span>
+                </sc-if>
               </button>
               <sc-for list="{{ wxGroups }}" as="g" hint-placeholder-count="2">
                 <div style="display: grid; gap: 6px;">
@@ -2488,12 +2494,12 @@ window.noctoTrack = function (name, every) {
     </sc-if>
 
     <sc-if value="{{ isMap }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Place" style="display: grid; gap: 13px;">
+      <section data-screen-label="Place" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 13px;">
         <div style="display: grid; gap: 7px; padding: 4px 0 2px;">
           <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Place</span>
           <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(28px, 8.5vw, 36px); line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: pretty;">Your selected location</h1>
         </div>
-        <div data-pin-card="1" style="display: grid;">
+        <div data-pin-card="1" style="display: grid; grid-template-columns: minmax(0, 1fr);">
       <sc-if value="{{ pinOn }}" hint-placeholder-val="{{ true }}">
         <div style="display: grid; gap: 8px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -2583,12 +2589,15 @@ window.noctoTrack = function (name, every) {
               </sc-if>
             <sc-if value="{{ cloudOn }}" hint-placeholder-val="{{ false }}">
               <div style="display: grid; gap: 8px; padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
-                <label style="display: flex; align-items: center; gap: 10px; min-height: 44px;">
+                <label style="display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 44px;">
                   <span style="flex: 0 0 auto; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--dim);">Model</span>
-                  <select value="{{ cloudModelId }}" onChange="{{ onCloudModel }}" aria-label="Forecast model" style="flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: rgba(var(--well-rgb),.6); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px;">
+                  <select value="{{ cloudModelId }}" onChange="{{ onCloudModel }}" aria-label="Forecast model" style="flex: 1 1 auto; width: 100%; min-width: 0; max-width: 100%; text-overflow: ellipsis; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: rgba(var(--well-rgb),.6); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px;">
                     <sc-for list="{{ cloudModels }}" as="o" hint-placeholder-count="1"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
                   </select>
                 </label>
+                <sc-if value="{{ cloudBestOn }}" hint-placeholder-val="{{ false }}">
+                  <span style="margin-top: -4px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">{{ cloudBestLine }}</span>
+                </sc-if>
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                   <button type="button" onClick="{{ cloudGoNow }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Now</button>
                   <button type="button" onClick="{{ cloudGoTonight }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;">Tonight</button>
@@ -4030,7 +4039,7 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '3.0.4';
+  VERSION = '3.0.6';
   BUILDS = [
     {
       v: '3.0', date: '2026-10-02', silent: false,
@@ -12925,6 +12934,8 @@ class Component extends DCLogic {
       cloudTotalBg: pT.bg, cloudTotalFg: pT.fg, cloudLowBg: pL.bg, cloudLowFg: pL.fg,
       /* the same model choice as the forecast everywhere else, so the map and Tonight agree */
       cloudModelId: this.wxModelFor(),
+      cloudBestOn: this.wxModelFor() === 'best_match',
+      cloudBestLine: this.wxModelFor() === 'best_match' ? this.wxBestLine() : '',
       cloudModels: [{ id: 'best_match', label: 'Best match' }].concat(this.wxHere().map(x => ({ id: x.m.id, label: x.m.name + ' \u00b7 ' + x.res }))),
       onCloudModel: e => { const id = e.target.value; this._cg = null; this.wxPickModel(id); setTimeout(() => this.cloudFetch(), 0); },
       cloudBusyOn: !!st.cloudBusy,
@@ -15711,6 +15722,50 @@ class Component extends DCLogic {
     return out;
   }
   wxKey() { const E = this.E(); return this.favKey(E.state.lat, E.state.lon); }
+  /* Open-Meteo does not say which model Best match used, so it is worked out: Best match and each
+     candidate are fetched side by side for the next two days, and whichever one it equals hour for
+     hour is the one in use. Once per site every six hours, one small request. */
+  wxBestLine() {
+    const k = this.wxKey(), seen = (this._wxBest || (this._wxBest = (() => { try { return JSON.parse(localStorage.getItem('noctography.wxBestSeen') || '{}') || {}; } catch (e) { return {}; } })()))[k];
+    if (!seen || Date.now() - seen.at > 6 * 3600000) { this.wxBestProbe(k); return seen ? seen.line : 'Working out which model that is here\u2026'; }
+    return seen.line;
+  }
+  async wxBestProbe(k) {
+    if (this._wxBestBusy === k) return;
+    this._wxBestBusy = k;
+    const E = this.E(), here = this.wxHere();
+    const ids = [...new Set(here.map(x => x.m.id).concat(['icon_seamless', 'gfs_seamless', 'ecmwf_ifs025']))].filter(id => id !== 'ecmwf_aifs025_single');
+    let line = null;
+    try {
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + E.state.lat.toFixed(3) + '&longitude=' + E.state.lon.toFixed(3)
+        + '&hourly=temperature_2m,cloud_cover&forecast_hours=48&timezone=UTC&models=best_match,' + ids.join(',');
+      const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status);
+      const h = (await r.json()).hourly || {};
+      const ref = h.temperature_2m_best_match || h.temperature_2m, refC = h.cloud_cover_best_match || h.cloud_cover;
+      if (!ref) throw new Error('no best match');
+      let best = null;
+      ids.forEach(id => {
+        const t = h['temperature_2m_' + id], c = h['cloud_cover_' + id]; if (!t) return;
+        let same = 0, n = 0;
+        for (let i = 0; i < ref.length; i++) {
+          if (ref[i] == null || t[i] == null) continue;
+          n++;
+          if (Math.abs(ref[i] - t[i]) < 0.05 && (!c || !refC || refC[i] == null || c[i] == null || Math.abs(refC[i] - c[i]) < 0.5)) same++;
+        }
+        if (n && (!best || same / n > best.f)) best = { id, f: same / n };
+      });
+      if (best && best.f >= 0.5) {
+        const x = here.find(y => y.m.id === best.id), nm = best.id === 'ecmwf_ifs025' ? 'ECMWF IFS' : this.wxMeta(best.id).name;
+        const res = x ? ' ' + x.res : best.id === 'ecmwf_ifs025' ? ' 25 km' : '';
+        line = 'Here that is ' + nm + res + (x && x.near ? ' for the next couple of days, then a global model' : '') + (best.f < 0.9 ? ', mostly' : '') + '.';
+      } else line = 'Here it blends several models hour by hour.';
+    } catch (e) { line = null; }
+    this._wxBestBusy = null;
+    if (!line) return;
+    this._wxBest[k] = { line, at: Date.now() };
+    try { localStorage.setItem('noctography.wxBestSeen', JSON.stringify(this._wxBest)); } catch (e) {}
+    this.forceUpdate();
+  }
   wxKept() {
     try { const v = JSON.parse(localStorage.getItem('noctography.wxModels') || '{}'); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; }
   }
@@ -15791,6 +15846,7 @@ class Component extends DCLogic {
       wxLineInk: def && !n ? 'var(--faint)' : 'var(--accent)', wxLineVal: def && !n ? 'var(--text2)' : 'var(--accent)',
       wxToggle: () => this.setState({ wxOpen: !open }),
       wxBest: { ...(def ? SEL : OFF), pick: () => this.wxPickModel('best_match') },
+      wxBestOn: def, wxBestLine: def ? this.wxBestLine() : '',
       wxGroups: groups, wxSwitches: switches,
     };
   }

@@ -21,7 +21,7 @@
   <script src="../noctography-sync.js?v=4"></script>
   <script src="../noctography-surfaces.js?v=25"></script>
   <script src="../noctography-scout-hd.js?v=3.0.2"></script>
-  <script src="../noctography-ar.js?v=2.0.3b8"></script>
+  <script src="../noctography-ar.js?v=3.0.6"></script>
 <script src="../noctography-eclipse-data.js?v=3"></script>
 <script src="../noctography-eclipse.js?v=7"></script>
   <style>
@@ -721,7 +721,9 @@ class Component extends DCLogic {
   async liveSet(on) {
     const A = window.NoctoAR; if (!A) return;
     const mode = on === true ? 'live' : on;
-    this._vrOff = null; this._vrHfov = null;
+    this._vrOff = null; this._vrHfov = null; this._vrStream = null;
+    /* VR follows the gyro alone, Live follows north */
+    if (A.prefer) A.prefer(mode === 'vr' ? 'rel' : 'abs');
     if (mode === 'vr' && this.state.live) { A.stopCamera(); this._preLive = this._preLive || { az: this._view.az, alt: this._view.alt, hfov: this._view.hfov }; this._preLive.az = this._view.az; this._preLive.hfov = this._view.hfov; this.setState({ liveMode: 'vr', liveCam: null, liveNote: null }, () => this.dirty()); return; }
     if (mode === 'live' && this.state.live) { this.setState({ liveMode: 'live' }); this.liveCamera(); return; }
     if (!on) {
@@ -771,6 +773,11 @@ class Component extends DCLogic {
     let hf = this.liveVisHfov();
     if (vr) {
       const raw = (Math.atan2(b.fwd[0], b.fwd[1]) * 180 / Math.PI + 360) % 360;
+      /* the stream behind the gyro changed (the preferred one went quiet, or came back): keep facing
+         where the view faces now rather than jumping by the difference between their zeros */
+      const sid = A.stream ? A.stream() : 0;
+      if (this._vrStream != null && sid !== this._vrStream) this._vrOff = v.az - raw;
+      this._vrStream = sid;
       if (this._vrOff == null) this._vrOff = (this._preLive ? this._preLive.az : v.az) - raw;
       if (this._vrHfov == null) this._vrHfov = Math.max(30, Math.min(this.zoomMax(), this._preLive ? this._preLive.hfov : v.hfov));
       b.az = (raw + this._vrOff + 720) % 360; hf = this._vrHfov;
