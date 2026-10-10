@@ -135,6 +135,8 @@ async function camera(){
     o.cams = v.length;
     o.back = v.filter(d => !/front|face|user|selfie/i.test(d.label || '')).length;
   } catch (e) {}
+  /* which lenses Live will actually use, as the app sorts them */
+  try { if (window.NoctoAR && window.NoctoAR.listCameras) { const cs = await window.NoctoAR.listCameras(); o.lenses = cs.map(c => (window.NoctoAR.LENS_LABEL || {})[c.kind] || c.kind); } } catch (e) {}
   st.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
   return o;
 }
@@ -181,7 +183,8 @@ function rows(R){
     add('Motion sensors', [m.abs ? hz(m.abs) + '/s from north' : '', m.rel ? hz(m.rel) + '/s gyro' : ''].filter(Boolean).join(', '), 'good');
     if (m.noAlpha >= m.abs + m.rel) add('Compass', 'No heading', 'bad', 'The phone reports tilt but not which way it faces, so Live cannot turn with you. Use Scout.');
     else if (m.compass) add('Compass', 'From the compass' + (m.acc != null ? ', ±' + Math.round(m.acc) + '°' : ''), m.acc != null && m.acc > 25 ? 'warn' : 'good',
-      m.acc != null && m.acc > 25 ? 'The compass is unsettled. Move away from cars and metal, or line Live up on the moon or a bright star.' : '');
+      m.acc != null && m.acc >= 90 ? 'The compass has not settled, which is normal indoors or after the device has been still. Outside, turn it through a slow figure of eight once, or line Live up on the moon or a bright star.'
+      : m.acc != null && m.acc > 25 ? 'The compass is unsettled. Move away from cars and metal, or line Live up on the moon or a bright star.' : '');
     else if (m.abs || m.relAbs) add('Compass', 'North from the sensors', 'good');
     else add('Compass', 'Gyro only, no north', 'warn', 'In Sky AR Live, tap the moon, the sun or a bright star to line the sky up.');
   }
@@ -192,6 +195,8 @@ function rows(R){
     add('Camera', why[0], c.err === 'NotReadableError' ? 'warn' : 'bad', why[1]);
   } else {
     add('Camera', (c.w && c.h ? c.w + '×' + c.h : 'Open') + (c.fps ? ' at ' + c.fps + '/s' : '') + (c.back ? ', ' + c.back + ' rear' : ''), 'good');
+    if (c.lenses && c.lenses.length) add('Lenses used', c.lenses.join(', '), c.back > 1 && c.lenses.length < 2 ? 'warn' : 'info',
+      c.back > 1 && c.lenses.length < 2 ? 'The phone has more than one rear camera but Live can only tell one apart, so it cannot zoom out past the main lens.' : '');
     if (c.zmax == null) add('Zoom', 'Not offered', 'info', 'The app enlarges the picture itself, a little softer.');
     else if (c.zgot != null && Math.abs(c.zgot - c.zwant) < 0.05) add('Zoom', c.zmin + '–' + c.zmax + 'x, works', 'good');
     else add('Zoom', c.zmin + '–' + c.zmax + 'x offered, stayed at ' + (c.zgot != null ? c.zgot + 'x' : '–'), 'warn', 'The camera ignores zoom here, so the app enlarges the picture itself.');
@@ -204,6 +209,14 @@ function rows(R){
     a.save ? 'Data saver can hold back maps and ground detail.' : '');
   if (a.batt != null) add('Battery', a.batt + '%' + (a.charging ? ', charging' : ''), !a.charging && a.batt < 20 ? 'warn' : 'info',
     !a.charging && a.batt < 20 ? 'Many phones slow themselves down below 20%.' : '');
+  /* Scout's detail level and whether a crash lowered it: the first thing to know about a freeze */
+  try {
+    const s = JSON.parse(localStorage.getItem('nocto.scoutHD') || '{}') || {}, nm = { full: 'Full', reduced: 'Reduced', basic: 'Basic', light: 'Light', off: 'Simple ground' };
+    const cr = s.crashed, ago = cr && cr.at ? Math.round((Date.now() - cr.at) / 3600000) : null;
+    if (s.pick || s.cap) add('Scout detail', (s.pick && s.pick !== 'auto' ? nm[s.pick] || s.pick : 'Auto')
+      + (s.cap ? ', held at ' + (nm[s.cap] || s.cap) + (cr ? ' after ' + (cr.src === 'lost' ? 'losing the graphics memory' : 'closing') + (ago != null ? ' ' + (ago < 1 ? 'within the hour' : ago + ' h ago') : '') : '') : ''),
+      s.cap ? 'warn' : 'info');
+  } catch (e) {}
   return out;
 }
 

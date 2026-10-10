@@ -409,10 +409,27 @@ async function listCameras(){
   const vids = devs.filter(d => d.kind === 'videoinput');
   const back = vids.filter(d => !/front|face|user|selfie/i.test(d.label || ''));
   const pool = back.length ? back : vids;
+  /* Android Chrome names every camera "camera2 N, facing back", with nothing to say which lens is
+     which, so each one classed as the main lens and only the first was kept: no ultra wide, and no
+     zooming out past 1x. Samsung, Xiaomi and most others number the main lens first and the ultra
+     wide next. Depth and macro sensors are tiny, so anything under 1280 px wide is left out. A wrong
+     guess shows as a field that needs the slider once, which is far better than no ultra wide. */
+  const c2 = d => { const m = /camera2 (\d+)/i.exec(d.label || ''); return m ? +m[1] : null; };
+  const plain = pool.filter(d => classify(d.label) === 'wide' && !isAuto(d.label));
+  let guess = null;
+  if (plain.length > 1 && plain.every(d => c2(d) != null)) {
+    const real = plain.filter(d => {
+      try { const c = d.getCapabilities && d.getCapabilities(); return !(c && c.width && c.width.max && c.width.max < 1280); }
+      catch (e) { return true; }
+    }).sort((a, b) => c2(a) - c2(b));
+    guess = new Map();
+    ['wide', 'ultrawide', 'tele'].forEach((k, i) => { if (real[i]) guess.set(real[i].deviceId, k); });
+  }
   const seen = {};
   const out = [];
   pool.forEach(d => {
-    const kind = classify(d.label);
+    const kind = guess && plain.includes(d) ? guess.get(d.deviceId) : classify(d.label);
+    if (!kind) return;
     const auto = isAuto(d.label);
     const prev = seen[kind];
     // one representative per kind, and a fixed lens beats a self-switching one

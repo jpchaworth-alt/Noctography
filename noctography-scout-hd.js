@@ -126,7 +126,9 @@ function device(){
      A cap guessed from the page closing while the scene was up is only a guess, as a reload looks the
      same: it never goes below Light, and it lapses after two hours. */
   let cap = s.cap || null; const cr = s.crashed || {};
-  if (cap && cr.src !== 'lost') { if (Date.now() - (cr.at || 0) > 2 * 3600000) cap = null; else if (cap === 'off') cap = 'light'; }
+  /* On an iPad or phone a guessed cap lasts a week: wearing off after two hours, as it used to, meant
+     the next evening started at the level that had just closed the page, and closed it again. */
+  if (cap && cr.src !== 'lost' && Date.now() - (cr.at || 0) > ((p.ios || p.touch) ? 7 * 86400000 : 2 * 3600000)) cap = null;
   if (cap && ORDER.indexOf(cap) > ORDER.indexOf(tier)) tier = cap;
   /* and stays there: an earlier pick of a heavier level is not honoured on iOS */
   if (p.ios && ORDER.indexOf(tier) < ORDER.indexOf('light')) tier = 'light';
@@ -151,9 +153,10 @@ let runFrom = 0;
 function watch(){
   const s = store.get(); let crashed = null; const p = probe(), lost = s.crashed && s.crashed.src === 'lost', mobile = p.ios || p.touch;
   if (!lost && s.cap && !mobile) { s.cap = null; s.crashed = null; }
-  if (!lost && s.cap === 'off') s.cap = 'light';
+  /* Light was the floor, so an iPad that could not hold Light was put back on Light and closed the
+     page again, every time. Below Light is the simple ground, which always opens. */
   if (mobile && s.run && Date.now() - s.run.at < 3 * 60000 && TIERS[s.run.tier]) {
-    const to = lower(s.run.tier) === 'off' ? 'light' : lower(s.run.tier);
+    const to = lower(s.run.tier);
     const lost = s.crashed && s.crashed.src === 'lost';
     if (ORDER.indexOf(to) > ORDER.indexOf(s.cap || 'full')) s.cap = to;
     s.crashed = crashed = { from: s.run.tier, to: s.cap, at: Date.now(), src: lost ? 'lost' : 'watch' };
@@ -394,7 +397,7 @@ function fetchImg(z, x, y){
   return fetchBitmap(CFG.imagery.replace('{z}', z).replace('{y}', y).replace('{x}', x), 12000);
 }
 
-async function loadRing(r, onTile){
+async function loadRing(r, par, onTile){
   const W = r.n * TILE;
   const heights = new Float32Array(W * W);
   const atlas = document.createElement('canvas');
@@ -416,7 +419,7 @@ async function loadRing(r, onTile){
       if (onTile) onTile();
     }
   };
-  await Promise.all(Array.from({ length: 6 }, run));
+  await Promise.all(Array.from({ length: par || 6 }, run));
   return { heights, atlas, W };
 }
 
@@ -709,6 +712,9 @@ class Scene {
     this.canvas = canvas;
     this.tier = (o && TIERS[o.tier]) ? o.tier : (TIERS[device().tier] ? device().tier : 'basic');
     this.P = TIERS[this.tier];
+    /* tiles in flight per ring. Every ring loads at once, so six each was 24 downloads and decodes
+       together: the moment an iPad stalled and closed the page, often on the first tile. */
+    this.par = probe().ios ? 2 : this.tier === 'light' ? 3 : 6;
     this.lost = false; this.onLost = null;
     canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); this.lost = true; this.token = {}; if (this.onLost) this.onLost(); });
     try { this.G = makeGL(canvas, this.P); } catch (e) { this.G = null; this.error = e.message; if (window.console) console.warn('Scout HD:', e.message); }
@@ -751,7 +757,7 @@ class Scene {
     const total = p.rings.reduce((s, r) => s + r.n * r.n, 0);
     const boxes = p.rings.map(boxOf);
     await Promise.all(p.rings.map(async (r, i) => {
-      const data = await loadRing(r, () => { done++; if (o.onProgress && this.token === token) o.onProgress(done, total); });
+      const data = await loadRing(r, this.par, () => { done++; if (o.onProgress && this.token === token) o.onProgress(done, total); });
       if (this.token !== token) return;
       if (i === 0) {
         const W = data.W;
