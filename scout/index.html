@@ -21,7 +21,7 @@
   <script src="../noctography-comp.js?v=2.0.1"></script>
   <script src="../noctography-sync.js?v=4"></script>
   <script src="../noctography-surfaces.js?v=25"></script>
-  <script src="../noctography-scout-hd.js?v=3.0.9"></script>
+  <script src="../noctography-scout-hd.js?v=3.0.10"></script>
   <script src="../noctography-ar.js?v=3.0.9"></script>
 <script src="../noctography-eclipse-data.js?v=3"></script>
 <script src="../noctography-eclipse.js?v=7"></script>
@@ -627,7 +627,7 @@ class Component extends DCLogic {
       const d = g.getImageData(0, 0, c.width, c.height).data, out = new Uint8Array(c.width * c.height);
       for (let i = 0; i < out.length; i++) out[i] = d[i * 4];
       this._ha = { W: c.width, H: c.height, px: out };
-      c.width = c.height = 0;
+      c.width = c.height = 0; ha.onload = null; ha.src = '';
       if (this.state.ha) { this.resetTrails(); this.dirty(); }
     };
     ha.src = '../assets/halpha_finkbeiner_4k.png';
@@ -1909,8 +1909,13 @@ class Component extends DCLogic {
     /* Panning and zooming draw a draft too, sharpened once the view comes to rest. Full detail is
        held to about 8 million pixels, a 4K screen's worth, whatever the display. */
     const moving = !!this._movedAt && performance.now() - this._movedAt < 200;
-    const budget = Math.sqrt(8.3e6 / Math.max(1, cv.clientWidth * cv.clientHeight));
-    const fullDpr = Math.max(1, Math.min(window.devicePixelRatio || 1, this.hd && this.sc.P ? this.sc.P.dpr : 2, budget)), dpr = st.playing || this._scrubbing || st.live || moving ? Math.max(1, Math.min(fullDpr, fullDpr * 0.6)) : fullDpr;
+    /* iPadOS gives a tab far less memory than the chip suggests, and every one of the four canvases
+       below is a full screen. There they are held to about 4.5 million pixels, and kept at one size
+       while panning: resizing all four on every start and stop of a drag left old buffers waiting
+       to be freed, and a few drags were enough to close the page. */
+    const ios = this._ios != null ? this._ios : (this._ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1));
+    const budget = Math.sqrt((ios ? 4.5e6 : 8.3e6) / Math.max(1, cv.clientWidth * cv.clientHeight));
+    const fullDpr = Math.max(1, Math.min(window.devicePixelRatio || 1, this.hd && this.sc.P ? this.sc.P.dpr : 2, budget)), dpr = !ios && (st.playing || this._scrubbing || st.live || moving) ? Math.max(1, Math.min(fullDpr, fullDpr * 0.6)) : fullDpr;
     const W = Math.max(2, Math.round(cv.clientWidth * dpr)), H = Math.max(2, Math.round(cv.clientHeight * dpr));
     [cv, this._sky, this._tr, this._comp].forEach(c => { if (c.width !== W || c.height !== H) { c.width = W; c.height = H; this._trailsFresh = true; } });
     const R = Math.PI / 180, v = this._view;

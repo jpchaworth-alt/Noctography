@@ -196,8 +196,8 @@ window.noctoTrack = function (name, every) {
 <script src="../noctography-engine.js?v=3.0.4"></script>
 <script src="../noctography-sat.js?v=2.0.1"></script>
 <script src="../noctography-plan.js?v=2.0.1"></script>
-<script src="../noctography-ar.js?v=3.0.9"></script>
-<script src="../noctography-phonecheck.js?v=3.0.9"></script>
+<script src="../noctography-ar.js?v=3.0.10"></script>
+<script src="../noctography-phonecheck.js?v=3.0.10"></script>
 <script src="../noctography-log.js?v=2.0.1"></script>
 <script src="../noctography-png.js?v=3.0.2"></script>
 <script src="../noctography-terrain.js?v=3.0.2"></script>
@@ -4103,7 +4103,7 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '3.0.9';
+  VERSION = '3.0.10';
   BUILDS = [
     {
       v: '3.0', date: '2026-10-02', silent: false,
@@ -6898,6 +6898,9 @@ class Component extends DCLogic {
   scoutEnsure(force) {
     const E = this.E(), S = this.S(), st = this.state;
     if (!E || !S || !(force || st.frameGround) || E.state.lat == null) return;
+    /* full Scout has the screen and the memory: building this small scene again behind it put two
+       grounds in one tab, which is what closed the app on iPads at every detail level */
+    if (st.fullScout) return;
     const sc = this.scoutScene(); if (!sc || !sc.ok) return;
     const lat = E.state.lat, lon = E.state.lon;
     const key = lat.toFixed(4) + ',' + lon.toFixed(4);
@@ -9015,6 +9018,20 @@ class Component extends DCLogic {
     const step = () => {
       this._arRaf = null;
       if (!this.state.arOpen) return;
+      /* With full Scout open on top, this view draws nothing and holds nothing: its canvases go to a
+         pixel and its scene is let go, once, and the loop idles until Scout closes. */
+      if (this.state.fullScout) {
+        if (!this._fsIdle) {
+          this._fsIdle = true;
+          const o = this._scout;
+          if (o && o.canvas) { try { const g = o.canvas.getContext('webgl2') || o.canvas.getContext('webgl'); const x = g && g.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); } catch (e) {} o.canvas.width = o.canvas.height = 0; }
+          this._scout = null; this._scoutKey = null;
+          [this._arCanvas, this._arImgCanvas].forEach(c => { if (c && c.width > 1) { c.width = 1; c.height = 1; } });
+        }
+        this._arRaf = requestAnimationFrame(step);
+        return;
+      }
+      this._fsIdle = false;
       if (this.arNeedsDraw()) this.drawAr();
       const now = Date.now();
       /* No timed whole-app render: that ran four times a second and was most of what made panning

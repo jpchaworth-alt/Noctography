@@ -151,6 +151,10 @@ function unmark(){ live = null; const s = store.get(); if (s.run) { s.run = null
    computer the guess is never made, and any cap it left behind is cleared. */
 let runFrom = 0;
 function watch(){
+  const s0 = store.get();
+  /* 3.0.10 stopped the app building a second ground behind Scout, which was what closed iPads at
+     every level. Caps set before that were set for the wrong reason, so they are cleared once. */
+  if (s0.fix !== 10) { s0.fix = 10; if (s0.crashed && s0.crashed.src !== 'lost') { s0.cap = null; s0.crashed = null; } s0.run = null; store.set(s0); }
   const s = store.get(); let crashed = null; const p = probe(), lost = s.crashed && s.crashed.src === 'lost', mobile = p.ios || p.touch;
   if (!lost && s.cap && !mobile) { s.cap = null; s.crashed = null; }
   /* Light was the floor, so an iPad that could not hold Light was put back on Light and closed the
