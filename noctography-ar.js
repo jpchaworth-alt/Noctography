@@ -107,6 +107,31 @@ function lerpAng(a, b, k){
   let d = ((b - a + 540) % 360) - 180;
   return a + d * k;
 }
+/* rotation matrix (row-major 3x3) to quaternion [w, x, y, z], and back */
+function matQuat(m){
+  const t = m[0] + m[4] + m[8];
+  let w, x, y, z;
+  if (t > 0) { const s = Math.sqrt(t + 1) * 2; w = s / 4; x = (m[7] - m[5]) / s; y = (m[2] - m[6]) / s; z = (m[3] - m[1]) / s; }
+  else if (m[0] > m[4] && m[0] > m[8]) { const s = Math.sqrt(1 + m[0] - m[4] - m[8]) * 2; w = (m[7] - m[5]) / s; x = s / 4; y = (m[1] + m[3]) / s; z = (m[2] + m[6]) / s; }
+  else if (m[4] > m[8]) { const s = Math.sqrt(1 + m[4] - m[0] - m[8]) * 2; w = (m[2] - m[6]) / s; x = (m[1] + m[3]) / s; y = s / 4; z = (m[5] + m[7]) / s; }
+  else { const s = Math.sqrt(1 + m[8] - m[0] - m[4]) * 2; w = (m[3] - m[1]) / s; x = (m[2] + m[6]) / s; y = (m[5] + m[7]) / s; z = s / 4; }
+  return [w, x, y, z];
+}
+function quatMat(q){
+  const w = q[0], x = q[1], y = q[2], z = q[3];
+  return [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w),
+          2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w),
+          2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)];
+}
+/* angles for R = Rz(alpha) Rx(beta) Ry(gamma), in degrees: one valid set, not necessarily the one
+   the browser would report, which does not matter as everything downstream rebuilds the matrix */
+function eulerOf(m){
+  const sb = Math.max(-1, Math.min(1, m[7])), b = Math.asin(sb), cb = Math.cos(b);
+  let a, g;
+  if (cb > 1e-6) { g = Math.atan2(-m[6], m[8]); a = Math.atan2(-m[1], m[4]); }
+  else { g = 0; a = Math.atan2(m[3], m[0]); }
+  return [((a * R2D) + 360) % 360, b * R2D, g * R2D];
+}
 /* One constant cannot serve both ends of the lens range. What settles a 71-degree view leaves a
    16-degree one swimming, and the lag it buys is invisible wide and unusable tight. So the
    constant follows two things: how fast the phone is actually turning, because lag only matters
@@ -167,13 +192,20 @@ function onOrient(e){
   else if (!S.stillSince) S.stillSince = now;
   S.stillNow = now;
   const k = filterK();
-  if (!S.smooth) S.smooth = { a, b, g };
+  /* The smoothing is done on the rotation itself, as a quaternion, and the three angles are read
+     back out of the result. Smoothing alpha, beta and gamma one by one went badly wrong with the
+     phone upright: there the three swap between two equivalent sets (gamma wraps from +90 to -90
+     while alpha jumps 180), and easing each on its own passes through orientations the phone was
+     never in. On Android that was the frame spinning diagonally and VR turning upside down. */
+  const qr = matQuat(Rraw);
+  if (!S.smooth || !S.smooth.q) S.smooth = { q: qr };
   else {
-    S.smooth.a = lerpAng(S.smooth.a, a, k);
-    S.smooth.b = lerpAng(S.smooth.b, b, k);
-    S.smooth.g = lerpAng(S.smooth.g, g, k);
+    const q = S.smooth.q, d = q[0] * qr[0] + q[1] * qr[1] + q[2] * qr[2] + q[3] * qr[3], s = d < 0 ? -1 : 1;
+    const mq = [0, 1, 2, 3].map(i => q[i] + (s * qr[i] - q[i]) * k), n = Math.hypot(mq[0], mq[1], mq[2], mq[3]) || 1;
+    S.smooth.q = mq.map(v => v / n);
   }
-  S.alpha = S.smooth.a; S.beta = S.smooth.b; S.gamma = S.smooth.g;
+  const eu = eulerOf(quatMat(S.smooth.q));
+  S.alpha = eu[0]; S.beta = eu[1]; S.gamma = eu[2];
   if (typeof e.webkitCompassHeading === 'number' && !isNaN(e.webkitCompassHeading)) {
     S.compassRaw = e.webkitCompassHeading;
     /* Filtered with the same constant as the angles. It used to be taken raw and compared
