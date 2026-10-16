@@ -10591,9 +10591,21 @@ class Component extends DCLogic {
       ctx.moveTo(W / 2, H / 2 - 16 * scale); ctx.lineTo(W / 2, H / 2 + 16 * scale);
       ctx.stroke();
       ctx.setLineDash([]);
-      const msg = kit.focal + 'mm sees wider than this view';
-      ctx.font = '500 ' + (12 * scale) + 'px "JetBrains Mono", ui-monospace, monospace';
-      say(msg, W / 2 - ctx.measureText(msg).width / 2, H / 2 + 34 * scale, accent, 12, 500, 10);
+      /* drawn straight, not queued with the labels: queued, it lost its place to star names and
+         cardinals and often never showed, which left a lens wider than the view looking broken */
+      const msg = 'Selected lens sees wider than this';
+      ctx.save();
+      ctx.font = '600 ' + (13 * scale) + 'px Barlow, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const mw = ctx.measureText(msg).width + 22 * scale, mh = 28 * scale, my = H / 2 + 44 * scale;
+      ctx.fillStyle = nv ? 'rgba(11,3,1,.82)' : 'rgba(4,4,6,.72)';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(W / 2 - mw / 2, my - mh / 2, mw, mh, mh / 2); else ctx.rect(W / 2 - mw / 2, my - mh / 2, mw, mh);
+      ctx.fill();
+      ctx.lineWidth = 1 * scale; ctx.strokeStyle = accent; ctx.stroke();
+      ctx.fillStyle = accent;
+      ctx.fillText(msg, W / 2, my + scale);
+      ctx.restore();
     }
 
     this.paintComets(ctx, pr, when, { nv, scale, say, sun: sky.sun, fg: ink });
