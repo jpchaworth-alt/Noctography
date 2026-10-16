@@ -518,8 +518,94 @@ function fillRings(out, W, rings, h){
   }
 }
 async function buildings(ctx){
+  if (bldSource() === 'overture') {
+    const o = await overtureBuildings(ctx).catch(() => null);
+    if (o) return o;
+  }
   const a = await ofmBuildings(ctx).catch(() => null);
   return a || osmBuildings(ctx).catch(() => null);
+}
+
+/* ---------------- Overture buildings (trial) ----------------
+   One global building layer: OpenStreetMap first, then Microsoft, Google and Esri outlines where OSM
+   has none, with heights from OSM tags, Microsoft's imagery model and USGS lidar. Read here straight
+   from Overture's own tile archive, pinned to one release; the plan is for the worker to keep its
+   own copy (see the terrain project notes). Switched on by ?bld=overture or
+   localStorage noctography.scout.buildings = 'overture'. */
+function bldSource(){
+  try {
+    const q = /[?&]bld=(overture|osm)\b/.exec(location.search);
+    if (q) { localStorage.setItem('noctography.scout.buildings', q[1]); return q[1]; }
+    return localStorage.getItem('noctography.scout.buildings') === 'overture' ? 'overture' : 'osm';
+  } catch (e) { return 'osm'; }
+}
+let ovP = null;
+function overture(){
+  return ovP || (ovP = Promise.all([
+    import('https://cdn.jsdelivr.net/npm/pmtiles@4.3.0/+esm'),
+    import('https://cdn.jsdelivr.net/npm/@mapbox/vector-tile@2.0.3/+esm'),
+    import('https://cdn.jsdelivr.net/npm/pbf@4.0.1/+esm'),
+  ]).then(([PM, VT, P]) => ({
+    pm: new PM.PMTiles((CFG.overtureBase || 'https://overturemaps-extras-us-west-2.s3.us-west-2.amazonaws.com/tiles/') + (CFG.overture || '2026-09-23.1') + '/buildings.pmtiles'),
+    VT, Pbf: P.default || P.Pbf || P,
+  })).catch(e => { ovP = null; throw e; }));
+}
+/* the height ladder: a measured or mapped height, then floors, then what this kind of building
+   usually is, then a house */
+const OV_GUESS = { house: 7, detached: 7, semidetached_house: 7, terrace: 8, bungalow: 4.5, residential: 8, apartments: 15,
+  garage: 3, garages: 3, shed: 3, hut: 3, carport: 3, roof: 4, outbuilding: 3, barn: 8, farm_auxiliary: 6, greenhouse: 4,
+  commercial: 12, office: 20, retail: 7, supermarket: 8, hotel: 20, industrial: 9, warehouse: 9, factory: 10,
+  church: 16, chapel: 9, cathedral: 30, mosque: 14, temple: 10, school: 9, university: 14, college: 12, hospital: 18,
+  stadium: 20, sports_hall: 10, parking: 10, transportation: 8, train_station: 14, civic: 12, public: 12, castle: 18 };
+function ovHeight(q){
+  const h = +q.height, mh = +q.min_height || 0;
+  if (h > 1 && h < 900) return [h, 'm'];
+  const fl = +q.num_floors;
+  if (fl > 0 && fl < 200) return [mh + fl * 3.2 + 1, 'f'];
+  return [OV_GUESS[q.class] || OV_GUESS[q.subtype] || 7, 'g'];
+}
+async function overtureBuildings(ctx){
+  const { pm, VT, Pbf } = await overture();
+  const z = 14, n = 1 << z, c = ctx.geo, W = ctx.W, out = new Float32Array(W * W).fill(NaN);
+  const txOf = lo => Math.floor((lo + 180) / 360 * n), tyOf = la => { const s = Math.sin(la * D2R); return Math.floor((1 - Math.log((1 + s) / (1 - s)) / (2 * Math.PI)) / 2 * n); };
+  const PX = lon => (lon - ctx.lonOf[0]) / (ctx.lonOf[W - 1] - ctx.lonOf[0]) * (W - 1);
+  const yOfLat = la => { let lo = 0, hi = W - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (ctx.latOf[m] > la) lo = m; else hi = m; } return lo + (ctx.latOf[lo] - la) / (ctx.latOf[lo] - ctx.latOf[hi] || 1); };
+  const stats = { m: 0, f: 0, g: 0, ml: 0 };
+  let count = 0;
+  const jobs = [];
+  for (let tx = txOf(c.w); tx <= txOf(c.e); tx++) for (let ty = tyOf(c.n); ty <= tyOf(c.s); ty++) jobs.push([tx, ty]);
+  await Promise.all(jobs.map(async ([tx, ty]) => {
+    let r = null;
+    try { r = await pm.getZxy(z, tx, ty); } catch (e) { return; }
+    if (!r || !r.data) return;
+    let T;
+    try { T = new VT.VectorTile(new Pbf(new Uint8Array(r.data))); } catch (e) { return; }
+    /* whole buildings first, then their parts on top: a tower on a podium is two parts, and only
+       the parts know the tower is the tall bit */
+    ['building', 'building_part'].forEach(name => {
+      const L = T.layers[name]; if (!L) return;
+      const ext = L.extent;
+      for (let k = 0; k < L.length; k++) {
+        const f = L.feature(k), q = f.properties;
+        if (q.is_underground === true || q.is_underground === 'true' || f.type !== 3) continue;
+        const [h, how] = ovHeight(q);
+        /* a part with no height of its own says nothing new: guessing 7 m for it would flatten a
+           tower or a sail down to a shed */
+        if (name === 'building_part' && how === 'g') continue;
+        const rings = f.loadGeometry().map(rg => rg.map(p => {
+          const lon = (tx + p.x / ext) / n * 360 - 180, yy = Math.PI - 2 * Math.PI * (ty + p.y / ext) / n;
+          return [PX(lon), yOfLat(R2D * Math.atan(Math.sinh(yy)))];
+        }));
+        fillRings(out, W, rings, h);
+        if (name === 'building' && rings[0] && rings[0].some(p => p[0] >= 0 && p[0] < W && p[1] >= 0 && p[1] < W)) { count++; stats[how]++; if (/Microsoft|Google|Esri/.test(q['@geometry_source'] || '')) stats.ml++; }
+      }
+    });
+  }));
+  if (!count) return null;
+  const fmt = v => v.toLocaleString('en-GB');
+  return { heights: out, count, src: 'overture', stats,
+    name: fmt(count) + ' Overture buildings (' + fmt(stats.m) + ' measured, ' + fmt(stats.f) + ' from floors, ' + fmt(stats.g) + ' guessed)',
+    credit: 'Buildings \u00a9 Overture Maps Foundation, from OpenStreetMap, Microsoft, Google and Esri Community Maps' };
 }
 /* Fallback: the Overpass API, direct then through the worker */
 async function osmBuildings(ctx){
@@ -718,7 +804,7 @@ async function fetchFor(ctx){
       }
       surface = out;
       if (can) { credits.push('Canopy height \u00a9 Meta and WRI'); names.push('Meta tree height'); }
-      if (bld) { credits.push('Buildings \u00a9 OpenStreetMap contributors'); names.push(bld.count + ' OpenStreetMap buildings'); }
+      if (bld) { credits.push(bld.credit || 'Buildings \u00a9 OpenStreetMap contributors'); names.push(bld.name || bld.count + ' OpenStreetMap buildings'); }
       if (!terrain) terrain = Float32Array.from(base);
     }
   }
@@ -731,7 +817,7 @@ async function fetchFor(ctx){
       /* 3: a bridge or viaduct, drawn solid like a building, never as trees */
       if (brg) for (let i = 0; i < kind.length; i++) if (brg.mask[i]) kind[i] = 3;
       if (bld) for (let i = 0; i < kind.length; i++) if (bld.heights[i] === bld.heights[i]) kind[i] = 2;
-      credits.push('Building and bridge outlines \u00a9 OpenStreetMap contributors');
+      credits.push(bld && bld.src === 'overture' ? 'Building outlines \u00a9 Overture Maps Foundation \u00b7 bridges \u00a9 OpenStreetMap contributors' : 'Building and bridge outlines \u00a9 OpenStreetMap contributors');
     }
   }
   if (!surface && !terrain) return null;
@@ -739,8 +825,8 @@ async function fetchFor(ctx){
   return { surface, terrain, kind, name: names.join(' + '), credit: credits.join(' \u00b7 '), terrainOnly: !surface, pending, degraded };
 }
 
-function config(o){ if (o) { if (o.tokens) Object.assign(CFG.tokens, o.tokens); if (o.proxy != null) CFG.proxy = o.proxy; if (o.canopyBlock) CFG.canopyBlock = o.canopyBlock; } return { ...CFG }; }
+function config(o){ if (o) { if (o.tokens) Object.assign(CFG.tokens, o.tokens); if (o.proxy != null) CFG.proxy = o.proxy; if (o.canopyBlock) CFG.canopyBlock = o.canopyBlock; if (o.overture) CFG.overture = o.overture; if (o.overtureBase) CFG.overtureBase = o.overtureBase; } return { ...CFG }; }
 function coverage(lat, lon){ const s = SOURCES.find(s => lat >= s.box[0] && lat <= s.box[1] && lon >= s.box[2] && lon <= s.box[3] && (!s.needs || CFG.tokens[s.needs])); return s ? s.name : null; }
 
-window.NoctoSurfaces = { metaCanopy, buildings, ofmPaths, ofmStructures, SOURCES, fetchFor, config, coverage, lv95, nztm, nzTiles, osgb, osgbSquare, lcc3979 };
+window.NoctoSurfaces = { metaCanopy, buildings, overtureBuildings, bldSource, ofmPaths, ofmStructures, SOURCES, fetchFor, config, coverage, lv95, nztm, nzTiles, osgb, osgbSquare, lcc3979 };
 })();

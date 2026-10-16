@@ -850,7 +850,7 @@ class Scene {
       const ctx = { W, box, lat, lon, lonOf, latOf, m: r.mPerPx, mMerc: (box.x1 - box.x0) / W, H: Float32Array.from(x.data.base), patient: !!again,
         geo: { n: yToLat(r.y0, r.z), s: yToLat(r.y0 + r.n, r.z), w: xToLon(r.x0, r.z), e: xToLon(r.x0 + r.n, r.z) } };
       let res = null;
-      const O = window.NoctoOffline, ck = 'https://offline.noctography.net/surface5/' + r.z + '/' + r.x0 + '/' + r.y0;
+      const O = window.NoctoOffline, ck = 'https://offline.noctography.net/surface5/' + r.z + '/' + r.x0 + '/' + r.y0 + (NS.bldSource && NS.bldSource() === 'overture' ? '/ov' : '');
       const packed = O && !again ? await O.get(ck) : null;
       if (packed) {
         try {
