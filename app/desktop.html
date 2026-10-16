@@ -196,8 +196,8 @@ window.noctoTrack = function (name, every) {
 <script src="../noctography-engine.js?v=3.0.4"></script>
 <script src="../noctography-sat.js?v=2.0.1"></script>
 <script src="../noctography-plan.js?v=2.0.1"></script>
-<script src="../noctography-ar.js?v=3.0.10"></script>
-<script src="../noctography-phonecheck.js?v=3.0.10"></script>
+<script src="../noctography-ar.js?v=3.0.11"></script>
+<script src="../noctography-phonecheck.js?v=3.0.11"></script>
 <script src="../noctography-log.js?v=2.0.1"></script>
 <script src="../noctography-png.js?v=3.0.2"></script>
 <script src="../noctography-terrain.js?v=3.0.2"></script>
@@ -4103,7 +4103,7 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '3.0.10';
+  VERSION = '3.0.11';
   BUILDS = [
     {
       v: '3.0', date: '2026-10-02', silent: false,
@@ -8031,7 +8031,7 @@ class Component extends DCLogic {
            the crossover restarts the camera stream over and over. */
         const widening = AR.LENS_NOMINAL[pick.kind] > AR.LENS_NOMINAL[cur];
         const clear = !widening || t > AR.hfovFor(cur) * 1.1;
-        if (clear && pick.id !== AR.state.deviceId) {
+        if (clear && pick.id !== AR.state.deviceId && !(AR.recentlyFailed && AR.recentlyFailed(pick.id))) {
           if (!this._arSwitching) {
             this._arSwitching = true;
             try { await AR.startCamera(this._arVideo, { deviceId: pick.id, lens: pick.kind }); }

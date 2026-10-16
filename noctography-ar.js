@@ -36,6 +36,7 @@ const S = {
   alpha: 0, beta: 70, gamma: 0, absolute: false, compass: null, compassRaw: null,
   screenAngle: 0, flip: false, nudge: 0, offCache: 0, haveEvent: false, listening: false,
   prefer: 'abs', src: null, srcN: 0, seen: { abs: 0, rel: 0 }, alphaSeen: false, wantWake: false,
+  zoomTrack: null, failedAt: {}, opened: null,
   smooth: null,
   /* how fast the phone is turning, and how long it has been still: the offset is only allowed
      to move while nothing else is */
@@ -465,13 +466,43 @@ async function hardwareZoomOnce(){
   try { caps = track.getCapabilities(); } catch (e) { caps = null; }
   if (!caps || !caps.zoom) { S.hwZoom = 1; return; }
   const want = Math.max(caps.zoom.min || 1, Math.min(caps.zoom.max || 1, S.zoom));
-  /* An advanced constraint the camera cannot meet is skipped without an error, so the zoom it
-     actually took is read back rather than assumed. Assuming it is what left Samsung phones with
-     the stars zooming over a camera picture that had not moved, and no CSS zoom to make it up. */
+  const Z = S.zoomTrack && S.zoomTrack.t === track ? S.zoomTrack : (S.zoomTrack = { t: track, sent: null, trusted: false, refused: false });
+  /* The same figure again is not sent again. Samsung's camera reconfigures on every request, even
+     an unchanged one, and the picture lurched each time. */
+  if (Z.sent != null && Math.abs(Z.sent - want) < 0.01) return;
+  if (Z.refused) { S.hwZoom = 1; return; }
+  Z.sent = want;
   try { await track.applyConstraints({ advanced: [{ zoom: want }] }); } catch (e) {}
+  /* Once a camera has shown it does what it is asked, it is believed from then on. Samsung reports
+     the zoom it had a moment ago for several frames after a change, and reading that back as the
+     truth made the app enlarge the picture on top of a camera that had already zoomed: the
+     picture swung between far too tight and right every few seconds. */
+  if (Z.trusted) { S.hwZoom = Math.max(1, Math.min(S.zoom, want)); return; }
+  S.hwZoom = Math.max(1, Math.min(S.zoom, want));
+  /* First change on this camera: watch it settle, for up to a second and a half. */
   let got = null;
-  try { const s = track.getSettings && track.getSettings(); got = s && s.zoom; } catch (e) {}
+  for (let i = 0; i < 15; i++) {
+    await new Promise(r => setTimeout(r, 100));
+    if (S.zoomTrack !== Z) return;
+    try { const s = track.getSettings && track.getSettings(); got = s && s.zoom; } catch (e) { got = null; }
+    if (got > 0 && Math.abs(got - want) < 0.03) { Z.trusted = true; return; }
+  }
+  /* never got there: an advanced constraint the camera cannot meet is dropped without an error, so
+     what it really did is what the picture shows, and the app makes up the rest itself */
+  if (got > 0 && Math.abs(got - (caps.zoom.min || 1)) < 0.03 && want > (caps.zoom.min || 1) + 0.05) Z.refused = true;
   S.hwZoom = got > 0 ? Math.max(1, Math.min(S.zoom, got)) : 1;
+}
+
+/* Which camera actually opened. Asking for one by deviceId can hand back another (a fallback, or a
+   phone that routes every request to its main lens), and trusting the request left the overlay
+   drawn for an ultra wide over the main lens's picture: no zooming out, and a frame the wrong size. */
+function settleIdentity(tr, asked){
+  let id = null;
+  try { const s = tr && tr.getSettings ? tr.getSettings() : null; id = s && s.deviceId; } catch (e) {}
+  if (!id) return asked;
+  S.deviceId = id;
+  const c = S.cameras.find(x => x.id === id);
+  return c ? c.kind : asked;
 }
 
 async function startCamera(video, opts){
@@ -503,8 +534,9 @@ async function startCamera(video, opts){
   if (S.stream && S.stream !== o.stream) {
     S.stream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
     S.stream = null;
-    /* iOS takes a moment to let go of a camera; asking again at once fails with NotReadableError */
-    await new Promise(r => setTimeout(r, 250));
+    /* iOS takes a moment to let go of a camera; asking again at once fails with NotReadableError.
+       Android's camera service is slower still, so it gets longer. */
+    await new Promise(r => setTimeout(r, /Android/i.test(navigator.userAgent) ? 600 : 250));
   }
   try {
     /* a stream already granted (the page's own first ask) is used as it is, rather than closed and
@@ -512,6 +544,7 @@ async function startCamera(video, opts){
     const stream = o.stream || await navigator.mediaDevices.getUserMedia({ video: want, audio: false });
     S.lastErr = '';
     S.stream = stream; S.camera = true; S.video = video || S.video;
+    S.zoomTrack = null;
     if (o.deviceId) S.deviceId = o.deviceId;
     if (o.lens) S.lens = o.lens;
     /* What actually opened, which is not always what was asked for. Worth recording: if this is
@@ -528,12 +561,19 @@ async function startCamera(video, opts){
       try { await v.play(); } catch (e) { S.lastErr = 'play: ' + ((e && e.name) || e); }
     }
     await listCameras();
+    if (tr) { const k = settleIdentity(tr, S.lens); if (k && k !== S.lens && (o._retry || S.cameras.length > 1)) S.lens = k; }
+    S.opened = { asked: o.deviceId || null, got: S.deviceId, at: Date.now() };
     await applyHardwareZoom();
     return true;
   } catch (e) {
     S.lastErr = (e && (e.name + (e.message ? ': ' + e.message : ''))) || String(e);
-    // a named camera can be refused where the generic rear one is not: fall back rather than fail
-    if (o.deviceId && !o._retry) { await new Promise(r => setTimeout(r, 250)); return startCamera(video, { _retry: true, lens: o.lens }); }
+    /* a camera still being let go of is busy, not refused: the same one is asked for once more,
+       a little later, before giving up on it for whatever the phone calls its rear camera */
+    if (o.deviceId && !o._again && !o._retry && e && e.name === 'NotReadableError') {
+      await new Promise(r => setTimeout(r, 700));
+      return startCamera(video, Object.assign({}, o, { _again: true }));
+    }
+    if (o.deviceId && !o._retry) { S.failedAt[o.deviceId] = Date.now(); await new Promise(r => setTimeout(r, 250)); return startCamera(video, { _retry: true }); }
     S.camera = false;
     return false;
   }
@@ -642,6 +682,10 @@ window.NoctoAR = {
   lens: () => S.lens,
   lensLabel: () => LENS_LABEL[S.lens] || S.lens,
   setLens: k => { if (LENS_NOMINAL[k]) S.lens = k; },
+  /* a camera that would not open recently is not asked for again for a while: retrying it on
+     every zoom restarted the stream over and over */
+  recentlyFailed: id => !!(S.failedAt[id] && Date.now() - S.failedAt[id] < 30000),
+  zoomTrusted: () => !!(S.zoomTrack && S.zoomTrack.trusted),
   listCameras, hfovFor, pickLensForField, zoomForField, fieldRange, fieldForFrame,
   zoom: () => S.zoom,
   cssZoom,

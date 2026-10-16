@@ -127,8 +127,14 @@ async function camera(){
     o.zmin = caps.zoom.min; o.zmax = caps.zoom.max;
     o.zwant = Math.min(2, caps.zoom.max || 1);
     try { await tr.applyConstraints({ advanced: [{ zoom: o.zwant }] }); } catch (e) { o.zerr = (e && e.name) || 'error'; }
-    await wait(400);
-    try { o.zgot = tr.getSettings().zoom; } catch (e) {}
+    /* how long the camera takes to report the zoom it was given: Samsung lags, which the app used
+       to misread as the zoom not having happened */
+    const t0 = performance.now();
+    for (let i = 0; i < 15; i++) {
+      try { o.zgot = tr.getSettings().zoom; } catch (e) {}
+      if (o.zgot != null && Math.abs(o.zgot - o.zwant) < 0.05) { o.zms = Math.round(performance.now() - t0); break; }
+      await wait(100);
+    }
   }
   try {
     const v = (await md.enumerateDevices()).filter(d => d.kind === 'videoinput');
@@ -138,6 +144,25 @@ async function camera(){
   /* which lenses Live will actually use, as the app sorts them */
   try { if (window.NoctoAR && window.NoctoAR.listCameras) { const cs = await window.NoctoAR.listCameras(); o.lenses = cs.map(c => (window.NoctoAR.LENS_LABEL || {})[c.kind] || c.kind); } } catch (e) {}
   st.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
+  /* each rear camera opened in turn, as Live would: which open, at what size and zoom range */
+  try {
+    const v = (await md.enumerateDevices()).filter(d => d.kind === 'videoinput' && !/front|face|user|selfie/i.test(d.label || ''));
+    if (v.length > 1 && v.length <= 4) {
+      o.each = [];
+      for (const d of v) {
+        await wait(/Android/i.test(navigator.userAgent) ? 600 : 250);
+        const nm = (d.label || 'camera').replace(/,? facing back/i, '').trim();
+        try {
+          const s2 = await md.getUserMedia({ video: { deviceId: { exact: d.deviceId }, width: { ideal: 1920 } }, audio: false });
+          const t2 = s2.getVideoTracks()[0]; let w = 0, h = 0, zr = '';
+          try { const g = t2.getSettings(); w = g.width; h = g.height; } catch (e) {}
+          try { const c2 = t2.getCapabilities && t2.getCapabilities(); if (c2 && c2.zoom) zr = ' ' + c2.zoom.min + '\u2013' + c2.zoom.max + 'x'; } catch (e) {}
+          s2.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
+          o.each.push(nm + ' ' + w + '\u00d7' + h + zr);
+        } catch (e) { o.each.push(nm + ' ' + String((e && e.name) || 'failed').replace(/Error$/, '')); }
+      }
+    }
+  } catch (e) {}
   return o;
 }
 async function app(){
@@ -198,7 +223,8 @@ function rows(R){
     if (c.lenses && c.lenses.length) add('Lenses used', c.lenses.join(', '), c.back > 1 && c.lenses.length < 2 ? 'warn' : 'info',
       c.back > 1 && c.lenses.length < 2 ? 'The phone has more than one rear camera but Live can only tell one apart, so it cannot zoom out past the main lens.' : '');
     if (c.zmax == null) add('Zoom', 'Not offered', 'info', 'The app enlarges the picture itself, a little softer.');
-    else if (c.zgot != null && Math.abs(c.zgot - c.zwant) < 0.05) add('Zoom', c.zmin + '–' + c.zmax + 'x, works', 'good');
+    else if (c.zgot != null && Math.abs(c.zgot - c.zwant) < 0.05) add('Zoom', c.zmin + '–' + c.zmax + 'x, works' + (c.zms > 150 ? ', reports after ' + c.zms + ' ms' : ''), 'good');
+    if (c.each && c.each.length) add('Each camera', c.each.join('; '), c.each.some(s => / (NotReadable|NotAllowed|Overconstrained|failed|Abort)/.test(s)) ? 'warn' : 'info');
     else add('Zoom', c.zmin + '–' + c.zmax + 'x offered, stayed at ' + (c.zgot != null ? c.zgot + 'x' : '–'), 'warn', 'The camera ignores zoom here, so the app enlarges the picture itself.');
   }
   if (a.geo) add('Location', { granted: 'Allowed', prompt: 'Not asked yet', denied: 'Blocked' }[a.geo] || a.geo, a.geo === 'denied' ? 'warn' : 'info',
