@@ -20,8 +20,8 @@
   <script src="../noctography-offline.js?v=2"></script>
   <script src="../noctography-comp.js?v=2.0.1"></script>
   <script src="../noctography-sync.js?v=4"></script>
-  <script src="../noctography-surfaces.js?v=3.0.13"></script>
-  <script src="../noctography-scout-hd.js?v=3.0.12"></script>
+  <script src="../noctography-surfaces.js?v=3.0.14"></script>
+  <script src="../noctography-scout-hd.js?v=3.0.14"></script>
   <script src="../noctography-ar.js?v=3.0.13"></script>
 <script src="../noctography-eclipse-data.js?v=3"></script>
 <script src="../noctography-eclipse.js?v=7"></script>
@@ -302,7 +302,7 @@
       <sc-if value="{{ focalOpen }}" hint-placeholder-val="{{ false }}">
         <div data-pop="1" data-sheet="focal" style="position: {{ popFocal.pos }}; top: {{ popFocal.top }}; right: {{ popFocal.right }}; bottom: {{ popFocal.bottom }}; left: {{ popFocal.left }}; z-index: {{ popFocal.z }}; display: grid; align-content: start; gap: {{ popFocal.gap }}; width: {{ popFocal.w }}; max-width: {{ popFocal.mw }}; max-height: {{ popFocal.mh }}; overflow-y: auto; box-sizing: border-box; padding: {{ popFocal.pad }}; border-radius: {{ popFocal.rad }}; background: rgb(21,21,26); border: 1px solid rgba(240,236,228,.16); box-shadow: 0 18px 44px rgba(0,0,0,.55);">
           <div style="display: flex; gap: 4px; flex-wrap: wrap;"><sc-for list="{{ focals }}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{ c.pick }}" style="min-height: var(--chip-h, 32px); padding: 0 11px; border-radius: 6px; border: 1px solid {{ c.edge }}; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; cursor: pointer;">{{ c.label }}</button></sc-for></div>
-          <div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Other</span><input type="number" inputmode="numeric" min="4" max="1200" step="1" value="{{ focalCustom }}" onChange="{{ onFocalCustom }}" onKeyDown="{{ onFocalKey }}" placeholder="mm" aria-label="Focal length in mm" style="width: 84px; height: var(--chip-h, 34px); box-sizing: border-box; padding: 0 10px; border-radius: 6px; border: 1px solid {{ focalCustomEdge }}; background: rgba(10,10,11,.6); color: #F3F0EA; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px;"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #918B81;">mm</span></div>
+          <div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 10.5px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #918B81;">Other</span><input type="number" inputmode="numeric" min="4" max="1200" step="1" value="{{ focalCustom }}" onChange="{{ onFocalDraft }}" onBlur="{{ onFocalCustom }}" onKeyDown="{{ onFocalKey }}" placeholder="{{ focalHint }}" aria-label="Focal length in mm" style="width: 84px; height: var(--chip-h, 34px); box-sizing: border-box; padding: 0 10px; border-radius: 6px; border: 1px solid {{ focalCustomEdge }}; background: rgba(10,10,11,.6); color: #F3F0EA; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px;"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #918B81;">mm</span></div>
           <div style="display: flex; gap: 4px;"><sc-for list="{{ orients }}" as="o" hint-placeholder-count="3"><button type="button" onClick="{{ o.pick }}" style="min-height: var(--chip-h, 32px); padding: 0 11px; border-radius: 6px; border: 1px solid {{ o.edge }}; background: {{ o.bg }}; color: {{ o.fg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; cursor: pointer;">{{ o.label }}</button></sc-for></div>
           <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; line-height: 1.45; color: #ADA79B;">{{ sensorLine }}</span>
         </div>
@@ -2942,10 +2942,14 @@ class Component extends DCLogic {
       focalToggle: () => this.setState({ pop: st.pop === 'focal' ? null : 'focal' }),
       focals: this.KIT_FOCAL.map(f => ({ label: f + 'mm', ...(this.kit().focal === f ? ON : OFF), pick: () => this.setKit({ focal: f }) })),
       ...(() => { const k = this.kit(), P = window.NoctoPlan, custom = !this.KIT_FOCAL.includes(k.focal), L = this.lens();
-        const set = ev => { const f = Math.round(+ev.target.value); if (f >= 4 && f <= 1200 && f !== k.focal) this.setKit({ focal: f }); };
+        const set = ev => { const f = Math.round(+ev.target.value); if (f >= 4 && f <= 1200 && f !== k.focal) this.setKit({ focal: f }); this.setState({ focalDraft: null }); };
         const sn = P && P.SENSORS && P.SENSORS[k.sensor] ? P.SENSORS[k.sensor].label : ({ ff: 'Full frame', aps: 'APS-C', apsc: 'APS-C', mft: 'Micro Four Thirds' }[k.sensor] || 'Full frame');
-        return { focalCustom: custom ? String(k.focal) : '', focalCustomEdge: custom ? '#D6B368' : 'rgba(240,236,228,.2)', onFocalCustom: set,
-          onFocalKey: ev => { if (ev.key === 'Enter') { set(ev); ev.target.blur(); } },
+        /* a draft while typing, so the box can be emptied; the length in use is the placeholder and
+           the box commits on enter or on leaving it */
+        const draft = this.state.focalDraft;
+        return { focalCustom: draft == null ? '' : draft, focalHint: custom ? String(k.focal) : 'mm', focalCustomEdge: custom ? '#D6B368' : 'rgba(240,236,228,.2)', onFocalCustom: set,
+          onFocalDraft: ev => this.setState({ focalDraft: ev.target.value }),
+          onFocalKey: ev => { if (ev.key === 'Enter') ev.target.blur(); },
           sensorLine: sn + ' \u00b7 ' + k.mp + ' MP, from Kit \u00b7 frames ' + Math.round(L.across) + '\u00b0 \u00d7 ' + Math.round(L.down) + '\u00b0' }; })(),
       orients: [['land', 'Landscape'], ['port', 'Portrait']].map(([k2, label]) => ({ label, ...((this.kit().orient || 'land') === k2 ? ON : OFF), pick: () => this.setKit({ orient: k2 }) })),
       viewOpen: st.pop === 'view', viewEdge: st.pop === 'view' ? '#D6B368' : 'rgba(240,236,228,.14)', viewFg: st.pop === 'view' ? '#D6B368' : '#DCD7CC',

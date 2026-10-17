@@ -368,7 +368,25 @@ async function fetchDem(z, x, y){
     const e = (px[p] * 256 + px[p + 1] + px[p + 2] / 256) - 32768;
     out[i] = e < 0 ? 0 : e;
   }
+  if (z <= 12) despike(out, z);
   return out;
+}
+/* The coarse global tiles (zoom 12 and under, the rings further out) carry the odd bad value: a
+   2 by 2 blob of 2,170 m among 80 m hills at Mosman, which stood over Sydney Harbour as a spire
+   taller than anything on Earth. The detailed tiles are clean. A cell is taken as a spike when it
+   stands above the median of its 3 by 3 neighbourhood by more than one pixel's width can honestly
+   climb (a cliff of 60 m plus half the pixel's size), and is lowered to that median. Blobs of two
+   or four cells go the same way, since each sits on the edge of its own neighbourhood. */
+function despike(h, z){
+  const W = TILE, mPx = 40075016 / (256 * Math.pow(2, z)) * 0.7, lim = 60 + mPx / 2, win = new Float32Array(9);
+  const src = Float32Array.from(h);
+  for (let j = 1; j < W - 1; j++) for (let i = 1; i < W - 1; i++) {
+    const v = src[j * W + i]; if (v < lim) continue;
+    let n = 0;
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) win[n++] = src[(j + dj) * W + i + di];
+    const s = Array.from(win).sort((a, b) => a - b), med = s[4];
+    if (v - med > lim) h[j * W + i] = med;
+  }
 }
 /* Tiles come through the offline store when it is loaded: from the cache if this spot was saved,
    otherwise from the network and then kept. */

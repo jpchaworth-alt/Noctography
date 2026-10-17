@@ -322,8 +322,13 @@ window.noctoTrack = function (name, every) {
   html[data-desk="on"] [data-app="col"] { max-width: 1380px !important; }
   html[data-desk="on"] [data-app="head"] { order: -2; }
   @media (max-width: 479px) { [data-head-sub] { display: none; } [data-head-name] { letter-spacing: .16em !important; }
-    [data-head-loc] { flex: 0 0 44px !important; width: 44px; max-width: 44px !important; padding: 0 !important; justify-content: center; color: var(--accent) !important; }
+    [data-head-loc] { flex: 0 0 44px !important; width: 44px; max-width: 44px !important; padding: 0 !important; justify-content: center; }
     [data-head-place], [data-head-dot] { display: none !important; } [data-head-pin] { display: block !important; } }
+  /* Five round buttons and the name do not fit side by side on a narrow phone, so the name goes and
+     the logo carries it. Measured on the header itself, so a narrow preview behaves the same way. */
+  [data-app="head"] { container-type: inline-size; }
+  @container (max-width: 419px) { [data-app="head"]:has([data-head-save]) [data-head-name], [data-app="head"]:has([data-head-save]) [data-head-sub] { display: none; } }
+  @media (max-width: 419px) { [data-app="head"]:has([data-head-save]) [data-head-name] { display: none; } }
   html[data-desk="on"] [data-app="bar"] { order: -1; position: static !important; margin: 0 !important; }
   /* Sky AR upright on a phone: the rail stays, floating over the foot of the screen, so you leave
      Sky AR the way you leave anywhere else */
@@ -396,22 +401,52 @@ window.noctoTrack = function (name, every) {
       
       <button type="button" onClick="{{ openLocation }}" data-head-loc="1" aria-label="Location: {{ placeName }}" title="{{ placeName }}" style="min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.14); background: rgba(var(--well-rgb),.45); color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; flex: 0 1 auto; max-width: min(46%, 170px); min-width: 0; overflow: hidden;">
         <span data-nv-dot="on" data-head-dot="1" style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: 0 0 6px;"></span>
-        <svg data-head-pin="1" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: none; flex: 0 0 19px;"><path d="M20 10c0 4.99-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 14.99 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        <svg data-head-pin="1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: none; flex: 0 0 20px;"><path d="M20 10c0 4.99-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 14.99 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
         <span data-head-place="1" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ placeName }}</span>
       </button>
-      
+      <sc-if value="{{ showSaveApp }}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{ openSaveApp }}" data-head-save="1" aria-label="Save as app" title="Save as app" style="position: relative; flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: rgba(var(--well-rgb),.45); color: var(--text2); cursor: pointer;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg>
+          <span data-nv-dot="on" style="position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--bg);"></span>
+        </button>
+      </sc-if>
       <button type="button" onClick="{{ shareApp }}" aria-label="Share Noctography" title="Share Noctography" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(var(--line-rgb),.14); border-radius: 999px; background: rgba(var(--well-rgb),.45); color: var(--text2); cursor: pointer;">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v13"></path><path d="m16 6-4-4-4 4"></path><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v13"></path><path d="m16 6-4-4-4 4"></path><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path></svg>
       </button>
       <button type="button" onClick="{{ openArAll }}" aria-label="Open Sky AR" title="Open Sky AR" style="flex: 0 0 auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: var(--accent); color: var(--ink); cursor: pointer;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"></rect><path d="M10 6.5h4"></path><circle cx="12" cy="13" r="2.6"></circle></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"></rect><path d="M10 6.5h4"></path><circle cx="12" cy="13" r="2.6"></circle></svg>
       </button>
     </header>
     <sc-if value="{{ shareNoteOn }}" hint-placeholder-val="{{ false }}">
       <p role="status" style="margin: -8px 0 0; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(var(--accent-rgb),.45); background: rgb(var(--card-rgb)); color: var(--text2); font-size: 14px; line-height: 1.45;">{{ shareNote }}</p>
     </sc-if>
 
-    <sc-if value="{{ showInstall }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ saveAppOpen }}" hint-placeholder-val="{{ false }}">
+      <aside data-save-app="1" style="display: grid; gap: 14px; padding: 16px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--accent-rgb),.45); border-radius: 12px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Save as app</span>
+          <button type="button" onClick="{{ closeSaveApp }}" style="background: none; border: 0; color: var(--dim); font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; min-height: 44px;">Close</button>
+        </div>
+        <p style="margin: 0; font-size: 16px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ saveAppIntro }}</p>
+        <sc-if value="{{ canPrompt }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ doInstall }}" style="justify-self: start; min-height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">Save to home screen</button>
+        </sc-if>
+        <sc-if value="{{ saveAppSteps }}" hint-placeholder-val="{{ false }}">
+          <ol style="margin: 0; padding: 0; list-style: none; display: grid; gap: 12px;">
+            <sc-for list="{{ saveAppSteps }}" as="s" hint-placeholder-count="3">
+              <li style="display: grid; grid-template-columns: 24px 36px minmax(0, 1fr); align-items: center; gap: 10px;">
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; color: var(--accent);">{{ s.n }}</span>
+                <span style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.14); color: var(--text); font-size: 13px; font-weight: 600;">{{ s.glyph }}</span>
+                <span style="font-size: 15px; line-height: 1.4; color: var(--text); text-wrap: pretty;">{{ s.text }}</span>
+              </li>
+            </sc-for>
+          </ol>
+        </sc-if>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Already got an older copy on your home screen? Remove that icon first, then add it again. Your places and plans stay.</p>
+      </aside>
+    </sc-if>
+
+    <sc-if value="{{ showInstallLegacy }}" hint-placeholder-val="{{ false }}">
       <aside style="display: grid; gap: 10px; padding: 16px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--accent-rgb),.45); border-radius: 12px;">
         <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
           <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Keep it on your phone</span>
@@ -2392,17 +2427,21 @@ window.noctoTrack = function (name, every) {
           <sc-for list="{{ kitRows }}" as="row" hint-placeholder-count="5">
             <div style="display: grid; gap: 7px;">
               <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">{{ row.label }}</span>
-              <div style="display: flex; gap: 6px;">
+              <div style="display: flex; flex-wrap: {{ row.wrap }}; gap: 6px;">
                 <sc-for list="{{ row.chips }}" as="c" hint-placeholder-count="4">
-                  <button type="button" onClick="{{ c.go }}" data-nv-active="{{ c.on }}" style="flex: 1; min-height: 46px; padding: 0 4px; border: 1px solid {{ c.bd }}; border-radius: 8px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: {{ c.font }}; font-size: 13px; cursor: pointer;">{{ c.label }}</button>
+                  <button type="button" onClick="{{ c.go }}" onContextMenu="{{ c.onHold }}" onPointerDown="{{ c.onDown }}" onPointerUp="{{ c.onUp }}" onPointerLeave="{{ c.onUp }}" data-nv-active="{{ c.on }}" title="{{ c.title }}" style="flex: 1 1 {{ row.chipMin }}; min-height: 46px; padding: 0 4px; border: 1px solid {{ c.bd }}; border-radius: 8px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: {{ c.font }}; font-size: 13px; cursor: pointer;">{{ c.label }}</button>
                 </sc-for>
               </div>
               <sc-if value="{{ row.custom }}" hint-placeholder-val="{{ false }}">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 12.5px; color: var(--faint); white-space: nowrap;">or type one</span>
-                  <input type="number" min="1" max="2000" step="1" value="{{ row.customValue }}" onChange="{{ row.onCustomFocal }}" aria-label="Custom focal length in millimetres" style="flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: rgba(var(--line-rgb),.05); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px;">
-                  <span style="font-size: 13px; color: var(--faint);">mm</span>
+                  <span style="font-size: 12.5px; color: var(--faint); white-space: nowrap;">{{ row.customLead }}</span>
+                  <input type="number" min="{{ row.customMin }}" max="{{ row.customMax }}" step="{{ row.customStep }}" inputMode="decimal" placeholder="{{ row.customValue }}" value="{{ row.customDraft }}" onChange="{{ row.onCustomDraft }}" onBlur="{{ row.onCustomFocal }}" onKeyDown="{{ row.onCustomKey }}" aria-label="{{ row.customAria }}" style="flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 8px; background: rgba(var(--line-rgb),.05); color: var(--text); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px;">
+                  <span style="font-size: 13px; color: var(--faint);">{{ row.customUnit }}</span>
+                  <button type="button" onMouseDown="{{ row.onKeepDown }}" onClick="{{ row.onKeep }}" disabled="{{ row.keepOff }}" title="Keep this as a button" style="flex: 0 0 auto; min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid rgba(var(--accent-rgb),.5); background: rgba(var(--accent-rgb),.1); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; opacity: {{ row.keepOpacity }};">Keep</button>
                 </div>
+                <sc-if value="{{ row.keptNote }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size: 12.5px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">{{ row.keptNote }}</span>
+                </sc-if>
               </sc-if>
             </div>
           </sc-for>
@@ -4103,7 +4142,7 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '3.0.13';
+  VERSION = '3.0.14';
   BUILDS = [
     {
       v: '3.0', date: '2026-10-02', silent: false,
@@ -5367,6 +5406,8 @@ class Component extends DCLogic {
     clearInterval(this._windTimer);
     if (this._onResize) window.removeEventListener('resize', this._onResize);
     if (this._onPrompt) window.removeEventListener('beforeinstallprompt', this._onPrompt);
+    if (this._onPromptAny) window.removeEventListener('beforeinstallprompt', this._onPromptAny);
+    if (this._onInstalled) window.removeEventListener('appinstalled', this._onInstalled);
     if (this._onVis) document.removeEventListener('visibilitychange', this._onVis);
   }
 
@@ -5389,18 +5430,68 @@ class Component extends DCLogic {
   /* Nudge towards the home screen, once, on a phone, and never again once it is installed
      or the offer has been turned down. Chrome hands us a real install prompt; iOS does not,
      so there it is a short instruction instead. */
+  /* The Save as app button lives in the header until the app is installed. Chrome and Edge hand us
+     a real install sheet; everywhere else the card shows that browser's own steps. */
+  isStandalone() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  }
+  saveAppVals() {
+    const ua = navigator.userAgent, st = this.state;
+    const ios = /iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+    const samsung = /SamsungBrowser/i.test(ua), firefox = /Firefox|FxiOS/i.test(ua), chromeIos = /CriOS/i.test(ua);
+    const desktop = !/android|iphone|ipad|ipod|mobile/i.test(ua) && !ios;
+    /* Chrome lets a page know a copy is installed, so the button can go even in a browser tab */
+    if (!this._relCheck && navigator.getInstalledRelatedApps) {
+      this._relCheck = true;
+      navigator.getInstalledRelatedApps().then(a => { if (a && a.length) this.setState({ appInstalled: true }); }).catch(() => {});
+    }
+    const show = !this.isStandalone() && !st.appInstalled && !desktop;
+    let steps = null, intro;
+    if (st.canPrompt) intro = 'One tap and Noctography sits on your home screen, opens full screen and works offline.';
+    else if (ios && !chromeIos && !firefox) {
+      intro = 'Three taps in Safari and Noctography sits on your home screen, opens full screen and works offline.';
+      steps = [{ n: 1, glyph: '\u2191', text: 'Tap Share at the bottom of Safari (the square with an arrow)' },
+        { n: 2, glyph: '+', text: 'Scroll down and tap Add to Home Screen' },
+        { n: 3, glyph: 'Add', text: 'Tap Add at the top right' }];
+    } else if (ios) {
+      intro = 'On an iPhone or iPad this only works from Safari. Open noctography.net/app in Safari, then:';
+      steps = [{ n: 1, glyph: '\u2191', text: 'Tap Share at the bottom of Safari' },
+        { n: 2, glyph: '+', text: 'Scroll down and tap Add to Home Screen' },
+        { n: 3, glyph: 'Add', text: 'Tap Add at the top right' }];
+    } else if (samsung) {
+      intro = 'Three taps and Noctography sits on your home screen, opens full screen and works offline.';
+      steps = [{ n: 1, glyph: '\u2261', text: 'Tap the menu (three lines) at the bottom right' },
+        { n: 2, glyph: '+', text: 'Tap Add page to, then Home screen' },
+        { n: 3, glyph: 'Add', text: 'Tap Add' }];
+    } else if (firefox) {
+      intro = 'Three taps and Noctography sits on your home screen.';
+      steps = [{ n: 1, glyph: '\u22ee', text: 'Tap the three dots in the address bar' },
+        { n: 2, glyph: '+', text: 'Tap Add to Home screen' },
+        { n: 3, glyph: 'Add', text: 'Tap Add' }];
+    } else {
+      intro = 'Three taps in Chrome and Noctography sits on your home screen, opens full screen and works offline.';
+      steps = [{ n: 1, glyph: '\u22ee', text: 'Tap the three dots at the top right' },
+        { n: 2, glyph: '+', text: 'Tap Add to Home screen, or Install app' },
+        { n: 3, glyph: 'Add', text: 'Tap Install, then Add' }];
+    }
+    return { showSaveApp: show, saveAppOpen: show && !!st.saveAppOpen, saveAppIntro: intro, saveAppSteps: steps,
+      openSaveApp: () => { if (this._deferred) this.doInstall(); else { this.setState({ saveAppOpen: true }); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); } } },
+      closeSaveApp: () => this.setState({ saveAppOpen: false }) };
+  }
+
   watchInstall() {
-    const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
-      || window.navigator.standalone === true;
+    const standalone = this.isStandalone();
+    this._onInstalled = () => this.setState({ appInstalled: true, saveAppOpen: false, showInstall: false, canPrompt: false });
+    window.addEventListener('appinstalled', this._onInstalled);
+    this._onPromptAny = e => { e.preventDefault(); this._deferred = e; this.setState({ canPrompt: true }); };
+    window.addEventListener('beforeinstallprompt', this._onPromptAny);
+    if (standalone) return;
     let dismissed = false;
     try { dismissed = localStorage.getItem('noctography.install') === 'no'; } catch (e) {}
     const phone = Math.min(window.innerWidth, window.innerHeight) < 820;
     if (standalone || dismissed || !phone) return;
 
-    this._onPrompt = e => { e.preventDefault(); this._deferred = e; this.setState({ canPrompt: true }); };
-    window.addEventListener('beforeinstallprompt', this._onPrompt);
-    // let the page settle first, an install nag before the content has drawn is just noise
-    this._installTimer = setTimeout(() => this.setState({ showInstall: true }), 9000);
+    /* the old nine-second card is retired: the header button replaces it */
   }
 
   async doInstall() {
@@ -5412,7 +5503,7 @@ class Component extends DCLogic {
       this.track(res && res.outcome === 'accepted' ? 'install/accepted' : 'install/declined');
     } catch (e) {}
     this._deferred = null;
-    this.dismissInstall();
+    this.setState({ canPrompt: false });
   }
 
   dismissInstall() {
@@ -5976,7 +6067,8 @@ class Component extends DCLogic {
           go: () => this.goTab(n.key) };
       }),
       showLoc: st.showLoc, query: st.query, auroraOn, coffeeHref: coffee,
-      showInstall: !!st.showInstall, canPrompt: !!st.canPrompt,
+      ...this.saveAppVals(),
+      showInstallLegacy: false, canPrompt: !!st.canPrompt,
       installText: st.canPrompt
         ? 'Noctography works best saved to your home screen: it opens full screen and remembers your site.'
         : (/iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -6155,6 +6247,52 @@ class Component extends DCLogic {
     const k = Object.assign({}, this.kit(), patch);
     if (window.NoctoPlan) window.NoctoPlan.saveKit(k);
     this.setState({ kit: k });
+  }
+  /* Lengths and apertures the user has kept as buttons of their own, saved on the phone. */
+  keptKey(key) { return key === 'focal' ? 'noctography.kit.focals' : 'noctography.kit.' + key + 's'; }
+  kept(key) {
+    try { const a = JSON.parse(localStorage.getItem(this.keptKey(key)) || '[]'); return Array.isArray(a) ? a.filter(v => typeof v === 'number' && v > 0) : []; } catch (e) { return []; }
+  }
+  keep(key, v) {
+    const a = this.kept(key); if (!a.includes(v)) a.push(v);
+    try { localStorage.setItem(this.keptKey(key), JSON.stringify(a)); } catch (e) {}
+    this.forceUpdate();
+  }
+  drop(key, v) {
+    try { localStorage.setItem(this.keptKey(key), JSON.stringify(this.kept(key).filter(x => x !== v))); } catch (e) {}
+    this.forceUpdate();
+  }
+  /* A chip row with a type-your-own box. The box holds a draft while you type (so it can be
+     emptied) and commits when you leave it or press enter; Keep turns the draft into a chip of its
+     own; a kept chip goes on a long press. More than wrapAt chips and the row wraps rather than
+     shrinking past a fingertip. */
+  customRow(o) {
+    const st = this.state, dk = o.key + 'Draft', draft = st[dk];
+    const n = o.parse(draft), draftOk = draft != null && draft !== '' && isFinite(n) && o.ok(n) && !o.values.includes(n);
+    return {
+      label: o.label,
+      chips: o.values.map(v => {
+        const c = this.chip(o.fmt(v), o.cur === v, () => { if (!this._heldChip) this.setKit({ [o.key]: v }); this._heldChip = false; }, true);
+        if (o.kept.includes(v)) {
+          c.title = 'Yours. Press and hold to remove it.';
+          const dropIt = e => { if (e && e.preventDefault) e.preventDefault(); this._heldChip = true; this.drop(o.key, v); };
+          c.onHold = dropIt;
+          c.onDown = () => { clearTimeout(this._holdT); this._holdT = setTimeout(dropIt, 650); };
+          c.onUp = () => clearTimeout(this._holdT);
+        }
+        return c;
+      }),
+      custom: true, customLead: o.lead, customUnit: o.unit, customAria: o.aria, customMin: o.min, customMax: o.max, customStep: o.step,
+      customValue: o.key === 'aperture' ? String(o.cur) : o.cur, customDraft: draft == null ? '' : draft,
+      onCustomDraft: e => this.setState({ [dk]: e.target.value }),
+      onCustomKey: e => { if (e.key === 'Enter') e.target.blur(); },
+      onCustomFocal: e => { if (this._keeping) return; const v = o.parse(e.target.value); if (isFinite(v) && o.ok(v) && v !== o.cur) this.setKit({ [o.key]: v }); this.setState({ [dk]: null }); },
+      keepOff: !draftOk, keepOpacity: draftOk ? 1 : 0.42,
+      onKeepDown: () => { this._keeping = true; },
+      onKeep: () => { this._keeping = false; if (draftOk) { this.keep(o.key, n); this.setKit({ [o.key]: n }); this.setState({ [dk]: null }); } },
+      keptNote: o.kept.length ? o.note : '',
+      wrap: o.values.length > o.wrapAt ? 'wrap' : 'nowrap', chipMin: o.values.length > o.wrapAt ? '52px' : '0',
+    };
   }
   chip(label, active, go, mono) {    return { label, on: active ? 'on' : 'off', go,
       bg: active ? 'rgba(var(--accent-rgb),.16)' : 'transparent',
@@ -7550,20 +7688,26 @@ class Component extends DCLogic {
     const kit = this.kit(), d = P.kitDerived(kit);
     const sensors = ['ff', 'aps', 'apsc', 'mft'];
     const mps = [24, 33, 45.7, 61];
-    const focals = [14, 20, 24, 35, 50, 85, 135];
+    /* the seven standard lengths plus any the user has kept, in order; a kept one goes on a long press */
+    const keptF = this.kept('focal'), keptA = this.kept('aperture');
+    const focals = [14, 20, 24, 35, 50, 85, 135].concat(keptF).sort((a, b) => a - b);
     const aps = [1.4, 1.8, 2.8, 4];
+    const apsAll = aps.concat(keptA).sort((a, b) => a - b);
     const npf = d.npf * (kit.tol === 'relax' ? 2 : 1);
     const thirds = P.hoursForFraction(kit, 1 / 3, 0);
     const rulePos = Math.min(80, Math.max(34, 26 * (d.rule500 / Math.max(npf, 0.1)))).toFixed(1) + '%';
     return {
       kitRows: [
-        { label: 'Sensor', chips: sensors.map(s => this.chip(P.SENSORS[s].label.replace('full frame', 'Full frame').replace('APS-C Canon', 'APS-C 1.6'), kit.sensor === s, () => this.setKit({ sensor: s }))) },
-        { label: 'Megapixels', chips: mps.map(m => this.chip(String(m), kit.mp === m, () => this.setKit({ mp: m }), true)) },
-        { label: 'Lens', chips: focals.map(f => this.chip(String(f), kit.focal === f, () => this.setKit({ focal: f }), true)),
-          custom: true, customValue: kit.focal,
-          onCustomFocal: e => { const v = Math.round(Number(e.target.value)); if (v > 0 && v <= 2000) this.setKit({ focal: v }); } },
-        { label: 'Widest aperture', chips: aps.map(a => this.chip('f/' + a, kit.aperture === a, () => this.setKit({ aperture: a }), true)) },
-        { label: 'Orientation', chips: [this.chip('Landscape', kit.orient !== 'port', () => this.setKit({ orient: 'land' })), this.chip('Portrait', kit.orient === 'port', () => this.setKit({ orient: 'port' }))] },
+        /* rows without their own wrap settings fall back to these */
+        { label: 'Sensor', wrap: 'nowrap', chipMin: '0', chips: sensors.map(s => this.chip(P.SENSORS[s].label.replace('full frame', 'Full frame').replace('APS-C Canon', 'APS-C 1.6'), kit.sensor === s, () => this.setKit({ sensor: s }))) },
+        { label: 'Megapixels', wrap: 'nowrap', chipMin: '0', chips: mps.map(m => this.chip(String(m), kit.mp === m, () => this.setKit({ mp: m }), true)) },
+        this.customRow({ label: 'Lens', key: 'focal', values: focals, kept: keptF, cur: kit.focal, fmt: String, parse: s => Math.round(Number(s)),
+          ok: v => v > 0 && v <= 2000, lead: 'or type one', unit: 'mm', aria: 'Custom focal length in millimetres', min: 1, max: 2000, step: 1, wrapAt: 7,
+          note: 'Your own lengths sit among the buttons. Press and hold one to remove it.' }),
+        this.customRow({ label: 'Widest aperture', key: 'aperture', values: apsAll, kept: keptA, cur: kit.aperture, fmt: a => 'f/' + a, parse: s => Math.round(Number(s) * 10) / 10,
+          ok: v => v >= 0.7 && v <= 64, lead: 'or type f/', unit: '', aria: 'Custom widest aperture, f-number', min: 0.7, max: 64, step: 0.1, wrapAt: 5,
+          note: 'Your own apertures sit among the buttons. Press and hold one to remove it.' }),
+        { label: 'Orientation', wrap: 'nowrap', chipMin: '0', chips: [this.chip('Landscape', kit.orient !== 'port', () => this.setKit({ orient: 'land' })), this.chip('Portrait', kit.orient === 'port', () => this.setKit({ orient: 'port' }))] },
       ],
       /* Sent here from AR to change a lens: the way back, with the view restored as it was. */
       kitBackAr: !!this.state.kitReturn,

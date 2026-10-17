@@ -564,6 +564,29 @@ function ovHeight(q){
   if (fl > 0 && fl < 200) return [mh + fl * 3.2 + 1, 'f'];
   return [OV_GUESS[q.class] || OV_GUESS[q.subtype] || 7, 'g'];
 }
+/* A tile from the worker's own copy where it has the buildings route, otherwise straight from
+   Overture. The worker answers 204 for a tile with nothing in it, and 404 if it has no buildings
+   route yet, which sends every later tile straight to Overture for this session. */
+let ovViaProxy = null;
+async function ovTile(pm, z, tx, ty){
+  if (CFG.proxy && ovViaProxy !== false) {
+    try {
+      const r = await fetch(CFG.proxy + '/buildings/' + z + '/' + tx + '/' + ty);
+      if (r.status === 204) { ovViaProxy = true; return null; }
+      if (r.ok) {
+        ovViaProxy = true;
+        let b = new Uint8Array(await r.arrayBuffer());
+        /* normally unpacked by the browser on the way in; if it arrives still packed, unpack it here */
+        if (b[0] === 0x1f && b[1] === 0x8b && typeof DecompressionStream !== 'undefined')
+          b = new Uint8Array(await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+        return b;
+      }
+      if (r.status === 404) ovViaProxy = false;
+    } catch (e) {}
+  }
+  const r = await pm.getZxy(z, tx, ty);
+  return r && r.data ? new Uint8Array(r.data) : null;
+}
 async function overtureBuildings(ctx){
   const { pm, VT, Pbf } = await overture();
   const z = 14, n = 1 << z, c = ctx.geo, W = ctx.W, out = new Float32Array(W * W).fill(NaN);
@@ -575,11 +598,11 @@ async function overtureBuildings(ctx){
   const jobs = [];
   for (let tx = txOf(c.w); tx <= txOf(c.e); tx++) for (let ty = tyOf(c.n); ty <= tyOf(c.s); ty++) jobs.push([tx, ty]);
   await Promise.all(jobs.map(async ([tx, ty]) => {
-    let r = null;
-    try { r = await pm.getZxy(z, tx, ty); } catch (e) { return; }
-    if (!r || !r.data) return;
+    let data = null;
+    try { data = await ovTile(pm, z, tx, ty); } catch (e) { return; }
+    if (!data || !data.length) return;
     let T;
-    try { T = new VT.VectorTile(new Pbf(new Uint8Array(r.data))); } catch (e) { return; }
+    try { T = new VT.VectorTile(new Pbf(data)); } catch (e) { return; }
     /* whole buildings first, then their parts on top: a tower on a podium is two parts, and only
        the parts know the tower is the tall bit */
     ['building', 'building_part'].forEach(name => {
