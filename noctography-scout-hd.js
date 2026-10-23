@@ -35,10 +35,10 @@ let RINGS = [
 ];
 /* Ground source. 'aws' is the global Terrarium set (about 30 m outside England). 'mapterhorn' is the
    open compilation of national laser and survey models: the same height encoding in 512 px WebP tiles,
-   read here as quadrants so the rest of the scene still sees 256 px tiles. On trial behind ?ground=new
-   (or localStorage noctography.scout.ground = 'new') until the terrain decisions are made. */
+   read here as quadrants so the rest of the scene still sees 256 px tiles. The default since 3.0.14;
+   ?ground=old (remembered) goes back to the global set, ?ground=new returns. */
 const MT_BASE = 'https://tiles.mapterhorn.com/';
-const GROUND = (() => { try { const q = /[?&]ground=(new|mapterhorn|old|aws)\b/.exec(location.search); const v = q ? q[1] : localStorage.getItem('noctography.scout.ground'); return v === 'new' || v === 'mapterhorn' ? 'mapterhorn' : 'aws'; } catch (e) { return 'aws'; } })();
+const GROUND = (() => { try { const q = /[?&]ground=(new|mapterhorn|old|aws)\b/.exec(location.search); const v = q ? q[1] : localStorage.getItem('noctography.scout.ground'); if (q) localStorage.setItem('noctography.scout.ground', q[1]); return v === 'old' || v === 'aws' ? 'aws' : 'mapterhorn'; } catch (e) { return 'mapterhorn'; } })();
 const DEM_MAX_Z = GROUND === 'mapterhorn' ? 16 : 15, IMG_MAX_Z = 18;
 /* With the finer ground on a computer, carry the drawn detail further. Zooms and reach are pinned, and
    the figures are mesh spacing, which is what draws a skyline (in Scotland; a little coarser in the
@@ -672,6 +672,89 @@ function makeTexture(G, r, atlas){
   atlas.width = atlas.height = 0;
   return { tex, size: S };
 }
+/* Blocks for the far buildings: walls from each outline edge and a flat roof, standing on the lowest
+   ground under the outline so nothing floats on a slope. Roofs take the photograph's colour at the
+   building; walls get the pale render the shader gives buildings. */
+function farMesh(x, list, lat, lon){
+  const r = x.r, W = x.data.W, H = x.data.heights, BARE = x.data.bare, BASE = x.data.base;
+  /* the ground under a structure is the bare ground: the surface model has the structure itself in it */
+  const gAt = (lo, la) => { const px = clamp(Math.floor((lonToX(lo, r.z) - r.x0) * TILE), 0, W - 1), py = clamp(Math.floor((latToY(la, r.z) - r.y0) * TILE), 0, W - 1), k = py * W + px, b = BARE && BARE[k]; return b === b && b != null && b !== 0 ? b : BASE ? BASE[k] : H[k]; };
+  /* Where the ground is a surface model (the inner ring in Britain), a lighthouse, tower or chimney is
+     often in it already, at its true place, while the map has it a few metres off: drawing both stands
+     two side by side. So a structure is left to the ground when the surface rises within a few metres of
+     it to about its own height. Not near the eye, where buildings are lowered into the ground. */
+  const mpp = r.mPerPx || 2;
+  const held = b => {
+    if (!BARE || b.hand || b.abs) return false;
+    if (bearingDist(lat, lon, b.c[1], b.c[0]).d < 40) return false;
+    const rad = Math.hypot((b.pts[1] - b.c[1]) * 111320, (b.pts[0] - b.c[0]) * 111320 * Math.cos(b.c[1] * D2R)), rp = Math.max(10, 2 * rad + 6) / mpp;
+    const cx = (lonToX(b.c[0], r.z) - r.x0) * TILE, cy = (latToY(b.c[1], r.z) - r.y0) * TILE;
+    if (cx < 0 || cy < 0 || cx >= W || cy >= W) return false;
+    let peak = 0;
+    for (let j = Math.max(0, Math.floor(cy - rp)); j <= Math.min(W - 1, Math.ceil(cy + rp)); j++)
+      for (let i = Math.max(0, Math.floor(cx - rp)); i <= Math.min(W - 1, Math.ceil(cx + rp)); i++) {
+        if (Math.hypot(i + 0.5 - cx, j + 0.5 - cy) > rp) continue;
+        const k = j * W + i, bb = BARE[k]; if (!(bb === bb) || bb == null || bb === 0) continue;
+        const dz = H[k] - bb; if (dz > peak) peak = dz;
+      }
+    return peak >= Math.max(6, 0.55 * b.h) && peak <= 1.4 * b.h + 3;
+  };
+  list = list.filter(b => !held(b));
+  let nv = 0, ni = 0;
+  for (const b of list) { const m = b.pts.length / 2; nv += m * 22 + 2; ni += m * 30 + (m - 2) * 3; }
+  const pos = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), nrm = new Float32Array(nv * 3), can = new Float32Array(nv * 2), idx = new Uint32Array(ni);
+  let v = 0, q = 0;
+  const put = (X, Y, Z, nx, ny, nz, u0, v0) => { pos[v * 3] = X; pos[v * 3 + 1] = Y; pos[v * 3 + 2] = Z; nrm[v * 3] = nx; nrm[v * 3 + 1] = ny; nrm[v * 3 + 2] = nz; uv[v * 2] = u0; uv[v * 2 + 1] = v0; can[v * 2] = 0; can[v * 2 + 1] = 1; return v++; };
+  for (const b of list) {
+    const m = b.pts.length / 2, XY = new Float64Array(m * 2);
+    let g = Infinity, a = 0;
+    for (let i = 0; i < m; i++) {
+      const lo = b.pts[i * 2], la = b.pts[i * 2 + 1], bd = bearingDist(lat, lon, la, lo);
+      XY[i * 2] = bd.d * Math.sin(bd.br); XY[i * 2 + 1] = bd.d * Math.cos(bd.br);
+      const h = gAt(lo, la); if (h === h && h < g) g = h;
+    }
+    if (!(g < Infinity)) continue;
+    for (let i = 0, j = m - 1; i < m; j = i++) a += XY[j * 2] * XY[i * 2 + 1] - XY[i * 2] * XY[j * 2 + 1];
+    const ord = a >= 0 ? (i => i) : (i => m - 1 - i);
+    const cb = bearingDist(lat, lon, b.c[1], b.c[0]), curv = cb.d * cb.d / (2 * R_EFF);
+    const roof = b.roof || { shape: 'flat', rh: 0 };
+    const g0 = b.abs ? 0 : g, top = g0 + b.h - curv, zb = g0 + b.mh - curv;
+    const zt = roof.shape === 'mid' ? top - roof.rh / 2 : roof.shape === 'flat' ? top : top - roof.rh;
+    const u0 = ((lonToX(b.c[0], r.z) - r.x0) * TILE + 0.5) / W, v0 = ((latToY(b.c[1], r.z) - r.y0) * TILE + 0.5) / W;
+    let ox = 0, oy = 0; for (let i = 0; i < m; i++) { ox += XY[i * 2]; oy += XY[i * 2 + 1]; } ox /= m; oy /= m;
+    const face = (A, B, C) => { const ax = pos[B * 3] - pos[A * 3], ay = pos[B * 3 + 1] - pos[A * 3 + 1], az = pos[B * 3 + 2] - pos[A * 3 + 2], bx = pos[C * 3] - pos[A * 3], by = pos[C * 3 + 1] - pos[A * 3 + 1], bz = pos[C * 3 + 2] - pos[A * 3 + 2]; let nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx; const L = Math.hypot(nx, ny, nz) || 1; nx /= L; ny /= L; nz /= L; [A, B, C].forEach(k => { nrm[k * 3] = nx; nrm[k * 3 + 1] = ny; nrm[k * 3 + 2] = nz; }); idx[q++] = A; idx[q++] = B; idx[q++] = C; };
+    for (let k = 0; k < m; k++) {
+      const p = ord(k), s = ord((k + 1) % m), px = XY[p * 2], py = XY[p * 2 + 1], sx = XY[s * 2], sy = XY[s * 2 + 1];
+      const dx = sx - px, dy = sy - py, L = Math.hypot(dx, dy) || 1, nx = dy / L, ny = -dx / L;
+      const tp = b.taper || 1;
+      const A = put(px, py, zb, nx, ny, 0, u0, v0), B = put(sx, sy, zb, nx, ny, 0, u0, v0), C = put(ox + (sx - ox) * tp, oy + (sy - oy) * tp, zt, nx, ny, 0, u0, v0), D = put(ox + (px - ox) * tp, oy + (py - oy) * tp, zt, nx, ny, 0, u0, v0);
+      idx[q++] = A; idx[q++] = B; idx[q++] = C; idx[q++] = A; idx[q++] = C; idx[q++] = D;
+    }
+    if (roof.shape === 'point' || roof.shape === 'dome') {
+      /* a spire or pyramid straight to the apex; a dome in four bands, each ring drawn in toward the
+         middle by the cosine of its angle and lifted by the sine */
+      const L = roof.shape === 'dome' ? 4 : 1;
+      let prev = null;
+      for (let s = 0; s <= L; s++) {
+        const th = s / L * Math.PI / 2, k = roof.shape === 'dome' ? Math.cos(th) : 1 - s, zz = zt + roof.rh * (roof.shape === 'dome' ? Math.sin(th) : s);
+        if (s === L) {
+          const A = put(ox, oy, top, 0, 0, 1, u0, v0);
+          for (let e = 0; e < m; e++) face(prev[e], prev[(e + 1) % m], A);
+          break;
+        }
+        const ring = [];
+        for (let e = 0; e < m; e++) { const p = ord(e), kk = k * (b.taper || 1); ring.push(put(ox + (XY[p * 2] - ox) * kk, oy + (XY[p * 2 + 1] - oy) * kk, zz, 0, 0, 1, u0, v0)); }
+        if (prev) for (let e = 0; e < m; e++) { const a = prev[e], b2 = prev[(e + 1) % m], c2 = ring[(e + 1) % m], d2 = ring[e]; face(a, b2, c2); face(a, c2, d2); }
+        prev = ring;
+      }
+      continue;
+    }
+    const t0 = v;
+    for (let k = 0; k < m; k++) { const p = ord(k), tp = b.taper || 1; put(ox + (XY[p * 2] - ox) * tp, oy + (XY[p * 2 + 1] - oy) * tp, zt, 0, 0, 1, u0, v0); }
+    for (let k = 1; k < m - 1; k++) { idx[q++] = t0; idx[q++] = t0 + k; idx[q++] = t0 + k + 1; }
+  }
+  return { pos: pos.subarray(0, v * 3), uv: uv.subarray(0, v * 2), nrm: nrm.subarray(0, v * 3), can: can.subarray(0, v * 2), idx: idx.subarray(0, q), count: q };
+}
 function upload(G, mesh){
   const gl = G.gl;
   const buf = (data, target) => { const b = gl.createBuffer(); gl.bindBuffer(target || gl.ARRAY_BUFFER, b); gl.bufferData(target || gl.ARRAY_BUFFER, data, gl.STATIC_DRAW); return b; };
@@ -757,7 +840,7 @@ class Scene {
   }
   free(list){
     const gl = this.G && !this.lost && this.G.gl;
-    if (gl) list.forEach(x => { if (x && x.gpu) { gl.deleteTexture(x.tex.tex); [x.gpu.pos, x.gpu.uv, x.gpu.nrm, x.gpu.idx, x.gpu.can].forEach(b => b && gl.deleteBuffer(b)); } });
+    if (gl) list.forEach(x => { if (x && x.gpu) { gl.deleteTexture(x.tex.tex); [x.gpu, x.bgpu].forEach(g => g && [g.pos, g.uv, g.nrm, g.idx, g.can].forEach(b => b && gl.deleteBuffer(b))); } });
   }
   clear(){ this.free(this.rings); this.rings = []; }
   /* o: { onProgress(done, total), onRing(i), onDetail(done, total) }. Resolves when the coarse ground
@@ -802,6 +885,7 @@ class Scene {
     this.surfaceInfo = null;
     this.sharpen(token, boxes, o.onDetail);
     this.addSurface(token, o.onSurface);
+    setTimeout(() => { if (this.token === token) this.addFar(token); }, 1500);
     return { ground: this.ground };
   }
   /* The sharp pass. Tiles an inner ring already covers are skipped, since nothing of them is drawn;
@@ -868,7 +952,7 @@ class Scene {
       const ctx = { W, box, lat, lon, lonOf, latOf, m: r.mPerPx, mMerc: (box.x1 - box.x0) / W, H: Float32Array.from(x.data.base), patient: !!again,
         geo: { n: yToLat(r.y0, r.z), s: yToLat(r.y0 + r.n, r.z), w: xToLon(r.x0, r.z), e: xToLon(r.x0 + r.n, r.z) } };
       let res = null;
-      const O = window.NoctoOffline, ck = 'https://offline.noctography.net/surface5/' + r.z + '/' + r.x0 + '/' + r.y0 + (NS.bldSource && NS.bldSource() === 'overture' ? '/ov' : '');
+      const O = window.NoctoOffline, ck = 'https://offline.noctography.net/surface6/' + r.z + '/' + r.x0 + '/' + r.y0 + (NS.bldSource && NS.bldSource() === 'overture' ? '/ov' : '');
       const packed = O && !again ? await O.get(ck) : null;
       if (packed) {
         try {
@@ -972,16 +1056,40 @@ class Scene {
       return v === v && v !== 0 && v > H[j * W + i] - 120 && v < H[j * W + i] + 120 ? v : NaN;
     };
     const canopy = new Float32Array(H.length), bldW = new Float32Array(H.length), treeH = new Float32Array(H.length), bareK = new Float32Array(H.length);
+    /* Lighthouses and observatory domes are solid, but most are not mapped as buildings, so in the
+       surface model a lighthouse on legs in the sea looked like a clump of trees and was flattened
+       within 400 m (Dovercourt's Low Light vanished from the beach beside the High Light). Their
+       footprints, and 3 m round them, are treated as buildings. */
+    let smask = null;
+    if (NS && NS.farStructures) {
+      const SL = await NS.farStructures({ lat, lon, rMax: r.n * TILE * r.mPerPx * 0.75 }).catch(() => null);
+      if (this.token !== token || this.rings[0] !== x) return;
+      if (SL && SL.list.length) {
+        smask = new Uint8Array(H.length);
+        for (const s of SL.list) {
+          /* a bridge deck or a statue on its pedestal is not a footprint on the ground; a tower on a summit is,
+             and without it the surface model's own copy of the tower was drawn as a clump of trees */
+          if (s.hand && (s.abs || s.mh > 0.5)) continue;
+          const rad = Math.hypot((s.pts[1] - s.c[1]) * 111320, (s.pts[0] - s.c[0]) * 111320 * Math.cos(s.c[1] * D2R)) + 3;
+          const cx = (lonToX(s.c[0], r.z) - r.x0) * TILE, cy = (latToY(s.c[1], r.z) - r.y0) * TILE, rp = rad / m;
+          for (let jj = Math.max(0, Math.floor(cy - rp)); jj <= Math.min(W - 1, Math.ceil(cy + rp)); jj++)
+            for (let ii = Math.max(0, Math.floor(cx - rp)); ii <= Math.min(W - 1, Math.ceil(cx + rp)); ii++)
+              if (Math.hypot(ii + 0.5 - cx, jj + 0.5 - cy) <= rp) smask[jj * W + ii] = 1;
+        }
+      }
+    }
     let got = 0;
     for (let j = 0; j < W; j++) for (let i = 0; i < W; i++) {
       const k = j * W + i, v = med[k];
       if (v !== v) continue;
       got++;
-      const b0 = bareAt(i, j), isB = (!!kind && (kind[k] === 2 || kind[k] === 3) && (b0 !== b0 || v - b0 > 1.5)) || (!!flat[k] && b0 === b0 && v - b0 > 3);
+      const b0 = bareAt(i, j), isB = (!!kind && (kind[k] === 2 || kind[k] === 3) && (b0 !== b0 || v - b0 > 1.5)) || (!!flat[k] && b0 === b0 && v - b0 > 3) || (!!smask && !!smask[k] && (b0 !== b0 || v - b0 > 1.5));
       if (isB) bldW[k] = 1;
       else if (b0 === b0) canopy[k] = ss(1.5, 5, v - b0);
       const d = Math.hypot(i - ci, j - cj) * m;
-      const tall = !isB && b0 === b0 && v - b0 > 2.5;
+      const wet = !isB && !!kind && kind[k] === 4;
+      const tall = !isB && !wet && b0 === b0 && v - b0 > 2.5;
+      if (wet) { canopy[k] = 0; if (b0 === b0) H[k] = b0; continue; }
       if (tall) { treeH[k] = v - b0; bareK[k] = b0; }
       /* woods near the eye come down to the ground: the trees are drawn as trees instead */
       if (tall && d < 400) H[k] = b0 + (v - b0) * ss(330, 400, d);
@@ -1027,7 +1135,7 @@ class Scene {
         if (sm[k] > 0.3 || treeH[k] > 0) { const t = ss(330, 400, dd); H[k] = b + sm[k] * t; canopy[k] = ss(0.5, 4, sm[k]); }
       }
     }
-    x.data.canopy = canopy; x.data.bld = kind ? bldW : null; x.data.bare = bare || null;
+    x.data.canopy = canopy; x.data.bld = kind ? bldW : null; x.data.bare = bare || null; x.data.kind = kind || null;
     /* one tree for every few square metres of wood, spaced by height, none within 12 m of the eye.
        Conifers become more likely to the north and higher up; the data does not say which is which. */
     {
@@ -1036,10 +1144,12 @@ class Scene {
       const per = k => { const s = clamp(0.3 * treeH[k], 3.5, 9); return pA / (s * s); };
       const near = (i, j) => { const dd = Math.hypot(i - ci, j - cj) * m; return dd >= 12 && dd <= 400; };
       let est = 0;
-      for (let j = 0; j < W; j++) for (let i = 0; i < W; i++) { const k = j * W + i; if (treeH[k] > 3 && near(i, j)) est += per(k); }
+      /* a tree crown covers several cells; one tall cell on its own is a van, a lamp post or noise */
+      const crown = k => { let c = 0; const i0 = k % W, j0 = (k - i0) / W; for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const ii = i0 + di, jj = j0 + dj; if (ii >= 0 && jj >= 0 && ii < W && jj < W && treeH[jj * W + ii] > 3) c++; } return c >= 3; };
+      for (let j = 0; j < W; j++) for (let i = 0; i < W; i++) { const k = j * W + i; if (treeH[k] > 3 && near(i, j) && crown(k)) est += per(k); }
       const scale = Math.min(1, 16000 / Math.max(1, est)), out = [];
       for (let j = 0; j < W; j++) for (let i = 0; i < W; i++) {
-        const k = j * W + i; if (!(treeH[k] > 3) || !near(i, j)) continue;
+        const k = j * W + i; if (!(treeH[k] > 3) || !near(i, j) || !crown(k)) continue;
         const n = per(k) * scale, c = Math.floor(n) + (rnd(k, 1) < n - Math.floor(n) ? 1 : 0);
         for (let t = 0; t < c; t++) {
           const o = 2 + t * 5;
@@ -1054,7 +1164,60 @@ class Scene {
     [old.pos, old.uv, old.nrm, old.idx, old.can].forEach(b => b && gl.deleteBuffer(b));
     this.version++;
     this.treeCount = mesh.trees || 0;
+    /* the surface model may hold structures the blocks also draw: the inner ring's blocks again, now it can tell */
+    const ff = this._farFor; if (ff && ff.token === token && ff.groups[0] && ff.groups[0].length) { ff.build(0, ff.groups[0]); if (this.onFar) this.onFar(); }
     say({ state: 'on', name: src.name, credit: src.credit, terrainOnly: !!src.terrainOnly, share: got / H.length, trees: mesh.trees || 0, m: r.mPerPx, km: r.n * TILE * r.mPerPx / 1000 });
+  }
+  /* Buildings beyond the inner ring, stood up as blocks on the ground of whichever ring they fall in.
+     Pushed into the ground mesh instead, a tower would become a spike as wide as the mesh spacing. */
+  async addFar(token){
+    const NS = window.NoctoSurfaces, x0 = this.rings[0];
+    if (!NS || !NS.farBuildings || (NS.bldSource && NS.bldSource() !== 'overture') || !x0 || !x0.box || this.lat == null || !this.G) return;
+    const lat = this.lat, lon = this.lon;
+    const phone = probe().ios || this.tier === 'light' || !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+    let res = null, structs = [];
+    try {
+      const [bl, st] = await Promise.all([
+        NS.farBuildings({ lat, lon, rMax: phone ? 5000 : 8000, skip: x0.box, cap: phone ? 6000 : 20000, par: phone ? 3 : 6 }).catch(() => null),
+        NS.farStructures ? NS.farStructures({ lat, lon, rMax: 20000 }).catch(() => null) : null,
+      ]);
+      structs = st ? st.list : [];
+      res = { list: (bl ? bl.list : []).concat(structs) };
+    } catch (e) { res = null; }
+    if (this.token !== token || !this.G) return;
+    const gl = this.G.gl;
+    const groupOf = list => { const g = this.rings.map(() => []);
+      for (const b of list) for (let i = 0; i < this.rings.length; i++) {
+        const x = this.rings[i], B = x && x.box; if (!B) continue;
+        if (b.c[1] < B.n && b.c[1] > B.s && b.c[0] > B.w && b.c[0] < B.e) { g[i].push(b); break; }
+      }
+      return g; };
+    const build = (i, list) => { const x = this.rings[i], mesh = farMesh(x, list, lat, lon);
+      if (!mesh.count) { if (x.bgpu) { [x.bgpu.pos, x.bgpu.uv, x.bgpu.nrm, x.bgpu.idx, x.bgpu.can].forEach(b => b && gl.deleteBuffer(b)); x.bgpu = null; } return false; }
+      if (x.bgpu) [x.bgpu.pos, x.bgpu.uv, x.bgpu.nrm, x.bgpu.idx, x.bgpu.can].forEach(b => b && gl.deleteBuffer(b));
+      x.bgpu = upload(this.G, mesh); return true; };
+    const groups = groupOf(res ? res.list : []);
+    let shown = 0;
+    groups.forEach((list, i) => { if (list.length && build(i, list)) shown += list.length; });
+    /* kept so the inner ring's blocks can be rebuilt once its surface model lands */
+    this._farFor = { token, groups, build };
+    this.farCount = shown;
+    this.version++;
+    if (this.onFar) this.onFar();
+    /* towers, masts and chimneys come from OpenStreetMap through Overpass, which can be slow: each ring
+       that gains some is rebuilt when they arrive */
+    if (NS.osmTowers) NS.osmTowers({ lat, lon, rMax: 20000 }).then(tw => {
+      if (this.token !== token || !tw || !tw.length || !this.G) return;
+      /* a lighthouse or a bridge tower is already drawn from Scout's own list; OpenStreetMap often has it
+         again as a tower a few metres off, which would stand a second one beside it */
+      const cl = Math.cos(lat * D2R), fresh = tw.filter(t => !structs.some(q => Math.hypot((q.c[1] - t.c[1]) * 111320, (q.c[0] - t.c[0]) * 111320 * cl) < 40));
+      if (!fresh.length) return;
+      const add = groupOf(fresh); let n = 0;
+      add.forEach((extra, i) => { if (!extra.length) return; groups[i] = groups[i].concat(extra); if (build(i, groups[i])) n += extra.length; });
+      if (!n) return;
+      this.farCount += n; this.towerCount = n; this.version++;
+      if (this.onFar) this.onFar();
+    }).catch(() => {});
   }
   /* The light that throws shadows: the sun while it is lighting the ground, otherwise the moon. */
   shadowLight(light){
@@ -1190,7 +1353,7 @@ class Scene {
       gl.polygonOffset(i * 2, i * 2);
       gl.bindTexture(gl.TEXTURE_2D, x.tex.tex);
       if (x.dirty && now - x.mipAt > this.P.mipMs && pass === 0) { gl.generateMipmap(gl.TEXTURE_2D); x.dirty = false; x.mipAt = now; }
-      const g = x.gpu;
+      for (const g of [x.gpu, x.bgpu]) { if (!g) continue;
       gl.bindBuffer(gl.ARRAY_BUFFER, g.pos); gl.enableVertexAttribArray(G.a.pos); gl.vertexAttribPointer(G.a.pos, 3, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, g.uv); gl.enableVertexAttribArray(G.a.uv); gl.vertexAttribPointer(G.a.uv, 2, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, g.nrm); gl.enableVertexAttribArray(G.a.nrm); gl.vertexAttribPointer(G.a.nrm, 3, gl.FLOAT, false, 0, 0);
@@ -1200,12 +1363,20 @@ class Scene {
       }
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g.idx);
       gl.drawElements(gl.TRIANGLES, g.count, gl.UNSIGNED_INT, 0);
+      }
     }
     }
     gl.disable(gl.POLYGON_OFFSET_FILL);
   }
   /* true while the sharp tiles are still landing: the caller keeps repainting so the mipmaps catch up */
   get sharpening(){ return this.detail.total > 0 && (this.detail.done < this.detail.total || this.rings.some(x => x && x.dirty)); }
+  /* open water in the inner ring's land cover; null where it is not known */
+  waterAt(lat, lon){
+    const x = this.rings[0]; if (!x || !x.data || !x.data.kind) return null;
+    const r = x.r, W = x.data.W, fx = (lonToX(lon, r.z) - r.x0) * TILE, fy = (latToY(lat, r.z) - r.y0) * TILE;
+    if (fx < 0 || fy < 0 || fx >= W || fy >= W) return null;
+    return x.data.kind[Math.floor(fy) * W + Math.floor(fx)] === 4;
+  }
   resolution(){
     const p = this.plan; if (!p) return [];
     return p.rings.slice(0, 3).map((r, i) => ({ m: r.imgM, km: r.n * TILE * r.mPerPx / 2000 }));

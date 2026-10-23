@@ -603,22 +603,24 @@ function shortName(n){
 }
 
 /* Everything the framing view draws, in alt-az, for one instant. */
-function skyAt(date, lat, lon){
+function skyAt(date, lat, lon, o){
   const eng = E();
   const jd = eng.jdFrom(date), lst = eng.lstOf(jd, lon);
+  /* o.precess: the catalogue places moved to the date, as Scout draws them */
+  const pz = o && o.precess && eng.precess ? (ra, dec) => eng.precess(ra, dec, jd) : (ra, dec) => ({ ra, dec });
   const stars = BRIGHT.map(s => {
-    const p = eng.eq2horiz(s[0], s[1], lat, lst);
+    const q = pz(s[0], s[1]), p = eng.eq2horiz(q.ra, q.dec, lat, lst);
     return { alt: p.alt, az: p.az, mag: s[2], name: s[3] };
   });
   const gal = [];
   for (let l = 0; l <= 360; l += 4){
-    const e = galToEq(l, 0), p = eng.eq2horiz(e.ra, e.dec, lat, lst);
+    const e = galToEq(l, 0), q = pz(e.ra, e.dec), p = eng.eq2horiz(q.ra, q.dec, lat, lst);
     gal.push({ alt: p.alt, az: p.az, l });
   }
   const m = eng.moonPos(jd), mp = eng.eq2horiz(m.ra, m.dec, lat, lst);
   const il = eng.moonIllum(jd);
   const els = ELEMENTS.filter(e => e.ra != null).map(e => {
-    const p = eng.eq2horiz(e.ra, e.dec, lat, lst);
+    const q = pz(e.ra, e.dec), p = eng.eq2horiz(q.ra, q.dec, lat, lst);
     return { id: e.id, name: e.name, short: shortName(e.name), alt: p.alt, az: p.az, ext: e.ext, elong: e.elong || 1,
              pa: galAxisAngle(date, lat, lon, e.ra, e.dec) };
   });
