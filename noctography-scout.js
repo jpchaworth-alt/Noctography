@@ -475,8 +475,10 @@ function loadBand(src, onReady){
         const x = i < 2 * B0 ? i * i / (4 * B0) : i - B0;
         lut[i] = Math.min(1, Math.pow(x / (255 - B0), 0.52) * 1.06) * 255;
       }
+      /* NASA's 2020 map (Gaia DR2), reprojected to this galactic layout with its tone already set,
+         needs no lift: it is drawn as it comes */
       const strip = Math.max(1, Math.floor(2097152 / w));
-      for (let y = 0; y < h; y += strip) {
+      for (let y = /mw_nasa/.test(src) ? h : 0; y < h; y += strip) {
         const d = cx.getImageData(0, y, w, Math.min(strip, h - y)), p = d.data;
         for (let i = 0; i < p.length; i += 4) { p[i] = lut[p[i]]; p[i + 1] = lut[p[i + 1]]; p[i + 2] = lut[p[i + 2]]; }
         cx.putImageData(d, 0, y);
@@ -575,7 +577,27 @@ function skyColour(alt, dAz, sunAlt, gain){
    Open data (d3-celestial's files, derived from HYG and the IAU), fetched once from a CDN. Longitude
    in those files is right ascension in degrees wrapped to -180..180. */
 const SKY_BASE = 'https://cdn.jsdelivr.net/gh/ofrohn/d3-celestial@master/data/';
-const SKY = { stars: null, lines: null, bounds: null, names: null, loading: false, failed: false };
+const SKY = { stars: null, lines: null, bounds: null, names: null, loading: false, failed: false, deep: null, deepLoading: false };
+/* The fainter stars, magnitude 6.2 to 8 (35,000 of them, 5 MB): fetched the first time a view is
+   zoomed in far enough to show them, kept as unit vectors so a view only walks the ones near it. */
+/* The catalogues are at their J2000 places, while the Moon, the Sun and the sidereal time are of date:
+   26 years on, about a third of a degree between them. So each catalogue is moved to the date as it
+   loads (a year's drift after that is under a hundredth of a degree), and the planets and the maps of
+   the sky as they are drawn. */
+const PJD = 2440587.5 + Date.now() / 86400000;
+const toDate = (r, d, jd) => { const E = window.NoctoEngine; return E && E.precess ? E.precess(r, d, jd || PJD) : { ra: r, dec: d }; };
+const fromDate = (r, d, jd) => { const E = window.NoctoEngine; return E && E.precess ? E.precess(r, d, jd || PJD, true) : { ra: r, dec: d }; };
+function loadDeepStars(){
+  if (SKY.deep || SKY.deepLoading) return; SKY.deepLoading = true;
+  fetch(SKY_BASE + 'stars.8.json').then(r => r.json()).then(j => {
+    const out = [];
+    (j.features || []).forEach(f => { const m = Number(f.properties.mag); if (!(m > 6.2) || m > 8.05) return;
+      const t0 = toDate(ra(f.geometry.coordinates[0]), f.geometry.coordinates[1]), r = t0.ra * D2R, d = t0.dec * D2R, bv = f.properties.bv === '' || f.properties.bv == null ? null : Number(f.properties.bv);
+      out.push({ ra: r * R2D, dec: d * R2D, mag: m, bv, x: Math.cos(d) * Math.cos(r), y: Math.cos(d) * Math.sin(r), z: Math.sin(d) }); });
+    SKY.deep = out; SKY.deepLoading = false;
+    try { window.dispatchEvent(new Event('nocto-deepstars')); } catch (e) {}
+  }).catch(() => { SKY.deepLoading = false; });
+}
 function ra(lon){ return lon < 0 ? lon + 360 : lon; }
 function lineSets(fc){
   const out = [];
@@ -598,12 +620,45 @@ async function loadSkyData(onReady){
     SKY.lines = lineSets(li);
     SKY.bounds = lineSets(bo);
     SKY.names = (na.features || []).map(f => ({ ra: ra(f.geometry.coordinates[0]), dec: f.geometry.coordinates[1], name: f.properties.name || f.properties.desig || f.id }));
+    const pz = q => { const t = toDate(q.ra, q.dec); q.ra = t.ra; q.dec = t.dec; };
+    SKY.stars.forEach(pz); SKY.names.forEach(pz);
+    [SKY.lines, SKY.bounds].forEach(L => L.forEach(ring => ring.forEach(c => { const t = toDate(c[0], c[1]); c[0] = t.ra; c[1] = t.dec; })));
   } catch (e) { SKY.failed = true; }
   SKY.loading = false;
   if (onReady) onReady();
 }
+/* Star colour from B-V, subtle: Ballesteros temperature, a black body in sRGB, then two thirds of the
+   way back to white. Cached by B-V to a hundredth. */
+const INK = new Map();
+function starInk(bv){
+  if (bv == null || !isFinite(bv)) return '#EDEAE2';
+  const k = Math.round(bv * 100); let c = INK.get(k); if (c) return c;
+  const T = 4600 * (1 / (0.92 * bv + 1.7) + 1 / (0.92 * bv + 0.62)), t = T / 100;
+  let r, g, b;
+  if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+  else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+  const v = [r, g, b].map(x => Math.max(0, Math.min(255, x)) / 255), m = Math.max(...v), sat = 0.35;
+  c = 'rgb(' + v.map((x, i) => Math.round((1 - sat + sat * x / m) * [237, 234, 226][i])).join(',') + ')';
+  INK.set(k, c); return c;
+}
+/* the bright stars come from the planner without a colour: matched once to the catalogue by position */
+/* the soft halo a lens and the eye give a bright star: a radial fade three times the core's size */
+function glowAt(ctx, x, y, r, col, k){
+  const m = /^#(..)(..)(..)$/.exec(col), rgb = m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)].join(',') : (col.match(/\d+/g) || [237, 234, 226]).slice(0, 3).join(',');
+  const R = r * 3.4, g = ctx.createRadialGradient(x, y, 0, x, y, R);
+  g.addColorStop(0, 'rgba(' + rgb + ',' + (0.5 * k).toFixed(3) + ')'); g.addColorStop(0.3, 'rgba(' + rgb + ',' + (0.16 * k).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, R, 0, 6.2832); ctx.fill();
+}
+const BRIGHT_INK = new Map();
+function brightInk(s){
+  if (!SKY.stars || s.ra == null || s.dec == null) return '#EDEAE2';
+  const key = s.ra.toFixed(1) + ',' + s.dec.toFixed(1); let c = BRIGHT_INK.get(key); if (c) return c;
+  let best = null, bd = 0.35;
+  for (const q of SKY.stars) { if (q.mag > 3) continue; const d = Math.hypot((q.ra - s.ra) * Math.cos(s.dec * D2R), q.dec - s.dec); if (d < bd) { bd = d; best = q; } }
+  c = starInk(best ? best.bv : null); BRIGHT_INK.set(key, c); return c;
+}
 function drawStarMap(ctx, pr, lat, lst, W, H, o){
-  const E = window.NoctoEngine; if (!E || !SKY.stars) return;
+  const E = window.NoctoEngine; if (!E || (!SKY.stars && !o.grid)) return;
   const dpr = o.dpr || 1, dark = o.dark == null ? 1 : o.dark, nv = !!o.nv;
   const proj = (r, d) => { const c = E.eq2horiz(r, d, lat, lst); if (c.alt < -8) return null; const p = pr(c.alt, c.az); return (p && p.f != null && p.f <= 0.05) ? null : p; };
   const kx = pr.kx != null ? pr.kx : (W / 2) / Math.tan((pr.hfovDeg || 60) / 2 * D2R);
@@ -622,6 +677,41 @@ function drawStarMap(ctx, pr, lat, lst, W, H, o){
     });
     ctx.stroke(); ctx.restore();
   };
+  /* The celestial grid: hour circles of right ascension every hour (every two on a wide view), parallels of
+     declination every 10° (every 20°), the equator drawn stronger and both poles marked, all of date like the
+     stars. Labels: the hours along the equator, the declinations up the hour circle nearest the middle of the
+     view (the meridian without an unproject), unless a caller drawing slices turns them off */
+  if (o.grid) {
+    const hfG = 2 * Math.atan((W / 2) / kx) * R2D, rs = hfG > 80 ? 30 : 15, dsG = hfG > 80 ? 20 : 10, gs = [], eq = [];
+    for (let d = -80; d <= 80; d += dsG) { if (!d) continue; const ring = []; for (let r = 0; r <= 360; r += 2) ring.push([r, d]); gs.push(ring); }
+    for (let r = 0; r < 360; r += rs) { const ring = []; for (let d = -88; d <= 88; d += 2) ring.push([r, d]); gs.push(ring); }
+    for (let r = 0; r <= 360; r += 1) eq.push([r, 0]);
+    const gI = a => nv ? 'rgba(255,59,24,' + a + ')' : 'rgba(156,186,232,' + a + ')';
+    strokeSets(gs, gI(0.22), dpr);
+    strokeSets([eq], gI(0.62), 1.6 * dpr);
+    if (o.gridLabels !== false) {
+      const inside = p => p && p.x > 18 * dpr && p.x < W - 18 * dpr && p.y > 14 * dpr && p.y < H - 26 * dpr, hair = String.fromCharCode(8202);
+      ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '500 ' + (10 * dpr) + 'px "JetBrains Mono", ui-monospace, monospace'; ctx.fillStyle = gI(0.8);
+      for (let r = 0; r < 360; r += rs) { const p = proj(r, 0); if (inside(p)) ctx.fillText(Math.round(r / 15) + 'h', p.x, p.y - 9 * dpr); }
+      let raC = ((lst % 360) + 360) % 360;
+      if (pr.unproject) { const c = pr.unproject(W / 2, H / 2); if (c) { const a = c.alt * D2R, zz = c.az * D2R, la = lat * D2R;
+        const hh = Math.atan2(-Math.sin(zz) * Math.cos(a), Math.cos(la) * Math.sin(a) - Math.sin(la) * Math.cos(a) * Math.cos(zz)); raC = (((lst * D2R - hh) * R2D) % 360 + 360) % 360; } }
+      raC = (Math.round(raC / rs) * rs) % 360;
+      for (let d = -80; d <= 80; d += dsG) { if (!d) continue; const p = proj(raC, d); if (inside(p)) ctx.fillText((d > 0 ? '+' : '\u2212') + Math.abs(d) + '\u00b0', p.x + 18 * dpr, p.y); }
+      ctx.font = '500 ' + (10.5 * dpr) + 'px Barlow, sans-serif';
+      const say = (t, x, y) => ctx.fillText(t.toUpperCase().split('').join(hair), x, y);
+      /* the equator's name halfway between two hour labels, nearest the middle of the view */
+      let best = null, bd = 1e9; for (let r = rs / 2; r < 360; r += rs) { const p = proj(r, 0); if (!inside(p)) continue; const dd = Math.hypot(p.x - W / 2, p.y - H / 2); if (dd < bd) { bd = dd; best = p; } }
+      if (best) say('Celestial equator', best.x, best.y + 11 * dpr);
+      [[89.9999, 'North celestial pole'], [-89.9999, 'South celestial pole']].forEach(([d, name]) => { const p = proj(0, d); if (!inside(p)) return;
+        ctx.strokeStyle = gI(0.85); ctx.lineWidth = 1.4 * dpr; ctx.beginPath(); ctx.arc(p.x, p.y, 6 * dpr, 0, 6.2832); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(p.x - 10 * dpr, p.y); ctx.lineTo(p.x + 10 * dpr, p.y); ctx.moveTo(p.x, p.y - 10 * dpr); ctx.lineTo(p.x, p.y + 10 * dpr); ctx.stroke();
+        say(name, p.x, p.y + 20 * dpr); });
+      ctx.restore();
+    }
+  }
+  if (!SKY.stars) return;
   if (o.bounds) strokeSets(SKY.bounds, nv ? 'rgba(255,59,24,.22)' : 'rgba(240,236,228,.16)', dpr, [4 * dpr, 5 * dpr]);
   if (o.lines) strokeSets(SKY.lines, nv ? 'rgba(255,59,24,.5)' : 'rgba(214,179,104,.42)', dpr);
   if (o.stars && dark > 0) {
@@ -629,13 +719,47 @@ function drawStarMap(ctx, pr, lat, lst, W, H, o){
     /* a caller drawing slices of a wider picture says how big stars should be, since a slice's own
        narrow view would make them a telephoto's size */
     const scale = o.scaleAbs != null ? o.scaleAbs : Math.min(2.2, Math.max(0.6, kx / (W / 2) / 1.2));
-    const lim = 6.2 - (1 - Math.min(1, o.gain || 1)) * 1.5;   // a short exposure loses the faint ones
+    /* how deep the view reaches: magnitude 6.2 at a wide field, a magnitude more for every halving
+       of it, to 8 by about 30 degrees across. The exposure works on the stars as it does on the sky and
+       the band: at gain g a star shows as one 2.5 log g magnitudes brighter would at 45 per cent on the
+       slider (gain 0.925), and a long exposure reaches fainter ones, a short one loses them. Before,
+       a long exposure lifted the sky round the stars and left them as they were */
+    const hf = 2 * Math.atan((W / 2) / kx) * R2D, dm = 2.5 * Math.log10(Math.max(0.25, o.gain == null ? 0.925 : o.gain) / 0.925);
+    const lim = Math.min(8, 6.2 + Math.max(0, 4 * Math.log10(84 / Math.max(10, hf))) + dm);
+    /* a longer lens shows a star as a brighter point against the same sky, so zoomed in the faint
+       stars come up rather than staying as ghosts on the Milky Way */
+    const zb = Math.max(0, Math.min(1, Math.log2(84 / Math.max(10, hf)) / 2.5)) * 0.6;
     for (let i = 0; i < SKY.stars.length; i++) {
       const s = SKY.stars[i]; if (s.mag > lim || s.mag < 1.6) continue;   // the bright ones are already drawn
       const p = proj(s.ra, s.dec); if (!p || p.x < 0 || p.x > W || p.y < 0 || p.y > H) continue;
-      const r = Math.max(0.5 * dpr, (6.5 - s.mag) * 0.32 * scale * dpr);
-      ctx.globalAlpha = dark * Math.max(0.18, Math.min(0.9, (6.6 - s.mag) / 5));
+      /* the faint end held a little stronger, so a wide field on a big screen shows its fifth and sixth
+         magnitude stars as stars rather than as specks that vanish */
+      const m = s.mag - dm, r = Math.max(0.65 * dpr, (6.5 - m) * 0.37 * scale * dpr);
+      const col = nv ? '#FF3B18' : starInk(s.bv);
+      if (m < 3.6) { ctx.globalAlpha = dark; glowAt(ctx, p.x, p.y, r, col, Math.min(1, (3.6 - m) / 2)); }
+      ctx.globalAlpha = dark * Math.min(0.95, Math.max(0.26, Math.min(0.9, (7 - m) / 4.6)) + zb * Math.max(0, (lim + 0.5 - s.mag) / 3));
+      ctx.fillStyle = col;
       ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.2832); ctx.fill();
+    }
+    if (lim > 6.25 && !o.noDeep) {
+      if (!SKY.deep) loadDeepStars();
+      else if (pr.unproject) {
+        const c = pr.unproject(W / 2, H / 2);
+        if (c) {
+          const a = c.alt * D2R, zz = c.az * D2R, la = lat * D2R;
+          const dec = Math.asin(Math.sin(a) * Math.sin(la) + Math.cos(a) * Math.cos(la) * Math.cos(zz));
+          const hh = Math.atan2(-Math.sin(zz) * Math.cos(a), Math.cos(la) * Math.sin(a) - Math.sin(la) * Math.cos(a) * Math.cos(zz));
+          const r0 = lst * D2R - hh, cx = Math.cos(dec) * Math.cos(r0), cy = Math.cos(dec) * Math.sin(r0), cz = Math.sin(dec);
+          const cosR = Math.cos(Math.min(Math.PI / 2, Math.atan(Math.hypot(W, H) / 2 / kx) + 1.5 * D2R));
+          for (const s of SKY.deep) {
+            if (s.mag > lim || s.x * cx + s.y * cy + s.z * cz < cosR) continue;
+            const p = proj(s.ra, s.dec); if (!p || p.x < 0 || p.x > W || p.y < 0 || p.y > H) continue;
+            ctx.globalAlpha = dark * Math.min(0.85, 0.24 + zb * 1.1 * Math.max(0, (lim + 0.3 - s.mag) / 2)) * Math.min(1, (lim - s.mag) / 0.6 + 0.25);
+            ctx.fillStyle = nv ? '#FF3B18' : starInk(s.bv);
+            ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.6 * dpr, (8.6 - s.mag + dm) * 0.3 * scale * dpr), 0, 6.2832); ctx.fill();
+          }
+        }
+      }
     }
     ctx.restore();
   }
@@ -674,13 +798,13 @@ const KEY_OBJECTS = [
 ];
 function skyLabels(when, lat, lon, o, sky){
   const E = window.NoctoEngine, P = window.NoctoPlan; if (!E || !P) return [];
-  const jd = E.jdFrom(when), lst = E.lstOf(jd, lon), out = [], hz = (r, d) => E.eq2horiz(r, d, lat, lst);
+  const jd = E.jdFrom(when), lst = E.lstOf(jd, lon), out = [], hz = (r, d) => E.eq2horiz(r, d, lat, lst), hzJ = (r, d) => { const q = toDate(r, d, jd); return E.eq2horiz(q.ra, q.dec, lat, lst); };
   if (o.names) {
     let b = null; try { b = E.skyBodies ? E.skyBodies(jd) : null; } catch (e) {}
-    (b || []).forEach(q => { if (q.isMoon || !q.name || q.mag == null) return; const h = hz(q.ra, q.dec); out.push({ kind: 'planet', name: q.name, alt: h.alt, az: h.az, mag: q.mag, pri: 0 }); });
-    ((sky || P.skyAt(when, lat, lon)).stars || []).forEach(q => { if (q.name) out.push({ kind: 'star', name: q.name, alt: q.alt, az: q.az, mag: q.mag, pri: 2 + q.mag }); });
+    (b || []).forEach(q => { if (q.isMoon || !q.name || q.mag == null) return; const h = hzJ(q.ra, q.dec); out.push({ kind: 'planet', name: q.name, alt: h.alt, az: h.az, mag: q.mag, pri: 0 }); });
+    ((sky || P.skyAt(when, lat, lon, { precess: true })).stars || []).forEach(q => { if (q.name) out.push({ kind: 'star', name: q.name, alt: q.alt, az: q.az, mag: q.mag, pri: 2 + q.mag }); });
   }
-  if (o.objects) KEY_OBJECTS.forEach(q => { const h = hz(q[0], q[1]); out.push({ kind: 'object', name: q[2], alt: h.alt, az: h.az, pri: 1 }); });
+  if (o.objects) KEY_OBJECTS.forEach(q => { const h = hzJ(q[0], q[1]); out.push({ kind: 'object', name: q[2], alt: h.alt, az: h.az, pri: 1 }); });
   if (o.cons && SKY.names) SKY.names.forEach(q => { const h = hz(q.ra, q.dec); out.push({ kind: 'con', name: q.name, alt: h.alt, az: h.az, pri: 6 }); });
   return out;
 }
@@ -715,7 +839,11 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
   const o = opts || {};
   const pr = projector(view.alt, view.az, view.hfov, view.vfov, W, H);
   const jd = E.jdFrom(when), lst = E.lstOf(jd, lon);
-  const sky = P.skyAt(when, lat, lon);
+  const sky = P.skyAt(when, lat, lon, { precess: true });
+  /* the Moon where it really stands from here: topocentric and refracted (NoctoMoon), up to a degree
+     from the geocentric place, which matters most exactly when it matters, at moonrise */
+  const NM = window.NoctoMoon; let ap = null;
+  if (NM) { try { ap = NM.apparent(when, lat, lon, o.elevM || 0); } catch (e) { ap = null; } if (ap) { sky.moon.alt = ap.alt; sky.moon.az = ap.az; } }
   const gain = o.gain == null ? 1 : o.gain;
   const nv = !!o.nv;
   /* An eclipse under way is drawn wherever the sky is: the Moon across the Sun, or the Earth's
@@ -747,7 +875,7 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
         const b = (j / ny) * 180 - 90;
         for (let i = 0; i <= nx; i++) {
           let l = (0.5 - i / nx) * 360; l = ((l % 360) + 360) % 360;
-          const g = galToEq(l, b), c = E.eq2horiz(g.ra, g.dec, lat, lst);
+          const g0 = galToEq(l, b), g = toDate(g0.ra, g0.dec, jd), c = E.eq2horiz(g.ra, g.dec, lat, lst);
           const p = c.alt < -10 ? null : pr(c.alt, c.az);
           grid[j * (nx + 1) + i] = p ? [p.x, p.y] : null;
         }
@@ -780,14 +908,16 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
       if (s.alt < -1) return;
       const p = pr(s.alt, s.az); if (!p || p.x < -8 || p.x > W + 8 || p.y < -8 || p.y > H + 8) return;
       const scale = o.starScale != null ? o.starScale : Math.min(2.2, Math.max(0.6, pr.kx / (W / 2) / 1.2));   // tighter lens, bigger stars
-      const r = Math.max(1, (3.4 - s.mag) * 0.9 * scale * Math.max(0.6, gain));
+      const r = Math.max(1, (3.4 - s.mag) * 1.05 * scale * Math.max(0.6, gain));
       ctx.globalAlpha = dark * Math.max(0.3, Math.min(1, 1.1 - s.mag / 3));
-      ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.2832); ctx.fill();
+      const col = nv ? ink : brightInk(s), ga = ctx.globalAlpha;
+      ctx.globalAlpha = dark; glowAt(ctx, p.x, p.y, r, col, 1); ctx.globalAlpha = ga;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.2832); ctx.fill();
     });
     ctx.globalAlpha = 1;
   }
   /* the catalogue layers sit over the band and under the sun and moon */
-  if (o.map && (o.map.stars || o.map.lines || o.map.bounds || o.map.names))
+  if (o.map && (o.map.stars || o.map.lines || o.map.bounds || o.map.names || o.map.grid))
     drawStarMap(ctx, pr, lat, lst, W, H, Object.assign({ dark, gain, nv, dpr: o.dpr }, o.map));
   /* the planets, as the bright points they are; Venus and Jupiter show from late twilight */
   if (E.skyBodies && sunAlt < -3) {
@@ -796,7 +926,7 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
     (bodies || []).forEach(b => {
       if (b.isMoon || b.mag == null) return;
       const a = Math.max(dark, b.mag < 0 ? Math.min(1, (-sunAlt - 3) / 4) : 0); if (a <= 0.02) return;
-      const h = E.eq2horiz(b.ra, b.dec, lat, lst); if (h.alt < -1) return;
+      const bq = toDate(b.ra, b.dec, jd), h = E.eq2horiz(bq.ra, bq.dec, lat, lst); if (h.alt < -1) return;
       const p = pr(h.alt, h.az); if (!p || p.x < -10 || p.x > W + 10 || p.y < -10 || p.y > H + 10) return;
       const r = Math.max(1.2, (3.4 - Math.max(-2.4, b.mag)) * 0.9 * scale * Math.max(0.6, gain));
       ctx.globalAlpha = a; ctx.fillStyle = nv ? '#FF3B18' : b.name === 'Mars' ? '#F2C4A0' : b.name === 'Saturn' ? '#EFE2C2' : '#F6F1E6';
@@ -805,15 +935,35 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
     ctx.globalAlpha = 1;
   }
   const big = o.discScale != null ? o.discScale : discScale(pr, W, H);
-  /* the moon, with its phase: true size from a 135mm-equivalent view in, a little larger on wider ones */
+  /* the moon: the real face (NoctoMoon: lit at the true phase, turned by libration, its true size, squashed
+     by refraction low down) once its maps are in; until then the photograph with a drawn terminator */
   if (sky.moon.alt > -1) {
     const p = pr(sky.moon.alt, sky.moon.az);
     if (p) {
-      const r = Math.max(2.5, pr.kx * Math.tan(0.26 * D2R) * big);
+      const r = Math.max(2.5, pr.kx * Math.tan((ap ? ap.sd : 0.26) * D2R) * big);
       const frac = sky.moon.frac;
+      const mc = skyColour(sky.moon.alt, sky.moon.az - sky.sun.az, sunAlt, gain);
+      /* the face's maps are fetched the first time the Moon is big enough to show one */
+      const face = !!ap && r >= 5;
+      if (face && !NM.ready()) NM.load();
+      const F = face && NM.ready() ? NM.frame(ap, (a, z) => pr(a, z), big) : null;
+      /* the air's colour on the Moon low down, for its glow and the stand-in disc as well as the face */
+      const tn = NM && NM.tint ? NM.tint(sky.moon.alt) : [1, 1, 1];
+      const enc = (v, c) => Math.round(255 * Math.pow(Math.pow(c / 255, 2.2) * v, 1 / 2.2));
+      const glow = nv ? '255,59,24' : [enc(tn[0], 221), enc(tn[1], 224), enc(tn[2], 232)].join(','), glowA = nv ? ',.5)' : ',.55)';
+      const blur = r * 1.5 * Math.max(0.5, gain) * (el ? X.moonLit(el) : 1) * Math.max(0.15, frac);
+      let real = false;
+      if (F) {
+        /* the glow, from an ellipse a little inside the Moon's refracted outline so no rim shows past a dark limb */
+        ctx.save(); ctx.fillStyle = 'rgb(' + glow + ')';
+        ctx.shadowColor = 'rgba(' + glow + glowA; ctx.shadowBlur = blur;
+        ctx.beginPath(); ctx.ellipse(F.gx, F.gy, 0.88 * F.ga, 0.88 * F.gb, F.grot, 0, 6.2832); ctx.fill(); ctx.restore();
+        real = NM.draw(ctx, ap, F, { nv, sky: mc });
+      }
+      if (!real) {
       ctx.save();
-      ctx.fillStyle = nv ? '#FF3B18' : '#DDE0E8';
-      ctx.shadowColor = nv ? 'rgba(255,59,24,.5)' : 'rgba(220,224,235,.55)'; ctx.shadowBlur = r * 1.5 * Math.max(0.5, gain) * (el ? X.moonLit(el) : 1) * Math.max(0.15, frac);
+      ctx.fillStyle = 'rgb(' + glow + ')';
+      ctx.shadowColor = 'rgba(' + glow + glowA; ctx.shadowBlur = blur;
       ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.2832); ctx.fill();
       ctx.shadowBlur = 0;
       const XF = window.NoctoEclipse;
@@ -821,7 +971,6 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
       ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.01, 0, 6.2832); ctx.clip();
       /* the dark side takes the sky's own colour there, so a crescent in a blue sky is a crescent and
          not a black disc, with the photograph just showing through as earthshine does */
-      const mc = skyColour(sky.moon.alt, sky.moon.az - sky.sun.az, sunAlt, gain);
       const shade = nv ? 'rgba(' + Math.round(mc[0] * 0.9) + ',0,0,.95)' : 'rgba(' + Math.round(mc[0]) + ',' + Math.round(mc[1]) + ',' + Math.round(mc[2]) + ',.95)';
       /* the terminator is an ellipse of semi-axis |k|r; the lit limb faces the sun */
       const dx = Math.sign(((sky.sun.az - sky.moon.az + 540) % 360) - 180) || 1;
@@ -840,6 +989,11 @@ function drawSky(ctx, W, H, view, when, lat, lon, opts){
         ctx.beginPath(); ctx.ellipse(p.x, p.y, k, r, 0, 0, 6.2832); ctx.fill();
       }
       ctx.restore();
+      if (!nv && tn[2] < 0.97) {
+        ctx.save(); ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.01, 0, 6.2832); ctx.clip();
+        ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = 'rgb(' + tn.map(v => Math.round(255 * Math.pow(v, 1 / 2.2))).join(',') + ')'; ctx.fill(); ctx.restore();
+      }
+      }
       if (el) X.drawMoonShadow(ctx, p.x, p.y, r, el, X.parallactic(sky.moon.alt, sky.moon.az, lat), o.danjon != null ? o.danjon : X.settings().danjon);
     }
   }
@@ -1165,8 +1319,8 @@ function panoFootprint(az, t, lens){
    azimuth; what changes through the night is where, and how high it stands. */
 function panoArch(when, lat, lon){
   const E = window.NoctoEngine; if (!E) return null;
-  const lst = E.lstOf(E.jdFrom(when), lon);
-  const at = l => { const g = galToEq(l, 0); return E.eq2horiz(g.ra, g.dec, lat, lst); };
+  const jd0 = E.jdFrom(when), lst = E.lstOf(jd0, lon);
+  const at = l => { const g0 = galToEq(l, 0), g = toDate(g0.ra, g0.dec, jd0); return E.eq2horiz(g.ra, g.dec, lat, lst); };
   const line = [];
   let peak = { alt: -90, az: 0 }, rise = null;
   for (let l = 0; l < 360; l += 2) {
@@ -1216,14 +1370,14 @@ function haLayer(ctx, W, H, unproject, lat, lon, when, sky, o){
     HA.key = key; HA.at = now;
     if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
     const g = cv.getContext('2d'), img = g.createImageData(w, h), out = img.data;
-    const lst = E.lstOf(E.jdFrom(when), lon) * D2R, sl = Math.sin(lat * D2R), cl = Math.cos(lat * D2R);
+    const jdH = E.jdFrom(when), lst = E.lstOf(jdH, lon) * D2R, sl = Math.sin(lat * D2R), cl = Math.cos(lat * D2R);
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
       const dir = unproject((i + 0.5) * W / w, (j + 0.5) * H / h);
       if (!dir || dir.alt < -1) continue;
       const a = dir.alt * D2R, z = dir.az * D2R, sa = Math.sin(a), ca = Math.cos(a);
       const dec = Math.asin(sa * sl + ca * cl * Math.cos(z)), hh = Math.atan2(-Math.sin(z) * ca, cl * sa - sl * ca * Math.cos(z));
       let ra = (lst - hh) * R2D; ra = ((ra % 360) + 360) % 360;
-      const x = Math.min(M.W - 1, Math.max(0, Math.floor((360 - ra) / 360 * M.W))), y = Math.min(M.H - 1, Math.max(0, Math.floor((90 - dec * R2D) / 180 * M.H)));
+      const j2 = fromDate(ra, dec * R2D, jdH), x = Math.min(M.W - 1, Math.max(0, Math.floor((360 - j2.ra) / 360 * M.W))), y = Math.min(M.H - 1, Math.max(0, Math.floor((90 - j2.dec) / 180 * M.H)));
       let v = M.px[y * M.W + x] / 255; v = Math.pow(Math.max(0, (v - 0.06) / 0.94), 0.9);
       const q = v * k * Math.max(0, Math.min(1, (dir.alt + 1) / 14)), n = (j * w + i) * 4;
       /* the colour is fixed and the strength is the alpha: added over a see-through layer (the camera,
@@ -1241,7 +1395,7 @@ window.NoctoScout = {
   pano: { strip: panoStrip, grid: panoGrid, footprint: panoFootprint, arch: panoArch, TOP: PANO_TOP, BOT: PANO_BOT },
   Scene, plan, sizeLine, ringsFor, projector, drawSky, drawStarMap, discScale, focalT, skyLabels, drawLabels, loadBand, galToEq, skyColour, skyBackground, software,
   nightEvents, paintStrip, stripGestures, STRIP_PPM,
-  loadSkyData, skyDataReady: () => !!SKY.stars, skyDataFailed: () => SKY.failed, skyStars: () => SKY.stars,
+  loadSkyData, loadDeepStars, skyDataReady: () => !!SKY.stars, skyDataFailed: () => SKY.failed, skyStars: () => SKY.stars, skyNames: () => SKY.names || [],
   bandReady: () => !!bandLifted,
   R_EFF,
 };
