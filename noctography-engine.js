@@ -3411,13 +3411,31 @@ function conjunctions(nights, lat, lon, opts){
   return out.sort((x, y) => (x.date - y.date) || (x.sep - y.sep));
 }
 
+/* Precession from J2000 to the date (IAU 1976, Meeus 21.2), or back with toJ2000. The catalogues are at
+   their J2000 places; the Moon, the Sun and the sidereal time are of date. Angles kept per quarter day. */
+const PREC = { d: null };
+function precAngles(jd){
+  const d = Math.round(jd * 4) / 4; if (PREC.d === d) return PREC;
+  const T = (d - 2451545) / 36525, as = D2R / 3600;
+  PREC.d = d; PREC.zeta = (2306.2181 * T + 0.30188 * T * T + 0.017998 * T * T * T) * as;
+  PREC.z = (2306.2181 * T + 1.09468 * T * T + 0.018203 * T * T * T) * as; PREC.th = (2004.3109 * T - 0.42665 * T * T - 0.041833 * T * T * T) * as;
+  PREC.ct = Math.cos(PREC.th); PREC.st = Math.sin(PREC.th); return PREC;
+}
+function precess(ra, dec, jd, toJ2000){
+  const P = precAngles(jd), d0 = dec * D2R, cd = Math.cos(d0), sd = Math.sin(d0);
+  if (!toJ2000) { const a = ra * D2R + P.zeta, A = cd * Math.sin(a), B = P.ct * cd * Math.cos(a) - P.st * sd, C = P.st * cd * Math.cos(a) + P.ct * sd;
+    return { ra: norm((Math.atan2(A, B) + P.z) * R2D), dec: Math.asin(clamp(C, -1, 1)) * R2D }; }
+  const a = ra * D2R - P.z, A = cd * Math.sin(a), B = P.ct * cd * Math.cos(a) + P.st * sd, C = -P.st * cd * Math.cos(a) + P.ct * sd;
+  return { ra: norm((Math.atan2(A, B) - P.zeta) * R2D), dec: Math.asin(clamp(C, -1, 1)) * R2D };
+}
+
 window.NoctoEngine = {
   state, STEP, SHOWERS, BORTLE, ANT, SPO,
   loadAtlas, atlasSky, updateSky, nelmFor, bortleFor,
   ATLAS, TILES, loadTiles, tileSky, tileStatus, tileIndex,
   set onTilesReady(fn){TILES.onready=fn;}, get onTilesReady(){return TILES.onready;},
   loadWeather, loadWeatherCompare, loadClimatology, computeNight, computeAll,
-  sunPos, moonPos, moonIllum, lstOf, eq2horiz, jdFrom, clamp, norm,
+  sunPos, moonPos, moonIllum, lstOf, eq2horiz, jdFrom, clamp, norm, precess,
   clearFraction, veilFraction, rateFor, sampleSky, scoreOf, alphaOf, limitingMag,
   localParts, fmtTime, fmtDate, toUTC, pad, MONTHS, compass, tzOffset: () => state.tzOffset,
   nightChart, fovFraction, verdictWord, speedWord, sentence,

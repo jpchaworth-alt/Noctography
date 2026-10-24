@@ -25,17 +25,23 @@ function GT(){ return GTp || (GTp = import('https://cdn.jsdelivr.net/npm/geotiff
 /* Every answer is kept in the browser's cache for the offline store (see offline in the HD file);
    a cached answer is used first, so a saved location opens with no signal. */
 const CACHE = 'noctography-scout-v1';
-async function fetchBuf(url, ms){
-  const O = window.NoctoOffline;
-  if (O) { const hit = await O.get(url); if (hit) return hit; }
-  const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms || 30000);
+/* o, optionally: signal, to cancel it; head(), told when the answer starts, which refuses it by returning
+   false (the other of two routes got there first); got(bytes), told how much came */
+async function fetchBuf(url, ms, o){
+  const O = window.NoctoOffline, sig = o && o.signal;
+  if (sig && sig.aborted) return null;
+  if (O) { const hit = await O.get(url); if (hit) return o && o.head && o.head() === false ? null : hit; }
+  const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms || 30000), off = () => ac.abort();
+  if (sig) sig.addEventListener('abort', off);
   try {
     const r = await fetch(url, { signal: ac.signal }); if (!r.ok) return null;
+    if (o && o.head && o.head() === false) { ac.abort(); return null; }
     const buf = await r.arrayBuffer();
     if (O) O.put(url, buf);
+    if (o && o.got) o.got(buf.byteLength);
     return buf;
   }
-  catch (e) { return null; } finally { clearTimeout(t); }
+  catch (e) { return null; } finally { clearTimeout(t); if (sig) sig.removeEventListener('abort', off); }
 }
 /* WCS answers are sometimes a multipart body with the GML description first: find the TIFF in it */
 function tiffStart(buf){
@@ -164,7 +170,7 @@ function wcs3857(base, id, ax, wrap){
       '&format=image/tiff&subsettingCrs=' + C3857 + '&outputCrs=' + C3857 +
       '&subset=' + ax[0] + '(' + b.x0.toFixed(2) + ',' + b.x1.toFixed(2) + ')&subset=' + ax[1] + '(' + b.y0.toFixed(2) + ',' + b.y1.toFixed(2) + ')' +
       '&scalesize=' + (ax[2] || ax[0]) + '(' + ctx.W + '),' + (ax[3] || ax[1]) + '(' + ctx.W + ')');
-    const t = clean(await decodeTiff(await fetchBuf(url)));
+    const t = clean(await decodeTiff(await fetchBuf(url, ctx.race ? 140000 : undefined, ctx)));
     if (!t) return null;
     if (t.W === ctx.W && t.H === ctx.W) return t.data;
     /* some services (Finland) ignore the size asked for and answer on their own grid over the same box */
@@ -385,8 +391,12 @@ async function metaCanopy(ctx){
     try {
       /* bigger reads mean far fewer round trips through the worker to the bucket */
       const tif = await G.fromUrl(href, { allowFullFile: false, blockSize: CFG.canopyBlock || 4194304 });
-      const img = await tif.getImage();
-      const [bx0, by0, bx1, by1] = img.getBoundingBox(), iw = img.getWidth(), ih = img.getHeight();
+      let img = await tif.getImage();
+      const [bx0, by0, bx1, by1] = img.getBoundingBox();
+      /* a grid kilometres across (Shotfinder's) reads the smallest overview still about as fine as it is,
+         not every metre of the tile */
+      if (ctx.mMerc > 3 * (bx1 - bx0) / img.getWidth()) { try { const nI = await tif.getImageCount(); for (let q = 1; q < nI; q++) { const ov = await tif.getImage(q); if (ov.getWidth() < (bx1 - bx0) / (1.5 * ctx.mMerc)) break; img = ov; } } catch (e) {} }
+      const iw = img.getWidth(), ih = img.getHeight();
       const rx = (bx1 - bx0) / iw, ry = (by1 - by0) / ih, b = ctx.box;
       const wx0 = Math.max(0, Math.floor((b.x0 - bx0) / rx)), wx1 = Math.min(iw, Math.ceil((b.x1 - bx0) / rx));
       const wy0 = Math.max(0, Math.floor((by1 - b.y1) / ry)), wy1 = Math.min(ih, Math.ceil((by1 - b.y0) / ry));
@@ -452,12 +462,22 @@ async function ofmStructures(ctx){
   const stamp = (x, y, r) => { const r2 = r * r, x0 = Math.max(0, Math.floor(x - r)), x1 = Math.min(W - 1, Math.ceil(x + r)), y0 = Math.max(0, Math.floor(y - r)), y1 = Math.min(W - 1, Math.ceil(y + r));
     for (let j = y0; j <= y1; j++) for (let i = x0; i <= x1; i++) if ((i - x) * (i - x) + (j - y) * (j - y) <= r2) mask[j * W + i] = 1; };
   let count = 0;
+  /* water too (sea, rivers, lakes): nothing standing on it is a tree */
+  const wtmp = new Float32Array(W * W).fill(NaN);
+  let wcount = 0;
   const jobs = [];
   for (let tx = txOf(c.w); tx <= txOf(c.e); tx++) for (let ty = tyOf(c.n); ty <= tyOf(c.s); ty++) jobs.push([tx, ty]);
   await Promise.all(jobs.map(async ([tx, ty]) => {
     const buf = await fetchBuf(url.replace('{z}', z).replace('{x}', tx).replace('{y}', ty), 30000);
     if (!buf) return;
-    let L; try { L = new VT.VectorTile(new Pbf(new Uint8Array(buf))).layers.transportation; } catch (e) { return; }
+    let T, L; try { T = new VT.VectorTile(new Pbf(new Uint8Array(buf))); L = T.layers.transportation; } catch (e) { return; }
+    const WL = T.layers.water;
+    if (WL) for (let k = 0; k < WL.length; k++) {
+      const f = WL.feature(k); if (f.type !== 3) continue;
+      const wx = WL.extent;
+      fillRings(wtmp, W, f.loadGeometry().map(rg => rg.map(p => { const lon = (tx + p.x / wx) / n * 360 - 180, yy = Math.PI - 2 * Math.PI * (ty + p.y / wx) / n; return [PX(lon), yOfLat(R2D * Math.atan(Math.sinh(yy)))]; })), 1);
+      wcount++;
+    }
     if (!L) return;
     const ext = L.extent;
     for (let k = 0; k < L.length; k++) {
@@ -474,7 +494,9 @@ async function ofmStructures(ctx){
       count++;
     }
   }));
-  return count ? { mask, count } : null;
+  let water = null;
+  if (wcount) { water = new Uint8Array(W * W); for (let i = 0; i < water.length; i++) if (wtmp[i] === wtmp[i]) water[i] = 1; }
+  return count || water ? { mask, count, water } : null;
 }
 /* Paths, tracks and roads over a box, as lines of [lat, lon], from the same open tiles as the
    buildings: the transportation layer at z14 carries footpaths and tracks as well as roads. */
@@ -502,10 +524,21 @@ async function ofmPaths(s, w, n, e){
   }));
   return lines;
 }
-/* scanline fill, even-odd across all rings together so courtyards stay open */
-function fillRings(out, W, rings, h){
+/* scanline fill, even-odd across all rings together so courtyards stay open. With a roof, each
+   pixel takes the roof's height there: a spire or a pyramid rises to its apex over the middle, a dome
+   curves up to it, and a pitched roof is drawn at its mean height. */
+function fillRings(out, W, rings, h, roof){
   let ymin = 1e9, ymax = -1e9;
   rings.forEach(r => r.forEach(p => { if (p[1] < ymin) ymin = p[1]; if (p[1] > ymax) ymax = p[1]; }));
+  let hp = () => h;
+  if (roof && roof.shape !== 'flat' && roof.rh > 0) {
+    const o = rings[0]; let cx = 0, cy = 0; o.forEach(p => { cx += p[0]; cy += p[1]; }); cx /= o.length; cy /= o.length;
+    let R = 0; o.forEach(p => { R = Math.max(R, Math.hypot(p[0] - cx, p[1] - cy)); }); R = Math.max(R, 0.5);
+    const e = h - roof.rh;
+    hp = roof.shape === 'mid' ? () => h - roof.rh / 2
+      : roof.shape === 'dome' ? (x, y) => { const t = Math.min(1, Math.hypot(x + 0.5 - cx, y + 0.5 - cy) / R); return e + roof.rh * Math.sqrt(1 - t * t); }
+      : (x, y) => { const t = Math.min(1, Math.hypot(x + 0.5 - cx, y + 0.5 - cy) / R); return e + roof.rh * (1 - t); };
+  }
   const y0 = Math.max(0, Math.floor(ymin)), y1 = Math.min(W - 1, Math.ceil(ymax));
   for (let y = y0; y <= y1; y++) {
     const yc = y + 0.5, xs = [];
@@ -513,9 +546,22 @@ function fillRings(out, W, rings, h){
     xs.sort((a, b) => a - b);
     for (let k = 0; k + 1 < xs.length; k += 2) {
       const xa = Math.max(0, Math.ceil(xs[k] - 0.5)), xb = Math.min(W - 1, Math.floor(xs[k + 1] - 0.5));
-      for (let x = xa; x <= xb; x++) { const i = y * W + x; out[i] = out[i] === out[i] ? Math.max(out[i], h) : h; }
+      for (let x = xa; x <= xb; x++) { const i = y * W + x, v = hp(x, y); out[i] = out[i] === out[i] ? Math.max(out[i], v) : v; }
     }
   }
+}
+/* Overture's roof_shape and roof_height. Without a roof height, a spire on a part that stands on
+   something (and is no more than three times as tall as it is wide) is taken to be all spire, other
+   spires one and a half widths tall, domes half a width, pitched roofs a third. */
+const ROOF_POINT = /^(pyramidal|cone|conical|spire|skillion)$/, ROOF_DOME = /^(dome|spherical|onion)$/, ROOF_MID = /^(gabled|hipped|half-hipped|gambrel|mansard|round|saltbox|side_hipped|crosspitched)$/;
+function roofOf(q, h, mh, wM){
+  const s = String(q.roof_shape || '').toLowerCase(), span = Math.max(0, h - mh), given = +q.roof_height;
+  const shape = ROOF_POINT.test(s) ? 'point' : ROOF_DOME.test(s) ? 'dome' : ROOF_MID.test(s) ? 'mid' : 'flat';
+  if (shape === 'flat' || span <= 0) return { shape: 'flat', rh: 0 };
+  let rh = given > 0 ? Math.min(given, span)
+    : shape === 'point' ? (mh > 0 && span <= 3 * wM ? span : Math.min(span, 1.5 * wM))
+    : shape === 'dome' ? Math.min(span, 0.5 * wM) : Math.min(span, 0.35 * wM);
+  return { shape, rh };
 }
 async function buildings(ctx){
   if (bldSource() === 'overture') {
@@ -530,14 +576,14 @@ async function buildings(ctx){
    One global building layer: OpenStreetMap first, then Microsoft, Google and Esri outlines where OSM
    has none, with heights from OSM tags, Microsoft's imagery model and USGS lidar. Read here straight
    from Overture's own tile archive, pinned to one release; the plan is for the worker to keep its
-   own copy (see the terrain project notes). Switched on by ?bld=overture or
-   localStorage noctography.scout.buildings = 'overture'. */
+   own copy (see the terrain project notes). The default since 3.0.14; ?bld=osm (remembered) goes
+   back to OpenStreetMap alone, ?bld=overture returns. */
 function bldSource(){
   try {
     const q = /[?&]bld=(overture|osm)\b/.exec(location.search);
     if (q) { localStorage.setItem('noctography.scout.buildings', q[1]); return q[1]; }
-    return localStorage.getItem('noctography.scout.buildings') === 'overture' ? 'overture' : 'osm';
-  } catch (e) { return 'osm'; }
+    return localStorage.getItem('noctography.scout.buildings') === 'osm' ? 'osm' : 'overture';
+  } catch (e) { return 'overture'; }
 }
 let ovP = null;
 function overture(){
@@ -552,17 +598,23 @@ function overture(){
 }
 /* the height ladder: a measured or mapped height, then floors, then what this kind of building
    usually is, then a house */
-const OV_GUESS = { house: 7, detached: 7, semidetached_house: 7, terrace: 8, bungalow: 4.5, residential: 8, apartments: 15,
+const OV_GUESS = { house: 7, detached: 7, semidetached_house: 7, terrace: 8, bungalow: 4.5, residential: 8, apartments: 12,
   garage: 3, garages: 3, shed: 3, hut: 3, carport: 3, roof: 4, outbuilding: 3, barn: 8, farm_auxiliary: 6, greenhouse: 4,
-  commercial: 12, office: 20, retail: 7, supermarket: 8, hotel: 20, industrial: 9, warehouse: 9, factory: 10,
+  commercial: 10, office: 14, retail: 7, supermarket: 8, hotel: 10, industrial: 9, warehouse: 9, factory: 10,
   church: 16, chapel: 9, cathedral: 30, mosque: 14, temple: 10, school: 9, university: 14, college: 12, hospital: 18,
   stadium: 20, sports_hall: 10, parking: 10, transportation: 8, train_station: 14, civic: 12, public: 12, castle: 18 };
-function ovHeight(q){
+/* Guesses are only for buildings with no height and no floor count, which in a city are rare and in
+   the countryside are most of them: so a hotel is a three-storey one (an observatory residence on La
+   Palma came out at 20 m), and a small footprint is a small building whatever it is called. */
+function ringArea(rg){ if (!rg) return 0; let a = 0; for (let i = 0, j = rg.length - 1; i < rg.length; j = i++) a += (rg[j][0] + rg[i][0]) * (rg[j][1] - rg[i][1]); return Math.abs(a) / 2; }
+function ovHeight(q, area){
   const h = +q.height, mh = +q.min_height || 0;
   if (h > 1 && h < 900) return [h, 'm'];
   const fl = +q.num_floors;
   if (fl > 0 && fl < 200) return [mh + fl * 3.2 + 1, 'f'];
-  return [OV_GUESS[q.class] || OV_GUESS[q.subtype] || 7, 'g'];
+  let g = OV_GUESS[q.class] || OV_GUESS[q.subtype] || 7;
+  if (area > 0) g = area < 12 ? Math.min(g, 2.5) : area < 30 ? Math.min(g, 3.5) : area < 60 ? Math.min(g, 5) : g;
+  return [g, 'g'];
 }
 /* A tile from the worker's own copy where it has the buildings route, otherwise straight from
    Overture. The worker answers 204 for a tile with nothing in it, and 404 if it has no buildings
@@ -586,6 +638,122 @@ async function ovTile(pm, z, tx, ty){
   }
   const r = await pm.getZxy(z, tx, ty);
   return r && r.data ? new Uint8Array(r.data) : null;
+}
+/* Lighthouses and observatory domes, which the building data has as outlines with no height (or not
+   at all). From noctography-structures.json: lighthouses at their OpenStreetMap positions with Wikidata
+   heights, and the telescopes on La Palma and Tenerife from
+   OpenStreetMap with enclosure sizes. Drawn out to 20 km whatever their height: a lighthouse on a
+   far headland is exactly what a long lens is pointed at. */
+const STRUCT_URL = (() => { try { return new URL('noctography-structures.json?v=6', document.currentScript && document.currentScript.src || location.href).href; } catch (e) { return 'noctography-structures.json?v=4'; } })();
+let structP = null;
+function circle(lat, lon, r, n){
+  const pts = new Float64Array(n * 2), cl = Math.cos(lat * D2R);
+  for (let i = 0; i < n; i++) { const a = i / n * 2 * Math.PI; pts[i * 2] = lon + r * Math.sin(a) / (111320 * cl); pts[i * 2 + 1] = lat + r * Math.cos(a) / 111320; }
+  return pts;
+}
+async function farStructures(o){
+  const S = await (structP || (structP = fetch(STRUCT_URL).then(r => r.ok ? r.json() : null).catch(() => null)));
+  if (!S) { structP = null; return { list: [] }; }
+  const lat = o.lat, lon = o.lon, cl = Math.cos(lat * D2R), list = [];
+  const near = (la, lo) => { const d = Math.hypot((la - lat) * 111320, (lo - lon) * 111320 * cl); return d <= o.rMax ? d : -1; };
+  for (const [la, lo, h] of S.L || []) {
+    const d = near(la, lo); if (d < 0) continue;
+    const rb = clampS(h * 0.14, 2, 8);
+    list.push({ h, mh: 0, pts: circle(la, lo, rb, 10), c: [lo, la], d, taper: 0.72, roof: { shape: 'dome', rh: Math.min(h * 0.25, rb) } });
+  }
+  for (const [la, lo, h, dia, kind] of S.O || []) {
+    const d = near(la, lo); if (d < 0) continue;
+    const rb = Math.max(1.5, dia / 2);
+    list.push(kind === 'T'
+      ? { h, mh: 0, pts: circle(la, lo, rb, 10), c: [lo, la], d, taper: 0.9, roof: { shape: 'flat', rh: 0 } }
+      : { h, mh: 0, pts: circle(la, lo, rb, 14), c: [lo, la], d, roof: { shape: 'dome', rh: Math.min(h * 0.6, rb) } });
+  }
+  /* landmarks from hand profiles (v3): the decks, cables and arches of the great bridges, the Opera
+     House shells, the Statue of Liberty above its pedestal, the Angel of the North. Each part is a
+     block from its bottom to its top, in metres above sea level or above the ground under it */
+  for (const [nm, abs, parts] of S.P || []) for (const [h, mh, taper, shape, rh, ll] of parts) {
+    const m = ll.length / 2, pts = new Float64Array(m * 2); let cla = 0, clo = 0;
+    for (let i = 0; i < m; i++) { pts[i * 2] = ll[i * 2 + 1]; pts[i * 2 + 1] = ll[i * 2]; cla += ll[i * 2]; clo += ll[i * 2 + 1]; }
+    cla /= m; clo /= m; const d = near(cla, clo); if (d < 0) continue;
+    list.push({ h, mh, pts, c: [clo, cla], d, taper, roof: { shape, rh }, abs: !!abs, hand: nm });
+  }
+  /* a lighthouse or a dome drawn by hand is not drawn again from the list beside it */
+  const hands = list.filter(q => q.hand);
+  return { list: hands.length ? list.filter(q => q.hand || !hands.some(h2 => Math.hypot((h2.c[1] - q.c[1]) * 111320, (h2.c[0] - q.c[0]) * 111320 * cl) < 30)) : list };
+}
+const clampS = (v, a, b) => Math.max(a, Math.min(b, v));
+/* Buildings beyond the inner ring, for skylines across a harbour or a river: outlines and heights
+   only, for Scout to stand up as blocks. Only the zoom-14 tiles carry heights, so those are read out
+   to rMax. The further away, the taller a building has to be to reach the skyline: 10 m to 3 km,
+   then 0.3 per cent of the distance (24 m at 8 km). o: { lat, lon, rMax, skip: {n,s,w,e}, cap, par } */
+async function farBuildings(o){
+  const { pm, VT, Pbf } = await overture();
+  const z = 14, n = 1 << z, lat = o.lat, lon = o.lon, cl = Math.cos(lat * D2R), sk = o.skip;
+  const txOf = lo => Math.floor((lo + 180) / 360 * n), tyOf = la => { const s = Math.sin(la * D2R); return Math.floor((1 - Math.log((1 + s) / (1 - s)) / (2 * Math.PI)) / 2 * n); };
+  const tLat = y => R2D * Math.atan(Math.sinh(Math.PI - 2 * Math.PI * y / n));
+  const dm = (la, lo) => Math.hypot((la - lat) * 111320, (lo - lon) * 111320 * cl);
+  const inSkip = (la, lo) => sk && la < sk.n && la > sk.s && lo > sk.w && lo < sk.e;
+  const dLat = o.rMax / 111320, dLon = o.rMax / (111320 * cl), jobs = [];
+  for (let tx = txOf(lon - dLon); tx <= txOf(lon + dLon); tx++) for (let ty = tyOf(lat + dLat); ty <= tyOf(lat - dLat); ty++) {
+    const w = tx / n * 360 - 180, e = (tx + 1) / n * 360 - 180, N = tLat(ty), S = tLat(ty + 1);
+    if (sk && N < sk.n && S > sk.s && w > sk.w && e < sk.e) continue;
+    if (dm(Math.max(S, Math.min(N, lat)), Math.max(w, Math.min(e, lon))) > o.rMax) continue;
+    jobs.push([tx, ty]);
+  }
+  const list = [];
+  const one = async ([tx, ty]) => {
+    let data = null;
+    try { data = await ovTile(pm, z, tx, ty); } catch (e) { return; }
+    if (!data || !data.length) return;
+    let T; try { T = new VT.VectorTile(new Pbf(data)); } catch (e) { return; }
+    const i0 = list.length;
+    ['building', 'building_part'].forEach(name => {
+      const L = T.layers[name]; if (!L) return;
+      const ext = L.extent;
+      for (let k = 0; k < L.length; k++) {
+        const f = L.feature(k), q = f.properties;
+        if (f.type !== 3 || q.is_underground === true || q.is_underground === 'true') continue;
+        const [h, how] = ovHeight(q);
+        if (name === 'building_part' && how === 'g') continue;
+        if (h < 10) continue;
+        const rings = f.loadGeometry(); if (!rings.length) continue;
+        const area = rg => { let a = 0; for (let i = 0, j = rg.length - 1; i < rg.length; j = i++) a += (rg[j].x + rg[i].x) * (rg[j].y - rg[i].y); return a; };
+        const s0 = Math.sign(area(rings[0]));
+        rings.forEach(rg => {
+          if (rg.length < 4 || Math.sign(area(rg)) !== s0) return;
+          const m = rg.length - (rg[0].x === rg[rg.length - 1].x && rg[0].y === rg[rg.length - 1].y ? 1 : 0);
+          if (m < 3) return;
+          const pts = new Float64Array(m * 2); let cx = 0, cy = 0;
+          for (let i = 0; i < m; i++) {
+            const lo = (tx + rg[i].x / ext) / n * 360 - 180, la = R2D * Math.atan(Math.sinh(Math.PI - 2 * Math.PI * (ty + rg[i].y / ext) / n));
+            pts[i * 2] = lo; pts[i * 2 + 1] = la; cx += lo; cy += la;
+          }
+          cx /= m; cy /= m;
+          const d = dm(cy, cx);
+          if (d > o.rMax || inSkip(cy, cx) || h < Math.max(10, d * 0.003)) return;
+          let a0 = 1e9, a1 = -1e9, b0 = 1e9, b1 = -1e9;
+          for (let i = 0; i < m; i++) { const lo = pts[i * 2], la = pts[i * 2 + 1]; if (lo < a0) a0 = lo; if (lo > a1) a1 = lo; if (la < b0) b0 = la; if (la > b1) b1 = la; }
+          const mh = Math.max(0, +q.min_height || 0), wM = Math.max(1, Math.min((a1 - a0) * 111320 * cl, (b1 - b0) * 111320));
+          const e = { h, mh, pts, c: [cx, cy], d, roof: roofOf(q, h, mh, wM) };
+          if (name === 'building_part') e.part = 1; else e.bb = [a0, a1, b0, b1];
+          list.push(e);
+        });
+      }
+    });
+    /* A building drawn in parts is left to its parts, which know its shape: the Shard is eight leaning shards
+       to 310 m, and its whole outline at the full height stood a 310 m block round them. An outline goes when
+       two or more parts stand inside it and one reaches its height; a podium under a tower keeps its own
+       outline, as it is lower than the tower */
+    const parts = list.slice(i0).filter(q => q.part);
+    if (parts.length > 1) for (let k = list.length - 1; k >= i0; k--) {
+      const q = list[k], bb = q.bb; if (!bb) continue;
+      const inn = parts.filter(p => p.c[0] > bb[0] && p.c[0] < bb[1] && p.c[1] > bb[2] && p.c[1] < bb[3]);
+      if (inn.length > 1 && inn.some(p => p.h >= q.h - 1)) list.splice(k, 1);
+    }
+  };
+  for (let i = 0; i < jobs.length; i += o.par || 4) await Promise.all(jobs.slice(i, i + (o.par || 4)).map(one));
+  if (o.cap && list.length > o.cap) { list.sort((a, b) => b.h / Math.max(1, b.d) - a.h / Math.max(1, a.d)); list.length = o.cap; }
+  return { list, tiles: jobs.length };
 }
 async function overtureBuildings(ctx){
   const { pm, VT, Pbf } = await overture();
@@ -611,7 +779,7 @@ async function overtureBuildings(ctx){
       for (let k = 0; k < L.length; k++) {
         const f = L.feature(k), q = f.properties;
         if (q.is_underground === true || q.is_underground === 'true' || f.type !== 3) continue;
-        const [h, how] = ovHeight(q);
+        const [h0, how] = ovHeight(q);
         /* a part with no height of its own says nothing new: guessing 7 m for it would flatten a
            tower or a sail down to a shed */
         if (name === 'building_part' && how === 'g') continue;
@@ -619,7 +787,8 @@ async function overtureBuildings(ctx){
           const lon = (tx + p.x / ext) / n * 360 - 180, yy = Math.PI - 2 * Math.PI * (ty + p.y / ext) / n;
           return [PX(lon), yOfLat(R2D * Math.atan(Math.sinh(yy)))];
         }));
-        fillRings(out, W, rings, h);
+        const h = how === 'g' ? ovHeight(q, ringArea(rings[0]) * (ctx.m || 1) * (ctx.m || 1))[0] : h0;
+        fillRings(out, W, rings, h, (() => { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; (rings[0] || []).forEach(p => { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }); return roofOf(q, h, Math.max(0, +q.min_height || 0), Math.max(1, Math.min(x1 - x0, y1 - y0)) * (ctx.m || 1)); })());
         if (name === 'building' && rings[0] && rings[0].some(p => p[0] >= 0 && p[0] < W && p[1] >= 0 && p[1] < W)) { count++; stats[how]++; if (/Microsoft|Google|Esri/.test(q['@geometry_source'] || '')) stats.ml++; }
       }
     });
@@ -630,16 +799,63 @@ async function overtureBuildings(ctx){
     name: fmt(count) + ' Overture buildings (' + fmt(stats.m) + ' measured, ' + fmt(stats.f) + ' from floors, ' + fmt(stats.g) + ' guessed)',
     credit: 'Buildings \u00a9 Overture Maps Foundation, from OpenStreetMap, Microsoft, Google and Esri Community Maps' };
 }
-/* Fallback: the Overpass API, direct then through the worker */
+/* The Overpass API: two public servers direct from the browser first, which works, then through the
+   worker (on 18 October the servers gave a Cloudflare worker 500 or refused it outright). An answer
+   counts only if it parses and carries elements. */
+const OVERPASS = ['https://overpass.private.coffee/api/interpreter', 'https://overpass-api.de/api/interpreter'];
+async function overpass(q, ms){
+  /* a busy server can answer 200 with no elements and a runtime error in its remark: that is a
+     failure, not an empty place, and is never kept for offline use */
+  const O = window.NoctoOffline, urls = OVERPASS.concat(CFG.proxy ? [CFG.proxy.replace(/\/$/, '') + '/overpass'] : []).map(b => b + '?data=' + encodeURIComponent(q));
+  const good = buf => { try { const j = JSON.parse(new TextDecoder().decode(buf)); return j && Array.isArray(j.elements) && !/runtime error|timed out|out of memory|rate.?limit/i.test(j.remark || '') ? j : null; } catch (e) { return null; } };
+  if (O) for (const u of urls) { const hit = await O.get(u), j = hit && good(hit); if (j) return j; }
+  for (const u of urls) {
+    const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms);
+    try { const r = await fetch(u, { signal: ac.signal }); if (!r.ok) continue; const buf = await r.arrayBuffer(), j = good(buf); if (!j) continue; if (O) O.put(u, buf); return j; }
+    catch (e) {} finally { clearTimeout(t); }
+  }
+  return null;
+}
+/* Towers, masts, chimneys and water towers from OpenStreetMap, the only place their heights are kept.
+   One Overpass question per place, out to 20 km, for those with a height tag. Kept if 15 m or more and
+   tall enough for their distance to reach the skyline (0.2 per cent: 40 m at 20 km); duplicates within
+   30 m merged, tallest kept. Shaped by kind: a mast a thin taper, a chimney a tapering column, a
+   cooling tower a wide short one, other towers in between. */
+const towerP = new Map();
+const tagHeight = s => { const t = String(s || '').trim().toLowerCase().replace(',', '.'), v = parseFloat(t); return v > 0 ? (/(ft|feet|'|\u2032)$/.test(t) ? v * 0.3048 : v) : NaN; };
+async function osmTowers(o){
+  const lat = o.lat, lon = o.lon, rMax = o.rMax || 20000, k = lat.toFixed(3) + ',' + lon.toFixed(3) + ',' + Math.round(rMax);
+  let p = towerP.get(k);
+  if (!p) { p = overpass('[out:json][timeout:25];nwr["man_made"~"^(mast|tower|chimney|water_tower)$"]["height"](around:' + Math.round(rMax) + ',' + lat.toFixed(5) + ',' + lon.toFixed(5) + ');out center tags;', 20000); towerP.set(k, p); }
+  const j = await p;
+  if (!j) { towerP.delete(k); return []; }
+  const cl = Math.cos(lat * D2R), keep = [];
+  for (const el of j.elements) {
+    const t = el.tags || {}, la = el.lat != null ? el.lat : el.center && el.center.lat, lo = el.lon != null ? el.lon : el.center && el.center.lon;
+    if (la == null || lo == null || t.ruins === 'yes' || t['demolished:man_made'] || t['removed:man_made']) continue;
+    const h = tagHeight(t.height); if (!(h >= 15 && h <= 700)) continue;
+    const d = Math.hypot((la - lat) * 111320, (lo - lon) * 111320 * cl); if (d > rMax || h < d * 0.002) continue;
+    const mm = t.man_made, tt = t['tower:type'] || '', con = t['tower:construction'] || '';
+    let rb, taper, roof = { shape: 'flat', rh: 0 };
+    if (mm === 'chimney') { rb = clampS(h * 0.045, 1.5, 9); taper = 0.55; }
+    else if (mm === 'water_tower') { rb = clampS(h * 0.22, 3, 12); taper = 1; roof = { shape: 'dome', rh: Math.min(h * 0.15, rb) }; }
+    else if (tt === 'cooling') { rb = clampS(h * 0.4, 15, 60); taper = 0.62; }
+    else if (mm === 'mast' || /lattice|guyed/.test(con)) { rb = clampS(h * 0.006, 0.8, 3); taper = 0.3; }
+    else { rb = clampS(h * 0.035, 2, 12); taper = 0.6; }
+    keep.push({ la, lo, h, d, rb, taper, roof });
+  }
+  keep.sort((a, b) => b.h - a.h);
+  const list = [];
+  for (const s of keep) {
+    if (list.some(q => Math.hypot((q.c[1] - s.la) * 111320, (q.c[0] - s.lo) * 111320 * cl) < 30)) continue;
+    list.push({ h: s.h, mh: 0, pts: circle(s.la, s.lo, s.rb, 10), c: [s.lo, s.la], d: s.d, taper: s.taper, roof: s.roof });
+  }
+  return list;
+}
+/* Fallback: OpenStreetMap buildings, through overpass() above */
 async function osmBuildings(ctx){
   const c = ctx.geo, q = '[out:json][timeout:25];(way[building](' + [c.s, c.w, c.n, c.e].map(v => v.toFixed(5)).join(',') + ');rel[building](' + [c.s, c.w, c.n, c.e].map(v => v.toFixed(5)).join(',') + '););out geom tags;';
-  const urls = ['https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q)];
-  if (CFG.proxy) urls.push(CFG.proxy.replace(/\/$/, '') + '/overpass?data=' + encodeURIComponent(q));
-  let j = null;
-  for (const u of urls) {
-    const buf = await fetchBuf(u, 35000);
-    if (buf) { try { j = JSON.parse(new TextDecoder().decode(buf)); break; } catch (e) {} }
-  }
+  const j = await overpass(q, 35000);
   if (!j || !j.elements || !j.elements.length) return null;
   const W = ctx.W, out = new Float32Array(W * W).fill(NaN);
   const PX = lon => (lon - ctx.lonOf[0]) / (ctx.lonOf[W - 1] - ctx.lonOf[0]) * (W - 1);
@@ -725,6 +941,17 @@ const EA = 'https://environment.data.gov.uk/spatialdata/';
 function direct(base, id, ax){
   const a = wcs3857(base, id, ax), b = wcs3857(base, id, ax, u => CFG.proxy + '/fetch?url=' + encodeURIComponent(u));
   return async ctx => {
+    /* a big read (Shotfinder's) asks both at once: a page request the answer's headers then refuse has
+       already cost the whole of the server's time. The first to start answering is read and the other is
+       cancelled, so the answer is downloaded once; if that one has no data after all, the other is asked */
+    if (ctx.race && CFG.proxy) {
+      const acs = [new AbortController(), new AbortController()]; let won = -1;
+      const run = (f, i) => f({ ...ctx, signal: acs[i].signal, head: () => { if (won >= 0 && won !== i) return false; won = i; acs[1 - i].abort(); return true; } }).catch(() => null);
+      const rr = await Promise.all([run(a, 0), run(b, 1)]);
+      if (share(rr[0]) > 0.05) return rr[0]; if (share(rr[1]) > 0.05) return rr[1];
+      if (won >= 0) { try { const q = await [a, b][1 - won]({ ...ctx, race: false }); if (share(q) > 0.05) return q; } catch (e) {} }
+      return rr[0] || rr[1] || null;
+    }
     let r = null, err = null;
     try { r = await a(ctx); } catch (e) { err = e; }
     if (share(r) > 0.05) return r;
@@ -734,19 +961,19 @@ function direct(base, id, ax){
   };
 }
 const SOURCES = [
-  { id: 'ea', name: 'Environment Agency LIDAR', credit: 'LIDAR \u00a9 Environment Agency', box: [49.85, 55.82, -6.45, 1.8],
+  { id: 'ea', name: 'Environment Agency LIDAR', credit: 'LIDAR \u00a9 Environment Agency', box: [49.85, 55.82, -6.45, 1.8], scales: true,
     surface: direct(EA + 'lidar-composite-digital-surface-model-first-return-dsm-1m/wcs', 'df4e3ec3-315e-48aa-aaaf-b5ae74d7b2bb__Lidar_Composite_Elevation_FZ_DSM_1m', ['X', 'Y', 'i', 'j']),
     terrain: direct(EA + 'lidar-composite-digital-terrain-model-dtm-1m/wcs', '13787b9a-26a4-4775-8523-806d13af58fc__Lidar_Composite_Elevation_DTM_1m', ['X', 'Y', 'i', 'j']) },
   { id: 'sc', name: 'Scottish LiDAR', credit: 'LiDAR \u00a9 Scottish Government, OGL', box: [54.6, 60.9, -8.7, -0.7],
     surface: srsp('dsm'), terrain: srsp('dtm') },
-  { id: 'fr', name: 'IGN France', credit: 'RGE ALTI, LiDAR HD \u00a9 IGN, Licence Ouverte', box: [41.3, 51.1, -5.2, 9.6],
+  { id: 'fr', name: 'IGN France', credit: 'RGE ALTI, LiDAR HD \u00a9 IGN, Licence Ouverte', box: [41.3, 51.1, -5.2, 9.6], scales: true,
     surface: ignBil('ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES.MNS'), terrain: ignBil('ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES') },
   { id: 'ca', name: 'NRCan HRDEM (Canada)', credit: 'HRDEM \u00a9 Natural Resources Canada, OGL-Canada', box: [41.6, 83.2, -141.1, -52.5],
     surface: hrdem('dsm'), terrain: hrdem('dtm') },
-  { id: 'nl', name: 'AHN (Netherlands)', credit: 'AHN \u00a9 Rijkswaterstaat, CC0', box: [50.7, 53.7, 3.2, 7.3],
+  { id: 'nl', name: 'AHN (Netherlands)', credit: 'AHN \u00a9 Rijkswaterstaat, CC0', box: [50.7, 53.7, 3.2, 7.3], scales: true,
     surface: wcs3857('https://service.pdok.nl/rws/ahn/wcs/v1_0', 'dsm_05m', ['x', 'y']),
     terrain: wcs3857('https://service.pdok.nl/rws/ahn/wcs/v1_0', 'dtm_05m', ['x', 'y']) },
-  { id: 'nrw', name: 'Geobasis NRW', credit: 'DOM/DGM \u00a9 Geobasis NRW, dl-de/zero-2-0', box: [50.3, 52.6, 5.8, 9.5],
+  { id: 'nrw', name: 'Geobasis NRW', credit: 'DOM/DGM \u00a9 Geobasis NRW, dl-de/zero-2-0', box: [50.3, 52.6, 5.8, 9.5], scales: true,
     surface: wcs3857('https://www.wcs.nrw.de/geobasis/wcs_nw_dom', 'nw_dom', ['x', 'y']),
     terrain: wcs3857('https://www.wcs.nrw.de/geobasis/wcs_nw_dgm', 'nw_dgm', ['x', 'y']) },
   { id: 'be', name: 'Digitaal Vlaanderen', credit: 'DHMV \u00a9 Digitaal Vlaanderen', box: [50.67, 51.51, 2.54, 5.92],
@@ -755,7 +982,7 @@ const SOURCES = [
   { id: 'ch', name: 'swisstopo', credit: 'swissSURFACE3D, swissALTI3D \u00a9 swisstopo', box: [45.8, 47.85, 5.9, 10.55],
     surface: swissStac('ch.swisstopo.swisssurface3d-raster', /_0\.5_2056_5728\.tif$/),
     terrain: swissStac('ch.swisstopo.swissalti3d', /_2_2056_5728\.tif$/) },
-  { id: 'dk', name: 'Dataforsyningen (Denmark)', credit: 'DHM \u00a9 Klimadatastyrelsen', box: [54.5, 57.8, 8.0, 15.2], needs: 'dk',
+  { id: 'dk', name: 'Dataforsyningen (Denmark)', credit: 'DHM \u00a9 Klimadatastyrelsen', box: [54.5, 57.8, 8.0, 15.2], needs: 'dk', scales: true,
     surface: ctx => dkWcs(ctx, 'dhm_overflade'), terrain: ctx => dkWcs(ctx, 'dhm_terraen') },
   { id: 'es', name: 'IGN Espa\u00f1a MDT', credit: 'MDT \u00a9 Instituto Geogr\u00e1fico Nacional', box: [35.85, 43.9, -9.4, 4.4], terrainOnly: true,
     terrain: wcsLatLon('https://servicios.idee.es/wcs-inspire/mdt', 'Elevacion4258_5', { lat: 'Lat', lon: 'Long' }, { lat: 0.000045, lon: 0.000045 }) },
@@ -837,7 +1064,8 @@ async function fetchFor(ctx){
     const [bld, brg] = await Promise.all([within(buildings(ctx).catch(() => null), 8000), within(ofmStructures(ctx).catch(() => null), 8000)]);
     if (bld || brg) {
       kind = new Uint8Array(surface.length);
-      /* 3: a bridge or viaduct, drawn solid like a building, never as trees */
+      /* 3: a bridge or viaduct, drawn solid like a building, never as trees; 4: water */
+      if (brg && brg.water) for (let i = 0; i < kind.length; i++) if (brg.water[i]) kind[i] = 4;
       if (brg) for (let i = 0; i < kind.length; i++) if (brg.mask[i]) kind[i] = 3;
       if (bld) for (let i = 0; i < kind.length; i++) if (bld.heights[i] === bld.heights[i]) kind[i] = 2;
       credits.push(bld && bld.src === 'overture' ? 'Building outlines \u00a9 Overture Maps Foundation \u00b7 bridges \u00a9 OpenStreetMap contributors' : 'Building and bridge outlines \u00a9 OpenStreetMap contributors');
@@ -848,8 +1076,43 @@ async function fetchFor(ctx){
   return { surface, terrain, kind, name: names.join(' + '), credit: credits.join(' \u00b7 '), terrainOnly: !surface, pending, degraded };
 }
 
+/* ---------------- obstacles, for Shotfinder ----------------
+   What stands above the bare ground over a grid round a subject, in metres, for lines of sight across a
+   town: a national surface less its terrain where there is one (buildings, trees and walls as surveyed),
+   else mapped buildings over the tree height; NaN where nothing is known. Only sources that scale their
+   answer on the server are asked for a grid this coarse: the others would send every metre of it. */
+async function obstacles(ctx){
+  const N = ctx.W * ctx.W, nd = new Float32Array(N).fill(NaN), names = [], credits = [];
+  const cands = SOURCES.filter(s => s.scales && s.surface && s.terrain && ctx.lat >= s.box[0] && ctx.lat <= s.box[1] && ctx.lon >= s.box[2] && ctx.lon <= s.box[3] && (!s.needs || CFG.tokens[s.needs]) && (!s.proxy || CFG.proxy));
+  let got = 0;
+  for (const src of cands) {
+    const [a, b] = await Promise.all([within(src.surface(ctx).catch(() => null), 150000), within(src.terrain(ctx).catch(() => null), 150000)]);
+    if (!(share(a) > 0.05 && share(b) > 0.05)) continue;
+    for (let i = 0; i < N; i++) { const s = a[i], g = b[i]; if (s === s && g === g && s !== 0 && g !== 0) { nd[i] = Math.min(500, Math.max(0, s - g)); got++; } }
+    names.push(src.name); credits.push(src.credit); break;
+  }
+  if (got < N * 0.6) {
+    const [can, bld] = await Promise.all([within(metaCanopy(ctx).catch(() => null), 60000), within(buildings(ctx).catch(() => null), 60000)]);
+    const bh = bld && bld.heights;
+    if (can || bh) {
+      for (let i = 0; i < N; i++) { if (nd[i] === nd[i]) continue;
+        const c = can ? can[i] : NaN, h = bh ? bh[i] : NaN;
+        if (c === c || h === h) nd[i] = Math.max(c === c && c > 1 ? c : 0, h === h ? h : 0); }
+      if (bh) names.push('mapped buildings');
+      if (can) { names.push('Meta tree height'); credits.push('Canopy height \u00a9 Meta and WRI'); }
+    }
+  }
+  return { nd, names, credits };
+}
+
+/* the national survey Shotfinder would read buildings and trees from here, by name, or null for maps */
+function surveyAt(lat, lon){
+  const s = SOURCES.find(s => s.scales && s.surface && s.terrain && lat >= s.box[0] && lat <= s.box[1] && lon >= s.box[2] && lon <= s.box[3] && (!s.needs || CFG.tokens[s.needs]) && (!s.proxy || CFG.proxy));
+  return s ? s.name : null;
+}
+
 function config(o){ if (o) { if (o.tokens) Object.assign(CFG.tokens, o.tokens); if (o.proxy != null) CFG.proxy = o.proxy; if (o.canopyBlock) CFG.canopyBlock = o.canopyBlock; if (o.overture) CFG.overture = o.overture; if (o.overtureBase) CFG.overtureBase = o.overtureBase; } return { ...CFG }; }
 function coverage(lat, lon){ const s = SOURCES.find(s => lat >= s.box[0] && lat <= s.box[1] && lon >= s.box[2] && lon <= s.box[3] && (!s.needs || CFG.tokens[s.needs])); return s ? s.name : null; }
 
-window.NoctoSurfaces = { metaCanopy, buildings, overtureBuildings, bldSource, ofmPaths, ofmStructures, SOURCES, fetchFor, config, coverage, lv95, nztm, nzTiles, osgb, osgbSquare, lcc3979 };
+window.NoctoSurfaces = { obstacles, surveyAt, metaCanopy, buildings, overtureBuildings, farBuildings, farStructures, osmTowers, bldSource, ofmPaths, ofmStructures, SOURCES, fetchFor, config, coverage, lv95, nztm, nzTiles, osgb, osgbSquare, lcc3979 };
 })();

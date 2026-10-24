@@ -193,15 +193,16 @@ window.noctoTrack = function (name, every) {
     }
   } catch (e) {}
 </script>
-<script src="../noctography-engine.js?v=3.0.4"></script>
+<script src="../noctography-engine.js?v=3.0.5"></script>
 <script src="../noctography-sat.js?v=2.0.1"></script>
-<script src="../noctography-plan.js?v=2.0.1"></script>
+<script src="../noctography-plan.js?v=2.0.2"></script>
 <script src="../noctography-ar.js?v=3.0.13"></script>
 <script src="../noctography-phonecheck.js?v=3.0.11"></script>
 <script src="../noctography-log.js?v=2.0.1"></script>
 <script src="../noctography-png.js?v=3.0.2"></script>
 <script src="../noctography-terrain.js?v=3.0.2"></script>
-<script src="../noctography-scout.js?v=3.0.2"></script>
+<script src="../noctography-moon.js?v=3"></script>
+<script src="../noctography-scout.js?v=3.0.15m"></script>
 <script src="../noctography-comp.js?v=2.0.1"></script>
 <script src="../noctography-sightings.js?v=2.0.1"></script>
 <script src="../noctography-backup.js?v=2.0.3"></script>
@@ -650,7 +651,7 @@ window.noctoTrack = function (name, every) {
                   <span style="font-size: 13px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Rings are drive times; the wash is cloud through the dark hours.</span>
                   {{ nbMapEl }}
                   <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <span style="display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">Clear<i style="width: 44px; height: 8px; border-radius: 2px; background: linear-gradient(90deg, rgba(198,206,232,.04), rgba(198,206,232,.62));"></i>Clouded over</span>
+                    <span style="display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);">0% cloud<i style="width: 44px; height: 8px; border-radius: 2px; background: linear-gradient(90deg, rgba(198,206,232,.04), rgba(198,206,232,.62));"></i>100%</span>
                     <span style="flex: 1; min-width: 8px;"></span>
                     <button type="button" onClick="{{ nbZoomOut }}" aria-label="Zoom out" style="flex: 0 0 auto; min-width: 44px; min-height: 44px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">−</button>
                     <button type="button" onClick="{{ nbZoomIn }}" aria-label="Zoom in" style="flex: 0 0 auto; min-width: 44px; min-height: 44px; border-radius: 8px; border: 1px solid rgba(var(--line-rgb),.2); background: transparent; color: var(--text2); font-size: 20px; cursor: pointer;">+</button>
@@ -677,7 +678,7 @@ window.noctoTrack = function (name, every) {
           <!-- Conditions in one strip: one glance at the weather rather than three tiles -->
           <div style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 132px), 1fr)); gap: clamp(12px, 3vw, 16px); padding: clamp(11px, 3.2vw, 14px); background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
             <div style="display: grid; gap: 6px; align-content: start; min-width: 0;">
-              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Cloud</span>
+              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);">Cloud cover</span>
               <div style="display: flex; align-items: flex-end; gap: 2px; height: 30px; padding: 3px; background: rgba(var(--well-rgb),.45); border-radius: 6px;">
                 <sc-for list="{{ cloudBars }}" as="b" hint-placeholder-count="16">
                   <i style="flex: 1; min-width: 2px; border-radius: 1px; background: var(--moon-dim); opacity: {{ b.op }}; height: {{ b.h }}%;"></i>
@@ -1002,7 +1003,7 @@ window.noctoTrack = function (name, every) {
               <span data-nv-active="{{ a.best }}" title="{{ a.rainTitle }}" style="display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 6px; border-left: {{ a.edge }}; border-right: {{ a.edge2 }}; background: {{ a.bg }}; opacity: {{ a.dim }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{ a.rainColour }};">{{ a.rainLabel }}</span>
             </sc-for>
             <sc-for list="{{ aheadCmp }}" as="row" hint-placeholder-count="0">
-              <span data-nv-solid="1" title="{{ row.title }}" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; overflow: hidden; padding-right: 4px; background: rgb(var(--card-rgb)); white-space: nowrap; font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: {{ row.kc }};">{{ row.k }}</span>
+              <span data-nv-solid="1" title="{{ row.title }}" style="position: sticky; left: 0; z-index: 1; display: flex; align-items: center; overflow: hidden; padding-right: 4px; background: rgb(var(--card-rgb)); font-size: 10px; line-height: 1.1; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: {{ row.kc }};">{{ row.k }}</span>
               <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="15">
                 <span style="display: flex; align-items: center; justify-content: center; height: 28px; border-radius: 6px; border-left: {{ c.edge }}; border-right: {{ c.edge2 }}; background: {{ c.bg }}; opacity: {{ c.dim }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; font-weight: {{ c.w }}; color: {{ c.c }};">{{ c.v }}</span>
               </sc-for>
@@ -1092,13 +1093,13 @@ window.noctoTrack = function (name, every) {
                         <div style="overflow-x: auto; overflow-y: hidden;">
                           <div style="display: grid; gap: 3px; min-width: max-content;">
                             <div style="display: flex; gap: 3px;">
-                              <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; flex: 0 0 90px; padding-right: 8px; background: rgb(var(--card-rgb));"></span>
+                              <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; flex: 0 0 90px; display: flex; align-items: center; padding-right: 8px; background: rgb(var(--card-rgb)); font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--dim);">% cloud</span>
                               <sc-for list="{{ detCols }}" as="col" hint-placeholder-count="8">
                                 <span style="flex: 0 0 54px; display: flex; align-items: center; justify-content: center; height: 20px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: var(--dim);">{{ col.label }}</span>
                               </sc-for>
                             </div>
                             <div style="display: flex; gap: 3px; padding-bottom: 5px; margin-bottom: 2px; border-bottom: 1px solid rgba(var(--line-rgb),.12);">
-                              <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; flex: 0 0 90px; display: flex; align-items: center; padding-right: 8px; background: rgb(var(--card-rgb)); white-space: nowrap; font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text2);">Clear</span>
+                              <span data-nv-solid="1" style="position: sticky; left: 0; z-index: 1; flex: 0 0 90px; display: flex; align-items: center; padding-right: 8px; background: rgb(var(--card-rgb)); font-size: 11px; line-height: 1.1; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text2);">Models clear</span>
                               <sc-for list="{{ cmpAgree }}" as="c" hint-placeholder-count="8">
                                 <span style="flex: 0 0 54px; display: flex; align-items: center; justify-content: center; height: 25px; border-radius: 4px; background: {{ c.bg }}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 700; color: {{ c.c }};">{{ c.v }}</span>
                               </sc-for>
@@ -1114,7 +1115,7 @@ window.noctoTrack = function (name, every) {
                           </div>
                         </div>
                       </div>
-                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Total cloud. Clear is under 35%. The table below follows {{ wxName }}.</span>
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.4; color: var(--faint); text-wrap: pretty;">Each model's row is cloud cover, lower is better. Models clear counts how many have that time under 35% cloud: 3/4 is three models of four. The table below follows {{ wxName }}.</span>
                     </sc-if>
                     <div style="min-width: 0; padding: 10px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 8px;">
                       <div style="overflow-x: auto; overflow-y: hidden;">
@@ -1144,7 +1145,7 @@ window.noctoTrack = function (name, every) {
             <sc-if value="{{ showAhead10 }}" hint-placeholder-val="{{ false }}">
             <div style="display: grid; gap: 6px; padding-top: 10px; margin-top: 8px; border-top: 1px solid rgba(var(--line-rgb),.12); font-size: 13px; line-height: 1.5; color: var(--faint);">
               <span><b style="color: var(--dim); font-weight: 500;">Rating</b>: the night out of five: clear sky first, then how dark the site is, then whether anything special is going on.</span>
-              <span><b style="color: var(--dim); font-weight: 500;">Cloud</b>: approximate cloud coverage. Green is clear, amber is patchy, grey is covered.</span>
+              <span><b style="color: var(--dim); font-weight: 500;">Cloud</b>: how much of the sky is covered by cloud, so lower is better. Green is under 35%, amber up to 70%, grey above.</span>
               <span><b style="color: var(--dim); font-weight: 500;">Sky</b>: real-world Bortle, your location with that night's moon and haze counted in.</span>
               <span><b style="color: var(--dim); font-weight: 500;">Met</b>: realistic meteors an hour at their best. <b style="color: var(--dim); font-weight: 500;">Kp</b>: aurora strength, 5 and up is worth watching.</span>
               <span><b style="color: var(--dim); font-weight: 500;">Conj</b>: the closest two of Mercury, Venus, Mars, Jupiter, Saturn and the moon, when they come within 5° of each other and both stand at least 5° up in a dark or nearly dark sky. Initials name the pair, and a + means another pairing that night. Amber is inside 2°.</span>
@@ -3052,31 +3053,6 @@ window.noctoTrack = function (name, every) {
         <div style="display: grid; gap: 10px;">
           <button type="button" onClick="{{ goData }}" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.28); background: transparent; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;">Credits and privacy</button>
           <a href="../index.html" style="min-height: 44px; display: flex; align-items: center; padding: 0 14px; border: 1px solid rgba(var(--line-rgb),.18); border-radius: 999px; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;">About</a>
-          <button type="button" onClick="{{ fbToggle }}" aria-expanded="{{ fbOpen }}" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;">Feedback</button>
-          <sc-if value="{{ fbOpen }}" hint-placeholder-val="{{ false }}">
-            <div aria-label="Feedback" style="display: grid; gap: 10px; padding: 14px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--accent-rgb),.4); border-radius: 10px;">
-              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Reporting a problem?</span>
-              <p style="margin: 0; font-size: 15.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">Run the diagnostic first. It takes about ten seconds and records how your phone and browser handle the app, which helps me pinpoint the problem and fix it, usually without needing to come back to you with questions. It goes into your email, so you can see exactly what is sent.</p>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" onClick="{{ pcRun }}" disabled="{{ pcRunning }}" style="min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ fbRunLabel }}</button>
-                <sc-if value="{{ pcHas }}" hint-placeholder-val="{{ false }}">
-                  <a href="{{ pcMail }}" onClick="{{ pcMailGo }}" style="display: flex; align-items: center; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent); color: rgb(var(--card-rgb)); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;">Write the email</a>
-                  <button type="button" onClick="{{ pcCopyGo }}" style="min-height: 52px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.24); background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ pcCopyLabel }}</button>
-                </sc-if>
-              </div>
-              <sc-if value="{{ pcRunning }}" hint-placeholder-val="{{ false }}">
-                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.45; color: var(--accent); text-wrap: pretty;">{{ pcStep }}</span>
-              </sc-if>
-              <sc-if value="{{ pcHas }}" hint-placeholder-val="{{ false }}">
-                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{ pcSummaryInk }};">Diagnostic done: {{ pcSummary }}. The full results are in Phone check above.</span>
-                <span style="font-size: 13.5px; line-height: 1.42; color: var(--dim); text-wrap: pretty;">Write the email opens your mail app with the results already in it, and copies them too, in case your mail app leaves them out. If it does, paste them in.</span>
-              </sc-if>
-              <sc-if value="{{ pcCopyFail }}" hint-placeholder-val="{{ false }}">
-                <span style="font-size: 14px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">This browser would not copy it. The text is in Phone check above, ready to select by hand.</span>
-              </sc-if>
-              <a href="{{ fbPlain }}" style="display: flex; align-items: center; min-height: 44px; color: var(--faint); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;">Not a problem? Write without it</a>
-            </div>
-          </sc-if>
           <a href="https://www.youtube.com/@nightscapejournals" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 14px; padding: 16px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="display: grid; gap: 3px; margin-right: auto;">
               <span style="font-size: 17px; font-weight: 600;">Nightscape Journals</span>
@@ -3092,6 +3068,181 @@ window.noctoTrack = function (name, every) {
             <span style="color: var(--dim); font-size: 20px;">›</span>
           </a>
         </div>
+      </section>
+    </sc-if>
+
+
+    <sc-if value="{{ isFeedback }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Feedback" style="display: grid; gap: 18px; max-width: 760px;">
+        <div style="display: grid; gap: 10px;">
+          <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Feedback</span>
+          <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: clamp(26px, 8vw, 34px); line-height: 1.05; margin: 0;">Help shape Noctography</h2>
+          <p style="margin: 0; font-size: 17px; line-height: 1.55; color: var(--text2); max-width: 62ch; text-wrap: pretty;">Noctography is a passion project. I am not a software engineer and while I try to test each release in as many different environments and on as many devices as I can, things are going to slip through because I'm only human (some would even question that...).</p>
+          <p style="margin: 0; font-size: 17px; line-height: 1.55; color: var(--text2); max-width: 62ch; text-wrap: pretty;">If you spot something that doesn't seem to be working correctly, or which you just find difficult to use, please let me know. I'll fix whatever I can. If you have any ideas that would make Noctography better for you, please don't be shy: Noctography is for the whole astro community and you could help fashion its future.</p>
+        </div>
+        <div style="display: grid; gap: 10px;">
+          <span style="font-size: 12px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--dim);">What would you like to do?</span>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 8px;">
+            <sc-for list="{{ fbKinds }}" as="k" hint-placeholder-count="3">
+              <button type="button" onClick="{{ k.go }}" aria-pressed="{{ k.pressed }}" data-nv-active="{{ k.on }}" style="display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 3px 12px; min-height: 72px; padding: 12px 14px; box-sizing: border-box; text-align: left; border: 1px solid {{ k.bd }}; border-radius: 10px; background: {{ k.bg }}; color: var(--text); cursor: pointer;">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="grid-row: span 2; display: block; color: {{ k.fg }};"><path d="{{ k.d }}"></path></svg>
+                <span style="font-family: 'Barlow', sans-serif; font-size: 16px; font-weight: 600; color: {{ k.fg }};">{{ k.label }}</span>
+                <span style="font-family: 'Barlow', sans-serif; font-size: 13.5px; line-height: 1.35; color: var(--dim); text-wrap: pretty;">{{ k.sub }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ fbIdeaOn }}" hint-placeholder-val="{{ false }}">
+          <div aria-label="Your idea" style="display: grid; gap: 20px; padding: 16px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <p style="margin: 0; font-size: 15.5px; line-height: 1.5; color: var(--text2); text-wrap: pretty;">Start with what you're trying to do. Knowing the why, and where it fits in your night, helps me build the right thing.</p>
+            <label style="display: grid; gap: 6px;">
+              <span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">What are you trying to do?</span>
+              <span style="font-size: 13.5px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">The shot, the night or the job in hand. This is the part that tells me why it matters.</span>
+              <textarea rows="3" value="{{ fbGoal }}" onChange="{{ fbOnGoal }}" placeholder="For example: I want to shoot star trails over a ruined chapel, and know how long I have before the Moon comes up behind it." style="width: 100%; box-sizing: border-box; padding: 12px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16.5px; line-height: 1.42; resize: vertical;"></textarea>
+            </label>
+            <div style="display: grid; gap: 8px;">
+              <span style="display: grid; gap: 4px;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">When does it come up?</span><span style="font-size: 13.5px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">Pick any that fit.</span></span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <sc-for list="{{ fbWhenChips }}" as="c" hint-placeholder-count="4">
+                  <button type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" data-nv-active="{{ c.on }}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer;">{{ c.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <label style="display: grid; gap: 6px;">
+              <span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">How do you do it at the moment?</span>
+              <span style="font-size: 13.5px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">Optional. In Noctography or anywhere else, and where it gets fiddly.</span>
+              <textarea rows="3" value="{{ fbNow }}" onChange="{{ fbOnNow }}" placeholder="For example: I check moonrise on Tonight, work out the direction in another app, then guess." style="width: 100%; box-sizing: border-box; padding: 12px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16.5px; line-height: 1.42; resize: vertical;"></textarea>
+            </label>
+            <label style="display: grid; gap: 6px;">
+              <span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">Your idea</span>
+              <span style="font-size: 13.5px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">However makes sense to you. Rough is fine: I'll work out the details.</span>
+              <textarea rows="4" value="{{ fbIdea }}" onChange="{{ fbOnIdea }}" placeholder="For example: show the Moon's path over my spot through the night, with the time it clears the chapel." style="width: 100%; box-sizing: border-box; padding: 12px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16.5px; line-height: 1.42; resize: vertical;"></textarea>
+            </label>
+            <div style="display: grid; gap: 8px;">
+              <span style="display: grid; gap: 4px;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">Which part of Noctography is it closest to?</span><span style="font-size: 13.5px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">Optional.</span></span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <sc-for list="{{ fbPartChips }}" as="c" hint-placeholder-count="6">
+                  <button type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" data-nv-active="{{ c.on }}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer;">{{ c.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ fbProblemOn }}" hint-placeholder-val="{{ false }}">
+          <div aria-label="Report a problem" style="display: grid; gap: 20px; padding: 16px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <div style="display: grid; gap: 8px;">
+              <span style="display: grid; gap: 4px;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">What sort of problem?</span></span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <sc-for list="{{ fbPkindChips }}" as="c" hint-placeholder-count="3">
+                  <button type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" data-nv-active="{{ c.on }}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer;">{{ c.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display: grid; gap: 8px;">
+              <span style="display: grid; gap: 4px;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">Where in the app?</span><span style="font-size: 13.5px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">Pick one if you know.</span></span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <sc-for list="{{ fbPartChips }}" as="c" hint-placeholder-count="6">
+                  <button type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" data-nv-active="{{ c.on }}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer;">{{ c.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <label style="display: grid; gap: 6px;">
+              <span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">What were you doing?</span>
+              <span style="font-size: 13.5px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">The steps, so I can do the same and see it for myself.</span>
+              <textarea rows="3" value="{{ fbSteps }}" onChange="{{ fbOnSteps }}" placeholder="For example: on Place I moved the pin to the coast, then opened Sky AR." style="width: 100%; box-sizing: border-box; padding: 12px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16.5px; line-height: 1.42; resize: vertical;"></textarea>
+            </label>
+            <label style="display: grid; gap: 6px;">
+              <span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">What happened?</span>
+              <span style="font-size: 13.5px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">And what you expected to happen instead.</span>
+              <textarea rows="4" value="{{ fbWhat }}" onChange="{{ fbOnWhat }}" placeholder="For example: the sky froze for a few seconds every time I turned round. I expected it to follow the phone smoothly." style="width: 100%; box-sizing: border-box; padding: 12px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16.5px; line-height: 1.42; resize: vertical;"></textarea>
+            </label>
+            <div style="display: grid; gap: 8px;">
+              <span style="display: grid; gap: 4px;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">How often does it happen?</span></span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <sc-for list="{{ fbOftenChips }}" as="c" hint-placeholder-count="3">
+                  <button type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" data-nv-active="{{ c.on }}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer;">{{ c.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display: grid; gap: 10px; padding: 14px; background: rgba(var(--well-rgb),.5); border: 1px solid rgba(var(--accent-rgb),.35); border-radius: 10px;">
+              <span style="font-size: clamp(11px, 3vw, 12px); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Run the diagnostic</span>
+              <p style="margin: 0; font-size: 15.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">It takes about ten seconds and records how your phone and browser handle the app, which helps me pinpoint the problem and fix it, usually without needing to come back to you with questions. The results go into your email, so you can see exactly what is sent.</p>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" onClick="{{ pcRun }}" disabled="{{ pcRunning }}" style="min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ fbRunLabel }}</button>
+                <sc-if value="{{ pcHas }}" hint-placeholder-val="{{ false }}">
+                  <button type="button" onClick="{{ fbPcToggle }}" aria-expanded="{{ fbPcExp }}" style="min-height: 52px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.24); background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">{{ fbPcLabel }}</button>
+                </sc-if>
+              </div>
+              <sc-if value="{{ pcRunning }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.45; color: var(--accent); text-wrap: pretty;">{{ pcStep }}</span>
+              </sc-if>
+              <sc-if value="{{ pcErrOn }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size: 14px; line-height: 1.45; color: var(--accent); text-wrap: pretty;">{{ pcErr }}</span>
+              </sc-if>
+              <sc-if value="{{ pcHas }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.45; color: {{ pcSummaryInk }};">Diagnostic done: {{ pcSummary }}. It goes in the email.</span>
+              </sc-if>
+              <sc-if value="{{ fbPcOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; gap: 10px; padding-top: 8px; border-top: 1px solid rgba(var(--line-rgb),.1);">
+                  <sc-for list="{{ pcRows }}" as="r" hint-placeholder-count="0">
+                    <div style="display: grid; grid-template-columns: 8px minmax(0, 7.5em) minmax(0, 1fr); column-gap: 10px; row-gap: 3px; align-items: baseline;">
+                      <i style="width: 7px; height: 7px; border-radius: 50%; background: {{ r.dot }}; transform: translateY(-1px);"></i>
+                      <span style="font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--dim);">{{ r.k }}</span>
+                      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.4; color: var(--text); overflow-wrap: anywhere;">{{ r.v }}</span>
+                      <sc-if value="{{ r.noteOn }}" hint-placeholder-val="{{ false }}">
+                        <span style="grid-column: 3; font-size: 13.5px; line-height: 1.4; color: {{ r.noteInk }}; text-wrap: pretty;">{{ r.note }}</span>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ fbQuestionOn }}" hint-placeholder-val="{{ false }}">
+          <div aria-label="Ask a question" style="display: grid; gap: 20px; padding: 16px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px;">
+            <label style="display: grid; gap: 6px;">
+              <span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">Your question</span>
+              <span style="font-size: 13.5px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">Ask it however it comes to you.</span>
+              <textarea rows="4" value="{{ fbQ }}" onChange="{{ fbOnQ }}" placeholder="For example: how do I give Scout the height of a building that isn't on the map?" style="width: 100%; box-sizing: border-box; padding: 12px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 16.5px; line-height: 1.42; resize: vertical;"></textarea>
+            </label>
+            <div style="display: grid; gap: 8px;">
+              <span style="display: grid; gap: 4px;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--text);">Where in the app?</span><span style="font-size: 13.5px; line-height: 1.4; color: var(--dim); text-wrap: pretty;">Optional.</span></span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <sc-for list="{{ fbPartChips }}" as="c" hint-placeholder-count="6">
+                  <button type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" data-nv-active="{{ c.on }}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{ c.bd }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer;">{{ c.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ fbKindOn }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 10px;">
+            <sc-if value="{{ fbMissingOn }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 14.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">{{ fbMissing }}</span>
+            </sc-if>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <a href="{{ fbMail }}" onClick="{{ fbMailGo }}" aria-disabled="{{ fbBlocked }}" style="display: flex; align-items: center; min-height: 52px; padding: 0 22px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent); color: rgb(var(--card-rgb)); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: {{ fbSendOp }}; pointer-events: {{ fbSendPe }};">Write the email</a>
+              <button type="button" onClick="{{ fbCopyGo }}" disabled="{{ fbBlockedB }}" style="min-height: 52px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.24); background: none; color: var(--text2); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; opacity: {{ fbSendOp }};">{{ fbCopyLabel }}</button>
+            </div>
+            <span style="font-size: 13.5px; line-height: 1.42; color: var(--dim); text-wrap: pretty;">Write the email opens your mail app with all of this in it, addressed to me. Nothing is sent until you press send there. It is copied as well, in case your mail app leaves anything out.</span>
+            <sc-if value="{{ fbCopyFail }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 14px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">This browser would not copy it, so here it is to select by hand and send to feedback@noctography.net.</span>
+              <div style="user-select: all; -webkit-user-select: all; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 280px; overflow: auto; padding: 12px; background: rgba(var(--well-rgb),.6); border: 1px solid rgba(var(--line-rgb),.16); border-radius: 8px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.45; color: var(--text);">{{ fbAll }}</div>
+            </sc-if>
+            <sc-if value="{{ fbSentOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 14px; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--accent-rgb),.4); border-radius: 10px;">
+                <span style="flex: 1 1 260px; font-size: 14.5px; line-height: 1.45; color: var(--text2); text-wrap: pretty;">Thank you. Once it has gone from your mail app, you can clear the form. If nothing opened, copy it and email it to feedback@noctography.net.</span>
+                <button type="button" onClick="{{ fbClear }}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(var(--accent-rgb),.14); color: var(--accent); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Clear the form</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+        <a href="{{ fbPlain }}" style="display: flex; align-items: center; min-height: 44px; color: var(--faint); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;">Something else? Email me directly</a>
       </section>
     </sc-if>
 
@@ -3227,18 +3378,18 @@ window.noctoTrack = function (name, every) {
         <div style="display: grid; gap: 8px;">
           <div style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">Sky AR: ground, imagery and maps</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.55; color: var(--accent); min-width: 0; overflow-wrap: anywhere;">Imagery © Esri, Vantor, Earthstar Geographics, powered by Esri · Terrain: Mapzen Terrarium · Map © OpenStreetMap contributors</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Trees and buildings, where they are drawn, come from national LIDAR and elevation services: Environment Agency, Scottish Government, IGN France, IGN España, Natural Resources Canada, Rijkswaterstaat, Geobasis NRW, Digitaal Vlaanderen, swisstopo, Klimadatastyrelsen, Lantmäteriet, Kartverket, Toitū Te Whenua LINZ, Spatial Services NSW, State of Queensland, Maanmittauslaitos and USGS 3DEP. Elsewhere, canopy height © Meta and WRI, and buildings © OpenStreetMap contributors. Hα: Finkbeiner (2003), with sharper surveys via CDS.</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.55; color: var(--accent); min-width: 0; overflow-wrap: anywhere;">Imagery © Esri, Vantor, Earthstar Geographics, powered by Esri · Terrain: Mapterhorn (national surveys, open licences), Mapzen Terrarium · Map © OpenStreetMap contributors</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Trees and buildings, where they are drawn, come from national LIDAR and elevation services: Environment Agency, Scottish Government, IGN France, IGN España, Natural Resources Canada, Rijkswaterstaat, Geobasis NRW, Digitaal Vlaanderen, swisstopo, Klimadatastyrelsen, Lantmäteriet, Kartverket, Toitū Te Whenua LINZ, Spatial Services NSW, State of Queensland, Maanmittauslaitos and USGS 3DEP. Elsewhere, canopy height © Meta and WRI, and buildings © Overture Maps Foundation (from OpenStreetMap, Microsoft, Google and Esri Community Maps). Hα: Finkbeiner (2003), with sharper surveys via CDS.</span>
           </div>
           <a href="https://eclipse.gsfc.nasa.gov/SEpubs/5MCSE.html" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">Eclipses</span>
             <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">Eclipse Predictions by Fred Espenak, NASA’s GSFC</span>
             <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">Besselian elements for every solar eclipse from 1999 to 2100, from the Five Millennium Canon of Solar Eclipses. Lunar eclipses are worked out on your device and checked against NASA’s catalogue.</span>
           </a>
-          <a href="https://commons.wikimedia.org/wiki/File:FullMoon2010.jpg" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
+          <a href="https://svs.gsfc.nasa.gov/4720" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">The Moon and the Sun</span>
-            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">Moon: Gregory H. Revera, CC BY-SA 3.0 · Sun: NASA/SDO and the HMI science team</span>
-            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The photographs drawn for the Moon and the Sun in Scout and Sky AR. The Moon is cropped and toned; the Sun is SDO’s white-light view, warmed.</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--accent); min-width: 0; overflow-wrap: anywhere; word-break: break-word;">Moon: NASA SVS CGI Moon Kit, LRO LROC and LOLA · close-ups in eclipses: Gregory H. Revera, CC BY-SA 3.0 · Sun: NASA/SDO and the HMI science team</span>
+            <span style="font-size: 14px; line-height: 1.45; color: var(--dim); text-wrap: pretty;">The Moon in Scout is drawn from NASA’s colour and height maps of the whole Moon, lit at the true phase and turned by libration. The Sun is SDO’s white-light view, warmed.</span>
           </a>
           <a href="https://ui.adsabs.harvard.edu/abs/1991PASP..103.1033K/abstract" target="_blank" rel="noopener" style="display: grid; gap: 4px; padding: 14px; min-width: 0; background: rgb(var(--card-rgb)); border: 1px solid rgba(var(--line-rgb),.14); border-radius: 10px; color: var(--text);">
             <span style="font-size: 16px; font-weight: 600;">Moonlight sky brightness</span>
@@ -3419,6 +3570,61 @@ window.noctoTrack = function (name, every) {
         <button type="button" onClick="{{ takeoverClose }}" style="display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid rgba(var(--line-rgb),.2); background: none; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;">Got it</button>
       </div>
     </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ relOn }}" hint-placeholder-val="{{ false }}">
+  <div role="dialog" aria-modal="true" aria-label="Noctography 3.1.0" style="position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; gap: 20px; padding: 0; overflow: auto; background: {{ relBg }}; backdrop-filter: {{ relBlur }};">
+    <sc-if value="{{ relP1On }}" hint-placeholder-val="{{ true }}">
+      <div data-screen-label="3.1.0 Shotfinder card" style="position: {{ relPos }}; inset: {{ relInset }}; flex: 0 0 auto; width: {{ relW1 }}; height: {{ relH }}; overflow: hidden; border-radius: {{ relRad }}; background: #E8ABA6;">
+        <img src="../assets/release/shotfinder-3.1.jpg" alt="The full Moon sitting on the tip of the Shard, with St Paul's beside it" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 100%; display: block;">
+        <div style="position: absolute; left: 24px; right: 24px; top: {{ relTop }}; display: grid; gap: clamp(8px, 1.5vh, 14px); color: #160F47;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="../assets/logo/violet.png" alt="Noctography" style="width: 32px; height: 32px; border-radius: 8px; display: block;">
+            <span style="font-family: 'Barlow', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase;">New in 3.1.0</span>
+            <span style="padding: 2px 9px; border-radius: 999px; border: 1px solid #160F47; font-family: 'Barlow', sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;">Beta</span>
+          </div>
+          <h2 style="margin: 0; font-family: 'Barlow Condensed', 'Barlow', sans-serif; font-weight: 600; font-size: clamp(31px, 4.7vh, 44px); line-height: .9; letter-spacing: 0; text-transform: uppercase; text-wrap: balance;">Take the hassle out of planning</h2>
+          <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: clamp(27px, 3.9vh, 36px); line-height: 1;">with Shotfinder</span>
+          <div style="display: grid; gap: clamp(6px, 1vh, 9px); padding-top: 4px;">
+            <div style="display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: baseline; gap: 8px;"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700;">01</span><span style="font-family: 'Barlow', sans-serif; font-size: clamp(14.5px, 1.8vh, 16.5px); font-weight: 600; line-height: 1.25;">Pick a target and pin a subject</span></div>
+            <div style="display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: baseline; gap: 8px;"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700;">02</span><span style="font-family: 'Barlow', sans-serif; font-size: clamp(14.5px, 1.8vh, 16.5px); font-weight: 600; line-height: 1.25;">Twelve months searched in seconds</span></div>
+            <div style="display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: baseline; gap: 8px;"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700;">03</span><span style="font-family: 'Barlow', sans-serif; font-size: clamp(14.5px, 1.8vh, 16.5px); font-weight: 600; line-height: 1.25;">See where to stand, clear of buildings and trees</span></div>
+            <div style="display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: baseline; gap: 8px;"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700;">04</span><span style="font-family: 'Barlow', sans-serif; font-size: clamp(14.5px, 1.8vh, 16.5px); font-weight: 600; line-height: 1.25;">Tap a chance to stand in the shot in 3D</span></div>
+          </div>
+        </div>
+        <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 260px; background: linear-gradient(to top, rgba(5,4,24,.96) 0%, rgba(5,4,24,.86) 55%, rgba(5,4,24,0) 100%); pointer-events: none;"></div>
+        <div style="position: absolute; left: 24px; right: 24px; bottom: {{ relBot }}; display: grid; gap: 14px;">
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; line-height: 1.45; color: #F5F5F5;">The full Moon on the Shard<br>20 May 2027 · 22:10 · 300mm</span>
+          <div style="display: grid; grid-template-columns: {{ relCols }}; gap: 9px;">
+            <button type="button" onClick="{{ relTry }}" style="display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 16px; border-radius: 999px; font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: #0A0A0B; font-weight: 700;">Try Shotfinder</button>
+            <sc-if value="{{ relNavOn }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ relNext }}" style="display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 16px; border-radius: 999px; font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; border: 1px solid rgba(245,245,245,.4); background: none; color: #F5F5F5; font-weight: 600;">What else is new</button></sc-if>
+          </div>
+          <sc-if value="{{ relNavOn }}" hint-placeholder-val="{{ true }}"><div aria-hidden="true" style="display: flex; justify-content: center; gap: 8px;"><i style="width: 18px; height: 6px; border-radius: 999px; background: var(--accent);"></i><i style="width: 6px; height: 6px; border-radius: 999px; background: rgba(245,245,245,.4);"></i></div></sc-if>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ relP2On }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="3.1.0 Also new" style="position: {{ relPos }}; inset: {{ relInset }}; flex: 0 0 auto; width: {{ relW2 }}; height: {{ relH }}; box-sizing: border-box; overflow: auto; display: grid; grid-template-rows: minmax(0, 1fr) auto; padding: {{ relPad2 }}; border-radius: {{ relRad }}; border: {{ relEdge }}; background: rgb(var(--card-rgb));">
+        <div style="display: grid; align-content: start; gap: 18px;">
+          <img src="../assets/logo-roundel.png" alt="" style="width: 46px; height: 46px; border-radius: 50%; display: block;">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--accent);">Noctography 3.1.0</span>
+          <h2 style="margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; font-size: 38px; line-height: 1.04;">Also new</h2>
+          <div style="display: grid; gap: 12px;">
+            <sc-for list="{{ relList }}" as="b" hint-placeholder-count="4">
+              <p style="display: flex; align-items: baseline; gap: 10px; margin: 0; font-size: 16.5px; line-height: 1.45; color: var(--text); text-wrap: pretty;"><i style="flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); transform: translateY(-3px);"></i><span>{{ b.text }}</span></p>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: grid; gap: 14px; padding-top: 20px;">
+          <div style="display: grid; grid-template-columns: {{ relCols }}; gap: 9px;">
+            <sc-if value="{{ relNavOn }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ relPrev }}" style="display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 16px; border-radius: 999px; font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; border: 1px solid rgba(var(--line-rgb),.24); background: none; color: var(--text); font-weight: 600;">Back</button></sc-if>
+            <button type="button" onClick="{{ relClose }}" style="display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 16px; border-radius: 999px; font-family: 'Barlow', sans-serif; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: #0A0A0B; font-weight: 700;">Got it</button>
+          </div>
+          <sc-if value="{{ relNavOn }}" hint-placeholder-val="{{ true }}"><div aria-hidden="true" style="display: flex; justify-content: center; gap: 8px;"><i style="width: 6px; height: 6px; border-radius: 999px; background: rgba(245,245,245,.4);"></i><i style="width: 18px; height: 6px; border-radius: 999px; background: var(--accent);"></i></div></sc-if>
+        </div>
+      </div>
+    </sc-if>
   </div>
 </sc-if>
 
@@ -4053,7 +4259,7 @@ class Component extends DCLogic {
     filmSecs: 10, showTl: false,
     framePitch: 34, frameScrub: 40, frameMin: null, frameAz: null, frameThirds: true, frameLabels: true, frameElements: true,
     frameGround: true, frameGlow: true, frameMap: { stars: true, lines: true, bounds: false, names: false }, frameGroundLoad: null,
-    arMap: { stars: false, lines: false, bounds: false, names: false }, arVirtual: false, arGlow: true, arHa: (() => { try { return localStorage.getItem('noctography.arHa') === 'on'; } catch (e) { return false; } })(), arTrue: false, frameTrue: false, arPano: false, arPanoMock: false, arIdeas: false, arIdeaSel: null, ideaTick: 0, arPanoProj: 'sph', arPanoBox: null, arPanoSaved: '', panoFrom: null,
+    arMap: { stars: false, lines: false, bounds: false, names: false, grid: false }, arVirtual: false, arGlow: true, arHa: (() => { try { return localStorage.getItem('noctography.arHa') === 'on'; } catch (e) { return false; } })(), arTrue: false, frameTrue: false, arPano: false, arPanoMock: false, arIdeas: false, arIdeaSel: null, ideaTick: 0, arPanoProj: 'sph', arPanoBox: null, arPanoSaved: '', panoFrom: null,
     frameExposure: 100, frameDate: null,
     calView: null, calOffset: 0, calSel: null, kitReturn: null,
     nearbyOpen: false, nearbyDrive: null, nearbyStatus: 'idle', nbView: null, noticeDone: {}, buildsOpen: false,
@@ -4142,8 +4348,21 @@ class Component extends DCLogic {
 
      Adding a release: add an entry with the next version and today's date. The notice appears once
      per device, keyed to the version, and never for somebody opening the app for the first time. */
-  VERSION = '3.0.14';
+  VERSION = '3.1.0';
   BUILDS = [
+    {
+      /* the pop-up is the Shotfinder card (1b in Release 3.1.0 notice.dc.html), then the rest */
+      v: '3.1.0', date: '2026-10-24', silent: false, card: 'shotfinder',
+      title: 'Noctography 3.1.0',
+      intro: '',
+      bullets: [
+        'Shotfinder (beta) in Scout: when, in the next 12 months, the Moon, the Sun, the Milky Way or any deep-sky object lines up with your subject, and where to stand for it, with buildings and trees in the way counted',
+        'A new sky in Scout: more naturalistic Milky Way, more accurate star colour and a more realistic Moon',
+        'Moon and Sun paths and the Milky Way arc in Scout',
+        'An easier way to give feedback on its own page',
+        'Constant improvement of the terrain, how buildings and trees render and lots and lots of bug squashing',
+      ],
+    },
     {
       v: '3.0', date: '2026-10-02', silent: false,
       title: 'Noctography 3.0',
@@ -4449,7 +4668,7 @@ class Component extends DCLogic {
     if (!b || b.silent) return null;
     return {
       id: 'build-' + b.v, style: 'takeover', label: b.popup ? b.popup.label : 'Version ' + b.v,
-      title: b.popup ? b.popup.title : b.title, body: b.popup ? b.popup.body : b.intro, bullets: b.popup ? [] : b.bullets, foot: b.popup ? b.popup.foot : b.foot, cta: null,
+      title: b.popup ? b.popup.title : b.title, body: b.popup ? b.popup.body : b.intro, bullets: b.popup ? [] : b.bullets, foot: b.popup ? b.popup.foot : b.foot, cta: null, card: b.card || null,
     };
   }
 
@@ -4495,8 +4714,8 @@ class Component extends DCLogic {
     }) || null;
   }
 
-  /* Phone check, in More and in front of Feedback. One run serves both: the report shows in full in
-     the check's own card and travels in the feedback email. Started straight from the tap, because
+  /* Phone check, in More and in Feedback's problem report. One run serves both: the report shows in full
+     in the check's own card (and folded in Feedback) and travels in the email. Started straight from the tap, because
      iOS will only show the motion prompt inside it. */
   pcStart() {
     const C = window.NoctoPhoneCheck, pc = this.state.pc;
@@ -4507,19 +4726,23 @@ class Component extends DCLogic {
     p.then(r => this.setState({ pc: { running: false, rows: r.rows, text: r.text, model: r.model, problems: r.problems, checks: r.checks } }))
       .catch(e => this.setState({ pc: { running: false, err: (e && e.message) || String(e) } }));
   }
+  /* copies text, the clipboard first and an off-screen selection where that is refused; true if it went */
+  copyText(text) {
+    return new Promise(res => {
+      const fallback = () => {
+        const t = document.createElement('textarea');
+        t.value = text; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.top = '0'; t.style.opacity = '0';
+        document.body.appendChild(t); t.select(); try { t.setSelectionRange(0, text.length); } catch (e) {}
+        let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+        t.remove(); res(ok);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => res(true), fallback);
+      else fallback();
+    });
+  }
   pcCopy(text) {
     if (!text) return;
-    const done = () => this.setState({ pcCopied: Date.now(), pcCopyFail: false });
-    const fallback = () => {
-      const t = document.createElement('textarea');
-      t.value = text; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.top = '0'; t.style.opacity = '0';
-      document.body.appendChild(t); t.select(); try { t.setSelectionRange(0, text.length); } catch (e) {}
-      let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
-      t.remove();
-      if (ok) done(); else this.setState({ pcCopyFail: true });
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
-    else fallback();
+    this.copyText(text).then(ok => this.setState(ok ? { pcCopied: Date.now(), pcCopyFail: false } : { pcCopyFail: true }));
   }
   pcVals() {
     const st = this.state, pc = st.pc || {}, has = !!(pc.rows && pc.rows.length);
@@ -4543,12 +4766,98 @@ class Component extends DCLogic {
       pcCopyLabel: copied ? 'Copied' : 'Copy the report',
       pcCopiedOn: !!copied,
       pcCopyFail: !!st.pcCopyFail && has, pcText: pc.text || '',
-      pcMail: 'mailto:jpchaworth@gmail.com?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body),
+      pcMail: 'mailto:feedback@noctography.net?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body),
       /* the report is copied as well as written into the email, in case the mail app drops a long body */
       pcMailGo: () => { if (has) this.pcCopy(pc.text); },
-      fbOpen: !!st.fbOpen,
-      fbToggle: () => this.setState({ fbOpen: !st.fbOpen }),
-      fbPlain: 'mailto:jpchaworth@gmail.com?subject=Noctography%20Feedback',
+      fbPlain: 'mailto:feedback@noctography.net?subject=Noctography%20Feedback',
+    };
+  }
+
+  /* Feedback, its own tab: an idea (the use case first, so I know why and where it fits), a problem
+     (with the diagnostic) or a question, written into an email to me. The draft is kept on this
+     device until it is cleared, so a tab change or a reload loses nothing. */
+  FB_KEY = 'noctography.feedback.draft';
+  fbDraft() {
+    if (this.state.fb) return this.state.fb;
+    if (this._fbInit === undefined) { let d = null; try { d = JSON.parse(localStorage.getItem(this.FB_KEY) || 'null'); } catch (e) {} this._fbInit = d && typeof d === 'object' ? d : {}; }
+    return this._fbInit;
+  }
+  fbSet(patch) {
+    const fb = Object.assign({}, this.fbDraft(), patch);
+    this.setState({ fb, fbSent: 0, fbCopyFail: false });
+    clearTimeout(this._fbSaveT);
+    this._fbSaveT = setTimeout(() => { try { localStorage.setItem(this.FB_KEY, JSON.stringify(fb)); } catch (e) {} }, 400);
+  }
+  fbClear() {
+    clearTimeout(this._fbSaveT); try { localStorage.removeItem(this.FB_KEY); } catch (e) {}
+    this._fbInit = {}; this.setState({ fb: {}, fbSent: 0, fbCopied: 0, fbCopyFail: false, fbPcOpen: false }); this.scrollTop(0);
+  }
+  fbVals() {
+    const st = this.state, fb = this.fbDraft(), kind = fb.kind || null, pc = st.pc || {}, hasPc = !!(pc.rows && pc.rows.length);
+    const t = v => (typeof v === 'string' ? v : '').trim();
+    const look = on => ({ on: on ? 'on' : 'off', pressed: on ? 'true' : 'false', bg: on ? 'rgba(var(--accent-rgb),.16)' : 'transparent', bd: on ? 'var(--accent)' : 'rgba(var(--line-rgb),.2)', fg: on ? 'var(--accent)' : 'var(--text2)' });
+    const one = (f, list) => list.map(l => Object.assign({ label: l, go: () => this.fbSet({ [f]: fb[f] === l ? null : l }) }, look(fb[f] === l)));
+    const many = (f, list) => { const cur = Array.isArray(fb[f]) ? fb[f] : []; return list.map(l => { const on = cur.indexOf(l) >= 0; return Object.assign({ label: l, go: () => this.fbSet({ [f]: on ? cur.filter(x => x !== l) : cur.concat([l]) }) }, look(on)); }); };
+    const KINDS = [
+      { id: 'idea', label: 'Share an idea', sub: 'Something that would make Noctography better for you', d: 'M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4' },
+      { id: 'problem', label: 'Report a problem', sub: 'A bug, something slow, or something hard to use', d: 'M12 20v-9 M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z M14.12 3.88 16 2 M21 21a4 4 0 0 0-3.81-4 M21 5a4 4 0 0 1-3.55 3.97 M22 13h-4 M3 21a4 4 0 0 1 3.81-4 M3 5a4 4 0 0 0 3.55 3.97 M6 13H2 M8 2l1.88 1.88 M9 7.13V6a3 3 0 1 1 6 0v1.13' },
+      { id: 'question', label: 'Ask a question', sub: 'How something works, or how to do something', d: 'M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0 M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3 M12 17h.01' },
+    ];
+    const PARTS = ['Tonight', 'Place', 'Sky AR', 'Scout', 'Shotfinder', 'Aurora', 'Meteors', 'Eclipses', 'Log', 'Kit'];
+    const PK = { "Something isn't working": 'not working', "It's slow or jerky": 'slow or jerky', "It's hard to use": 'hard to use' };
+    const clip = (s, n) => s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, '') + '\u2026' : s;
+    /* the email: headings a reader can follow, the facts on lines of their own */
+    const L = [], para = (head, v) => { if (t(v)) L.push(head + '\n' + t(v), ''); }, fact = (head, v) => { const s = Array.isArray(v) ? v.join(', ') : v; if (s) L.push(head + ': ' + s); };
+    let subj = 'Noctography', ready = false, missing = '';
+    const ver = 'Noctography ' + this.VERSION;
+    if (kind === 'idea') {
+      subj = 'Noctography idea' + (t(fb.idea) ? ': ' + clip(t(fb.idea).replace(/\s+/g, ' '), 60) : '');
+      para("What I'm trying to do:", fb.goal);
+      fact('When it comes up', fb.when); fact('Closest part of Noctography', fb.part); if (L.length && L[L.length - 1] !== '') L.push('');
+      para('How I do it at the moment:', fb.now); para('My idea:', fb.idea);
+      L.push('--', ver);
+      ready = !!(t(fb.goal) && t(fb.idea));
+      missing = !t(fb.goal) && !t(fb.idea) ? "Fill in what you're trying to do and your idea, and it's ready to send." : !t(fb.goal) ? "Fill in what you're trying to do, and it's ready to send." : 'Add your idea, and it is ready to send.';
+    } else if (kind === 'problem') {
+      subj = 'Noctography problem' + (fb.pkind ? ': ' + PK[fb.pkind] : '') + (fb.part ? (fb.pkind ? ' in ' : ': ') + fb.part : '') + (pc.model ? ' (' + pc.model + ')' : '');
+      fact('What sort of problem', fb.pkind); fact('Where in the app', fb.part); fact('How often', fb.often); if (L.length) L.push('');
+      para('What I was doing:', fb.steps); para('What happened, and what I expected:', fb.what);
+      L.push('--', ver + (window.screen ? ' \u00b7 screen ' + screen.width + '\u00d7' + screen.height + (window.devicePixelRatio ? ' at ' + Math.round(window.devicePixelRatio * 100) / 100 + 'x' : '') : ''), navigator.userAgent);
+      if (hasPc) L.push('', pc.text);
+      ready = !!t(fb.what); missing = "Say what happened, and it's ready to send.";
+    } else if (kind === 'question') {
+      subj = 'Noctography question' + (fb.part ? ': ' + fb.part : '');
+      para('My question:', fb.q); fact('Where in the app', fb.part); if (fb.part) L.push('');
+      L.push('--', ver);
+      ready = !!t(fb.q); missing = "Write your question, and it's ready to send.";
+    }
+    const body = L.join('\n'), to = 'feedback@noctography.net', all = 'To: ' + to + '\nSubject: ' + subj + '\n\n' + body;
+    const copied = st.fbCopied && Date.now() - st.fbCopied < 6000;
+    if (copied && !this._fbCopiedT) this._fbCopiedT = setTimeout(() => { this._fbCopiedT = null; this.forceUpdate(); }, 6100);
+    const copyGo = () => { if (!ready) return; this.copyText(all).then(ok => this.setState(ok ? { fbCopied: Date.now(), fbCopyFail: false } : { fbCopyFail: true })); };
+    return {
+      fbKinds: KINDS.map(k => Object.assign({ label: k.label, sub: k.sub, d: k.d, go: () => this.fbSet({ kind: kind === k.id ? null : k.id }) }, look(kind === k.id), { bg: kind === k.id ? 'rgba(var(--accent-rgb),.12)' : 'rgb(var(--card-rgb))', bd: kind === k.id ? 'var(--accent)' : 'rgba(var(--line-rgb),.14)', fg: kind === k.id ? 'var(--accent)' : 'var(--text)' })),
+      fbKindOn: !!kind, fbIdeaOn: kind === 'idea', fbProblemOn: kind === 'problem', fbQuestionOn: kind === 'question',
+      fbGoal: fb.goal || '', fbOnGoal: e => this.fbSet({ goal: e.target.value }),
+      fbNow: fb.now || '', fbOnNow: e => this.fbSet({ now: e.target.value }),
+      fbIdea: fb.idea || '', fbOnIdea: e => this.fbSet({ idea: e.target.value }),
+      fbSteps: fb.steps || '', fbOnSteps: e => this.fbSet({ steps: e.target.value }),
+      fbWhat: fb.what || '', fbOnWhat: e => this.fbSet({ what: e.target.value }),
+      fbQ: fb.q || '', fbOnQ: e => this.fbSet({ q: e.target.value }),
+      fbWhenChips: many('when', ['Planning at home', 'Getting there', 'Out shooting', 'Afterwards']),
+      fbPartChips: one('part', PARTS.concat([kind === 'idea' ? 'Something new' : 'Not sure'])),
+      fbPkindChips: one('pkind', Object.keys(PK)),
+      fbOftenChips: one('often', ['Every time', 'Sometimes', 'Just once']),
+      fbPcOpen: hasPc && !!st.fbPcOpen, fbPcExp: st.fbPcOpen ? 'true' : 'false', fbPcLabel: st.fbPcOpen ? 'Hide the results' : 'Show the results',
+      fbPcToggle: () => this.setState({ fbPcOpen: !st.fbPcOpen }),
+      fbMissingOn: !ready, fbMissing: missing,
+      fbBlocked: ready ? 'false' : 'true', fbBlockedB: !ready, fbSendOp: ready ? '1' : '.42', fbSendPe: ready ? 'auto' : 'none',
+      fbMail: 'mailto:' + to + '?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body),
+      /* copied as well as written into the email, in case the mail app drops a long body */
+      fbMailGo: e => { if (!ready) { e.preventDefault(); return; } this.copyText(all).then(ok => this.setState(ok ? { fbCopied: Date.now() } : {})); this.setState({ fbSent: Date.now() }); this.track && this.track('feedback/' + kind); },
+      fbCopyGo: copyGo, fbCopyLabel: copied ? 'Copied' : 'Copy it instead',
+      fbCopyFail: !!st.fbCopyFail && ready, fbAll: all,
+      fbSentOn: !!st.fbSent, fbClear: () => this.fbClear(),
     };
   }
 
@@ -4582,7 +4891,26 @@ class Component extends DCLogic {
     const quiet = over ? null : this.activeNotice('quiet');
     const shown = over || quiet;
     if (shown && this._noticeTracked !== shown.id) { this._noticeTracked = shown.id;  }
-    const vals = { takeoverOn: !!over, noticeOn: !!quiet };
+    const card = !!(over && over.card === 'shotfinder');
+    const vals = { takeoverOn: !!over && !card, noticeOn: !!quiet, relOn: card };
+    /* 3.1.0's card: on a phone two full-screen pages, the card and then the rest; on a computer both side by
+       side in one pop-up. Try Shotfinder goes to Sky AR's Scout with Shotfinder waiting for a subject */
+    if (card) {
+      const wide = window.innerWidth >= 900 && window.innerHeight >= 640, pg = this.state.relPage === 2 ? 2 : 1, H = 'min(86vh, 820px)';
+      Object.assign(vals, {
+        relP1On: wide || pg === 1, relP2On: wide || pg === 2, relNavOn: !wide,
+        relBg: wide ? 'rgba(4,4,6,.88)' : '#050506', relBlur: wide ? 'blur(10px)' : 'none',
+        relPos: wide ? 'relative' : 'absolute', relInset: wide ? 'auto' : '0', relH: wide ? H : 'auto',
+        relW1: wide ? 'calc(' + H + ' * 9 / 16)' : 'auto', relW2: wide ? '420px' : 'auto', relRad: wide ? '16px' : '0',
+        relTop: wide ? '26px' : 'calc(env(safe-area-inset-top) + 16px)', relBot: wide ? '24px' : 'calc(env(safe-area-inset-bottom) + 18px)',
+        relCols: wide ? '1fr' : '1fr 1fr', relEdge: wide ? '1px solid rgba(var(--accent-rgb),.45)' : '0',
+        relPad2: wide ? '32px 28px 24px' : 'calc(env(safe-area-inset-top) + 26px) 24px calc(env(safe-area-inset-bottom) + 18px)',
+        relList: (over.bullets || []).filter(t => !/^Shotfinder/.test(t)).map(text => ({ text })),
+        relNext: () => this.setState({ relPage: 2 }), relPrev: () => this.setState({ relPage: 1 }),
+        relClose: () => this.closeNotice(over),
+        relTry: () => { this.closeNotice(over); this._fsFind = Date.now(); this.track && this.track('notice/shotfinder'); this.goTab('sky'); },
+      });
+    }
     const fill = (n, p) => {
       if (!n) return;
       vals[p + 'Label'] = n.label;
@@ -5366,9 +5694,10 @@ class Component extends DCLogic {
     pano: 'M2 3v18 M8 3H16a2 2 0 0 1 2 2V19a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2V5a2 2 0 0 1 2 -2Z M22 3v18',
     kit: 'M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z M9 13a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
     log: 'M15.5 3.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h6.6 M9 3.5V2m3 1.5V2 M8.5 8h6M8.5 11.5h6M8.5 15h3 m20.6 12.6-4.9 4.9-2.4.6.6-2.4 4.9-4.9a1.3 1.3 0 0 1 1.8 1.8Z',
+    feedback: 'M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z M8 10h.01 M12 10h.01 M16 10h.01',
     more: 'M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0',
   };
-  KEYS = { t: 'tonight', p: 'map', a: 'aurora', m: 'meteors', r: 'trails', s: 'sky', o: 'pano', k: 'kit', l: 'log', h: 'more' };
+  KEYS = { t: 'tonight', p: 'map', a: 'aurora', m: 'meteors', r: 'trails', s: 'sky', o: 'pano', k: 'kit', l: 'log', f: 'feedback', h: 'more' };
   _onKey = e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const el = document.activeElement;
@@ -6026,7 +6355,7 @@ class Component extends DCLogic {
 
     const out = {
       isTonight: st.tab === 'tonight', isMeteors: st.tab === 'meteors', isAurora: st.tab === 'aurora',
-      isPano: st.tab === 'pano', isMore: st.tab === 'more', isData: st.tab === 'data',
+      isPano: st.tab === 'pano', isMore: st.tab === 'more', isData: st.tab === 'data', isFeedback: st.tab === 'feedback',
       isTrails: st.tab === 'trails', isSky: st.tab === 'sky', isKit: st.tab === 'kit',
       isLog: st.tab === 'log', isMap: st.tab === 'map', isComps: st.tab === 'comps', isEclipses: st.tab === 'eclipses',
       cloudMapGo: () => this.openCloudMap(),
@@ -6059,6 +6388,7 @@ class Component extends DCLogic {
         { key: 'eclipses', label: 'Eclipses' },
         { key: 'log', label: 'Log' },
         { key: 'kit', label: 'Kit' },
+        { key: 'feedback', label: 'Feedback' },
         { key: 'more', label: 'More' },
       ].filter(n => !n.off).map(n => {
         const c = nav(n.key);
@@ -6231,6 +6561,7 @@ class Component extends DCLogic {
       ...this.noticeVals(),
       ...this.buildVals(),
       ...this.safe('pcVals'),
+      ...this.safe('fbVals'),
       ...this.safe('backupVals'),
       ...this.safe('syncVals'),
       ...this.safe('layoutVals'),
@@ -7122,15 +7453,16 @@ class Component extends DCLogic {
       + (subAim ? '&az=' + Math.round(((subAim.az % 360) + 360) % 360) + '&alt=' + subAim.alt.toFixed(1)
         : this._arV && isFinite(this._arV.az) ? '&az=' + Math.round(((this._arV.az % 360) + 360) % 360) : '')
       + (fsEcl ? '&ecl=' + fsEcl : '')
+      + (this._fsFind && Date.now() - this._fsFind < 30000 ? '&find=1' : '')
       /* a time picked on the strip or the calendar goes with it; the live clock leaves Scout on tonight */
       + (subAim ? '&t=' + subAim.t + '&night=' + subAim.night
         : this.state.arScrub != null || this.state.arDate ? '&t=' + this.arTime().getTime() + '&night=' + this.arDateStr(this.arDayBase()) : '');
     /* the small scene's memory goes to the big one; it is rebuilt on the way back */
     const o = this._scout;
     if (o && o.canvas) { try { const g = o.canvas.getContext('webgl2') || o.canvas.getContext('webgl'); const x = g && g.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); } catch (e) {} o.canvas.width = o.canvas.height = 0; }
-    this._scout = null; this._scoutKey = null;
+    this._scout = null; this._scoutKey = null; this._fsFind = 0;
     this.track && this.track('skyar/full-scout');
-    this.setState({ fullScout: true, fullScoutWait: true, fullScoutNote: '', fullScoutSrc: (/\.dc\.html$/.test(location.pathname) ? '../Scout.dc.html?' : '../scout/?') + q });
+    this.setState({ fullScout: true, fullScoutWait: true, fullScoutNote: '', fullScoutSrc: (/\.dc\.html$/.test(location.pathname) ? '../scout/?' : '../scout/?') + q });
     clearTimeout(this._fsT);
     this._fsOpenedAt = Date.now();
     /* slow to say it is up: stop waiting and let it draw, rather than handing back to the old view */
@@ -7512,8 +7844,26 @@ class Component extends DCLogic {
         if (spr) {
           ctx.save();
           ctx.globalAlpha = gain;
-          ctx.setTransform(ax, ay, -bx, -by, p.x, p.y);
-          ctx.drawImage(spr, -1, -1, 2, 2);
+          /* placed by the photograph's four measured corners (Stellarium's), not square to north:
+             the Orion Nebula's frame is turned 7 degrees, the Pleiades' a third of a turn. A quad that
+             is not a parallelogram (Barnard Loop 4, a trapezoid) is drawn as Stellarium draws it, two
+             triangles c0-c1-c2 and c0-c2-c3; one transform from three corners put its arc degrees out */
+          const K = o.wc ? this.arSpriteCorners(o) : null;
+          if (K) {
+            const S = K.map(([xi, et]) => [p.x + xi / (o.w / 2) * ax + et / (o.h / 2) * bx, p.y + xi / (o.w / 2) * ay + et / (o.h / 2) * by]);
+            const IW = spr.width, IH = spr.height, I = [[0, IH], [IW, IH], [IW, 0], [0, 0]];
+            const skew = Math.hypot(S[0][0] + S[2][0] - S[1][0] - S[3][0], S[0][1] + S[2][1] - S[1][1] - S[3][1]);
+            const half = (a, b, c) => {
+              const s0 = I[a], s1 = I[b], s2 = I[c], p0 = S[a], p1 = S[b], p2 = S[c];
+              const den = (s1[0] - s0[0]) * (s2[1] - s0[1]) - (s2[0] - s0[0]) * (s1[1] - s0[1]);
+              const A = ((p1[0] - p0[0]) * (s2[1] - s0[1]) - (p2[0] - p0[0]) * (s1[1] - s0[1])) / den, C = ((p2[0] - p0[0]) * (s1[0] - s0[0]) - (p1[0] - p0[0]) * (s2[0] - s0[0])) / den;
+              const B = ((p1[1] - p0[1]) * (s2[1] - s0[1]) - (p2[1] - p0[1]) * (s1[1] - s0[1])) / den, Dd = ((p2[1] - p0[1]) * (s1[0] - s0[0]) - (p1[1] - p0[1]) * (s2[0] - s0[0])) / den;
+              ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.closePath(); ctx.clip();
+              ctx.setTransform(A, B, C, Dd, p0[0] - A * s0[0] - C * s0[1], p0[1] - B * s0[0] - Dd * s0[1]); ctx.drawImage(spr, 0, 0); ctx.restore();
+            };
+            if (skew > 3) { half(0, 1, 2); half(0, 2, 3); }
+            else { ctx.setTransform((S[2][0] - S[3][0]) / IW, (S[2][1] - S[3][1]) / IW, (S[0][0] - S[3][0]) / IH, (S[0][1] - S[3][1]) / IH, S[3][0], S[3][1]); ctx.drawImage(spr, 0, 0); }
+          } else { ctx.setTransform(ax, ay, -bx, -by, p.x, p.y); ctx.drawImage(spr, -1, -1, 2, 2); }
           ctx.restore();
           ctx.setTransform(1, 0, 0, 1, 0, 0);
         }
@@ -7798,6 +8148,14 @@ class Component extends DCLogic {
      Stellarium set, rebaked to 512px WebP (about 28 KB each, 3.8 MB for all 118), served from
      this origin. That is what makes the pixels readable, which is what the composition capture
      needs, and it means AR works in a field with no signal. */
+  /* the four corners as east and north offsets in degrees from the centre, on the tangent plane */
+  arSpriteCorners(o) {
+    if (o._k) return o._k;
+    const D = Math.PI / 180, r0 = o.ra * D, d0 = o.dec * D, s0 = Math.sin(d0), c0 = Math.cos(d0);
+    o._k = o.wc.map(([ra, de]) => { const r = ra * D - r0, d = de * D, cc = s0 * Math.sin(d) + c0 * Math.cos(d) * Math.cos(r);
+      return [Math.cos(d) * Math.sin(r) / cc / D, (c0 * Math.sin(d) - s0 * Math.cos(d) * Math.cos(r)) / cc / D]; });
+    return o._k;
+  }
   arSpriteImg(o) {
     if (!this._arSprites) this._arSprites = new Map();
     const hit = this._arSprites.get(o.f);
@@ -7814,11 +8172,28 @@ class Component extends DCLogic {
       cv.width = s; cv.height = s;
       const c = cv.getContext('2d');
       c.drawImage(img, 0, 0, s, s);
-      const soft = Math.max(o.w, o.h) >= 2 ? 0.30 : 0.62;
-      const g = c.createRadialGradient(s / 2, s / 2, s * soft * 0.5, s / 2, s / 2, s * 0.5);
-      g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      /* Sh2-216 and Sh2-157 are false colour (narrowband as a rainbow): redrawn from their
+         brightness as the hydrogen red a camera records, and dimmer, since both are faint */
+      if (o.f === 'sh2-216.png' || o.f === 'sh2-157.png') {
+        const px = c.getImageData(0, 0, s, s), d = px.data;
+        for (let i = 0; i < d.length; i += 4) { const L = Math.max(d[i], d[i + 1], d[i + 2]) * 0.6; d[i] = L; d[i + 1] = L * 0.16; d[i + 2] = L * 0.26; }
+        c.putImageData(px, 0, 0);
+      }
       c.globalCompositeOperation = 'destination-in';
-      c.fillStyle = g; c.fillRect(0, 0, s, s);
+      if (/-a\d\d\.png$|^barnard_loop-\d/.test(o.f)) {
+        /* pieces of a mosaic (Rho Ophiuchi, Barnard's Loop): a round fade on each made the set a
+           red ball, so they fade along their square edges instead and join up */
+        const e = 0.14, m = document.createElement('canvas'); m.width = m.height = s;
+        const mc = m.getContext('2d'), gx = mc.createLinearGradient(0, 0, s, 0), gy = mc.createLinearGradient(0, 0, 0, s);
+        [gx, gy].forEach(q => { q.addColorStop(0, 'rgba(0,0,0,0)'); q.addColorStop(e, 'rgba(0,0,0,1)'); q.addColorStop(1 - e, 'rgba(0,0,0,1)'); q.addColorStop(1, 'rgba(0,0,0,0)'); });
+        mc.fillStyle = gx; mc.fillRect(0, 0, s, s); mc.globalCompositeOperation = 'destination-in'; mc.fillStyle = gy; mc.fillRect(0, 0, s, s);
+        c.drawImage(m, 0, 0);
+      } else {
+        const soft = Math.max(o.w, o.h) >= 2 ? 0.30 : 0.62;
+        const g = c.createRadialGradient(s / 2, s / 2, s * soft * 0.5, s / 2, s / 2, s * 0.5);
+        g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        c.fillStyle = g; c.fillRect(0, 0, s, s);
+      }
       rec.cv = cv; rec.ready = true;
       // loaded asynchronously from the CDN, well after the canvas last painted: without this the
       // sprite sits ready in the cache but never actually appears until something else redraws.
@@ -7846,7 +8221,8 @@ class Component extends DCLogic {
   }
   /* A phone gets the 4096 panorama: a quarter of the download and of the memory to decode, and
      nothing it can show is lost. The 8k one is for a desktop screen. */
-  bandSrc() { const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches; return coarse ? '../assets/4k_stars_milky_way.jpg' : '../assets/8k_stars_milky_way.jpg'; }
+  /* NASA's 2020 Milky Way (Gaia DR2), reprojected to the old panorama's galactic layout, tone set */
+  bandSrc() { return '../assets/sky/mw_nasa_gal_4k_v3.jpg'; }
 
   /* The panorama is a photograph of a genuinely dark sky: the faint arms sit in the bottom
      twentieth of the range while the core is near the top. A linear multiply, which is what a
@@ -7876,7 +8252,7 @@ class Component extends DCLogic {
         lut[i] = Math.min(1, Math.pow(x / (255 - B0), 0.52) * 1.06) * 255;
       }
       const strip = Math.max(1, Math.floor(2097152 / w));
-      for (let y = 0; y < h; y += strip) {
+      for (let y = /mw_nasa/.test(img.src || '') ? h : 0; y < h; y += strip) {
         const d = cx.getImageData(0, y, w, Math.min(strip, h - y));
         const p = d.data;
         for (let i = 0; i < p.length; i += 4) { p[i] = lut[p[i]]; p[i + 1] = lut[p[i + 1]]; p[i + 2] = lut[p[i + 2]]; }
@@ -8614,7 +8990,8 @@ class Component extends DCLogic {
     if (!this._panoCv) this._panoCv = document.createElement('canvas');
     const tok = this._panoTok = {};
     const o = this._panoOpts || (this._panoOpts = {});
-    const map = Object.assign({ stars: false, lines: false, bounds: false }, st.arMap || {}, { names: false });
+    /* drawn in slices, so no names and no grid labels: each slice would letter its own */
+    const map = Object.assign({ stars: false, lines: false, bounds: false }, st.arMap || {}, { names: false, gridLabels: false });
     const glowOn = st.arGlow !== false;
     Object.assign(o, {
       lat: E.state.lat, lon: E.state.lon, when: this.arTime(), gain: 0.25 + (this.arExpVal() / 100) * 1.5,
@@ -10459,8 +10836,8 @@ class Component extends DCLogic {
 
     // the catalogue layers, when any are switched on
     const am = st.arMap || {};
-    if (S && (am.stars || am.lines || am.bounds || am.names))
-      S.drawStarMap(ctx, pr, E.state.lat, lst, W, H, { stars: am.stars, lines: am.lines, bounds: am.bounds, names: am.names,
+    if (S && (am.stars || am.lines || am.bounds || am.names || am.grid))
+      S.drawStarMap(ctx, pr, E.state.lat, lst, W, H, { stars: am.stars, lines: am.lines, bounds: am.bounds, names: am.names, grid: am.grid,
         dark: 1, gain: Math.max(0.4, bandT), nv, dpr: scale });
 
     // star trails, when asked for
@@ -11001,10 +11378,10 @@ class Component extends DCLogic {
       arFwd15: () => this.arSetMins(Math.round(this.arMins() / 15) * 15 + 15),
       arNotLive: !(st.arScrub == null && !st.arDate),
       /* Figures and boundaries are one idea, the constellations, so they are one switch */
-      arMapChips: [['stars', 'Stars', ['stars']], ['cons', 'Constellations', ['lines', 'bounds']], ['names', 'Names', ['names']]].map(([id, l, keys]) => {
+      arMapChips: [['stars', 'Stars', ['stars']], ['cons', 'Constellations', ['lines', 'bounds']], ['names', 'Names', ['names']], ['grid', 'Celestial grid', ['grid']]].map(([id, l, keys]) => {
         const m0 = st.arMap || {}, on = keys.some(k => m0[k]);
         return chip(l, on, () => {
-          const map = Object.assign({ stars: false, lines: false, bounds: false, names: false }, m0);
+          const map = Object.assign({ stars: false, lines: false, bounds: false, names: false, grid: false }, m0);
           keys.forEach(k => { map[k] = !on; });
           if (!on && this.S()) this.S().loadSkyData(() => {});
           this.setState({ arMap: map });
@@ -11426,11 +11803,11 @@ class Component extends DCLogic {
       bestPct: Math.round((t.peakQuality || 0) * 100),
       bestSub: this.bestSentence(t),
       cloudBars,
-      cloudVal: cloudAvg == null ? 'No forecast' : cloudAvg + '% average',
+      cloudVal: cloudAvg == null ? 'No forecast' : cloudAvg + '% cloud',
       cloudSub: cloudAvg == null ? 'Rates assume clear sky'
         : assumed ? 'Typical for the date \u2013 forecast not available'
-        : partial ? 'Forecast hours only · clearest ' + cloudMin + '%'
-        : 'Sky cloudy through the night \u00b7 clearest ' + cloudMin + '%',
+        : partial ? 'Average over the forecast hours \u00b7 at its thinnest ' + cloudMin + '% cloud'
+        : 'Average through the night \u00b7 at its thinnest ' + cloudMin + '% cloud',
       moonVal: moonPct + '%',
       moonSub: moonSub,
       moonDayOn: true,
@@ -13733,7 +14110,7 @@ class Component extends DCLogic {
     const byBrg = new Map();
     qualifying.forEach(p => { const cur = byBrg.get(p.brg); if (!cur || p.clear > cur.clear) byBrg.set(p.brg, p); });
     const best = [...byBrg.values()].sort((a, b) => b.clear - a.clear).slice(0, 2);
-    const phrase = p => Math.round(p.km) + 'km ' + E.compass(p.brg) + ' (about ' + Math.round(p.clear) + '% clear)';
+    const phrase = p => Math.round(p.km) + 'km ' + E.compass(p.brg) + ' (about ' + Math.round(100 - p.clear) + '% cloud)';
     return { nearbyResultOn: true, nearbyResultColour: 'var(--accent)',
       nearbyResultLine: best.length === 1
         ? phrase(best[0]) + ' is looking a lot better than here, and a drive.'
@@ -13914,7 +14291,7 @@ class Component extends DCLogic {
     };
     const homeClear = home.clear;
     const [hx, hy] = f.toXY(home.lat, home.lon);
-    say('you' + (homeClear == null ? '' : ' · ' + Math.round(homeClear) + '% clear'), hx, hy + 15 * dpr, accent);
+    say('you' + (homeClear == null ? '' : ' · ' + Math.round(100 - homeClear) + '% cloud'), hx, hy + 15 * dpr, accent);
     /* The engine's own assumption about a drive, reused: twenty-five kilometres of straight line
        per half hour. Quoting a different number here would be a second opinion. */
     const mins = km => Math.max(5, Math.round(km * 1.2 / 5) * 5);
@@ -13948,7 +14325,7 @@ class Component extends DCLogic {
       ctx.fill();
       /* Away from the middle, so a label sits over open map rather than over the rings and the
          readings on the far side of your own site. */
-      if (best.indexOf(p) >= 0) say(Math.round(p.clear) + '% clear', x, y + (y <= hy ? -12 : 14) * dpr, good ? accent : ink + '.82)');
+      if (best.indexOf(p) >= 0) say(Math.round(100 - p.clear) + '% cloud', x, y + (y <= hy ? -12 : 14) * dpr, good ? accent : ink + '.82)');
     });
   }
 
@@ -13964,7 +14341,7 @@ class Component extends DCLogic {
     const field = this.cloudField(nb, home);
     const at = field.sample(v.lat, v.lon);
     const km = this.haversineM(home.lat, home.lon, v.lat, v.lon) / 1000;
-    const clearWord = at == null ? 'outside the scan, nothing known here' : 'about ' + Math.round(at) + '% clear tonight';
+    const clearWord = at == null ? 'outside the scan, nothing known here' : 'about ' + Math.round(100 - at) + '% cloud tonight';
     return {
       nbMapOn: true,
       nbMapEl: React.createElement('canvas', {
@@ -14465,7 +14842,7 @@ class Component extends DCLogic {
     while (rows.length > 1 && encodeURIComponent(head + rows.join('\n') + foot).length > LIMIT) { rows.shift(); trimmed++; }
     const body = head + rows.join('\n') + foot
       + (trimmed ? '\n(' + trimmed + ' earlier ' + (trimmed === 1 ? 'night' : 'nights') + ' left out to keep this email a sendable length.)\n' : '');
-    return 'mailto:jpchaworth@gmail.com'
+    return 'mailto:feedback@noctography.net'
       + '?subject=' + encodeURIComponent('Noctography sighting log (' + list.length + ')')
       + '&body=' + encodeURIComponent(body);
   }
@@ -16181,7 +16558,7 @@ class Component extends DCLogic {
       return { ...col(i), v: k + '/' + got.length, w: '700',
         c: all ? 'var(--ink)' : k * 2 >= got.length ? 'var(--cool)' : 'var(--dim)', ...(all ? { bg: 'var(--cool)' } : {}) };
     });
-    const out = [{ k: 'Clear', kc: 'var(--text2)', title: 'How many models have that night under 35% cloud', cells: agree }];
+    const out = [{ k: 'Models clear', kc: 'var(--text2)', title: 'How many of the models have that night under 35% cloud: 3/4 is three of four', cells: agree }];
     c.models.forEach((id, m) => {
       const meta = this.wxMeta(id);
       out.push({ k: meta.short, kc: 'var(--faint)', title: meta.name, cells: vals[m].map((v, i) => ({ ...col(i), w: '400',
@@ -16908,7 +17285,7 @@ class Component extends DCLogic {
     const s = t.best;
     if (s) {
       const cf = this.E().clearFraction(s.cloud);
-      if (cf != null) bits.push(Math.round((1 - cf) * 100) + '% of the sky obscured by cloud');
+      if (cf != null) bits.push(Math.round((1 - cf) * 100) + '% cloud');
       bits.push(s.moonAlt > 0 ? 'moon ' + Math.round(s.moonAlt) + '° up' : 'moon out of the way');
     }
     let out = bits.join(' · ') + '.';
